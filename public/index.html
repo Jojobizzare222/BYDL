@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0E3B2E">
+  <title>Baydel — Électronique et mode au meilleur prix</title>
+  <meta name="description" content="Baydel : smartphones, tablettes, ordinateurs, composants, accessoires, mode homme et femme. Paiement MTN MoMo et Airtel Money, livraison à Pointe-Noire et Brazzaville.">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <div class="promo-strip">Payez en <strong>MTN MoMo</strong> ou <strong>Airtel Money</strong> · Livraison 24-48 h à Pointe-Noire et Brazzaville</div>
+
+  <header class="header">
+    <div class="header-inner">
+      <a href="#/" class="logo" aria-label="Baydel, accueil">Bay<span>del</span></a>
+      <form class="search" id="searchForm" role="search">
+        <input id="searchInput" type="search" placeholder="Rechercher un produit, une catégorie…" aria-label="Rechercher">
+        <button type="submit" aria-label="Lancer la recherche">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        </button>
+      </form>
+      <button class="cart-btn" id="cartBtn" aria-label="Ouvrir le panier">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 4h2l2.4 11.2a1 1 0 0 0 1 .8h9.2a1 1 0 0 0 1-.8L20 8H6"/><circle cx="9" cy="20" r="1.4"/><circle cx="17" cy="20" r="1.4"/></svg>
+        <span class="cart-label">Panier</span>
+        <span class="badge" id="cartCount">0</span>
+      </button>
+    </div>
+    <nav class="catnav" id="catnav" aria-label="Catégories"></nav>
+  </header>
+
+  <main id="app" aria-live="polite"></main>
+
+  <aside class="drawer" id="drawer" aria-hidden="true">
+    <div class="drawer-panel" role="dialog" aria-label="Panier">
+      <div class="drawer-head">
+        <h2>Mon panier</h2>
+        <button class="icon-btn" id="closeDrawer" aria-label="Fermer">✕</button>
+      </div>
+      <div id="cartLines"></div>
+      <div class="drawer-foot">
+        <div class="row saving" id="cartSaving"></div>
+        <div class="row total"><span>Total</span><strong id="cartTotal">0 FCFA</strong></div>
+        <a href="#/commande" class="btn cta block" id="checkoutLink">Valider mon panier</a>
+      </div>
+    </div>
+  </aside>
+
+  <footer class="footer">
+    <div class="footer-grid">
+      <div><strong>Paiement sécurisé</strong><p>MTN Mobile Money et Airtel Money. Vous validez avec votre code secret.</p></div>
+      <div><strong>Livraison</strong><p>24-48 h à Pointe-Noire et Brazzaville. Autres villes sur demande.</p></div>
+      <div><strong>Service client</strong><p>Nous vous appelons après chaque commande.</p></div>
+    </div>
+    <p class="copy">© Baydel. Prix en francs CFA (FCFA), TVA incluse.</p>
+  </footer>
+
+  <script src="/js/app.js" defer></script>
+</body>
+</html>
