@@ -5,7 +5,7 @@
 const crypto = require('crypto');
 const { db, settings } = require('../store');
 
-const COOKIE = 'baydel_admin';
+const COOKIE = 'kamwa_admin';
 const SESSION_DAYS = 7;
 const MAX_FAILS = 5;
 const LOCK_MS = 15 * 60 * 1000;

@@ -1,4 +1,6 @@
-# Baydel — Boutique en ligne
+# Kamwa — Boutique en ligne
+
+*Kamwa* (du lingala *kokamwa*, « s'émerveiller »), anciennement Baydel.
 
 Site e-commerce (électronique et mode) pensé pour l'Afrique centrale (Congo-Brazzaville en premier) :
 prix en **FCFA**, paiement **Mobile Money** (MTN MoMo et Airtel Money), pages légères pour les réseaux mobiles.

@@ -1,4 +1,4 @@
-# Baydel — contexte projet pour Claude Code
+# Kamwa — contexte projet pour Claude Code
 
 ## Le porteur du projet
 - Joseph, basé à Pointe-Noire (Congo-Brazzaville). Chef de projet, **pas développeur** : expliquer simplement, en français, donner les commandes exactes à taper, ne pas supposer de connaissances techniques.
@@ -6,7 +6,9 @@
 - Préférence : être efficace, ne pas régénérer ce qui existe déjà, ne modifier que ce qui doit l'être.
 
 ## Le projet
-**Baydel** (B-A-Y-D-E-L ; `BYDL` n'est que le nom du dossier) : boutique en ligne adaptée à l'Afrique centrale, d'abord le Congo-Brazzaville.
+**Kamwa** (KAM-WA ; du lingala *kokamwa*, « s'émerveiller » : l'idée de découverte) : boutique en ligne adaptée à l'Afrique centrale, d'abord le Congo-Brazzaville. Anciennement « Baydel » (renommé le 16/10/2026) ; `BYDL` n'est que le nom du dossier, `data/baydel.db` un nom de fichier historique.
+- Nom de domaine choisi : **kamwa.cg** (à réserver par Joseph auprès du registre .cg). Vision long terme : marketplace, marque assez forte pour du sponsoring.
+- Suivi du projet : page Notion « Projet BYDL — Baydel » (feuille de route + journal), privée chez Joseph.
 - Prix en **FCFA (XAF, entiers, pas de centimes)**, interface en français, pensée **mobile d'abord** et connexions lentes.
 - Paiement **Mobile Money uniquement : MTN MoMo et Airtel Money**.
 - Style visuel inspiré de **Cdiscount** (marchand, dense, bannières promo, prix barrés, badges de remise, « Bonnes affaires du jour »), mais avec une identité propre : vert `#0E3B2E` + orange `#FF7A00`, prix en rouge `#D7261E`. Ne pas copier la marque Cdiscount.

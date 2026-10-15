@@ -46,7 +46,7 @@ function ask(question) {
     console.error('Lancez cette commande directement dans le Terminal.');
     process.exit(1);
   }
-  console.log(isPasswordSet() ? 'Changement du mot de passe admin Baydel.' : 'Création du mot de passe admin Baydel.');
+  console.log(isPasswordSet() ? 'Changement du mot de passe admin Kamwa.' : 'Création du mot de passe admin Kamwa.');
   console.log(`Au moins ${MIN_LENGTH} caractères. Une phrase facile à retenir marche très bien.\n`);
   const first = await ask('Nouveau mot de passe : ');
   if (first.length < MIN_LENGTH) {

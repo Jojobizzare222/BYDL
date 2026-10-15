@@ -1,4 +1,4 @@
-// Baydel — front-end léger (aucune dépendance) pour rester rapide sur les réseaux mobiles.
+// Kamwa — front-end léger (aucune dépendance) pour rester rapide sur les réseaux mobiles.
 (() => {
   const $ = (sel, el = document) => el.querySelector(sel);
   const app = $('#app');
@@ -32,20 +32,20 @@
   const cartKey = () => JSON.stringify(Object.entries(state.cart).sort());
   const loadJSON = (key) => { try { return JSON.parse(localStorage.getItem(key)) || null; } catch { return null; } };
   const saveJSON = (key, value) => { try { value ? localStorage.setItem(key, JSON.stringify(value)) : localStorage.removeItem(key); } catch {} };
-  const loadCheckout = () => loadJSON('baydel-checkout');
-  const saveCheckout = (c) => saveJSON('baydel-checkout', c);
+  const loadCheckout = () => loadJSON('kamwa-checkout');
+  const saveCheckout = (c) => saveJSON('kamwa-checkout', c);
   const orderHeaders = (token) => ({ 'X-Order-Token': token });
 
   function finishPaid(checkout) {
     state.cart = {}; saveCart();
     saveCheckout(null);
-    saveJSON('baydel-last-order', { id: checkout.orderId, token: checkout.token });
+    saveJSON('kamwa-last-order', { id: checkout.orderId, token: checkout.token });
     location.hash = '#/merci/' + checkout.orderId;
   }
 
   // ---------- Panier (conservé dans le navigateur) ----------
-  function loadCart() { try { return JSON.parse(localStorage.getItem('baydel-cart')) || {}; } catch { return {}; } }
-  function saveCart() { try { localStorage.setItem('baydel-cart', JSON.stringify(state.cart)); } catch {} renderCart(); }
+  function loadCart() { try { return JSON.parse(localStorage.getItem('kamwa-cart')) || {}; } catch { return {}; } }
+  function saveCart() { try { localStorage.setItem('kamwa-cart', JSON.stringify(state.cart)); } catch {} renderCart(); }
   const byId = (id) => state.products.find((p) => p.id === id);
   const cartItems = () => Object.entries(state.cart).map(([id, qty]) => ({ product: byId(id), qty })).filter((l) => l.product);
   const cartTotal = () => cartItems().reduce((s, l) => s + l.product.price * l.qty, 0);
@@ -314,7 +314,7 @@
         if (p.status === 'SUCCESSFUL') return finishPaid(current);
       } catch {}
     }
-    const saved = (() => { try { return JSON.parse(localStorage.getItem('baydel-customer')) || {}; } catch { return {}; } })();
+    const saved = (() => { try { return JSON.parse(localStorage.getItem('kamwa-customer')) || {}; } catch { return {}; } })();
 
     app.innerHTML = `
       <h1>Finaliser ma commande</h1>
@@ -369,7 +369,7 @@
       const err = $('#formError'); err.innerHTML = '';
       const btn = $('#payBtn'); btn.disabled = true; btn.textContent = 'Envoi de la demande…';
       const customer = { name: form.name.value, phone: form.phone.value, city: form.city.value, address: form.address.value };
-      try { localStorage.setItem('baydel-customer', JSON.stringify(customer)); } catch {}
+      try { localStorage.setItem('kamwa-customer', JSON.stringify(customer)); } catch {}
       try {
         // Même panier qu'une tentative précédente non payée : on réutilise la commande.
         let checkout = loadCheckout();
@@ -449,7 +449,7 @@
   async function viewThanks(orderId) {
     renderNav(null);
     // Les détails de la commande ne sont lisibles qu'avec sa clé secrète, gardée par ce navigateur.
-    const last = loadJSON('baydel-last-order');
+    const last = loadJSON('kamwa-last-order');
     let order = null;
     if (last?.id === orderId) {
       try { order = await api('/orders/' + enc(orderId), { headers: orderHeaders(last.token) }); } catch {}

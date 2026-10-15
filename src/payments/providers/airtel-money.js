@@ -45,7 +45,7 @@ const headers = (token) => ({
 async function requestPayment({ reference, amount, phoneLocal }) {
   assertConfigured();
   const token = await getToken();
-  const transactionId = `BAY${Date.now()}${crypto.randomInt(100, 999)}`;
+  const transactionId = `KAM${Date.now()}${crypto.randomInt(100, 999)}`;
 
   const res = await operatorFetch(`${airtel.baseUrl}/merchant/v1/payments/`, {
     method: 'POST',

@@ -1,4 +1,4 @@
-// Baydel — espace admin (aucune dépendance). Routes : #/commandes, #/commande/<id>, #/produits, #/produit/<id|nouveau>
+// Kamwa — espace admin (aucune dépendance). Routes : #/commandes, #/commande/<id>, #/produits, #/produit/<id|nouveau>
 (() => {
   const $ = (sel, el = document) => el.querySelector(sel);
   const app = $('#app');
@@ -37,7 +37,7 @@
     $('#top').hidden = true;
     app.innerHTML = `
       <form class="panel login" id="loginForm">
-        <span class="logo">Bay<span>del</span></span>
+        <span class="logo">Kam<span>wa</span></span>
         <h1>Espace admin</h1>
         ${message ? `<div class="alert err">${esc(message)}</div>` : ''}
         <label for="password">Mot de passe</label>
@@ -68,9 +68,9 @@
   // ---------- Sonnerie des nouvelles commandes ----------
   // Les navigateurs n'autorisent le son qu'après un geste (clic) : d'où le bouton « Son ».
   let audio = null;
-  const soundWanted = () => { try { return localStorage.getItem('baydel-admin-sound') !== 'off'; } catch { return true; } };
+  const soundWanted = () => { try { return localStorage.getItem('kamwa-admin-sound') !== 'off'; } catch { return true; } };
   function enableSound(on) {
-    try { localStorage.setItem('baydel-admin-sound', on ? 'on' : 'off'); } catch {}
+    try { localStorage.setItem('kamwa-admin-sound', on ? 'on' : 'off'); } catch {}
     if (on) {
       audio = audio || new (window.AudioContext || window.webkitAudioContext)();
       audio.resume();
@@ -120,7 +120,7 @@
     const todo = state.orders.filter((o) => o.status === 'paid' || o.paidAfterCancel).length;
     $('#todoCount').hidden = !todo;
     $('#todoCount').textContent = todo;
-    document.title = todo ? `(${todo}) Baydel Admin` : 'Baydel Admin';
+    document.title = todo ? `(${todo}) Kamwa Admin` : 'Kamwa Admin';
   }
 
   async function loadProducts() {

@@ -1,7 +1,7 @@
 {
-  "name": "baydel",
+  "name": "kamwa",
   "version": "0.1.0",
-  "description": "Baydel — boutique en ligne adaptée à l'Afrique, avec paiement Mobile Money (MTN MoMo, Airtel Money)",
+  "description": "Kamwa — boutique en ligne adaptée à l'Afrique, avec paiement Mobile Money (MTN MoMo, Airtel Money)",
   "main": "src/server.js",
   "type": "commonjs",
   "scripts": {

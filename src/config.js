@@ -5,7 +5,7 @@ const env = (key, fallback = '') => process.env[key] ?? fallback;
 module.exports = {
   port: Number(env('PORT', 3000)),
   publicUrl: env('PUBLIC_URL', 'http://localhost:3000').replace(/\/$/, ''),
-  shopName: env('SHOP_NAME', 'Baydel'),
+  shopName: env('SHOP_NAME', 'Kamwa'),
   currency: env('CURRENCY', 'XAF'),
   country: env('COUNTRY', 'CG'),
   paymentMode: env('PAYMENT_MODE', 'simulation'), // simulation | live
