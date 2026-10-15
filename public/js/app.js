@@ -9,6 +9,7 @@
   // Univers et catégories affichés dans le menu : fournis par le serveur (src/catalog.js), même liste que l'admin
   let UNIVERSES = [];
   const ICONS = { 'Téléphones': '📱', 'Tablettes': '📲', 'Ordinateurs': '💻', 'Montres': '⌚', 'Audio': '🎧', 'TV & Maison': '📺', 'Composants': '💾', 'Accessoires': '🔌', 'Homme': '👕', 'Femme': '👚', 'Chaussures': '👟' };
+  const hasUniverse = (name) => UNIVERSES.some((u) => u.name === name);
   const universeOf = (cat) => UNIVERSES.find((u) => u.categories.includes(cat))?.name;
 
   const state = { products: [], config: {}, cart: loadCart(), sort: 'pertinence', timers: [] };
@@ -169,24 +170,24 @@
     app.innerHTML = `
       <section class="hero" aria-label="Offres du moment">
         <div class="slides" id="slides">
-          <div class="slide s1">
+          ${hasUniverse('Électronique') ? `<div class="slide s1">
             <span class="kicker">Semaine high-tech</span>
             <h2>iPhone, iPad &amp; MacBook</h2>
             <span class="big">jusqu'à -11%</span>
             <a class="btn light" href="#/c/${enc('Électronique')}">J'en profite</a>
-          </div>
+          </div>` : ''}
           <div class="slide s2">
             <span class="kicker">Nouveau</span>
             <h2>Payez en Mobile Money</h2>
             <span>MTN MoMo et Airtel Money, validation avec votre code secret.</span>
             <a class="btn light" href="#/promos">Voir les bonnes affaires</a>
           </div>
-          <div class="slide s3">
+          ${hasUniverse('Mode') ? `<div class="slide s3">
             <span class="kicker">Mode</span>
             <h2>T-shirts, joggings &amp; baskets</h2>
             <span class="big">dès 4 000 FCFA</span>
             <a class="btn light" href="#/c/Mode">Découvrir</a>
-          </div>
+          </div>` : ''}
         </div>
         <div class="dots" id="dots"></div>
       </section>
@@ -493,7 +494,11 @@
     app.innerHTML = '<p class="empty">Chargement…</p>';
     try {
       [state.products, state.config] = await Promise.all([api('/products'), api('/config')]);
-      UNIVERSES = state.config.universes || [];
+      // On n'affiche que les rayons qui ont au moins un produit visible (les rayons vides réapparaissent
+      // automatiquement dès qu'un produit y est ajouté ou réaffiché depuis l'admin).
+      UNIVERSES = (state.config.universes || [])
+        .map((u) => ({ ...u, categories: u.categories.filter((c) => state.products.some((p) => p.category === c)) }))
+        .filter((u) => u.categories.length);
     } catch {
       app.innerHTML = '<p class="empty">Connexion impossible. Vérifiez votre réseau.</p>';
       return;
