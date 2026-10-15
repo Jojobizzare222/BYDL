@@ -2,9 +2,21 @@ const crypto = require('crypto');
 const router = require('express').Router();
 const { products, orders } = require('../store');
 const { normalizeLocal } = require('../utils/phone');
+const { availableStock } = require('../utils/stock');
 
 const newOrderId = () =>
-  'CMD-' + new Date().toISOString().slice(2, 10).replace(/-/g, '') + '-' + crypto.randomBytes(3).toString('hex').toUpperCase();
+  'CMD-' + new Date().toISOString().slice(2, 10).replace(/-/g, '') + '-' + crypto.randomBytes(4).toString('hex').toUpperCase();
+
+// Clé secrète remise au seul navigateur qui a créé la commande : sans elle, impossible de lire
+// les coordonnées du client ni de déclencher un paiement.
+function hasAccess(order, token) {
+  const a = Buffer.from(String(token || ''));
+  const b = Buffer.from(order.accessToken || '');
+  return a.length === b.length && b.length > 0 && crypto.timingSafeEqual(a, b);
+}
+
+// Version renvoyée au navigateur (sans la clé secrète).
+const publicOrder = ({ accessToken, ...order }) => order;
 
 // Création de commande : le total est TOUJOURS recalculé côté serveur à partir du catalogue.
 router.post('/', (req, res) => {
@@ -21,7 +33,7 @@ router.post('/', (req, res) => {
     const quantity = Math.floor(Number(qty));
     if (!product || product.active === false) return res.status(400).json({ error: `Produit indisponible : ${productId}` });
     if (!(quantity >= 1 && quantity <= 99)) return res.status(400).json({ error: 'Quantité invalide' });
-    if (product.stock != null && quantity > product.stock) {
+    if (quantity > availableStock(product)) {
       return res.status(400).json({ error: `Stock insuffisant pour ${product.name}` });
     }
     lines.push({ productId, name: product.name, unitPrice: product.price, qty: quantity, total: product.price * quantity });
@@ -30,6 +42,7 @@ router.post('/', (req, res) => {
   const subtotal = lines.reduce((s, l) => s + l.total, 0);
   const order = orders.insert({
     id: newOrderId(),
+    accessToken: crypto.randomBytes(16).toString('hex'),
     lines,
     subtotal,
     deliveryFee: 0, // à définir selon la zone (Pointe-Noire, Brazzaville…)
@@ -45,13 +58,16 @@ router.post('/', (req, res) => {
     createdAt: new Date().toISOString(),
   });
 
-  res.status(201).json(order);
+  // Seule réponse qui contient la clé : le navigateur la garde pour la suite (paiement, page « merci »).
+  res.status(201).json({ ...publicOrder(order), token: order.accessToken });
 });
 
+// La clé est transmise dans un en-tête (jamais dans l'adresse, pour ne pas la laisser dans les journaux).
 router.get('/:id', (req, res) => {
   const order = orders.get(req.params.id);
-  if (!order) return res.status(404).json({ error: 'Commande introuvable' });
-  res.json(order);
+  if (!order || !hasAccess(order, req.get('X-Order-Token'))) return res.status(404).json({ error: 'Commande introuvable' });
+  res.json(publicOrder(order));
 });
 
 module.exports = router;
+module.exports.hasAccess = hasAccess;

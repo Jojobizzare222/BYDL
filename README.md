@@ -28,6 +28,12 @@ est validé automatiquement après environ 8 secondes. Un numéro qui se termine
 5. La page vérifie le statut toutes les 4 secondes. L'opérateur peut aussi prévenir le serveur via un callback. Dans les deux cas, le serveur **revérifie le statut directement auprès de l'opérateur**.
 6. Une fois le paiement confirmé, la commande passe à « payée » et le stock diminue.
 
+Protections :
+- **Pas de double paiement** : une seule demande de paiement en attente par commande. Si le client réessaie ou recharge la page, on reprend la même commande et la même demande. Si l'opérateur tarde, la page continue de vérifier au lieu d'afficher « échec ».
+- **Stock réservé** pendant qu'un client paie (10 minutes maximum), pour ne pas vendre deux fois le dernier article.
+- **Données clients protégées** : seule la personne qui a passé la commande peut en voir les coordonnées (clé secrète gardée par son navigateur).
+- **Opérateur trop lent** : on n'attend pas plus de 15 s, et la demande reste vérifiable ensuite.
+
 L'opérateur est reconnu à partir du préfixe : 06 = MTN, 05/04 = Airtel.
 
 ## Passer aux vrais paiements
@@ -57,7 +63,7 @@ src/
   payments/
     index.js             choix de l'opérateur (simulation / réel)
     providers/           MTN MoMo, Airtel Money, simulation
-  utils/                 numéros de téléphone, montants FCFA
+  utils/                 numéros de téléphone, montants FCFA, stock disponible
 public/                  le site (HTML, CSS, JavaScript sans framework)
 public/images/products/  images des produits (PNG/JPG, champ "image" de chaque produit)
 data/products.json       catalogue électronique + mode (produits d'exemple à remplacer)

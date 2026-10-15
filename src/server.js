@@ -6,8 +6,17 @@ const app = express();
 app.disable('x-powered-by');
 app.use(express.json({ limit: '100kb' }));
 
-// Fichiers statiques avec cache : important pour les connexions mobiles lentes.
-app.use(express.static(path.join(__dirname, '..', 'public'), { maxAge: '1h' }));
+// Fichiers statiques :
+//  - HTML/CSS/JS en « no-cache » : le navigateur revérifie à chaque visite (réponse 304 très légère si rien n'a changé),
+//    donc les clients voient tout de suite la dernière version du site ;
+//  - images en cache 24 h : important pour les connexions mobiles lentes.
+app.use(
+  express.static(path.join(__dirname, '..', 'public'), {
+    setHeaders(res, filePath) {
+      res.setHeader('Cache-Control', /\.(html|css|js)$/.test(filePath) ? 'no-cache' : 'public, max-age=86400');
+    },
+  })
+);
 
 app.get('/api/config', (req, res) =>
   res.json({ shopName: config.shopName, currency: config.currency, paymentMode: config.paymentMode })

@@ -9,6 +9,10 @@ module.exports = {
   currency: env('CURRENCY', 'XAF'),
   country: env('COUNTRY', 'CG'),
   paymentMode: env('PAYMENT_MODE', 'simulation'), // simulation | live
+  // Durée pendant laquelle une demande de paiement en attente bloque une nouvelle demande et réserve le stock.
+  paymentPendingMinutes: Number(env('PAYMENT_PENDING_MINUTES', 10)),
+  // Délai maximal d'attente d'une réponse de MTN / Airtel.
+  operatorTimeoutMs: Number(env('OPERATOR_TIMEOUT_MS', 15000)),
 
   mtn: {
     baseUrl: env('MTN_BASE_URL', 'https://sandbox.momodeveloper.mtn.com'),

@@ -19,13 +19,30 @@
   // ---------- API ----------
   async function api(path, options = {}) {
     const res = await fetch('/api' + path, {
-      headers: { 'Content-Type': 'application/json' },
       ...options,
+      headers: { 'Content-Type': 'application/json', ...options.headers },
       body: options.body ? JSON.stringify(options.body) : undefined,
     });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(data.error || 'Erreur réseau, réessayez.');
+    if (!res.ok) throw Object.assign(new Error(data.error || 'Erreur réseau, réessayez.'), { data });
     return data;
+  }
+
+  // ---------- Commande en cours (une seule commande et un seul paiement par panier) ----------
+  // On garde la commande et sa clé secrète : si le client réessaie, recharge la page ou revient plus tard,
+  // on reprend la même commande au lieu d'en créer une nouvelle (ce qui pourrait le faire payer deux fois).
+  const cartKey = () => JSON.stringify(Object.entries(state.cart).sort());
+  const loadJSON = (key) => { try { return JSON.parse(localStorage.getItem(key)) || null; } catch { return null; } };
+  const saveJSON = (key, value) => { try { value ? localStorage.setItem(key, JSON.stringify(value)) : localStorage.removeItem(key); } catch {} };
+  const loadCheckout = () => loadJSON('baydel-checkout');
+  const saveCheckout = (c) => saveJSON('baydel-checkout', c);
+  const orderHeaders = (token) => ({ 'X-Order-Token': token });
+
+  function finishPaid(checkout) {
+    state.cart = {}; saveCart();
+    saveCheckout(null);
+    saveJSON('baydel-last-order', { id: checkout.orderId, token: checkout.token });
+    location.hash = '#/merci/' + checkout.orderId;
   }
 
   // ---------- Panier (conservé dans le navigateur) ----------
@@ -285,10 +302,20 @@
     $('#buyNow').addEventListener('click', () => { if (!state.cart[p.id]) addToCart(p.id); });
   }
 
-  function viewCheckout() {
+  async function viewCheckout() {
     renderNav(null);
     const items = cartItems();
     if (!items.length) { location.hash = '#/'; return; }
+
+    // Un paiement était en cours pour ce panier (page rechargée, retour en arrière…) : on reprend l'attente.
+    const current = loadCheckout();
+    if (current?.paymentId && current.cartKey === cartKey()) {
+      try {
+        const p = await api('/payments/' + enc(current.paymentId));
+        if (p.status === 'PENDING') return viewWaiting(current, p, true);
+        if (p.status === 'SUCCESSFUL') return finishPaid(current);
+      } catch {}
+    }
     const saved = (() => { try { return JSON.parse(localStorage.getItem('baydel-customer')) || {}; } catch { return {}; } })();
 
     app.innerHTML = `
@@ -346,9 +373,28 @@
       const customer = { name: form.name.value, phone: form.phone.value, city: form.city.value, address: form.address.value };
       try { localStorage.setItem('baydel-customer', JSON.stringify(customer)); } catch {}
       try {
-        const order = await api('/orders', { method: 'POST', body: { customer, items: items.map(({ product, qty }) => ({ productId: product.id, qty })) } });
-        const payment = await api('/payments', { method: 'POST', body: { orderId: order.id, phone: form.momo.value, operator: form.operator.value } });
-        viewWaiting(order, payment);
+        // Même panier qu'une tentative précédente non payée : on réutilise la commande.
+        let checkout = loadCheckout();
+        let order = null;
+        if (checkout?.cartKey === cartKey()) {
+          try { order = await api('/orders/' + enc(checkout.orderId), { headers: orderHeaders(checkout.token) }); } catch {}
+          if (order?.status === 'paid') return finishPaid(checkout);
+          if (order?.status !== 'pending_payment') order = null;
+        }
+        if (!order) {
+          const created = await api('/orders', { method: 'POST', body: { customer, items: items.map(({ product, qty }) => ({ productId: product.id, qty })) } });
+          checkout = { orderId: created.id, token: created.token, cartKey: cartKey() };
+          saveCheckout(checkout);
+        }
+        let payment;
+        try {
+          payment = await api('/payments', { method: 'POST', body: { orderId: checkout.orderId, token: checkout.token, phone: form.momo.value, operator: form.operator.value } });
+        } catch (ex) {
+          if (ex.data?.orderStatus === 'paid') return finishPaid(checkout);
+          throw ex;
+        }
+        saveCheckout({ ...checkout, paymentId: payment.id });
+        viewWaiting(checkout, payment, payment.resumed);
       } catch (ex) {
         err.innerHTML = `<div class="alert err">${esc(ex.message)}</div>`;
         btn.disabled = false; btn.textContent = `Payer ${fcfa(cartTotal())}`;
@@ -356,25 +402,36 @@
     });
   }
 
-  function viewWaiting(order, payment) {
+  function viewWaiting(checkout, payment, resumed) {
     const opName = payment.operator === 'mtn' ? 'MTN MoMo' : 'Airtel Money';
     app.innerHTML = `
-      <div class="panel waiting">
+      <div class="panel waiting" id="waiting">
         <div class="spinner"></div>
         <h1>Validez le paiement sur votre téléphone</h1>
+        ${resumed ? '<div class="sim">Une demande de paiement est déjà en cours pour cette commande. Validez-la sur votre téléphone : nous n\'en envoyons pas une deuxième.</div>' : ''}
         <p>Une demande de <strong>${fcfa(payment.amount)}</strong> a été envoyée via <strong>${opName}</strong>.<br>
         Saisissez votre <strong>code secret</strong> sur votre téléphone pour confirmer.</p>
-        <p class="hint">Commande ${esc(order.id)}. Ne fermez pas cette page.</p>
+        <p class="hint" id="waitHint">Commande ${esc(checkout.orderId)}. Ne fermez pas cette page.</p>
       </div>`;
+    const box = $('#waiting');
     const started = Date.now();
     const poll = async () => {
+      if (!box.isConnected) return; // le client a quitté la page : l'attente reprendra s'il revient sur « commande »
+      const elapsed = Date.now() - started;
       try {
-        const p = await api('/payments/' + payment.id);
-        if (p.status === 'SUCCESSFUL') { state.cart = {}; saveCart(); location.hash = '#/merci/' + order.id; return; }
-        if (p.status === 'FAILED') return viewFailed(p);
+        const p = await api('/payments/' + enc(payment.id));
+        if (p.status === 'SUCCESSFUL') return finishPaid(checkout);
+        if (p.status === 'FAILED') { saveCheckout({ ...checkout, paymentId: null }); return viewFailed(p); }
       } catch {}
-      if (Date.now() - started > 3 * 60 * 1000) return viewFailed({ reason: 'Délai dépassé : la demande n\'a pas été validée.' });
-      setTimeout(poll, 4000);
+      // Pas de confirmation après 3 min : on ne dit PAS « échec » (le client a peut-être validé), on continue de vérifier.
+      if (elapsed > 3 * 60 * 1000) {
+        $('#waitHint').innerHTML = `Commande ${esc(checkout.orderId)}. Nous attendons encore la confirmation de l'opérateur.<br>
+          <strong>Si vous avez déjà saisi votre code, ne payez pas une deuxième fois</strong> : cette page se met à jour toute seule.`;
+      }
+      if (elapsed > 15 * 60 * 1000) {
+        return viewFailed({ reason: `Aucune confirmation reçue de l'opérateur. Si votre compte a été débité, contactez-nous en indiquant la commande ${checkout.orderId} : nous vérifierons avant tout nouveau paiement.` });
+      }
+      setTimeout(poll, elapsed > 3 * 60 * 1000 ? 10000 : 4000);
     };
     setTimeout(poll, 4000);
   }
@@ -385,15 +442,30 @@
         <h1>Paiement non abouti</h1>
         <p>${esc(p.reason || 'Le paiement a été refusé ou annulé.')}</p>
         <p class="hint">Vérifiez votre solde Mobile Money puis réessayez. Votre panier est conservé.</p>
-        <a class="btn cta" href="#/commande">Réessayer</a>
+        <button class="btn cta" id="retryBtn">Réessayer</button>
       </div>`;
+    // Bouton (et non lien) : on est déjà sur #/commande, un lien vers la même adresse ne ferait rien.
+    $('#retryBtn').addEventListener('click', route);
   }
 
   async function viewThanks(orderId) {
     renderNav(null);
-    let order;
-    try { order = await api('/orders/' + enc(orderId)); } catch { order = null; }
+    // Les détails de la commande ne sont lisibles qu'avec sa clé secrète, gardée par ce navigateur.
+    const last = loadJSON('baydel-last-order');
+    let order = null;
+    if (last?.id === orderId) {
+      try { order = await api('/orders/' + enc(orderId), { headers: orderHeaders(last.token) }); } catch {}
+    }
     try { state.products = await api('/products'); } catch {} // stock à jour
+    if (order && order.status === 'pending_payment') {
+      app.innerHTML = `
+        <div class="panel waiting">
+          <h1>Paiement en attente</h1>
+          <p>Commande <strong>${esc(order.id)}</strong> : le paiement n'est pas encore confirmé.</p>
+          <a class="btn cta" href="#/commande">Retour à la commande</a>
+        </div>`;
+      return;
+    }
     app.innerHTML = `
       <div class="panel waiting">
         <div class="big-check">✓</div>

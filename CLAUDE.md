@@ -20,8 +20,10 @@ src/server.js            serveur + API ; HTML/CSS/JS en no-cache, images en cach
 src/config.js            lit .env (PAYMENT_MODE, clés MTN/Airtel…)
 src/store.js             collections JSON chargées EN MÉMOIRE au démarrage → redémarrer après modif de data/
 src/routes/products.js   GET /api/products?universe=&category=&q=  ·  GET /api/products/:id
-src/routes/orders.js     POST /api/orders (total RECALCULÉ côté serveur)  ·  GET /api/orders/:id
-src/routes/payments.js   POST /api/payments · GET /api/payments/:id (polling) · POST /api/payments/callback/:operator
+src/routes/orders.js     POST /api/orders (total RECALCULÉ côté serveur ; renvoie une clé secrète `token`)  ·  GET /api/orders/:id (en-tête X-Order-Token obligatoire)
+src/routes/payments.js   POST /api/payments (body.token obligatoire) · GET /api/payments/:id (polling) · POST /api/payments/callback/:operator
+src/payments/http.js     appels opérateurs avec délai maximal (OPERATOR_TIMEOUT_MS, 15 s)
+src/utils/stock.js       stock disponible = stock - quantités réservées par les paiements en attente
 src/payments/index.js    choix simulation / live
 src/payments/providers/  mtn-momo.js (Collection API, requesttopay) · airtel-money.js (merchant/v1/payments) · simulation.js
 src/utils/phone.js       numéros +242 : 06 = MTN, 05/04 = Airtel
@@ -35,14 +37,23 @@ Lancer : `npm install` puis `npm start` → http://localhost:3000.
 - Flux : commande créée → demande de paiement à l'opérateur → le client valide avec son code PIN → le navigateur interroge le statut toutes les 4 s → le serveur **revérifie toujours auprès de l'opérateur** (ne jamais faire confiance au navigateur ni au contenu d'un callback) → commande `paid` + décrément du stock.
 - `PAYMENT_MODE=simulation` par défaut : validé après ~8 s ; un numéro finissant par `000` simule un refus.
 - Mode `live` : MTN sandbox (momodeveloper.mtn.com, devise EUR en sandbox, `mtncongo`/XAF en prod) ; Airtel nécessite un compte marchand Airtel Congo (pas de vrai test possible avant). Joseph n'a qu'un numéro Airtel → vrai test téléphone reporté.
+- **Anti double paiement** : une seule demande en attente par commande (les anciennes sont revérifiées avant toute nouvelle ; une demande en attente de moins de `PAYMENT_PENDING_MINUTES`=10 min est reprise, pas doublée). Le navigateur garde la commande en cours (`baydel-checkout` dans localStorage) et la réutilise tant que le panier ne change pas. Après 3 min sans réponse, la page n'affiche PAS « échec » : elle continue de vérifier (jusqu'à 15 min).
+- Pas de réponse de l'opérateur (délai dépassé) : la demande est quand même enregistrée en attente pour être revérifiée, jamais perdue.
+- Les coordonnées d'une commande ne sont lisibles qu'avec sa clé (`token`, gardée par le navigateur du client).
 - Alternative envisageable plus tard : agrégateur (CinetPay, pawaPay…) via un nouveau provider.
 
 ## État actuel et points d'attention
 - Les 90 produits Apple et leurs **70 images sont une simulation** : illustrations génériques générées (pas de photos officielles Apple, pas de logo Apple — droits d'image). Les **prix FCFA sont des estimations**, pas des prix marché. À remplacer par le vrai catalogue / photos fournisseur.
 - Pas encore : espace admin, base de données réelle, frais de livraison par zone, notifications SMS/WhatsApp, hébergement en ligne, comptes marchands opérateurs.
 
-## Prochaine grande étape : une application
-Joseph veut créer une **application** pour Baydel. Avant de coder, clarifier avec lui : application client mobile (Android d'abord ? iOS ?) ou appli de gestion (commandes/stock) ; technologie (PWA à partir du site existant, React Native/Expo, ou autre) ; elle devra réutiliser l'API existante (`/api/...`). Proposer un plan court et le faire valider avant de construire.
+## Plan validé (15/10/2026)
+0. ✅ Projet sous Git (branche `main`).
+1. ✅ Fiabiliser l'achat : double paiement, données clients protégées, stock réservé pendant le paiement, cache, délais opérateurs.
+2. Gérer la boutique : espace admin protégé (commandes, statuts, stock, prix), alerte à chaque nouvelle commande, vraie petite base de données.
+3. Contenu réel : catalogue/photos fournisseur, frais de livraison par ville (le formulaire propose encore Dolisie/Autre), pages légales (CGV, confidentialité), contact WhatsApp, vérifier « TVA incluse ».
+4. Mise en ligne : hébergeur, domaine, HTTPS, limite de requêtes, vrai paiement MTN de petit montant.
+
+**Application : reportée.** Joseph a choisi de rester sur le site web, sans application ni installation, pour l'instant. Si elle revient : application pour les clients (achat), en partant du site (PWA) avant tout passage au Play Store.
 
 ## Façon de travailler avec Joseph
 - Toujours expliquer en français simple ce qui a été fait et comment le voir (quelle commande, quelle URL, redémarrer `npm start` si `data/` a changé).

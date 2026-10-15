@@ -3,6 +3,7 @@
 // Remarque : selon le pays/la version de l'API, Airtel peut exiger un chiffrement (x-signature, x-key).
 // Vérifiez ce point avec Airtel Congo lors de l'activation du compte marchand.
 const crypto = require('crypto');
+const { operatorFetch } = require('../http');
 const { airtel } = require('../../config');
 
 let tokenCache = { value: null, expiresAt: 0 };
@@ -15,7 +16,7 @@ function assertConfigured() {
 
 async function getToken() {
   if (tokenCache.value && Date.now() < tokenCache.expiresAt) return tokenCache.value;
-  const res = await fetch(`${airtel.baseUrl}/auth/oauth2/token`, {
+  const res = await operatorFetch(`${airtel.baseUrl}/auth/oauth2/token`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Accept: '*/*' },
     body: JSON.stringify({
@@ -46,7 +47,7 @@ async function requestPayment({ reference, amount, phoneLocal }) {
   const token = await getToken();
   const transactionId = `BAY${Date.now()}${crypto.randomInt(100, 999)}`;
 
-  const res = await fetch(`${airtel.baseUrl}/merchant/v1/payments/`, {
+  const res = await operatorFetch(`${airtel.baseUrl}/merchant/v1/payments/`, {
     method: 'POST',
     headers: headers(token),
     body: JSON.stringify({
@@ -58,6 +59,9 @@ async function requestPayment({ reference, amount, phoneLocal }) {
       },
       transaction: { amount, country: airtel.country, currency: airtel.currency, id: transactionId },
     }),
+  }).catch((err) => {
+    err.providerRef = transactionId; // pour pouvoir vérifier plus tard si Airtel a bien reçu la demande
+    throw err;
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok || data?.status?.success === false) {
@@ -69,7 +73,7 @@ async function requestPayment({ reference, amount, phoneLocal }) {
 async function getStatus(providerRef) {
   assertConfigured();
   const token = await getToken();
-  const res = await fetch(`${airtel.baseUrl}/standard/v1/payments/${providerRef}`, {
+  const res = await operatorFetch(`${airtel.baseUrl}/standard/v1/payments/${providerRef}`, {
     headers: headers(token),
   });
   if (!res.ok) throw new Error(`Airtel status: HTTP ${res.status} ${await res.text()}`);

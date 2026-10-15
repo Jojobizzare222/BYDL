@@ -1,6 +1,7 @@
 // MTN Mobile Money — API "Collection" (Request to Pay)
 // Doc : https://momodeveloper.mtn.com/api-documentation
 const crypto = require('crypto');
+const { operatorFetch } = require('../http');
 const { mtn } = require('../../config');
 const { toInternational } = require('../../utils/phone');
 
@@ -15,7 +16,7 @@ function assertConfigured() {
 async function getToken() {
   if (tokenCache.value && Date.now() < tokenCache.expiresAt) return tokenCache.value;
   const basic = Buffer.from(`${mtn.apiUser}:${mtn.apiKey}`).toString('base64');
-  const res = await fetch(`${mtn.baseUrl}/collection/token/`, {
+  const res = await operatorFetch(`${mtn.baseUrl}/collection/token/`, {
     method: 'POST',
     headers: {
       Authorization: `Basic ${basic}`,
@@ -46,7 +47,7 @@ async function requestPayment({ reference, amount, phoneLocal, description, call
   // La sandbox refuse les callbacks vers un hôte non déclaré : on ne l'envoie qu'en production.
   if (mtn.targetEnv !== 'sandbox' && callbackUrl) headers['X-Callback-Url'] = callbackUrl;
 
-  const res = await fetch(`${mtn.baseUrl}/collection/v1_0/requesttopay`, {
+  const res = await operatorFetch(`${mtn.baseUrl}/collection/v1_0/requesttopay`, {
     method: 'POST',
     headers,
     body: JSON.stringify({
@@ -57,6 +58,9 @@ async function requestPayment({ reference, amount, phoneLocal, description, call
       payerMessage: description.slice(0, 160),
       payeeNote: reference,
     }),
+  }).catch((err) => {
+    err.providerRef = referenceId; // pour pouvoir vérifier plus tard si MTN a bien reçu la demande
+    throw err;
   });
   if (res.status !== 202) throw new Error(`MTN requesttopay: HTTP ${res.status} ${await res.text()}`);
   return { providerRef: referenceId };
@@ -65,7 +69,7 @@ async function requestPayment({ reference, amount, phoneLocal, description, call
 async function getStatus(providerRef) {
   assertConfigured();
   const token = await getToken();
-  const res = await fetch(`${mtn.baseUrl}/collection/v1_0/requesttopay/${providerRef}`, {
+  const res = await operatorFetch(`${mtn.baseUrl}/collection/v1_0/requesttopay/${providerRef}`, {
     headers: {
       Authorization: `Bearer ${token}`,
       'X-Target-Environment': mtn.targetEnv,

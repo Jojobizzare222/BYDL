@@ -4,6 +4,8 @@ const config = require('../config');
 const { orders, payments, products } = require('../store');
 const { getProvider, listOperators } = require('../payments');
 const { normalizeLocal, detectOperator } = require('../utils/phone');
+const { availableStock, isFreshPending } = require('../utils/stock');
+const { hasAccess } = require('./orders');
 
 router.get('/operators', (req, res) => {
   res.json({ mode: config.paymentMode, operators: listOperators() });
@@ -11,10 +13,25 @@ router.get('/operators', (req, res) => {
 
 // 1) Le client choisit son opérateur et son numéro -> l'opérateur envoie une demande de validation (code PIN) sur son téléphone.
 router.post('/', async (req, res) => {
-  const { orderId, phone, operator } = req.body || {};
+  const { orderId, phone, operator, token } = req.body || {};
   const order = orders.get(orderId);
-  if (!order) return res.status(404).json({ error: 'Commande introuvable' });
-  if (order.status !== 'pending_payment') return res.status(409).json({ error: 'Cette commande est déjà réglée ou annulée' });
+  if (!order || !hasAccess(order, token)) return res.status(404).json({ error: 'Commande introuvable' });
+
+  // Anti double paiement : avant toute nouvelle demande, on revérifie les demandes déjà envoyées pour cette commande.
+  const previous = payments.all().filter((p) => p.orderId === order.id && p.status === 'PENDING');
+  for (const p of previous) {
+    try {
+      await refreshStatus(p);
+    } catch (err) {
+      console.error('[paiement] vérification impossible :', err.message);
+    }
+  }
+  if (orders.get(order.id).status !== 'pending_payment') {
+    return res.status(409).json({ error: 'Cette commande est déjà réglée ou annulée', orderStatus: orders.get(order.id).status });
+  }
+  // Une demande encore en attente : on ne la double pas, le client doit d'abord la valider ou la laisser expirer.
+  const stillPending = payments.all().find((p) => p.orderId === order.id && isFreshPending(p));
+  if (stillPending) return res.status(200).json({ ...publicPayment(stillPending), resumed: true });
 
   const phoneLocal = normalizeLocal(phone);
   if (!phoneLocal) return res.status(400).json({ error: 'Numéro Mobile Money invalide' });
@@ -24,6 +41,14 @@ router.post('/', async (req, res) => {
   const detected = detectOperator(phoneLocal);
   if (detected && detected !== op) {
     return res.status(400).json({ error: `Ce numéro semble être un numéro ${detected.toUpperCase()}, pas ${op.toUpperCase()}` });
+  }
+
+  // Le stock a pu partir depuis la création de la commande (autre client en train de payer).
+  for (const line of order.lines) {
+    const product = products.get(line.productId);
+    if (!product || line.qty > availableStock(product, order.id)) {
+      return res.status(409).json({ error: `Stock insuffisant pour ${line.name}. Retirez-le du panier ou réessayez plus tard.` });
+    }
   }
 
   const payment = {
@@ -52,6 +77,14 @@ router.post('/', async (req, res) => {
     payments.insert(payment);
     res.status(201).json(publicPayment(payment));
   } catch (err) {
+    // Pas de réponse (délai dépassé, réseau) : l'opérateur a peut-être reçu la demande.
+    // On l'enregistre quand même pour pouvoir vérifier son statut, sinon un paiement pourrait être perdu.
+    if (err.uncertain && err.providerRef) {
+      console.error('[paiement] réponse opérateur incertaine, vérification ultérieure :', err.message);
+      payment.providerRef = err.providerRef;
+      payments.insert(payment);
+      return res.status(201).json(publicPayment(payment));
+    }
     console.error('[paiement] échec de la demande :', err.message);
     res.status(502).json({ error: "L'opérateur n'a pas pu traiter la demande. Réessayez dans un instant." });
   }
