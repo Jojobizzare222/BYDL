@@ -5,7 +5,7 @@ prix en **FCFA**, paiement **Mobile Money** (MTN MoMo et Airtel Money), pages l�
 
 ## Démarrer
 
-Il faut [Node.js](https://nodejs.org) version 18 ou plus récente.
+Il faut [Node.js](https://nodejs.org) version 22.13 ou plus récente.
 
 ```bash
 cd ~/Desktop/BYDL
@@ -15,6 +15,21 @@ npm start
 ```
 
 Ouvrez ensuite http://localhost:3000 dans votre navigateur.
+
+## Espace admin
+
+1. Créez votre mot de passe (une seule fois, ou pour le changer) :
+   ```bash
+   npm run admin:password
+   ```
+2. Lancez le site (`npm start`) puis ouvrez http://localhost:3000/admin
+
+Vous pouvez y :
+- suivre les commandes : *Payée → Expédiée → Livrée* (ou *Annulée*), appeler ou écrire au client sur WhatsApp, corriger son adresse, ajouter une note ;
+- ajouter et modifier les produits : photo, prix, prix barré, stock, description, visible ou masqué, mis en avant ;
+- être prévenu des nouvelles commandes payées : sonnerie dans l'admin (bouton « Son ») et e-mail (voir `.env.example`).
+
+Les données (commandes, produits, photos) sont dans `data/baydel.db` et `data/uploads/`. Elles ne partent **pas** sur GitHub.
 
 Par défaut, le site tourne en **mode simulation** : aucun argent n'est débité, et le paiement
 est validé automatiquement après environ 8 secondes. Un numéro qui se termine par `000` simule un refus.
@@ -58,8 +73,11 @@ dans `src/payments/providers/`.
 src/
   server.js              serveur web + API
   config.js              lecture du fichier .env
-  store.js               stockage (fichiers JSON pour l'instant)
-  routes/                API : produits, commandes, paiements
+  store.js               base de données SQLite (data/baydel.db)
+  catalog.js             liste des rayons et catégories
+  notify.js              e-mail à chaque commande payée
+  admin/auth.js          connexion à l'espace admin
+  routes/                API : produits, commandes, paiements, admin
   payments/
     index.js             choix de l'opérateur (simulation / réel)
     providers/           MTN MoMo, Airtel Money, simulation

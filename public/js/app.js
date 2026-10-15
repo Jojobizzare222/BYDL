@@ -6,11 +6,8 @@
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const enc = encodeURIComponent;
 
-  // Univers et catégories affichés dans le menu
-  const UNIVERSES = [
-    { name: 'Électronique', categories: ['Téléphones', 'Tablettes', 'Ordinateurs', 'Montres', 'Audio', 'TV & Maison', 'Composants', 'Accessoires'] },
-    { name: 'Mode', categories: ['Homme', 'Femme', 'Chaussures'] },
-  ];
+  // Univers et catégories affichés dans le menu : fournis par le serveur (src/catalog.js), même liste que l'admin
+  let UNIVERSES = [];
   const ICONS = { 'Téléphones': '📱', 'Tablettes': '📲', 'Ordinateurs': '💻', 'Montres': '⌚', 'Audio': '🎧', 'TV & Maison': '📺', 'Composants': '💾', 'Accessoires': '🔌', 'Homme': '👕', 'Femme': '👚', 'Chaussures': '👟' };
   const universeOf = (cat) => UNIVERSES.find((u) => u.categories.includes(cat))?.name;
 
@@ -496,6 +493,7 @@
     app.innerHTML = '<p class="empty">Chargement…</p>';
     try {
       [state.products, state.config] = await Promise.all([api('/products'), api('/config')]);
+      UNIVERSES = state.config.universes || [];
     } catch {
       app.innerHTML = '<p class="empty">Connexion impossible. Vérifiez votre réseau.</p>';
       return;

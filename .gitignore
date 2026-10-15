@@ -4,3 +4,6 @@ data/orders.json
 data/payments.json
 .DS_Store
 data/*.tmp
+# Base de données et photos envoyées depuis l'admin : données privées, jamais sur GitHub
+data/baydel.db*
+data/uploads/

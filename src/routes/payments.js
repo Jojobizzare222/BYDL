@@ -6,6 +6,7 @@ const { getProvider, listOperators } = require('../payments');
 const { normalizeLocal, detectOperator } = require('../utils/phone');
 const { availableStock, isFreshPending } = require('../utils/stock');
 const { hasAccess } = require('./orders');
+const { notifyPaidOrder } = require('../notify');
 
 router.get('/operators', (req, res) => {
   res.json({ mode: config.paymentMode, operators: listOperators() });
@@ -133,12 +134,23 @@ async function refreshStatus(payment) {
   if (status === 'SUCCESSFUL') {
     const order = orders.get(payment.orderId);
     if (order && order.status === 'pending_payment') {
-      orders.update(order.id, { status: 'paid', paidAt: new Date().toISOString(), paymentId: payment.id });
+      const now = new Date().toISOString();
+      const paid = orders.update(order.id, {
+        status: 'paid',
+        paidAt: now,
+        paymentId: payment.id,
+        history: [...(order.history || []), { status: 'paid', at: now }],
+      });
       // Décrément du stock
       for (const line of order.lines) {
         const p = products.get(line.productId);
         if (p && p.stock != null) products.update(p.id, { stock: Math.max(0, p.stock - line.qty) });
       }
+      notifyPaidOrder(paid); // sans attendre : l'e-mail ne doit pas ralentir le client
+    } else if (order && order.status === 'cancelled' && !order.paidAfterCancel) {
+      // Commande annulée par l'admin, mais le client a quand même validé le paiement : à rembourser.
+      const flagged = orders.update(order.id, { paidAfterCancel: true, paymentId: payment.id });
+      notifyPaidOrder(flagged, { afterCancel: true });
     }
   }
   return payment;

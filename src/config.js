@@ -14,6 +14,15 @@ module.exports = {
   // Délai maximal d'attente d'une réponse de MTN / Airtel.
   operatorTimeoutMs: Number(env('OPERATOR_TIMEOUT_MS', 15000)),
 
+  // Alerte e-mail à chaque commande payée (ex. Gmail : smtp.gmail.com, port 465, « mot de passe d'application »)
+  smtp: {
+    host: env('SMTP_HOST'),
+    port: Number(env('SMTP_PORT', 465)),
+    user: env('SMTP_USER'),
+    pass: env('SMTP_PASS'),
+    to: env('ALERT_EMAIL_TO'),
+  },
+
   mtn: {
     baseUrl: env('MTN_BASE_URL', 'https://sandbox.momodeveloper.mtn.com'),
     targetEnv: env('MTN_TARGET_ENV', 'sandbox'),

@@ -1,0 +1,64 @@
+// Choisir (ou changer) le mot de passe de l'espace admin.
+// Usage, dans le Terminal :  npm run admin:password
+// Le mot de passe ne s'affiche pas pendant la saisie (des • apparaissent à la place).
+const { setPassword, isPasswordSet } = require('../src/admin/auth');
+
+const MIN_LENGTH = 10;
+
+function ask(question) {
+  return new Promise((resolve) => {
+    const stdin = process.stdin;
+    process.stdout.write(question);
+    let value = '';
+    stdin.setRawMode(true);
+    stdin.resume();
+    stdin.setEncoding('utf8');
+    const onData = (chunk) => {
+      for (const ch of chunk) {
+        if (ch === '\r' || ch === '\n') {
+          stdin.setRawMode(false);
+          stdin.pause();
+          stdin.off('data', onData);
+          process.stdout.write('\n');
+          return resolve(value);
+        }
+        if (ch === '\u0003') {
+          process.stdout.write('\nAnnulé.\n');
+          process.exit(1);
+        }
+        if (ch === '\u007f' || ch === '\b') {
+          if (value.length) {
+            value = value.slice(0, -1);
+            process.stdout.write('\b \b');
+          }
+          continue;
+        }
+        value += ch;
+        process.stdout.write('•');
+      }
+    };
+    stdin.on('data', onData);
+  });
+}
+
+(async () => {
+  if (!process.stdin.isTTY) {
+    console.error('Lancez cette commande directement dans le Terminal.');
+    process.exit(1);
+  }
+  console.log(isPasswordSet() ? 'Changement du mot de passe admin Baydel.' : 'Création du mot de passe admin Baydel.');
+  console.log(`Au moins ${MIN_LENGTH} caractères. Une phrase facile à retenir marche très bien.\n`);
+  const first = await ask('Nouveau mot de passe : ');
+  if (first.length < MIN_LENGTH) {
+    console.error(`Trop court (${first.length} caractères, minimum ${MIN_LENGTH}). Rien n'a été changé.`);
+    process.exit(1);
+  }
+  const second = await ask('Retapez-le : ');
+  if (first !== second) {
+    console.error("Les deux saisies sont différentes. Rien n'a été changé.");
+    process.exit(1);
+  }
+  setPassword(first);
+  console.log('✓ Mot de passe enregistré. Connectez-vous sur http://localhost:3000/admin');
+  process.exit(0);
+})();

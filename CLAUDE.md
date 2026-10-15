@@ -14,11 +14,18 @@
 - Livraison annoncée : 24-48 h à Pointe-Noire et Brazzaville.
 
 ## Stack et structure
-Node.js + Express, front en HTML/CSS/JS vanilla sans framework (léger), stockage en fichiers JSON.
+Node.js (≥ 22.13) + Express, front en HTML/CSS/JS vanilla sans framework (léger), base **SQLite intégrée à Node** (`node:sqlite`, fichier `data/baydel.db`), e-mails via nodemailer.
 ```
 src/server.js            serveur + API ; HTML/CSS/JS en no-cache, images en cache 24 h
 src/config.js            lit .env (PAYMENT_MODE, clés MTN/Airtel…)
-src/store.js             collections JSON chargées EN MÉMOIRE au démarrage → redémarrer après modif de data/
+src/store.js             base SQLite (une table par collection : id + document JSON) ; au 1er démarrage importe data/products.json (+ anciens orders/payments.json). Ensuite la BASE fait foi : products.json n'est plus qu'un catalogue de départ
+src/catalog.js           liste des univers/catégories (servie au site via /api/config et à l'admin)
+src/notify.js            e-mail à chaque commande payée (SMTP dans .env ; sinon affiché dans le Terminal)
+src/admin/auth.js        connexion admin : mot de passe (scrypt) en base, cookie de session HttpOnly/SameSite=Strict 7 j, blocage 15 min après 5 échecs
+src/routes/admin.js      /api/admin : login/logout/me, commandes (statuts, client, note), produits (création/modif/masquer), envoi de photos
+scripts/admin-password.js  `npm run admin:password` : créer/changer le mot de passe admin (saisie masquée)
+public/admin/            espace admin (http://localhost:3000/admin) : commandes, produits, sonnerie des nouvelles commandes
+data/uploads/            photos envoyées depuis l'admin (servies sur /images/uploads/)
 src/routes/products.js   GET /api/products?universe=&category=&q=  ·  GET /api/products/:id
 src/routes/orders.js     POST /api/orders (total RECALCULÉ côté serveur ; renvoie une clé secrète `token`)  ·  GET /api/orders/:id (en-tête X-Order-Token obligatoire)
 src/routes/payments.js   POST /api/payments (body.token obligatoire) · GET /api/payments/:id (polling) · POST /api/payments/callback/:operator
@@ -29,9 +36,11 @@ src/payments/providers/  mtn-momo.js (Collection API, requesttopay) · airtel-mo
 src/utils/phone.js       numéros +242 : 06 = MTN, 05/04 = Airtel
 public/index.html, public/css/style.css, public/js/app.js   SPA avec routes hash : #/, #/c/<univers>/<catégorie>, #/p/<id>, #/recherche/<q>, #/promos, #/commande, #/merci/<id>
 public/images/products/  images produit (champ "image" ; repli sur emoji si absente)
-data/products.json       ~107 produits (90 Apple de SIMULATION + composants + mode)
+data/products.json       catalogue de départ (~107 produits : 90 Apple de SIMULATION + composants + mode), importé une seule fois
 ```
-Lancer : `npm install` puis `npm start` → http://localhost:3000.
+Lancer : `npm install` puis `npm start` → boutique http://localhost:3000 · admin http://localhost:3000/admin (mot de passe : `npm run admin:password`).
+
+**Dépôt GitHub PUBLIC** (Jojobizzare222/BYDL) : ne jamais y mettre de secret ni de donnée client. `.env`, `data/baydel.db*`, `data/uploads/`, anciens orders/payments.json sont exclus par .gitignore. Joseph envoie les sauvegardes avec GitHub Desktop (« Push origin »).
 
 ## Paiement — règles à respecter
 - Flux : commande créée → demande de paiement à l'opérateur → le client valide avec son code PIN → le navigateur interroge le statut toutes les 4 s → le serveur **revérifie toujours auprès de l'opérateur** (ne jamais faire confiance au navigateur ni au contenu d'un callback) → commande `paid` + décrément du stock.
@@ -44,12 +53,14 @@ Lancer : `npm install` puis `npm start` → http://localhost:3000.
 
 ## État actuel et points d'attention
 - Les 90 produits Apple et leurs **70 images sont une simulation** : illustrations génériques générées (pas de photos officielles Apple, pas de logo Apple — droits d'image). Les **prix FCFA sont des estimations**, pas des prix marché. À remplacer par le vrai catalogue / photos fournisseur.
-- Pas encore : espace admin, base de données réelle, frais de livraison par zone, notifications SMS/WhatsApp, hébergement en ligne, comptes marchands opérateurs.
+- Statuts de commande : pending_payment → paid → shipped → delivered, ou cancelled (retour arrière possible : expédiée→payée, livrée→expédiée). Annuler une commande payée remet le stock ; le remboursement Mobile Money se fait à la main. Un paiement validé APRÈS annulation est signalé `paidAfterCancel` (+ e-mail « à rembourser »).
+- Sauvegardes : la base et les photos (data/) ne sont PAS sur GitHub → prévoir une sauvegarde à la mise en ligne.
+- Pas encore : frais de livraison par zone, alertes WhatsApp/SMS, hébergement en ligne, comptes marchands opérateurs, e-mail SMTP réel (à configurer avec Joseph).
 
 ## Plan validé (15/10/2026)
 0. ✅ Projet sous Git (branche `main`).
 1. ✅ Fiabiliser l'achat : double paiement, données clients protégées, stock réservé pendant le paiement, cache, délais opérateurs.
-2. Gérer la boutique : espace admin protégé (commandes, statuts, stock, prix), alerte à chaque nouvelle commande, vraie petite base de données.
+2. ✅ Gérer la boutique : espace admin (un seul compte, Joseph), commandes + statuts, produits ajoutés/modifiés avec photo, alerte e-mail + sonnerie dans l'admin, base SQLite.
 3. Contenu réel : catalogue/photos fournisseur, frais de livraison par ville (le formulaire propose encore Dolisie/Autre), pages légales (CGV, confidentialité), contact WhatsApp, vérifier « TVA incluse ».
 4. Mise en ligne : hébergeur, domaine, HTTPS, limite de requêtes, vrai paiement MTN de petit montant.
 
