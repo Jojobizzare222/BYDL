@@ -188,8 +188,8 @@
         <p>Les produits neufs bénéficient de la garantie légale contre les défauts cachés et, le cas échéant, de la garantie du fabricant.
         Produits reconditionnés et d'occasion : garantie Kamwa de ${T('durée, ex. 3 mois')}. La garantie ne couvre pas la casse, l'oxydation ou une mauvaise utilisation.</p>
 
-        <h2 id="france">9. Achats en France</h2>
-        <p>Les produits marqués « Venu de France » sont achetés en France par notre agent après votre commande, puis expédiés par avion et livrés au Congo.</p>
+        <h2 id="france">9. Achats en Europe</h2>
+        <p>Les produits marqués « Venu d’Europe » sont achetés en Europe pour vous après votre commande, puis expédiés par avion et livrés au Congo.</p>
         <ul>
           <li><strong>Prix</strong> : <strong>tout compris</strong> (article, transport en avion, douane, service Kamwa, livraison) : aucun supplément ne vous sera demandé à l'arrivée.</li>
           <li><strong>Paiement</strong> : la commande se paie en entier à la commande (Mobile Money ou carte), car Kamwa achète l'article pour vous. Si votre panier contient aussi des articles de notre stock, toute la commande vous est livrée en une fois.</li>

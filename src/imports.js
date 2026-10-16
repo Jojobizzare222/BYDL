@@ -1,12 +1,12 @@
-// Achat en France (décision Joseph 16/10/2026) : « tu achètes, tu reçois, point ».
-// Depuis le 16/10/2026 : l'équipe ajoute elle-même les produits venus de France au catalogue (origin 'FR', prix tout compris
+// Achat en Europe (décision Joseph 16/10/2026) : « tu achètes, tu reçois, point ».
+// Depuis le 16/10/2026 : l'équipe ajoute elle-même les produits venus d’Europe au catalogue (origin 'FR', prix tout compris
 // calculé depuis le prix en € et le poids, transport TOUJOURS en avion). Les demandes de devis sur lien par les clients
 // restent possibles mais sont désactivées par défaut (réglage customerRequests).
 // Modèle « lien + devis tout compris » (demandes des clients) :
-//  1. le client colle le lien d'un produit vendu en France (+ taille, couleur, quantité) ;
-//  2. Kamwa calcule un DEVIS TOUT COMPRIS en FCFA (prix en € × 655,957 + port en France + transport + douane + commission) ;
+//  1. le client colle le lien d'un produit vendu en Europe (+ taille, couleur, quantité) ;
+//  2. Kamwa calcule un DEVIS TOUT COMPRIS en FCFA (prix en € × 655,957 + port en Europe + transport + douane + commission) ;
 //  3. le client accepte et paie EN ENTIER (Mobile Money ou carte) : le devis devient une commande Kamwa normale ;
-//  4. l'agent en France (le frère de Joseph) achète, reçoit, photographie, regroupe les colis en ENVOIS ;
+//  4. l'agent en Europe (le frère de Joseph) achète, reçoit, photographie, regroupe les colis en ENVOIS ;
 //  5. l'envoi arrive au Congo → livraison habituelle (livreur + code de livraison).
 // Le franc CFA est lié à l'euro par un taux FIXE (1 € = 655,957 FCFA) : pas de risque de change.
 const crypto = require('crypto');
@@ -16,7 +16,7 @@ const EUR = 655.957;
 const DEFAULTS = {
   enabled: true,
   customerRequests: false, // demandes de devis « sur lien » par les clients (Joseph : les produits sont ajoutés par l'équipe)
-  freightPerKg: 9000,     // transport France → Congo EN AVION, FCFA par kg (À CONFIRMER avec l'expéditeur)
+  freightPerKg: 9000,     // transport Europe → Congo EN AVION, FCFA par kg (À CONFIRMER avec l'expéditeur)
   minWeightKg: 0.5,       // poids minimum facturé par commande
   customsPercent: 20,     // douane et taxes estimées, en % de la valeur (À AFFINER après les premiers envois)
   commissionPercent: 12,  // commission Kamwa, en % du coût total
@@ -65,10 +65,10 @@ function computeQuote(items, weightKg, s = importSettings()) {
 }
 
 const STAGES = {
-  to_buy: 'À acheter en France',
-  bought: 'Acheté en France',
+  to_buy: 'À acheter en Europe',
+  bought: 'Acheté en Europe',
   received: "Reçu par l'agent",
-  shipped_fr: 'Parti de France',
+  shipped_fr: 'Parti d’Europe',
   arrived: 'Arrivé au Congo',
 };
 

@@ -12,7 +12,7 @@ const DEMO_ACCOUNTS = [
   { label: 'Employé Catalogue', login: 'demo-catalogue', role: 'catalog', name: 'Clara (démo)' },
   { label: 'Employé Commandes', login: 'demo-commandes', role: 'orders', name: 'Oscar (démo)' },
   { label: 'Livreur', login: 'demo-livreur', role: 'courier', name: 'Junior (démo)' },
-  { label: 'Agent France', login: 'demo-agent', role: 'agent', name: 'Agent Paris (démo)' },
+  { label: 'Agent Europe', login: 'demo-agent', role: 'agent', name: 'Agent Paris (démo)' },
 ];
 const isDemoLogin = (login) => config.demo && DEMO_ACCOUNTS.some((a) => a.login === login);
 
@@ -88,16 +88,16 @@ function seed() {
   entry(6, 'transfer', 'transfer', 200000, 'bank', 'Retrait pour la caisse', { toMethod: 'cash' });
   entry(3, 'expense', 'supplier', 15000, 'momo', 'Acompte Mode Congo', { supplierId: sup });
 
-  // Produit venu de France (catalogue) : prix tout compris calculé depuis le prix en € et le poids, avec choix couleur / pointure
+  // Produit venu d’Europe (catalogue) : prix tout compris calculé depuis le prix en € et le poids, avec choix couleur / pointure
   products.insert({
     id: 'pdemo-fr1', name: 'Baskets de running légères (exemple)', brand: 'Exemple', universe: 'Mode', category: 'Chaussures', condition: 'neuf',
     origin: 'FR', priceEur: 59.99, weightKg: 1.3, sourceUrl: 'https://www.exemple.fr/baskets', price: 69000, costPrice: 58921, stock: 5, active: true, images: [],
     options: [{ name: 'Couleur', values: ['Noir', 'Blanc'] }, { name: 'Pointure', values: ['40', '41', '42', '43', '44'] }],
-    description: "Produit de démonstration venu de France : acheté pour vous après votre commande, expédié par avion, livré en 10 jours maximum.",
-    specs: [{ label: 'Origine', value: 'France' }], createdAt: now, createdBy: 'admin',
+    description: "Produit de démonstration venu d’Europe : acheté pour vous après votre commande, expédié par avion, livré en 10 jours maximum.",
+    specs: [{ label: 'Origine', value: 'Europe' }], createdAt: now, createdBy: 'admin',
   });
 
-  // Achat en France : une demande à chiffrer et une commande payée à acheter
+  // Achat en Europe : une demande à chiffrer et une commande payée à acheter
   imports.insert({
     id: 'FR-DEMO-0001', accessToken: 'demo-fr-0001-' + crypto.randomBytes(8).toString('hex'), customerId: null,
     items: [{ url: 'https://www.decathlon.fr/', title: 'Chaussures de running (exemple)', options: 'Pointure 43, noir', qty: 1, priceEur: 59.99 }],
@@ -113,7 +113,7 @@ function seed() {
   });
   orders.insert({
     id: 'CMD-DEMO-0003', accessToken: crypto.randomBytes(16).toString('hex'), customerId: null,
-    lines: [{ productId: null, name: 'Liseuse électronique (exemple) (achat en France)', unitPrice: 131000, qty: 1, total: 131000, unitCost: 106942, supplierId: null }],
+    lines: [{ productId: null, name: 'Liseuse électronique (exemple) (achat en Europe)', unitPrice: 131000, qty: 1, total: 131000, unitCost: 106942, supplierId: null }],
     subtotal: 131000, deliveryFee: 0, total: 131000, currency: 'XAF',
     customer: { name: 'Clarisse (démo)', phone: '067777777', city: 'Pointe-Noire', address: 'Mpita (fictif)' },
     status: 'paid', createdAt: now, paidAt: now, paymentId: 'PAY-DEMO-0003', history: [{ status: 'paid', at: now }], fulfillment: 'delivery', deliveryCode: '8642',

@@ -12,7 +12,7 @@ const { orders, payments, products, staff, ledger, activity } = require('../stor
 
 const router = express.Router();
 
-const METHODS = { cash: 'Caisse espèces', momo: 'Mobile Money', card: 'Carte (prestataire)', bank: 'Banque', agent: 'Agent France (en FCFA)' };
+const METHODS = { cash: 'Caisse espèces', momo: 'Mobile Money', card: 'Carte (prestataire)', bank: 'Banque', agent: 'Agent Europe (en FCFA)' };
 // accrual = compte dans la rentabilité. Les achats de stock, paiements fournisseurs et remboursements ne comptent
 // qu'en trésorerie (le coût des produits est déjà compté à la vente ; une vente annulée n'est pas une vente).
 const CATEGORIES = {
@@ -20,9 +20,9 @@ const CATEGORIES = {
     { key: 'stock', label: 'Achat de marchandises', accrual: false },
     { key: 'supplier', label: 'Paiement fournisseur', accrual: false },
     { key: 'refund', label: 'Remboursement client', accrual: false },
-    { key: 'import_purchase', label: 'Achat en France (agent)', accrual: false },
-    { key: 'import_freight', label: 'Transport France → Congo', accrual: false },
-    { key: 'customs', label: 'Douane (achats en France)', accrual: false },
+    { key: 'import_purchase', label: 'Achat en Europe (agent)', accrual: false },
+    { key: 'import_freight', label: 'Transport Europe → Congo', accrual: false },
+    { key: 'customs', label: 'Douane (achats en Europe)', accrual: false },
     { key: 'delivery', label: 'Livraison et transport', accrual: true },
     { key: 'rent', label: 'Loyer et agence', accrual: true },
     { key: 'salary', label: 'Salaires et primes', accrual: true },

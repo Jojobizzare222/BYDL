@@ -72,9 +72,9 @@ async function notifyReservation(order) {
   await send(subject, text, order.id);
 }
 
-// Nouvelle demande d'achat en France : à chiffrer (devis) dans Kamwa Pro
+// Nouvelle demande d'achat en Europe : à chiffrer (devis) dans Kamwa Pro
 async function notifyImportRequest(r) {
-  const subject = `Achat en France : nouvelle demande de devis ${r.id}`;
+  const subject = `Achat en Europe : nouvelle demande de devis ${r.id}`;
   const text = [
     `Demande ${r.id} de ${r.customer.name} (${r.customer.phone}, ${r.customer.city || '-'}) :`,
     '',

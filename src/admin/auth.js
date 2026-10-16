@@ -5,7 +5,7 @@
 //      orders   = employé « Commandes » (suivi des commandes)
 //      supplier = fournisseur (ses produits, son stock, les commandes de ses produits)
 //      courier  = livreur (ses livraisons en cours ; valide une livraison avec le code du client)
-//      agent    = agent en France (achète, reçoit, envoie les commandes « Achat en France »)
+//      agent    = agent en Europe (achète, reçoit, envoie les commandes « Achat en Europe »)
 //  - les mots de passe ne sont jamais stockés en clair : seulement leur empreinte (scrypt) ;
 //  - après connexion, cookie de session HttpOnly, SameSite=Strict, 7 jours ;
 //  - 5 essais ratés depuis une même adresse ou sur un même compte => blocage 15 minutes.
@@ -19,7 +19,7 @@ const MAX_FAILS = 5;
 const LOCK_MS = 15 * 60 * 1000;
 const ADMIN_LOGIN = 'admin';
 
-const ROLES = { admin: 'Administrateur', catalog: 'Employé Catalogue', orders: 'Employé Commandes', supplier: 'Fournisseur', courier: 'Livreur', agent: 'Agent France' };
+const ROLES = { admin: 'Administrateur', catalog: 'Employé Catalogue', orders: 'Employé Commandes', supplier: 'Fournisseur', courier: 'Livreur', agent: 'Agent Europe' };
 
 db.exec('CREATE TABLE IF NOT EXISTS admin_sessions (token_hash TEXT PRIMARY KEY, expires_at INTEGER NOT NULL)');
 try {

@@ -1,4 +1,4 @@
-// Achat en France — partie Kamwa Pro (/api/admin/france) :
+// Achat en Europe — partie Kamwa Pro (/api/admin/france) :
 //  - équipe (admin, employé Commandes) : demandes de devis, chiffrage, refus, arrivée des envois au Congo ;
 //  - AGENT FRANCE (rôle « agent ») : commandes payées à acheter, achat (prix payé + facture), réception (photos),
 //    envois groupés vers le Congo. L'agent ne voit jamais le téléphone ni l'adresse du client (seulement prénom et ville).
@@ -33,7 +33,7 @@ router.get('/settings', requireRole('orders', 'agent', 'catalog'), (req, res) =>
 router.put('/settings', requireRole(), (req, res) => {
   const { error, value } = imp.saveImportSettings(req.body || {});
   if (error) return res.status(400).json({ error });
-  log(req, 'Réglages Achat en France modifiés', null, `transport ${value.freightPerKg} FCFA/kg, douane ${value.customsPercent} %, commission ${value.commissionPercent} % + ${value.fixedFee} FCFA`);
+  log(req, 'Réglages Achat en Europe modifiés', null, `transport ${value.freightPerKg} FCFA/kg, douane ${value.customsPercent} %, commission ${value.commissionPercent} % + ${value.fixedFee} FCFA`);
   res.json(value);
 });
 
@@ -77,7 +77,7 @@ router.post('/requests/:id/quote', requireRole('orders'), (req, res) => {
     validUntil: new Date(now.getTime() + s.validityHours * 3600e3).toISOString(), by: req.user.name, at: now.toISOString(),
   };
   const updated = imports.update(r.id, { status: 'quoted', quote, history: [...(r.history || []), { status: 'quoted', at: now.toISOString() }] });
-  log(req, 'Devis Achat en France envoyé', { id: r.id }, `${finalTotal} FCFA (marge ${finalTotal - breakdown.cost} FCFA)`);
+  log(req, 'Devis Achat en Europe envoyé', { id: r.id }, `${finalTotal} FCFA (marge ${finalTotal - breakdown.cost} FCFA)`);
   res.json({ ...teamRequest(updated), shareToken: updated.accessToken });
 });
 router.post('/requests/:id/decline', requireRole('orders'), (req, res) => {
@@ -86,7 +86,7 @@ router.post('/requests/:id/decline', requireRole('orders'), (req, res) => {
   if (!['requested', 'quoted'].includes(r.status)) return res.status(400).json({ error: 'Cette demande ne peut plus être refusée' });
   const reason = String(req.body?.reason || '').trim().slice(0, 300) || "Nous ne pouvons pas faire venir cet article.";
   const updated = imports.update(r.id, { status: 'declined', declineReason: reason, history: [...(r.history || []), { status: 'declined', at: new Date().toISOString() }] });
-  log(req, 'Demande Achat en France refusée', { id: r.id }, reason);
+  log(req, 'Demande Achat en Europe refusée', { id: r.id }, reason);
   res.json(teamRequest(updated));
 });
 
@@ -114,9 +114,9 @@ router.post('/orders/:id/bought', requireRole('agent'), (req, res) => {
   if (!(eur > 0 && eur < 100000)) return res.status(400).json({ error: 'Indiquez le montant payé en euros' });
   const receipt = IMG.test(String(req.body?.receipt || '')) ? req.body.receipt : null;
   const now = new Date().toISOString();
-  const fin = expense(req, { category: 'import_purchase', amount: eur * imp.EUR, method: 'agent', label: `Achat en France ${o.id}`, note: `${eur} € payés par ${req.user.name}${req.body?.ref ? ' — réf. ' + String(req.body.ref).slice(0, 80) : ''}`, ref: o.id });
+  const fin = expense(req, { category: 'import_purchase', amount: eur * imp.EUR, method: 'agent', label: `Achat en Europe ${o.id}`, note: `${eur} € payés par ${req.user.name}${req.body?.ref ? ' — réf. ' + String(req.body.ref).slice(0, 80) : ''}`, ref: o.id });
   orders.update(o.id, { import: { ...o.import, stage: 'bought', bought: { eur, ref: String(req.body?.ref || '').slice(0, 80), receipt, at: now, by: req.user.name, ledgerId: fin?.id || null } } });
-  log(req, 'Achat en France effectué', { id: o.id }, `${eur} €`);
+  log(req, 'Achat en Europe effectué', { id: o.id }, `${eur} €`);
   res.json({ ok: true });
 });
 // Colis reçu chez l'agent : photos du produit (rassurent le client)
@@ -125,11 +125,11 @@ router.post('/orders/:id/received', requireRole('agent'), (req, res) => {
   const photos = (Array.isArray(req.body?.photos) ? req.body.photos : []).filter((p) => IMG.test(String(p))).slice(0, 6);
   if (!photos.length) return res.status(400).json({ error: 'Ajoutez au moins une photo du produit reçu' });
   orders.update(o.id, { import: { ...o.import, stage: 'received', received: { photos, at: new Date().toISOString(), by: req.user.name, note: String(req.body?.note || '').slice(0, 300) } } });
-  log(req, 'Article reçu par l\'agent France', { id: o.id }, `${photos.length} photo(s)`);
+  log(req, 'Article reçu par l\'agent Europe', { id: o.id }, `${photos.length} photo(s)`);
   res.json({ ok: true });
 });
 
-// ---------- Envois groupés France → Congo ----------
+// ---------- Envois groupés Europe → Congo ----------
 const shipmentView = (s) => ({ ...s, orders: s.orderIds.map((id) => { const o = orders.get(id); return o ? { id, name: (o.customer?.name || '').split(' ')[0], city: o.customer?.city, items: (o.import?.items || []).map((it) => `${it.qty} × ${it.title}`) } : { id }; }) });
 router.get('/shipments', requireRole('orders', 'agent'), (req, res) => {
   res.json(shipments.all().sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1)).map(shipmentView));
@@ -152,10 +152,10 @@ router.post('/shipments', requireRole('agent'), (req, res) => {
     eta: /^\d{4}-\d{2}-\d{2}$/.test(eta || '') ? eta : null, weightKg: w, costEur: c, orderIds: ids, status: 'preparing', createdAt: now, createdBy: req.user.name,
   });
   for (const id of ids) { const o = orders.get(id); orders.update(id, { import: { ...o.import, shipmentId: s.id } }); }
-  log(req, 'Envoi France → Congo préparé', { id: s.id }, `${ids.length} colis, ${w} kg`);
+  log(req, 'Envoi Europe → Congo préparé', { id: s.id }, `${ids.length} colis, ${w} kg`);
   res.status(201).json(shipmentView(s));
 });
-// Départ : les clients voient « Parti de France » et la date d'arrivée prévue ; le transport est inscrit en dépense
+// Départ : les clients voient « Parti d’Europe » et la date d'arrivée prévue ; le transport est inscrit en dépense
 router.post('/shipments/:sid/depart', requireRole('agent'), (req, res) => {
   const s = shipments.get(req.params.sid);
   if (!s || s.status !== 'preparing') return res.status(400).json({ error: 'Envoi introuvable ou déjà parti' });
@@ -163,7 +163,7 @@ router.post('/shipments/:sid/depart', requireRole('agent'), (req, res) => {
   const fin = expense(req, { category: 'import_freight', amount: s.costEur * imp.EUR, method: 'agent', label: `Transport ${s.id}`, note: `${s.costEur} € — ${s.carrier || 'expéditeur'}, ${s.weightKg} kg`, ref: s.id });
   shipments.update(s.id, { status: 'departed', departedAt: now, ledgerId: fin?.id || null });
   for (const id of s.orderIds) { const o = orders.get(id); if (o?.import) orders.update(id, { import: { ...o.import, stage: 'shipped_fr', departedAt: now, eta: s.eta } }); }
-  log(req, 'Envoi parti de France', { id: s.id }, `${s.orderIds.length} colis`);
+  log(req, 'Envoi parti d’Europe', { id: s.id }, `${s.orderIds.length} colis`);
   res.json(shipmentView(shipments.get(s.id)));
 });
 // Arrivée au Congo (équipe Kamwa) : les commandes deviennent « à livrer » ; douane éventuelle inscrite en dépense

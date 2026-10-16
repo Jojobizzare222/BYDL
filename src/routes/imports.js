@@ -1,4 +1,4 @@
-// Achat en France — partie publique (/api/imports) : demande de devis, consultation, acceptation.
+// Achat en Europe — partie publique (/api/imports) : demande de devis, consultation, acceptation.
 // Accès à une demande : sa clé secrète (comme une commande), gardée par le téléphone du client et envoyée dans le lien WhatsApp.
 const crypto = require('crypto');
 const router = require('express').Router();
@@ -94,7 +94,7 @@ router.post('/:id/accept', (req, res) => {
     const share = i === q.items.length - 1 ? rest : Math.round((q.total * weights[i]) / sumW);
     rest -= share;
     const cost = Math.round((costTotal * weights[i]) / sumW);
-    return { productId: null, name: `${it.title} (achat en France)`, unitPrice: Math.round(share / it.qty), qty: it.qty, total: share, unitCost: Math.round(cost / it.qty), supplierId: null };
+    return { productId: null, name: `${it.title} (achat en Europe)`, unitPrice: Math.round(share / it.qty), qty: it.qty, total: share, unitCost: Math.round(cost / it.qty), supplierId: null };
   });
   const now = new Date().toISOString();
   const order = orders.insert({

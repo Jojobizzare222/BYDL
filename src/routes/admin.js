@@ -32,7 +32,7 @@ router.get('/me', (req, res) => {
 router.use(requireStaff);
 // Volet Finances (administrateur uniquement)
 router.use('/finance', requireRole(), require('./finance'));
-// Achat en France (devis, agent France, envois)
+// Achat en Europe (devis, agent Europe, envois)
 router.use('/france', require('./import-admin'));
 
 // Journal : qui a fait quoi (gardé dans la base, consultable par l'admin)
@@ -82,7 +82,7 @@ const PICKUP_TRANSITIONS = {
   delivered: ['paid'],
   cancelled: [],
 };
-const IMPORT_WAITING = { pending_payment: ['cancelled'], paid: ['cancelled'], cancelled: [] }; // achat en France pas encore arrivé au Congo
+const IMPORT_WAITING = { pending_payment: ['cancelled'], paid: ['cancelled'], cancelled: [] }; // achat en Europe pas encore arrivé au Congo
 const transitionsFor = (order) => (order.import && order.import.stage !== 'arrived' ? IMPORT_WAITING : order.fulfillment === 'pickup' ? PICKUP_TRANSITIONS : order.paymentPlan === 'cod' ? COD_TRANSITIONS : TRANSITIONS);
 
 // Commande vue par l'équipe. Le code de livraison n'est montré qu'à l'admin (jamais aux employés ni aux livreurs).
@@ -420,14 +420,14 @@ function cleanProduct(input, current, { role }) {
     p.options = lines.map((l) => l.split(/\s*:\s*/)).map(([name, ...rest]) => ({ name: str(name, 30), values: [...new Set(rest.join(':').split(/\s*,\s*/).map((v) => str(v, 40)).filter(Boolean))].slice(0, 40) }))
       .filter((o) => o.name && o.values.length).slice(0, 3);
   }
-  // Produit venu de France (expédié par avion) : prix tout compris calculé depuis le prix en € et le poids
+  // Produit venu d’Europe (expédié par avion) : prix tout compris calculé depuis le prix en € et le poids
   if ('origin' in input && role !== 'supplier') p.origin = input.origin === 'FR' ? 'FR' : null;
   if ('sourceUrl' in input && role !== 'supplier') p.sourceUrl = /^https?:\/\//.test(String(input.sourceUrl || '')) ? str(input.sourceUrl, 600) : null;
   if ('priceEur' in input && role !== 'supplier') p.priceEur = input.priceEur === '' || input.priceEur == null ? null : Math.round(Number(String(input.priceEur).replace(',', '.')) * 100) / 100;
   if ('weightKg' in input && role !== 'supplier') p.weightKg = input.weightKg === '' || input.weightKg == null ? null : Math.round(Number(String(input.weightKg).replace(',', '.')) * 100) / 100;
   if (p.origin === 'FR') {
-    if (!(p.priceEur > 0 && p.priceEur < 100000)) return { error: 'Produit venu de France : indiquez son prix en euros' };
-    if (!(p.weightKg > 0 && p.weightKg <= 200)) return { error: 'Produit venu de France : indiquez son poids (kg, emballage compris)' };
+    if (!(p.priceEur > 0 && p.priceEur < 100000)) return { error: 'Produit venu d’Europe : indiquez son prix en euros' };
+    if (!(p.weightKg > 0 && p.weightKg <= 200)) return { error: 'Produit venu d’Europe : indiquez son poids (kg, emballage compris)' };
     const q = imp.computeQuote([{ priceEur: p.priceEur, qty: 1 }], p.weightKg);
     p.costPrice = q.cost; // coût réel estimé (article + transport avion + douane) : sert au calcul de la marge
     if (!('price' in input) || input.price === '' || input.price == null) p.price = q.total; // prix tout compris automatique
@@ -847,7 +847,7 @@ router.post('/uploads', requireRole('catalog', 'supplier', 'agent'), express.raw
   res.status(201).json({ url: `/images/uploads/${name}` });
 });
 
-// ---------- Remplir une fiche depuis un lien (site vendeur en France) ----------
+// ---------- Remplir une fiche depuis un lien (site vendeur en Europe) ----------
 // Photos récupérées puis ré-enregistrées sur Kamwa (JPEG, 1600 px max) : plus rapides et indépendantes du site d'origine.
 async function importImages(urls) {
   const sharp = require('sharp');

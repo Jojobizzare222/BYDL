@@ -156,7 +156,7 @@
     if (CAN.supplier()) quick.push(`<a class="btn glass" href="#/fournisseur">${icon('receipt-duotone')} Mes commandes</a>`);
     if (CAN.courier()) quick.push(`<a class="btn light" href="#/livraisons">${icon('truck-duotone')} Mes livraisons</a>`);
     if (CAN.agent()) quick.push(`<a class="btn light" href="#/agent">${icon('airplane-tilt')} Achats à traiter</a>`);
-    if (CAN.orders()) quick.push(`<a class="btn glass" href="#/france">${icon('airplane-tilt')} Devis France</a>`);
+    if (CAN.orders()) quick.push(`<a class="btn glass" href="#/france">${icon('airplane-tilt')} Devis Europe</a>`);
     const today = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
     app.innerHTML = `
       <section class="dash-hero">
@@ -343,7 +343,7 @@
   const FILTERS = [
     ['paid', 'À livrer / remettre'],
     ['collect', 'À encaisser en agence'],
-    ['france', 'Achats France en cours'],
+    ['france', 'Achats Europe en cours'],
     ['shipped', 'En livraison'],
     ['delivered', 'Livrées'],
     ['cancelled', 'Annulées'],
@@ -368,7 +368,7 @@
       placeholder: 'N° de commande, client, téléphone ou ville', empty: 'Aucune commande ici.',
       searchText: (o) => `${o.id} ${o.customer.name} ${o.customer.phone} ${o.customer.city}`,
       columns: [
-        { key: 'id', label: 'Commande', render: (o) => `<strong class="mono">${esc(o.id)}</strong>${o.paidAfterCancel ? '<br><span class="tag danger">À rembourser</span>' : ''}${isPickup(o) ? `<br><span class="tag">Retrait ${esc(o.agency?.name || '')}</span>` : ''}${o.paymentPlan === 'cod' ? `<br><span class="tag warn">À la réception</span>` : ''}${o.import ? `<br><span class="tag fr">${icon('airplane-tilt')} France : ${esc(FR_STAGES[o.import.stage] || o.import.stage)}</span>` : ''}${!isPickup(o) && ['paid', 'confirmed'].includes(o.status) && !o.callConfirmedAt ? ' <span class="tag danger">À appeler</span>' : ''}${o.courierName && o.status === 'shipped' ? `<br><span class="muted">${icon('truck-duotone')} ${esc(o.courierName)}</span>` : ''}` },
+        { key: 'id', label: 'Commande', render: (o) => `<strong class="mono">${esc(o.id)}</strong>${o.paidAfterCancel ? '<br><span class="tag danger">À rembourser</span>' : ''}${isPickup(o) ? `<br><span class="tag">Retrait ${esc(o.agency?.name || '')}</span>` : ''}${o.paymentPlan === 'cod' ? `<br><span class="tag warn">À la réception</span>` : ''}${o.import ? `<br><span class="tag fr">${icon('airplane-tilt')} Europe : ${esc(FR_STAGES[o.import.stage] || o.import.stage)}</span>` : ''}${!isPickup(o) && ['paid', 'confirmed'].includes(o.status) && !o.callConfirmedAt ? ' <span class="tag danger">À appeler</span>' : ''}${o.courierName && o.status === 'shipped' ? `<br><span class="muted">${icon('truck-duotone')} ${esc(o.courierName)}</span>` : ''}` },
         { key: 'client', label: 'Client', sortValue: (o) => norm(o.customer.name), render: (o) => `${esc(o.customer.name)}<br><span class="muted">${esc(o.customer.phone)}</span>` },
         { key: 'city', label: 'Ville', sortValue: (o) => o.customer.city || '', render: (o) => esc(o.customer.city || '—') },
         { key: 'qty', label: 'Articles', cls: 'num', sortValue: qty, render: qty },
@@ -543,13 +543,13 @@
   }
   const bookmarklet = () => 'javascript:' + encodeURIComponent(`(${KAMWA_BM.toString()})(${JSON.stringify(location.origin)})`);
 
-  // ---------- Achat en France ----------
-  const FR_STAGES = { to_buy: 'à acheter', bought: 'acheté', received: "reçu par l'agent", shipped_fr: 'parti de France', arrived: 'arrivé au Congo' };
+  // ---------- Achat en Europe ----------
+  const FR_STAGES = { to_buy: 'à acheter', bought: 'acheté', received: "reçu par l'agent", shipped_fr: 'parti d’Europe', arrived: 'arrivé au Congo' };
   const eur = (n) => `${Number(n || 0).toFixed(2).replace('.', ',')} €`;
   const importPanel = (o) => {
     const i = o.import;
     return `<div class="panel">
-      <h2>${icon('airplane-tilt')} Achat en France — ${esc(FR_STAGES[i.stage] || i.stage)}</h2>
+      <h2>${icon('airplane-tilt')} Achat en Europe — ${esc(FR_STAGES[i.stage] || i.stage)}</h2>
       ${(i.items || []).map((it) => `<p style="margin:4px 0">${it.qty} × <a href="${esc(it.url)}" target="_blank" rel="noopener">${esc(it.title)}</a>${it.options ? ` <span class="muted">(${esc(it.options)})</span>` : ''} <span class="muted">— devis : ${eur(it.priceEur)}</span></p>`).join('')}
       ${i.bought ? `<p class="muted">Acheté ${eur(i.bought.eur)} par ${esc(i.bought.by)} le ${date(i.bought.at)}${i.bought.ref ? ' · réf. ' + esc(i.bought.ref) : ''}${i.bought.receipt ? ` · <a href="${esc(i.bought.receipt)}" target="_blank">facture</a>` : ''}</p>` : ''}
       ${i.received ? `<div class="gallery" style="margin-top:8px">${i.received.photos.map((src) => `<div class="gal-item"><img src="${esc(src)}" alt=""></div>`).join('')}</div>` : ''}
@@ -566,7 +566,7 @@
     const TABS = [['requested', 'À chiffrer'], ['quoted', 'Devis envoyés'], ['accepted', 'Acceptés'], ['closed', 'Expirés / refusés'], ['all', 'Toutes']];
     const ST = { requested: ['À chiffrer', 'warn'], quoted: ['Devis envoyé', ''], accepted: ['Accepté', 'ok'], expired: ['Expiré', 'danger'], declined: ['Refusé', 'danger'], cancelled: ['Annulé par le client', 'danger'] };
     const match = (r, k) => k === 'all' || r.status === k || (k === 'closed' && ['expired', 'declined', 'cancelled'].includes(r.status));
-    app.innerHTML = pageHead({ title: 'Achat en France', desc: 'Les demandes de devis des clients. Chiffrez-les (prix en €, port, poids) : le prix tout compris en FCFA se calcule tout seul, puis envoyez le lien au client par WhatsApp.', actions: `<a class="btn ghost" href="#/envois">${icon('truck-duotone')} Envois</a><a class="btn ghost" href="#/reglages">Tarifs</a>` })
+    app.innerHTML = pageHead({ title: 'Achat en Europe', desc: 'Les demandes de devis des clients. Chiffrez-les (prix en €, port, poids) : le prix tout compris en FCFA se calcule tout seul, puis envoyez le lien au client par WhatsApp.', actions: `<a class="btn ghost" href="#/envois">${icon('truck-duotone')} Envois</a><a class="btn ghost" href="#/reglages">Tarifs</a>` })
       + tabsBar(TABS.map(([k, l]) => [k, l, list.filter((r) => match(r, k)).length]), f, 'frf') + '<div id="tbl"></div>';
     dataTable($('#tbl'), {
       id: 'france', rows: list.filter((r) => match(r, f)), defaultSort: 'createdAt', rowHref: (r) => '#/france/' + enc(r.id), placeholder: 'N°, client, article', empty: 'Aucune demande ici.',
@@ -591,7 +591,7 @@
     const intl = '242' + r.customer.phone;
     const waText = (txt) => `https://wa.me/${intl}?text=${encodeURIComponent(txt)}`;
     const editable = ['requested', 'quoted', 'expired'].includes(r.status);
-    app.innerHTML = pageHead({ crumb: 'Achat en France', title: `Demande ${r.id}`, desc: `${esc(r.customer.name)} · ${esc(r.customer.phone)} · ${esc(r.customer.city || '')}${r.customer.address ? ' · ' + esc(r.customer.address) : ''}`, actions: `<a class="btn green" href="https://wa.me/${intl}" target="_blank" rel="noopener">WhatsApp</a>` })
+    app.innerHTML = pageHead({ crumb: 'Achat en Europe', title: `Demande ${r.id}`, desc: `${esc(r.customer.name)} · ${esc(r.customer.phone)} · ${esc(r.customer.city || '')}${r.customer.address ? ' · ' + esc(r.customer.address) : ''}`, actions: `<a class="btn green" href="https://wa.me/${intl}" target="_blank" rel="noopener">WhatsApp</a>` })
       + (r.note ? `<div class="alert warn">Note du client : ${esc(r.note)}</div>` : '')
       + (r.status === 'accepted' && r.order ? `<div class="alert ok">Devis accepté : commande <a href="#/commande/${enc(r.order.id)}">${esc(r.order.id)}</a> (${esc(state.labels?.[r.order.status] || r.order.status)}${r.order.stage ? ', ' + esc(FR_STAGES[r.order.stage]) : ''}).</div>` : '')
       + (r.status === 'declined' ? `<div class="alert err">Refusée : ${esc(r.declineReason || '')}</div>` : '')
@@ -603,7 +603,7 @@
           <div class="grid2">
             <div><label>Nom de l'article</label><input name="title" type="text" value="${esc(q?.items[i]?.title || it.title)}" ${editable ? '' : 'disabled'}></div>
             <div><label>Quantité</label><input name="qty" type="number" min="1" value="${esc(q?.items[i]?.qty || it.qty)}" ${editable ? '' : 'disabled'}></div>
-            <div><label>Prix unitaire en France (€)</label><input name="priceEur" type="text" inputmode="decimal" value="${esc(q?.items[i]?.priceEur ?? it.priceEur ?? '')}" ${editable ? '' : 'disabled'}></div>
+            <div><label>Prix unitaire en Europe (€)</label><input name="priceEur" type="text" inputmode="decimal" value="${esc(q?.items[i]?.priceEur ?? it.priceEur ?? '')}" ${editable ? '' : 'disabled'}></div>
             <div><label>Port jusqu'à l'agent (€)</label><input name="shippingEur" type="text" inputmode="decimal" value="${esc(q?.items[i]?.shippingEur ?? 0)}" ${editable ? '' : 'disabled'}></div>
           </div>
         </fieldset>`).join('')}
@@ -620,7 +620,7 @@
         <p class="muted">Lien personnel du devis (valable jusqu'au ${date(q.validUntil)}) :</p>
         <input type="text" readonly value="${esc(link)}" id="shareLink">
         <div class="row" style="margin-top:10px">
-          <a class="btn green" target="_blank" rel="noopener" href="${esc(waText(`Bonjour ${r.customer.name.split(' ')[0]}, voici votre devis Kamwa pour votre achat en France : ${fcfa(q.total)} tout compris, livré à ${r.customer.city || 'domicile'} (${q.delay}). Pour accepter et payer : ${link}`))}">Envoyer par WhatsApp</a>
+          <a class="btn green" target="_blank" rel="noopener" href="${esc(waText(`Bonjour ${r.customer.name.split(' ')[0]}, voici votre devis Kamwa pour votre achat en Europe : ${fcfa(q.total)} tout compris, livré à ${r.customer.city || 'domicile'} (${q.delay}). Pour accepter et payer : ${link}`))}">Envoyer par WhatsApp</a>
           <button type="button" class="ghost" id="copyLink">Copier le lien</button>
         </div></div>` : ''}`;
     const read = () => ({
@@ -640,7 +640,7 @@
       const total = Math.ceil((cost + Math.round((cost * s.commissionPercent) / 100) + s.fixedFee) / s.roundTo) * s.roundTo;
       const finalT = b.total ? num(b.total) : total;
       $('#calc').innerHTML = e ? `<div class="lines">
-        <div><span>Articles + port en France (${eur(e)} × ${s.rate})</span><span>${fcfa(goods)}</span></div>
+        <div><span>Articles + port en Europe (${eur(e)} × ${s.rate})</span><span>${fcfa(goods)}</span></div>
         <div><span>Transport (${String(w).replace('.', ',')} kg × ${fcfa(s.freightPerKg)})</span><span>${fcfa(freight)}</span></div>
         <div><span>Douane estimée (${s.customsPercent} %)</span><span>${fcfa(customs)}</span></div>
         <div><span>Coût total pour Kamwa</span><span>${fcfa(cost)}</span></div>
@@ -661,7 +661,7 @@
     $('#copyLink')?.addEventListener('click', () => { $('#shareLink').select(); navigator.clipboard?.writeText(link).then(() => toast('Lien copié ✓'), () => {}); });
   }
 
-  // Espace de l'agent en France : acheter, recevoir (photos), préparer et faire partir les envois
+  // Espace de l'agent en Europe : acheter, recevoir (photos), préparer et faire partir les envois
   async function viewAgent() {
     let list = [], ships = [];
     try { [list, ships] = await Promise.all([api('/france/orders'), api('/france/shipments')]); } catch { return; }
@@ -670,7 +670,7 @@
     const itemsHtml = (o) => o.import.items.map((it) => `<li>${it.qty} × <a href="${esc(it.url)}" target="_blank" rel="noopener">${esc(it.title)}</a>${it.options ? ` — <strong>${esc(it.options)}</strong>` : ''} <span class="muted">(budget ${eur(it.priceEur)}${it.shippingEur ? ' + port ' + eur(it.shippingEur) : ''})</span></li>`).join('');
     const card = (o, form) => `<article class="deliv" data-id="${esc(o.id)}"><div class="row between"><strong class="mono">${esc(o.id)}</strong><span class="muted">payée le ${date(o.paidAt)}</span></div>
       <p class="muted" style="margin:4px 0">Pour ${esc(o.customer.name)} (${esc(o.customer.city || '')})</p><ul class="fr-list">${itemsHtml(o)}</ul>${form}</article>`;
-    app.innerHTML = pageHead({ title: 'Achats France à traiter', desc: "Achetez les articles des commandes payées, prenez-les en photo à la réception, puis regroupez-les dans un envoi vers le Congo." })
+    app.innerHTML = pageHead({ title: 'Achats Europe à traiter', desc: "Achetez les articles des commandes payées, prenez-les en photo à la réception, puis regroupez-les dans un envoi vers le Congo." })
       + `<h2>1. À acheter (${by('to_buy').length})</h2><div class="deliv-list">${by('to_buy').map((o) => card(o, `
         <form class="deliver-form" data-act="bought"><label>Montant payé (€, port compris)</label><input name="eur" type="text" inputmode="decimal" placeholder="Ex. 64,98"><label>N° de commande du site (facultatif)</label><input name="ref" type="text">
         <label class="btn ghost" style="margin:0">${icon('camera')} Photo de la facture<input name="receiptFile" type="file" accept="image/*" capture="environment" hidden></label><span class="muted rcpt"></span>
@@ -713,7 +713,7 @@
     bindShipments();
   }
 
-  const SHIP_ST = { preparing: ['En préparation', 'warn'], departed: ['Parti de France', ''], arrived: ['Arrivé au Congo', 'ok'] };
+  const SHIP_ST = { preparing: ['En préparation', 'warn'], departed: ['Parti d’Europe', ''], arrived: ['Arrivé au Congo', 'ok'] };
   function shipmentsTable(ships, agentSide) {
     if (!ships.length) return '<p class="muted">Aucun envoi pour le moment.</p>';
     return `<div class="table-wrap"><table class="dt"><thead><tr><th>Envoi</th><th>Colis</th><th>Transport</th><th>Statut</th><th></th></tr></thead><tbody>${ships.map((x) => `<tr>
@@ -726,7 +726,7 @@
   }
   function bindShipments() {
     app.querySelectorAll('[data-depart]').forEach((b) => b.addEventListener('click', async () => {
-      if (!confirm("Confirmer que l'envoi est parti ? Les clients verront « Parti de France » et la date d'arrivée prévue.")) return;
+      if (!confirm("Confirmer que l'envoi est parti ? Les clients verront « Parti d’Europe » et la date d'arrivée prévue.")) return;
       try { await api('/france/shipments/' + enc(b.dataset.depart) + '/depart', { method: 'POST', body: {} }); toast('Envoi parti ✓'); route(); } catch (err) { toast('❌ ' + err.message); }
     }));
     app.querySelectorAll('[data-arrive]').forEach((b) => b.addEventListener('click', async () => {
@@ -738,7 +738,7 @@
   async function viewShipments() {
     let ships = [];
     try { ships = await api('/france/shipments'); } catch { return; }
-    app.innerHTML = pageHead({ crumb: 'Achat en France', title: 'Envois France → Congo', desc: "Les envois préparés par l'agent en France. Quand un envoi arrive, cliquez « Arrivé au Congo » : ses commandes passent « à livrer » (livreur + code de livraison)." }) + shipmentsTable(ships, false);
+    app.innerHTML = pageHead({ crumb: 'Achat en Europe', title: 'Envois Europe → Congo', desc: "Les envois préparés par l'agent en Europe. Quand un envoi arrive, cliquez « Arrivé au Congo » : ses commandes passent « à livrer » (livreur + code de livraison)." }) + shipmentsTable(ships, false);
     bindShipments();
   }
 
@@ -943,10 +943,10 @@
         <button class="btn" style="margin-top:14px">Enregistrer</button>
       </form>
       <form class="panel" id="frSet" style="max-width:640px">
-        <h2>${icon('airplane-tilt')} Achat en France — tarifs du devis</h2>
-        <label class="check"><input type="checkbox" id="fEnabled" ${fr.enabled ? 'checked' : ''}> Proposer « Achat en France » aux clients</label>
+        <h2>${icon('airplane-tilt')} Achat en Europe — tarifs du devis</h2>
+        <label class="check"><input type="checkbox" id="fEnabled" ${fr.enabled ? 'checked' : ''}> Proposer « Achat en Europe » aux clients</label>
         <div class="grid2">
-          <div><label for="fFreight">Transport France → Congo (FCFA par kg)</label><input id="fFreight" type="number" min="0" value="${fr.freightPerKg}"></div>
+          <div><label for="fFreight">Transport Europe → Congo (FCFA par kg)</label><input id="fFreight" type="number" min="0" value="${fr.freightPerKg}"></div>
           <div><label for="fMinW">Poids minimum facturé (kg)</label><input id="fMinW" type="number" min="0" step="0.1" value="${fr.minWeightKg}"></div>
           <div><label for="fCustoms">Douane et taxes estimées (%)</label><input id="fCustoms" type="number" min="0" value="${fr.customsPercent}"></div>
           <div><label for="fComm">Commission Kamwa (%)</label><input id="fComm" type="number" min="0" value="${fr.commissionPercent}"></div>
@@ -955,14 +955,14 @@
           <div><label for="fValid">Validité d'un devis (heures)</label><input id="fValid" type="number" min="1" value="${fr.validityHours}"></div>
           <div><label for="fDelay">Délai annoncé au client</label><input id="fDelay" type="text" value="${esc(fr.delay)}"></div>
         </div>
-        <p class="muted">Taux euro fixe : 1 € = ${fr.rate} FCFA. Prix = (articles + port en France) × taux + transport au kilo + douane + commission + frais fixes, arrondi.</p>
+        <p class="muted">Taux euro fixe : 1 € = ${fr.rate} FCFA. Prix = (articles + port en Europe) × taux + transport au kilo + douane + commission + frais fixes, arrondi.</p>
         <div id="fMsg"></div>
         <button class="btn" style="margin-top:10px">Enregistrer</button>
       </form>`;
     $('#frSet').addEventListener('submit', async (e) => {
       e.preventDefault();
       const body = { enabled: $('#fEnabled').checked, freightPerKg: Number($('#fFreight').value), minWeightKg: Number($('#fMinW').value), customsPercent: Number($('#fCustoms').value), commissionPercent: Number($('#fComm').value), fixedFee: Number($('#fFixed').value), roundTo: Number($('#fRound').value), validityHours: Number($('#fValid').value), delay: $('#fDelay').value };
-      try { await api('/france/settings', { method: 'PUT', body }); toast('Tarifs France enregistrés ✓'); } catch (err) { $('#fMsg').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; }
+      try { await api('/france/settings', { method: 'PUT', body }); toast('Tarifs Europe enregistrés ✓'); } catch (err) { $('#fMsg').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; }
     });
     $('#codForm').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -1120,7 +1120,7 @@
       ${limited ? '<div class="alert warn">Produit publié : vous pouvez modifier le <strong>stock</strong> et <strong>votre prix</strong>. Pour le reste, contactez Kamwa.</div>' : ''}
       ${isSupplier() ? '' : `<div class="panel link-import">
         <h2>${icon('airplane-tilt')} Remplir depuis un lien</h2>
-        <p class="muted">Collez le lien de la page du produit (site français) : nom, photos, description, couleurs et tailles, prix en euros se remplissent tout seuls. Vérifiez, puis indiquez la <strong>quantité</strong>.</p>
+        <p class="muted">Collez le lien de la page du produit (site européen) : nom, photos, description, couleurs et tailles, prix en euros se remplissent tout seuls. Vérifiez, puis indiquez la <strong>quantité</strong>.</p>
         <div class="row"><input id="srcUrl" type="text" inputmode="url" placeholder="https://www.site.fr/produit…" value="${esc(p.sourceUrl || '')}" style="flex:1;min-width:220px"><button type="button" class="btn" id="scrapeBtn">Remplir</button></div>
         <div id="scrapeMsg"></div>
         <details class="deliver-box"><summary>Le site refuse la lecture ? Utilisez le bouton « → Kamwa »</summary>
@@ -1166,10 +1166,10 @@
         <textarea id="options" rows="2" placeholder="Couleur : Noir, Bleu, Rouge&#10;Taille : 40, 41, 42, 43" ${dis}>${esc((p.options || []).map((o) => `${o.name} : ${o.values.join(', ')}`).join('\n'))}</textarea>
         <p class="muted" style="margin-top:4px">Le client devra choisir avant d'ajouter au panier.</p>
         ${isSupplier() ? '' : `
-        <label class="check" style="margin-top:14px"><input id="originFr" type="checkbox" ${p.origin === 'FR' ? 'checked' : ''}> ${icon('airplane-tilt')} Produit venu de France (expédié par avion, payé à la commande)</label>
+        <label class="check" style="margin-top:14px"><input id="originFr" type="checkbox" ${p.origin === 'FR' ? 'checked' : ''}> ${icon('airplane-tilt')} Produit venu d’Europe (expédié par avion, payé à la commande)</label>
         <div id="frFields" ${p.origin === 'FR' ? '' : 'hidden'}>
           <div class="grid2">
-            <div><label for="priceEur">Prix en France (€)</label><input id="priceEur" type="text" inputmode="decimal" value="${esc(p.priceEur ?? '')}"></div>
+            <div><label for="priceEur">Prix en Europe (€)</label><input id="priceEur" type="text" inputmode="decimal" value="${esc(p.priceEur ?? '')}"></div>
             <div><label for="weightKg">Poids avec emballage (kg)</label><input id="weightKg" type="text" inputmode="decimal" value="${esc(p.weightKg ?? '')}"></div>
           </div>
           <div class="calc" id="frCalc"></div>
@@ -1261,7 +1261,7 @@
     };
     $('#camera')?.addEventListener('change', (e) => { addFiles(e.target.files); e.target.value = ''; });
 
-    // --- Produit venu de France : prix tout compris (même calcul que le serveur) ---
+    // --- Produit venu d’Europe : prix tout compris (même calcul que le serveur) ---
     let frConf = null;
     const num = (v) => Number(String(v ?? '').replace(',', '.')) || 0;
     const frCalc = async () => {
@@ -1420,7 +1420,7 @@
             <option value="catalog">Employé Catalogue — ajout et modification des produits</option>
             <option value="orders">Employé Commandes — suivi et statut des commandes</option>
             <option value="courier">Livreur — ses livraisons, validées avec le code du client</option>
-            <option value="agent">Agent France — achète, reçoit et envoie les achats en France</option>
+            <option value="agent">Agent Europe — achète, reçoit et envoie les achats en Europe</option>
           </select>
           <div id="companyField"><label for="sCompany">Entreprise du fournisseur *</label><input id="sCompany" type="text" placeholder="Ex. Tech Import Pointe-Noire"></div>
           <label for="sName">Nom de la personne *</label><input id="sName" type="text">

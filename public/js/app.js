@@ -42,7 +42,7 @@
   const orderHeaders = (token) => ({ 'X-Order-Token': token });
 
   function finishPaid(checkout) {
-    if (!checkout.import) { state.cart = {}; saveCart(); saveCheckout(null); } // un achat en France ne vide pas le panier
+    if (!checkout.import) { state.cart = {}; saveCart(); saveCheckout(null); } // un achat en Europe ne vide pas le panier
     saveJSON('kamwa-last-order', { id: checkout.orderId, token: checkout.token });
     location.hash = '#/merci/' + checkout.orderId;
   }
@@ -74,7 +74,7 @@
   };
   const statusBadge = (o) => `<span class="st st-${o.status}">${esc(statusLabel(o))}</span>`;
   // Étapes de suivi : livraison (4 étapes) ou retrait en agence (3 étapes)
-  // Achat en France : payée → achetée → reçue par l'agent → partie de France → arrivée au Congo → en livraison → livrée
+  // Achat en Europe : payée → achetée → reçue par l'agent → partie d’Europe → arrivée au Congo → en livraison → livrée
   const IMPORT_STAGE = { to_buy: 1, bought: 2, received: 3, shipped_fr: 4, arrived: 5 };
   const importStep = (o) => (o.status === 'pending_payment' ? 0 : o.status === 'delivered' ? 7 : o.status === 'shipped' ? 6 : IMPORT_STAGE[o.import.stage] ?? 1);
   const stepIndex = (o) => (o.import ? importStep(o) : (isPickup(o) ? { pending_payment: 0, paid: 1, delivered: 2 } : STEP_INDEX)[o.status] ?? -1);
@@ -120,7 +120,7 @@
         <div class="line">
           <div>
             <div>${esc(p.name)}</div>
-            ${variant ? `<div class="hint">${esc(variantText(variant))}</div>` : ''}${p.origin === 'FR' ? `<div class="hint fr-hint">${icon('airplane-tilt')} Venu de France · ${esc(state.frDelay || '10 jours maximum')}</div>` : ''}
+            ${variant ? `<div class="hint">${esc(variantText(variant))}</div>` : ''}${p.origin === 'FR' ? `<div class="hint fr-hint">${icon('airplane-tilt')} Venu d’Europe · ${esc(state.frDelay || '10 jours maximum')}</div>` : ''}
             <div class="qty">
               <button data-qty="${esc(key)}" data-d="-1" aria-label="Retirer un">−</button>
               <span>${qty}</span>
@@ -222,13 +222,13 @@
       for (const c of u.categories) links.push(`<a href="#/c/${enc(u.name)}/${enc(c)}" class="${active === c ? 'active' : ''}">${esc(c)}</a>`);
     }
     links.push(`<a href="#/promos" class="deals-link ${active === 'promos' ? 'active' : ''}">Bonnes affaires</a>`);
-    links.splice(1, 0, `<a href="#/france" class="france-link ${active === 'france' ? 'active' : ''}">${icon('airplane-tilt')} Achat en France</a>`);
+    links.splice(1, 0, `<a href="#/europe" class="france-link ${active === 'france' ? 'active' : ''}">${icon('airplane-tilt')} Achat en Europe</a>`);
     $('#catnav').innerHTML = links.join('');
     // Menu « Toutes » et liste des rayons de la recherche (une seule fois)
     if (!$('#menuBody').innerHTML) {
       $('#menuBody').innerHTML = `<h3>À la une</h3>
         <a href="#/promos">${icon('seal-percent')} Bonnes affaires</a>
-        <a href="#/france">${icon('airplane-tilt')} Achat en France</a>` +
+        <a href="#/europe">${icon('airplane-tilt')} Achat en Europe</a>` +
         UNIVERSES.map((u) => `<h3>${esc(u.name)}</h3><a href="#/c/${enc(u.name)}">Tout ${esc(u.name.toLowerCase())}</a>` +
           u.categories.map((c) => `<a href="#/c/${enc(u.name)}/${enc(c)}">${catIcon(c)} ${esc(c)}</a>`).join('')).join('') +
         `<h3>Aide et compte</h3><a href="#/compte">${icon('user-circle')} Mon compte et mes commandes</a>
@@ -253,7 +253,7 @@
 
   function card(p) {
     const d = discount(p);
-    const tag = p.origin === 'FR' ? `<span class="tag tag-fr">${icon('airplane-tilt')} Venu de France</span>`
+    const tag = p.origin === 'FR' ? `<span class="tag tag-fr">${icon('airplane-tilt')} Venu d’Europe</span>`
       : p.condition && p.condition !== 'neuf' ? `<span class="tag tag-violet">${esc(p.condition === 'reconditionné' ? 'Reconditionné' : 'Occasion')}</span>`
       : p.featured ? '<span class="tag tag-mango">Nouveau</span>' : '';
     return `
@@ -364,7 +364,7 @@
       if (p) slides.push(slide({ theme: 'mango', kicker: esc(u.name), title: u.name === 'Mode' ? 'Le style, sans se ruiner' : 'Le meilleur de la tech', text: esc(u.categories.slice(0, 4).join(' · ')), href: `#/c/${enc(u.name)}`, cta: 'Découvrir', p }));
     }
     slides.splice(1, 0, slide({
-      theme: 'violet', kicker: `${icon('airplane-tilt')} Nouveau`, title: 'Achetez en France, recevez au Congo', text: 'Des produits venus de France à un prix tout compris en FCFA : transport en avion et douane inclus, payé en Mobile Money, livré chez vous.', href: '#/france', cta: 'Voir les produits',
+      theme: 'violet', kicker: `${icon('airplane-tilt')} Nouveau`, title: 'Achetez en Europe, recevez au Congo', text: 'Des produits venus d’Europe à un prix tout compris en FCFA : transport en avion et douane inclus, payé en Mobile Money, livré chez vous.', href: '#/france', cta: 'Voir les produits',
       extra: '<div class="pay-chips"><span>Avion</span><span>Prix tout compris</span><span>Suivi étape par étape</span></div>',
     }));
     slides.push(slide({
@@ -532,7 +532,7 @@
             <span class="price">${fcfa(p.price)}</span>
             ${(p.options || []).map((o, i) => `<label class="opt-label" for="opt${i}">${esc(o.name)}</label><div class="opt-choices" id="opt${i}" data-opt="${esc(o.name)}">${o.values.map((v) => `<button type="button" class="opt" data-v="${esc(v)}">${esc(v)}</button>`).join('')}</div>`).join('')}
             ${p.origin === 'FR'
-              ? `<span class="momo-note fr-note">${icon('airplane-tilt')} Venu de France par avion · livré en ${esc(state.frDelay || '10 jours maximum')}</span>
+              ? `<span class="momo-note fr-note">${icon('airplane-tilt')} Venu d’Europe par avion · livré en ${esc(state.frDelay || '10 jours maximum')}</span>
                  <span class="hint">${icon('check-circle-duotone')} Prix tout compris (transport et douane inclus) · payable à la commande en Mobile Money ou par carte</span>`
               : `<span class="momo-note">${icon('check-circle-duotone')} Payable en Mobile Money, par carte ou en espèces</span>
             <span class="hint">${icon('truck-duotone')} Livraison 24-48 h à Pointe-Noire et Brazzaville</span>`}
@@ -624,7 +624,7 @@
           </div>
 
           <h2 style="margin-top:24px">2. Paiement</h2>
-          ${hasFr ? `<div class="alert warn">${icon('airplane-tilt')} Votre panier contient des articles venus de France : nous les achetons pour vous, la commande se paie donc à la commande (Mobile Money ou carte). Livraison de toute la commande en ${esc(state.frDelay || '10 jours maximum')}.</div>` : ''}
+          ${hasFr ? `<div class="alert warn">${icon('airplane-tilt')} Votre panier contient des articles venus d’Europe : nous les achetons pour vous, la commande se paie donc à la commande (Mobile Money ou carte). Livraison de toute la commande en ${esc(state.frDelay || '10 jours maximum')}.</div>` : ''}
           <div class="methods">
             <label class="op"><input type="radio" name="method" value="momo" checked><span>${icon('device-mobile-duotone')}<span class="txt">Mobile Money<small>MTN MoMo · Airtel Money</small></span></span></label>
             ${methods.card ? `<label class="op"><input type="radio" name="method" value="card"><span>${icon('credit-card-duotone')}<span class="txt">Carte bancaire<small>Visa · Mastercard</small></span></span></label>` : ''}
@@ -998,9 +998,9 @@
       ? [
           ['Commande passée', o.createdAt, 'Devis accepté. Le paiement confirme la commande.'],
           ['Payée', o.paidAt, `Paiement reçu. Nous achetons votre article (délai total annoncé : ${esc(im.delay || '10 jours maximum')}).`],
-          ['Achetée en France', im.boughtAt, 'Votre article est commandé auprès du vendeur en France.'],
+          ['Achetée en Europe', im.boughtAt, 'Votre article est commandé auprès du vendeur en Europe.'],
           ['Article vérifié', im.receivedAt, "Votre article a été reçu et vérifié. Il part avec le prochain envoi vers le Congo."],
-          ['Partie de France', im.departedAt, `Votre colis est en route vers le Congo${im.eta ? ` — arrivée prévue vers le <strong>${shortDate(im.eta)}</strong>` : ''}.`],
+          ['Partie d’Europe', im.departedAt, `Votre colis est en route vers le Congo${im.eta ? ` — arrivée prévue vers le <strong>${shortDate(im.eta)}</strong>` : ''}.`],
           ['Arrivée au Congo', im.arrivedAt, 'Votre colis est arrivé. Nous vous appelons pour la livraison.'],
           ['En livraison', at('shipped'), 'Le livreur arrive. Préparez votre code de livraison.'],
           ['Livrée', at('delivered'), 'Votre commande a été livrée. Merci pour votre confiance !'],
@@ -1058,7 +1058,7 @@
       </div>`;
   }
 
-  // ---------- Achat en France : demande de devis, devis, paiement ----------
+  // ---------- Achat en Europe : demande de devis, devis, paiement ----------
   const deviceDevis = () => loadJSON('kamwa-devis') || [];
   const rememberDevis = (id, token) => saveJSON('kamwa-devis', [{ id, token }, ...deviceDevis().filter((d) => d.id !== id)].slice(0, 30));
   const DEVIS_STATUS = { requested: ['Devis en préparation', 'st-pending_payment'], quoted: ['Devis prêt', 'st-confirmed'], accepted: ['Accepté', 'st-paid'], expired: ['Devis expiré', 'st-cancelled'], declined: ['Non disponible', 'st-cancelled'], cancelled: ['Annulé', 'st-cancelled'] };
@@ -1089,9 +1089,9 @@
       <section class="fr-hero">
         <span class="deco o1"></span><span class="deco o2"></span>
         <div>
-          <span class="pill">${icon('airplane-tilt')} Venu de France</span>
-          <h1>Achetez en France,<br>recevez au Congo.</h1>
-          <p>Des produits choisis en France, à un <strong>prix tout compris en FCFA</strong> (transport en avion et douane inclus). Vous payez en Mobile Money, nous nous occupons de tout jusqu'à votre porte. <strong>Vous achetez, vous recevez, point.</strong></p>
+          <span class="pill">${icon('airplane-tilt')} Venu d’Europe</span>
+          <h1>Achetez en Europe,<br>recevez au Congo.</h1>
+          <p>Des produits choisis en Europe, à un <strong>prix tout compris en FCFA</strong> (transport en avion et douane inclus). Vous payez en Mobile Money, nous nous occupons de tout jusqu'à votre porte. <strong>Vous achetez, vous recevez, point.</strong></p>
         </div>
       </section>
       <div class="fr-steps">
@@ -1100,7 +1100,7 @@
         <div>${icon('wallet')}<span><strong>Prix tout compris</strong>En FCFA, payé en Mobile Money, sans frais cachés.</span></div>
         <div>${icon('truck')}<span><strong>Livré chez vous</strong>Suivi à chaque étape, livraison en ${esc(conf.delay)}.</span></div>
       </div>
-      ${(() => { const list = state.products.filter((x) => x.origin === 'FR'); return list.length ? `<section class="shelf" style="margin-top:8px"><div class="shelf-head"><div><p class="kicker k-violet">${icon('airplane-tilt')} Venus de France</p><h2>Nos produits</h2></div></div><div class="grid">${list.map(card).join('')}</div></section>` : '<div class="panel empty">Les premiers produits venus de France arrivent très bientôt.</div>'; })()}
+      ${(() => { const list = state.products.filter((x) => x.origin === 'FR'); return list.length ? `<section class="shelf" style="margin-top:8px"><div class="shelf-head"><div><p class="kicker k-violet">${icon('airplane-tilt')} Venus d’Europe</p><h2>Nos produits</h2></div></div><div class="grid">${list.map(card).join('')}</div></section>` : '<div class="panel empty">Les premiers produits venus d’Europe arrivent très bientôt.</div>'; })()}
       ${mine.length ? `<section class="panel"><h2>Mes demandes</h2>${mine.map((d) => `<a class="order-card" href="#/devis/${enc(d.id)}/${enc(d.token)}"><div class="top"><strong>${esc(d.id)}</strong>${devisBadge(d.status)}</div><div class="hint">${esc(d.items.map((it) => it.title || it.url).join(', ').slice(0, 100))}${d.quote ? ` · <strong style="color:var(--ink)">${fcfa(d.quote.total)}</strong>` : ''}</div></a>`).join('')}</section>` : ''}
       ${conf.enabled && conf.customerRequests ? `
       <form class="panel" id="frForm" novalidate>
@@ -1152,7 +1152,7 @@
     token = token || deviceDevis().find((d) => d.id === id)?.token;
     let r = null;
     try { r = await api('/imports/' + enc(id), { headers: { 'X-Import-Token': token || '' } }); } catch {}
-    if (!r) { app.innerHTML = '<div class="panel waiting"><h1>Devis introuvable</h1><p class="hint">Ouvrez le lien reçu par WhatsApp sur ce téléphone.</p><a class="btn cta" href="#/france">Achat en France</a></div>'; return; }
+    if (!r) { app.innerHTML = '<div class="panel waiting"><h1>Devis introuvable</h1><p class="hint">Ouvrez le lien reçu par WhatsApp sur ce téléphone.</p><a class="btn cta" href="#/europe">Achat en Europe</a></div>'; return; }
     const q = r.quote;
     let order = null;
     if (r.orderId) {
@@ -1164,8 +1164,8 @@
       requested: `<div class="alert warn">Nous préparons votre devis tout compris : vous recevez une réponse sous 24 h, ici et par WhatsApp au <strong>${esc(r.customer.phone)}</strong>.</div>`,
       quoted: q ? `
         <div class="quote-box">
-          <div class="row"><span>Articles (prix en France + port, convertis en FCFA)</span><span>${fcfa(q.breakdown.goods)}</span></div>
-          <div class="row"><span>Transport France → Congo</span><span>${fcfa(q.breakdown.freight)}</span></div>
+          <div class="row"><span>Articles (prix en Europe + port, convertis en FCFA)</span><span>${fcfa(q.breakdown.goods)}</span></div>
+          <div class="row"><span>Transport Europe → Congo</span><span>${fcfa(q.breakdown.freight)}</span></div>
           <div class="row"><span>Douane et taxes</span><span>${fcfa(q.breakdown.customs)}</span></div>
           <div class="row"><span>Service Kamwa (achat, suivi, livraison)</span><span>${fcfa(q.breakdown.commission)}</span></div>
           <div class="row total"><span>Prix tout compris</span><strong>${fcfa(q.total)}</strong></div>
@@ -1174,13 +1174,13 @@
         </div>
         <button class="btn cta block" id="acceptBtn">Accepter et payer ${fcfa(q.total)}</button>
         <button class="btn ghost block" id="cancelBtn" style="margin-top:8px">Non merci</button>` : '',
-      expired: '<div class="alert err">Ce devis a expiré (les prix en France changent vite). Refaites une demande : c\'est gratuit.</div><a class="btn cta" href="#/france">Nouvelle demande</a>',
-      declined: `<div class="alert err">${esc(r.declineReason || "Nous ne pouvons pas faire venir cet article.")}</div><a class="btn cta" href="#/france">Faire une autre demande</a>`,
-      cancelled: '<div class="alert err">Vous avez annulé cette demande.</div><a class="btn cta" href="#/france">Nouvelle demande</a>',
+      expired: '<div class="alert err">Ce devis a expiré (les prix en Europe changent vite). Refaites une demande : c\'est gratuit.</div><a class="btn cta" href="#/europe">Nouvelle demande</a>',
+      declined: `<div class="alert err">${esc(r.declineReason || "Nous ne pouvons pas faire venir cet article.")}</div><a class="btn cta" href="#/europe">Faire une autre demande</a>`,
+      cancelled: '<div class="alert err">Vous avez annulé cette demande.</div><a class="btn cta" href="#/europe">Nouvelle demande</a>',
       accepted: order && order.status !== 'pending_payment' ? `<p>Commande <strong>${esc(order.id)}</strong> payée.</p><a class="btn cta" href="#/suivi/${enc(order.id)}">Suivre ma commande</a>` : '',
     }[r.status] || '';
     app.innerHTML = `
-      <div class="crumbs"><a href="#/france">Achat en France</a> › Devis</div>
+      <div class="crumbs"><a href="#/europe">Achat en Europe</a> › Devis</div>
       <div class="checkout">
         <div class="panel">
           <div class="row" style="gap:10px;align-items:center"><h1 style="margin:0">Devis ${esc(r.id)}</h1>${devisBadge(r.status)}</div>
@@ -1269,7 +1269,8 @@
       case 'suivi': return viewTracking(parts[1]);
       case 'credits': return viewCredits();
       case 'legal': return viewLegal(parts[1]);
-      case 'france': return viewFrance();
+      case 'europe':
+      case 'france': return viewFrance(); // ancienne adresse #/france gardée
       case 'devis': return viewDevis(parts[1], parts[2]);
       case 'cookies': renderNav(null); return window.kamwaConsent?.renderSettings(app);
       default: return viewHome();
