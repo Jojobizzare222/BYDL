@@ -4,7 +4,8 @@ const fs = require('fs');
 const path = require('path');
 const express = require('express');
 const router = express.Router();
-const { products, orders, payments } = require('../store');
+const { products, orders, payments, customers } = require('../store');
+const customerAuth = require('../customer/auth');
 const { login, logout, isLoggedIn, isPasswordSet, requireAdmin } = require('../admin/auth');
 const { UNIVERSES, universeOf } = require('../catalog');
 const { normalizeLocal } = require('../utils/phone');
@@ -34,9 +35,11 @@ function adminOrder({ accessToken, ...order }) {
   const payment =
     (order.paymentId && payments.get(order.paymentId)) ||
     payments.all().filter((p) => p.orderId === order.id).pop();
+  const account = order.customerId && customers.get(order.customerId);
   return {
     ...order,
     payment: payment ? { operator: payment.operator, phone: payment.phone, status: payment.status, reason: payment.reason } : null,
+    account: account ? customerAuth.publicCustomer(account) : null,
   };
 }
 
@@ -85,6 +88,23 @@ router.patch('/orders/:id', (req, res) => {
   if (note !== undefined) patch.note = String(note || '').trim().slice(0, 1000);
 
   res.json(adminOrder(orders.update(order.id, patch)));
+});
+
+// ---------- Clients ----------
+router.get('/customers', (req, res) => {
+  const all = orders.all();
+  const list = customers
+    .all()
+    .map((c) => ({ ...customerAuth.publicCustomer(c), orders: all.filter((o) => o.customerId === c.id).length }))
+    .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+  res.json(list);
+});
+
+// « Code oublié » : un nouveau code est généré et montré UNE fois à l'admin, qui le transmet au client (WhatsApp, appel…).
+router.post('/customers/:id/new-code', (req, res) => {
+  const customer = customers.get(req.params.id);
+  if (!customer) return res.status(404).json({ error: 'Client introuvable' });
+  res.json({ code: customerAuth.assignNewCode(customer.id) });
 });
 
 // ---------- Produits ----------

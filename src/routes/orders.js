@@ -3,6 +3,7 @@ const router = require('express').Router();
 const { products, orders } = require('../store');
 const { normalizeLocal } = require('../utils/phone');
 const { availableStock } = require('../utils/stock');
+const { currentCustomer } = require('../customer/auth');
 
 const newOrderId = () =>
   'CMD-' + new Date().toISOString().slice(2, 10).replace(/-/g, '') + '-' + crypto.randomBytes(4).toString('hex').toUpperCase();
@@ -15,8 +16,14 @@ function hasAccess(order, token) {
   return a.length === b.length && b.length > 0 && crypto.timingSafeEqual(a, b);
 }
 
-// Version renvoyée au navigateur (sans la clé secrète).
-const publicOrder = ({ accessToken, ...order }) => order;
+// Version renvoyée au client : sans la clé secrète ni les informations internes de l'admin.
+const publicOrder = ({ accessToken, note, paidAfterCancel, ...order }) => order;
+
+// Client connecté propriétaire de la commande ?
+const isOwner = (req, order) => {
+  const customer = currentCustomer(req);
+  return Boolean(customer && order.customerId === customer.id);
+};
 
 // Création de commande : le total est TOUJOURS recalculé côté serveur à partir du catalogue.
 router.post('/', (req, res) => {
@@ -43,6 +50,7 @@ router.post('/', (req, res) => {
   const order = orders.insert({
     id: newOrderId(),
     accessToken: crypto.randomBytes(16).toString('hex'),
+    customerId: currentCustomer(req)?.id || null, // commande rattachée au compte si le client est connecté
     lines,
     subtotal,
     deliveryFee: 0, // à définir selon la zone (Pointe-Noire, Brazzaville…)
@@ -65,7 +73,9 @@ router.post('/', (req, res) => {
 // La clé est transmise dans un en-tête (jamais dans l'adresse, pour ne pas la laisser dans les journaux).
 router.get('/:id', (req, res) => {
   const order = orders.get(req.params.id);
-  if (!order || !hasAccess(order, req.get('X-Order-Token'))) return res.status(404).json({ error: 'Commande introuvable' });
+  if (!order || !(hasAccess(order, req.get('X-Order-Token')) || isOwner(req, order))) {
+    return res.status(404).json({ error: 'Commande introuvable' });
+  }
   res.json(publicOrder(order));
 });
 

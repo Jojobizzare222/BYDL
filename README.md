@@ -31,6 +31,13 @@ Vous pouvez y :
 - ajouter et modifier les produits : photo, prix, prix barré, stock, description, visible ou masqué, mis en avant ;
 - être prévenu des nouvelles commandes payées : sonnerie dans l'admin (bouton « Son ») et e-mail (voir `.env.example`).
 
+## Espace client
+
+- **Mon compte** (icône en haut à droite) : le client crée son compte avec son numéro de téléphone ou son e-mail. Kamwa lui attribue un **code à 6 chiffres**, affiché une seule fois.
+- Connexion : numéro (ou e-mail) + code. 5 codes faux = compte bloqué 15 minutes.
+- **Mes commandes** : historique des achats et **suivi** de chaque commande (passée → payée → expédiée → livrée). Sans compte, on voit les commandes passées depuis ce téléphone.
+- Code oublié : dans l'admin, onglet **Clients** → « Nouveau code », à envoyer au client par WhatsApp.
+
 Les données (commandes, produits, photos) sont dans `data/baydel.db` et `data/uploads/`. Elles ne partent **pas** sur GitHub.
 
 Par défaut, le site tourne en **mode simulation** : aucun argent n'est débité, et le paiement

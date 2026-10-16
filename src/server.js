@@ -28,6 +28,7 @@ app.get('/api/config', (req, res) =>
 app.use('/api/products', require('./routes/products'));
 app.use('/api/orders', require('./routes/orders'));
 app.use('/api/payments', require('./routes/payments'));
+app.use('/api/account', require('./routes/account'));
 app.use('/api/admin', require('./routes/admin'));
 
 app.use('/api', (req, res) => res.status(404).json({ error: 'Route inconnue' }));

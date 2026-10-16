@@ -24,7 +24,9 @@ src/store.js             base SQLite (une table par collection : id + document J
 src/catalog.js           liste des univers/catégories (servie au site via /api/config et à l'admin)
 src/notify.js            e-mail à chaque commande payée (SMTP dans .env ; sinon affiché dans le Terminal)
 src/admin/auth.js        connexion admin : mot de passe (scrypt) en base, cookie de session HttpOnly/SameSite=Strict 7 j, blocage 15 min après 5 échecs
-src/routes/admin.js      /api/admin : login/logout/me, commandes (statuts, client, note), produits (création/modif/masquer), envoi de photos
+src/routes/admin.js      /api/admin : login/logout/me, commandes (statuts, client, note), produits (création/modif/masquer), envoi de photos, clients (liste, « nouveau code »)
+src/customer/auth.js     comptes clients : identifiant = téléphone OU e-mail + code Kamwa à 6 chiffres (100000-999999) ATTRIBUÉ par le site, montré une seule fois ; empreinte scrypt ; cookie kamwa_client (HttpOnly, SameSite=Lax, 30 j) ; blocage 15 min après 5 codes faux par compte / 20 par adresse IP
+src/routes/account.js    /api/account : register, login, logout, me, orders (historique), claim (rattache les commandes de l'appareil via leur clé)
 scripts/admin-password.js  `npm run admin:password` : créer/changer le mot de passe admin (saisie masquée)
 public/admin/            espace admin (http://localhost:3000/admin) : commandes, produits, sonnerie des nouvelles commandes
 data/uploads/            photos envoyées depuis l'admin (servies sur /images/uploads/)
@@ -36,7 +38,7 @@ src/utils/stock.js       stock disponible = stock - quantités réservées par l
 src/payments/index.js    choix simulation / live
 src/payments/providers/  mtn-momo.js (Collection API, requesttopay) · airtel-money.js (merchant/v1/payments) · simulation.js
 src/utils/phone.js       numéros +242 : 06 = MTN, 05/04 = Airtel
-public/index.html, public/css/style.css, public/js/app.js   SPA avec routes hash : #/, #/c/<univers>/<catégorie>, #/p/<id>, #/recherche/<q>, #/promos, #/commande, #/merci/<id>
+public/index.html, public/css/style.css, public/js/app.js   SPA avec routes hash : #/, #/c/<univers>/<catégorie>, #/p/<id>, #/recherche/<q>, #/promos, #/commande, #/merci/<id>, #/compte, #/compte/creer, #/suivi/<id>
 public/images/products/  images produit (champ "image" ; repli sur emoji si absente)
 data/products.json       catalogue de départ (~107 produits : 90 Apple de SIMULATION + composants + mode), importé une seule fois
 ```
@@ -50,7 +52,8 @@ Lancer : `npm install` puis `npm start` → boutique http://localhost:3000 · ad
 - Mode `live` : MTN sandbox (momodeveloper.mtn.com, devise EUR en sandbox, `mtncongo`/XAF en prod) ; Airtel nécessite un compte marchand Airtel Congo (pas de vrai test possible avant). Joseph n'a qu'un numéro Airtel → vrai test téléphone reporté.
 - **Anti double paiement** : une seule demande en attente par commande (les anciennes sont revérifiées avant toute nouvelle ; une demande en attente de moins de `PAYMENT_PENDING_MINUTES`=10 min est reprise, pas doublée). Le navigateur garde la commande en cours (`baydel-checkout` dans localStorage) et la réutilise tant que le panier ne change pas. Après 3 min sans réponse, la page n'affiche PAS « échec » : elle continue de vérifier (jusqu'à 15 min).
 - Pas de réponse de l'opérateur (délai dépassé) : la demande est quand même enregistrée en attente pour être revérifiée, jamais perdue.
-- Les coordonnées d'une commande ne sont lisibles qu'avec sa clé (`token`, gardée par le navigateur du client).
+- Les coordonnées d'une commande ne sont lisibles qu'avec sa clé (`token`, gardée par le navigateur du client dans `kamwa-orders`) OU par le client connecté propriétaire (`customerId`). Jamais la note interne admin ni `paidAfterCancel` côté client.
+- **Comptes clients** (décision Joseph 16/10/2026 : gratuit, pas de SMS) : le code seul ne donne JAMAIS accès (il faut identifiant + code). Numéro/e-mail non vérifiés → on ne rattache JAMAIS automatiquement des commandes par numéro ; seulement les commandes passées connecté ou prouvées par leur clé. Code oublié : l'admin génère un nouveau code (onglet Clients) et l'envoie par WhatsApp. Achat sans compte toujours possible.
 - Alternative envisageable plus tard : agrégateur (CinetPay, pawaPay…) via un nouveau provider.
 
 ## État actuel et points d'attention

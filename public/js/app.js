@@ -12,7 +12,7 @@
   const hasUniverse = (name) => UNIVERSES.some((u) => u.name === name);
   const universeOf = (cat) => UNIVERSES.find((u) => u.categories.includes(cat))?.name;
 
-  const state = { products: [], config: {}, cart: loadCart(), sort: 'pertinence', timers: [] };
+  const state = { products: [], config: {}, cart: loadCart(), sort: 'pertinence', timers: [], customer: null };
 
   // ---------- API ----------
   async function api(path, options = {}) {
@@ -41,6 +41,31 @@
     saveCheckout(null);
     saveJSON('kamwa-last-order', { id: checkout.orderId, token: checkout.token });
     location.hash = '#/merci/' + checkout.orderId;
+  }
+
+  // Commandes passées depuis ce téléphone (numéro + clé secrète), pour « Mes commandes » même sans compte.
+  const deviceOrders = () => loadJSON('kamwa-orders') || [];
+  function rememberOrder(id, token) {
+    const list = deviceOrders().filter((o) => o.id !== id);
+    list.unshift({ id, token });
+    saveJSON('kamwa-orders', list.slice(0, 50));
+  }
+  const tokenOf = (id) => deviceOrders().find((o) => o.id === id)?.token;
+
+  // Statuts et étapes de suivi d'une commande
+  const STATUS = { pending_payment: 'En attente de paiement', paid: 'Payée', shipped: 'Expédiée', delivered: 'Livrée', cancelled: 'Annulée' };
+  const STEP_INDEX = { pending_payment: 0, paid: 1, shipped: 2, delivered: 3 };
+  const statusBadge = (o) => `<span class="st st-${o.status}">${STATUS[o.status] || esc(o.status)}</span>`;
+  const shortDate = (iso) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '');
+  const longDate = (iso) => (iso ? new Date(iso).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }) : '');
+  const formatCode = (c) => `${c.slice(0, 3)} ${c.slice(3)}`;
+
+  function renderAccountBtn() {
+    $('#accountLabel').textContent = state.customer ? state.customer.name.split(' ')[0] : 'Compte';
+  }
+  async function refreshCustomer() {
+    try { const me = await api('/account/me'); state.customer = me.loggedIn ? me.customer : null; } catch {}
+    renderAccountBtn();
   }
 
   // ---------- Panier (conservé dans le navigateur) ----------
@@ -315,6 +340,10 @@
       } catch {}
     }
     const saved = (() => { try { return JSON.parse(localStorage.getItem('kamwa-customer')) || {}; } catch { return {}; } })();
+    if (state.customer) {
+      saved.name = saved.name || state.customer.name;
+      saved.phone = saved.phone || state.customer.phone || '';
+    }
 
     app.innerHTML = `
       <h1>Finaliser ma commande</h1>
@@ -382,6 +411,7 @@
         if (!order) {
           const created = await api('/orders', { method: 'POST', body: { customer, items: items.map(({ product, qty }) => ({ productId: product.id, qty })) } });
           checkout = { orderId: created.id, token: created.token, cartKey: cartKey() };
+          rememberOrder(created.id, created.token);
           saveCheckout(checkout);
         }
         let payment;
@@ -469,8 +499,200 @@
         <div class="big-check">✓</div>
         <h1>Merci, paiement reçu&nbsp;!</h1>
         ${order ? `<p>Commande <strong>${esc(order.id)}</strong> : ${fcfa(order.total)}</p>
-        <p>Nous vous appelons au <strong>${esc(order.customer.phone)}</strong> pour organiser la livraison à ${esc(order.customer.city)}.</p>` : ''}
+        <p>Nous vous appelons au <strong>${esc(order.customer.phone)}</strong> pour organiser la livraison à ${esc(order.customer.city)}.</p>
+        <p><a class="btn ghost" href="#/suivi/${enc(order.id)}">Suivre ma commande</a></p>` : ''}
         <a class="btn cta" href="#/">Continuer mes achats</a>
+      </div>
+      ${state.customer ? '' : `<div class="panel" style="text-align:center">
+        <strong>Retrouvez vos commandes sur n'importe quel téléphone</strong>
+        <p class="hint">Créez votre compte Kamwa en 30 secondes : vous recevez un code à 6 chiffres.</p>
+        <a class="btn ghost" href="#/compte/creer">Créer mon compte</a>
+      </div>`}`;
+  }
+
+  // ---------- Espace client ----------
+  // Commandes visibles : celles du compte (si connecté) + celles passées depuis ce téléphone.
+  async function loadMyOrders() {
+    const byId = new Map();
+    if (state.customer) {
+      try { for (const o of await api('/account/orders')) byId.set(o.id, o); } catch {}
+    }
+    const local = deviceOrders().filter((d) => !byId.has(d.id));
+    const fetched = await Promise.all(local.map((d) => api('/orders/' + enc(d.id), { headers: orderHeaders(d.token) }).catch(() => null)));
+    for (const o of fetched) if (o) byId.set(o.id, o);
+    return [...byId.values()].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+  }
+
+  function orderCard(o) {
+    const step = STEP_INDEX[o.status] ?? -1;
+    const items = o.lines.reduce((n, l) => n + l.qty, 0);
+    return `
+      <a class="order-card" href="#/suivi/${enc(o.id)}">
+        <div class="top"><strong>${esc(o.id)}</strong>${statusBadge(o)}</div>
+        <div class="hint">${shortDate(o.createdAt)} · ${items} article${items > 1 ? 's' : ''} · <strong style="color:var(--ink)">${fcfa(o.total)}</strong></div>
+        <div class="hint">${esc(o.lines.map((l) => l.name).join(', ').slice(0, 90))}</div>
+        ${o.status === 'cancelled' ? '' : `<div class="progress">${[0, 1, 2, 3].map((i) => `<span class="${i <= step ? 'on' : ''}"></span>`).join('')}</div>`}
+      </a>`;
+  }
+
+  async function viewAccount(sub) {
+    renderNav(null);
+    if (sub === 'creer') return viewRegister();
+    app.innerHTML = '<p class="empty">Chargement…</p>';
+    const list = await loadMyOrders();
+    const c = state.customer;
+
+    if (c) {
+      const paid = list.filter((o) => ['paid', 'shipped', 'delivered'].includes(o.status));
+      app.innerHTML = `
+        <div class="panel">
+          <div class="row" style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap">
+            <div><h1 style="margin:0">Bonjour ${esc(c.name.split(' ')[0])} 👋</h1>
+              <span class="hint">Identifiant : ${esc([c.phone, c.email].filter(Boolean).join(' · '))} · client depuis le ${shortDate(c.createdAt)}</span></div>
+            <button class="btn ghost" id="logoutBtn">Se déconnecter</button>
+          </div>
+          <div class="stats">
+            <div><span class="hint">Commandes payées</span><b>${paid.length}</b></div>
+            <div><span class="hint">Total de vos achats</span><b>${fcfa(paid.reduce((s, o) => s + o.total, 0))}</b></div>
+          </div>
+        </div>
+        <div class="panel">
+          <h2>Mes commandes</h2>
+          ${list.length ? list.map(orderCard).join('') : '<p class="empty">Pas encore de commande. <a href="#/">Découvrir la boutique</a></p>'}
+        </div>`;
+      $('#logoutBtn').addEventListener('click', async () => {
+        await api('/account/logout', { method: 'POST' }).catch(() => {});
+        state.customer = null; renderAccountBtn(); route();
+      });
+      return;
+    }
+
+    app.innerHTML = `
+      <div class="account-grid">
+        <form class="panel" id="loginForm" novalidate>
+          <h1>Se connecter</h1>
+          <label for="identifier">Numéro de téléphone ou e-mail</label>
+          <input id="identifier" autocomplete="username" placeholder="06 123 45 67 ou nom@exemple.com" required>
+          <label for="code">Code Kamwa (6 chiffres)</label>
+          <input id="code" class="code-input" inputmode="numeric" autocomplete="one-time-code" maxlength="7" placeholder="••• •••" required>
+          <div id="loginError"></div>
+          <button class="btn cta block" style="margin-top:14px">Me connecter</button>
+          <p class="hint">Code oublié ? Contactez notre service client : nous vous en donnerons un nouveau.</p>
+        </form>
+        <div class="panel">
+          <h2>Pas encore de compte ?</h2>
+          <p class="hint">Créez votre compte avec votre numéro ou votre e-mail. Kamwa vous attribue un code à 6 chiffres pour retrouver vos commandes sur n'importe quel téléphone.</p>
+          <a class="btn ghost block" href="#/compte/creer">Créer mon compte</a>
+        </div>
+      </div>
+      <div class="panel">
+        <h2>Commandes passées depuis ce téléphone</h2>
+        ${list.length ? list.map(orderCard).join('') : '<p class="empty">Aucune commande sur ce téléphone pour le moment.</p>'}
+      </div>`;
+    const codeInput = $('#code');
+    codeInput.addEventListener('input', () => {
+      const d = codeInput.value.replace(/\D/g, '').slice(0, 6);
+      codeInput.value = d.length > 3 ? `${d.slice(0, 3)} ${d.slice(3)}` : d;
+    });
+    $('#loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = e.target.querySelector('button'); btn.disabled = true;
+      try {
+        const res = await api('/account/login', { method: 'POST', body: { identifier: $('#identifier').value, code: codeInput.value.replace(/\D/g, ''), deviceOrders: deviceOrders() } });
+        state.customer = res.customer; renderAccountBtn(); route();
+      } catch (err) {
+        $('#loginError').innerHTML = `<div class="alert err">${esc(err.message)}</div>`;
+        btn.disabled = false;
+      }
+    });
+  }
+
+  function viewRegister() {
+    if (state.customer) { location.hash = '#/compte'; return; }
+    const saved = loadJSON('kamwa-customer') || {};
+    app.innerHTML = `
+      <form class="panel" id="registerForm" novalidate style="max-width:520px;margin:0 auto">
+        <h1>Créer mon compte Kamwa</h1>
+        <p class="hint">Indiquez votre numéro de téléphone <strong>ou</strong> votre e-mail (ou les deux). C'est votre identifiant.</p>
+        <label for="rName">Nom complet</label>
+        <input id="rName" autocomplete="name" value="${esc(saved.name)}" required>
+        <label for="rPhone">Numéro de téléphone</label>
+        <input id="rPhone" type="tel" inputmode="tel" placeholder="06 123 45 67" value="${esc(saved.phone)}">
+        <label for="rEmail">E-mail (facultatif)</label>
+        <input id="rEmail" type="email" inputmode="email" autocomplete="email" placeholder="nom@exemple.com">
+        <div id="registerError"></div>
+        <button class="btn cta block" style="margin-top:14px">Créer mon compte</button>
+        <p class="hint">Déjà un compte ? <a href="#/compte">Se connecter</a></p>
+      </form>`;
+    $('#registerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = e.target.querySelector('button'); btn.disabled = true;
+      try {
+        const res = await api('/account/register', { method: 'POST', body: { name: $('#rName').value, phone: $('#rPhone').value, email: $('#rEmail').value, deviceOrders: deviceOrders() } });
+        state.customer = res.customer; renderAccountBtn();
+        const who = res.customer.phone || res.customer.email;
+        app.innerHTML = `
+          <div class="panel" style="max-width:520px;margin:0 auto;text-align:center">
+            <div class="big-check">✓</div>
+            <h1>Bienvenue ${esc(res.customer.name.split(' ')[0])} !</h1>
+            <p>Voici votre <strong>code Kamwa</strong> :</p>
+            <div class="code-box">${formatCode(res.code)}</div>
+            <div class="alert err" style="text-align:left"><strong>Notez-le bien</strong> (ou faites une capture d'écran) : il ne sera plus affiché.<br>
+            Pour vous connecter : <strong>${esc(who)}</strong> + ce code.</div>
+            ${res.claimed ? `<p class="hint">${res.claimed} commande(s) de ce téléphone ajoutée(s) à votre compte.</p>` : ''}
+            <a class="btn cta block" href="#/compte" style="margin-top:14px">J'ai noté mon code</a>
+          </div>`;
+      } catch (err) {
+        $('#registerError').innerHTML = `<div class="alert err">${esc(err.message)}</div>`;
+        btn.disabled = false;
+      }
+    });
+  }
+
+  async function viewTracking(id) {
+    renderNav(null);
+    app.innerHTML = '<p class="empty">Chargement…</p>';
+    let o = null;
+    try { o = await api('/orders/' + enc(id), { headers: orderHeaders(tokenOf(id) || '') }); } catch {}
+    if (!o) {
+      app.innerHTML = `<div class="panel waiting"><h1>Commande introuvable</h1>
+        <p class="hint">Connectez-vous avec le compte qui a passé cette commande, ou ouvrez ce lien sur le téléphone qui l'a passée.</p>
+        <a class="btn cta" href="#/compte">Mon compte</a></div>`;
+      return;
+    }
+    const at = (status) => [...(o.history || [])].reverse().find((h) => h.status === status)?.at;
+    const steps = [
+      ['Commande passée', o.createdAt, 'Nous avons bien reçu votre commande.'],
+      ['Paiement confirmé', o.paidAt || at('paid'), 'Votre paiement Mobile Money est validé. Nous préparons votre colis et vous appelons.'],
+      ['Expédiée', at('shipped'), `Votre colis est en route vers ${esc(o.customer.city || 'vous')}.`],
+      ['Livrée', at('delivered'), 'Votre commande a été livrée. Merci pour votre confiance !'],
+    ];
+    const current = STEP_INDEX[o.status] ?? 0;
+    const cancelled = o.status === 'cancelled';
+    app.innerHTML = `
+      <div class="crumbs"><a href="#/compte">Mon compte</a> › Suivi de commande</div>
+      <div class="checkout">
+        <div class="panel">
+          <div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><h1 style="margin:0">${esc(o.id)}</h1>${statusBadge(o)}</div>
+          <p class="hint">Passée le ${longDate(o.createdAt)}</p>
+          ${cancelled ? `<div class="alert err">Cette commande a été annulée${at('cancelled') ? ' le ' + longDate(at('cancelled')) : ''}. Si vous avez payé, notre service client vous recontacte pour le remboursement.</div>` : `
+          <ol class="timeline">
+            ${steps.map(([label, when, text], i) => `
+              <li class="${i < current ? 'done' : i === current ? 'done current' : 'todo'}">
+                <span class="dot">${i <= current ? '✓' : ''}</span>
+                <strong>${label}</strong>
+                <span class="when">${i <= current ? (when ? longDate(when) : '') : i === current + 1 ? 'Étape suivante' : 'À venir'}</span>
+                ${i === current ? `<p class="hint" style="margin:4px 0 0">${text}</p>` : ''}
+              </li>`).join('')}
+          </ol>
+          ${o.status === 'pending_payment' ? '<div class="alert err">Paiement pas encore reçu. Si vous venez de valider sur votre téléphone, patientez quelques minutes.</div>' : ''}`}
+        </div>
+        <div class="panel">
+          <h2>Récapitulatif</h2>
+          ${o.lines.map((l) => `<div class="line"><span>${l.qty} × ${esc(l.name)}</span><strong>${fcfa(l.total)}</strong></div>`).join('')}
+          <div class="row total" style="margin-top:10px"><span>Total</span><strong>${fcfa(o.total)}</strong></div>
+          <p class="hint" style="margin-top:12px">Livraison : ${esc(o.customer.city || '—')} · ${esc(o.customer.address || '')}<br>Contact : ${esc(o.customer.phone)}</p>
+        </div>
       </div>`;
   }
 
@@ -486,6 +708,8 @@
       case 'promos': return viewPromos();
       case 'commande': return viewCheckout();
       case 'merci': return viewThanks(parts[1]);
+      case 'compte': return viewAccount(parts[1]);
+      case 'suivi': return viewTracking(parts[1]);
       default: return viewHome();
     }
   }
@@ -504,6 +728,9 @@
       return;
     }
     renderCart();
+    const last = loadJSON('kamwa-last-order');
+    if (last?.id && !tokenOf(last.id)) rememberOrder(last.id, last.token);
+    await refreshCustomer();
     window.addEventListener('hashchange', route);
     route();
   })();

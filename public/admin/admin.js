@@ -204,6 +204,7 @@
           <a class="btn green" href="https://wa.me/${intl}" target="_blank" rel="noopener">WhatsApp</a>
           <button class="ghost" id="editCustomer">Modifier</button>
         </div>
+        ${o.account ? `<p class="muted" style="margin:10px 0 0">👤 Compte client ${esc(o.account.id)}${o.account.email ? ' · ' + esc(o.account.email) : ''} <button class="ghost" id="newCodeBtn" style="min-height:32px;padding:4px 10px">Nouveau code</button></p><div id="newCodeBox"></div>` : '<p class="muted" style="margin:10px 0 0">Commande passée sans compte client.</p>'}
         <form id="customerForm" hidden>
           <label for="cName">Nom</label><input id="cName" type="text" value="${esc(c.name)}">
           <label for="cPhone">Téléphone</label><input id="cPhone" type="tel" value="${esc(c.phone)}">
@@ -254,6 +255,44 @@
       save({ customer: { name: $('#cName').value, phone: $('#cPhone').value, city: $('#cCity').value, address: $('#cAddress').value } }, 'Client mis à jour');
     });
     $('#saveNote').addEventListener('click', () => save({ note: $('#note').value }, 'Note enregistrée'));
+    if (o.account) $('#newCodeBtn').addEventListener('click', () => newCode(o.account, $('#newCodeBox')));
+  }
+
+  // « Code oublié » : génère un nouveau code et l'affiche une seule fois, à transmettre au client.
+  async function newCode(account, box) {
+    if (!confirm(`Créer un nouveau code pour ${account.name} ?\n\nL'ancien code ne marchera plus.`)) return;
+    try {
+      const { code } = await api('/customers/' + enc(account.id) + '/new-code', { method: 'POST' });
+      const who = account.phone || account.email;
+      const msg = `Bonjour ${account.name}, voici votre nouveau code Kamwa : ${code}. Connectez-vous avec ${who} et ce code.`;
+      box.innerHTML = `
+        <div class="alert ok">Nouveau code : <strong style="font-size:1.3rem;letter-spacing:.15em">${code.slice(0, 3)} ${code.slice(3)}</strong><br>
+        Transmettez-le au client. Il ne sera plus affiché.</div>
+        ${account.phone ? `<a class="btn green" target="_blank" rel="noopener" href="https://wa.me/242${esc(account.phone)}?text=${enc(msg)}">Envoyer par WhatsApp</a>` : ''}`;
+    } catch (err) {
+      toast('❌ ' + err.message);
+    }
+  }
+
+  // ---------- Clients ----------
+  async function viewCustomers() {
+    let list = [];
+    try { list = await api('/customers'); } catch { return; }
+    app.innerHTML = `
+      <h1>Clients <small class="muted">(${list.length} compte${list.length > 1 ? 's' : ''})</small></h1>
+      <p class="muted">Un client a oublié son code ? Cliquez « Nouveau code » et envoyez-le-lui par WhatsApp.</p>
+      <div class="list">
+        ${list.map((c) => `
+          <div class="item">
+            <span><strong>${esc(c.name)}</strong><br><span class="sub">${esc([c.phone, c.email].filter(Boolean).join(' · '))}</span></span>
+            <span style="text-align:right"><span class="sub">${c.orders} commande(s)<br>depuis le ${date(c.createdAt).split(' ')[0]}</span></span>
+            <span style="grid-column:1/-1"><button class="ghost" data-code="${esc(c.id)}" style="min-height:34px;padding:4px 10px">Nouveau code</button><span data-box="${esc(c.id)}"></span></span>
+          </div>`).join('') || '<p class="empty">Aucun compte client pour le moment.</p>'}
+      </div>`;
+    app.querySelectorAll('[data-code]').forEach((b) => b.addEventListener('click', () => {
+      const c = list.find((x) => x.id === b.dataset.code);
+      newCode(c, app.querySelector(`[data-box="${CSS.escape(c.id)}"]`));
+    }));
   }
 
   // ---------- Produits ----------
@@ -407,7 +446,9 @@
   function route() {
     const [page, id] = (location.hash || '#/commandes').slice(2).split('/').map(decodeURIComponent);
     window.scrollTo(0, 0);
-    document.querySelectorAll('[data-tab]').forEach((a) => a.classList.toggle('on', a.dataset.tab === (page.startsWith('produit') ? 'produits' : 'commandes')));
+    const tab = page.startsWith('produit') ? 'produits' : page === 'clients' ? 'clients' : 'commandes';
+    document.querySelectorAll('[data-tab]').forEach((a) => a.classList.toggle('on', a.dataset.tab === tab));
+    if (page === 'clients') return viewCustomers();
     if (page === 'commande') return viewOrder(id);
     if (page === 'produits') return viewProducts();
     if (page === 'produit') return viewProduct(id);
