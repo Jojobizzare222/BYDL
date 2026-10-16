@@ -122,7 +122,9 @@ data/products.json       catalogue électronique + mode (produits d'exemple à r
 
 ## Composants libres utilisés
 - **Chart.js 4.4.6** (MIT) — graphiques de l'espace pro (`public/admin/vendor/`).
-- **Inter** (SIL Open Font License) — police (`public/fonts/inter.woff2`).
+- **IBM Plex Sans** (SIL Open Font License, © IBM) — police des deux applications (`public/fonts/ibm-plex-sans-*.woff2`, licence `public/fonts/OFL-ibm-plex.txt`).
+- **Leaflet** (BSD-2) — cartes (`public/vendor/leaflet/`) ; fonds de carte © contributeurs OpenStreetMap (ODbL).
+- **web-push** (MPL-2.0), **tesseract.js** (Apache 2.0), **@vercel/functions** (Apache 2.0).
 - **Phosphor Icons** (MIT, via Iconify) — icônes (`public/icons.svg`).
 - **ISNet « general use »** (DIS, Xuebin Qin et al., Apache 2.0 ; fichier diffusé par le projet rembg, MIT) — détourage automatique des photos ; téléchargé au premier usage dans `data/models/`.
 - **onnxruntime-web** (MIT) et **sharp** (Apache 2.0) — exécution du détourage sur le serveur.

@@ -1,7 +1,11 @@
 /* Espace pro Kamwa — thème sombre (structure inspirée des tableaux d'administration type Discourse)
    + identité « Éclat moderne » de la boutique : formes animées en fond, violet / corail / mangue dosés, boutons en pilule. */
 /* Police : celle du système sur iPhone/Mac (San Francisco), Inter (libre, hébergée ici) ailleurs — comme la boutique */
-@font-face { font-family: 'Inter'; src: url('/fonts/inter.woff2') format('woff2'); font-weight: 100 900; font-display: swap; }
+/* Police : IBM Plex Sans (libre, licence OFL — public/fonts/OFL-ibm-plex.txt), hébergée sur Kamwa : sobre et professionnelle */
+@font-face { font-family: 'IBM Plex Sans'; src: url('/fonts/ibm-plex-sans-latin-wght-normal.woff2') format('woff2-variations'), url('/fonts/ibm-plex-sans-latin-wght-normal.woff2') format('woff2'); font-weight: 100 700; font-style: normal; font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'IBM Plex Sans'; src: url('/fonts/ibm-plex-sans-latin-ext-wght-normal.woff2') format('woff2-variations'), url('/fonts/ibm-plex-sans-latin-ext-wght-normal.woff2') format('woff2'); font-weight: 100 700; font-style: normal; font-display: swap;
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
 :root {
   --bg: #15121C;          /* fond général */
   --side: #1B1724;        /* barre latérale */
@@ -25,10 +29,10 @@
 * { box-sizing: border-box; }
 html { background: var(--bg); }
 html, body { margin: 0; }
-body { font: 15px/1.5 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Helvetica Neue", "Segoe UI", Roboto, Arial, sans-serif; letter-spacing: -0.01em; background: transparent; color: var(--ink); -webkit-font-smoothing: antialiased; }
+body { font: 14px/1.5 "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; letter-spacing: 0; background: transparent; color: var(--ink); -webkit-font-smoothing: antialiased; }
 a { color: var(--brand); }
-h1 { font-weight: 700; letter-spacing: -0.025em; font-size: 1.9rem; line-height: 1.1; margin: 0 0 6px; color: #fff; }
-h2 { font-weight: 600; letter-spacing: -0.015em; font-size: 1.15rem; margin: 0 0 10px; color: #fff; }
+h1 { font-weight: 600; letter-spacing: -0.02em; font-size: 1.6rem; line-height: 1.1; margin: 0 0 6px; color: #fff; }
+h2 { font-weight: 600; letter-spacing: -0.01em; font-size: 1.08rem; margin: 0 0 10px; color: #fff; }
 button, input, select, textarea { font: inherit; }
 [hidden] { display: none !important; }
 code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .85em; }
@@ -63,7 +67,7 @@ code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-
 .side-nav a.on { background: var(--grad); color: #fff; box-shadow: 0 6px 18px rgba(75,47,176,.35); }
 .side-nav a.on .ico { color: var(--mango); }
 .side-title { margin: 16px 12px 6px; font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
-.count { margin-left: auto; background: var(--mango); color: #241A45; border-radius: 999px; padding: 0 8px; font-size: .75rem; font-weight: 800; }
+.count { margin-left: auto; background: var(--mango); color: #241A45; border-radius: 999px; padding: 0 8px; font-size: .75rem; font-weight: 700; }
 .side-foot { margin-top: auto; border-top: 1px solid var(--line); padding-top: 12px; display: grid; gap: 4px; }
 .whoami { font-size: .8rem; color: var(--muted); padding: 0 8px 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .side-btn { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 12px; border: 0; background: none; color: var(--ink); text-decoration: none; cursor: pointer; text-align: left; font-size: .9rem; }
@@ -156,7 +160,7 @@ table.dt { width: 100%; border-collapse: collapse; }
 .kc2 .kpi-ico { background: rgba(255,107,79,.15); color: #FF8A73; } .kc2::after { background: var(--accent); }
 .kc3 .kpi-ico { background: rgba(43,196,138,.15); color: var(--ok); } .kc3::after { background: var(--ok); }
 .kpi-label { color: var(--muted); font-size: .88rem; padding-right: 50px; min-height: 2.6em; }
-.kpi-value { font-size: 1.7rem; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; color: #fff; line-height: 1.15; }
+.kpi-value { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; color: #fff; line-height: 1.15; }
 .kpi-hint { color: var(--muted); font-size: .8rem; }
 .todo { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
 .todo a { display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; border-radius: 999px; background: var(--grad); color: #fff; box-shadow: 0 6px 16px rgba(75,47,176,.3); text-decoration: none; font-weight: 600; font-size: .9rem; }
@@ -242,13 +246,13 @@ textarea { resize: vertical; }
 /* Listes simples encore utilisées dans quelques écrans */
 .list { display: grid; gap: 8px; }
 .item { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px; text-decoration: none; color: var(--ink); }
-.item .total { font-weight: 800; text-align: right; }
+.item .total { font-weight: 700; text-align: right; }
 .item .sub, .sub { color: var(--muted); font-size: .82rem; }
 .price { color: var(--price); font-weight: 600; }
 
 /* Détail commande */
 .lines div { display: flex; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px dashed var(--line); }
-.lines div:last-child { border: 0; font-weight: 800; }
+.lines div:last-child { border: 0; font-weight: 700; }
 .history { margin: 0; padding-left: 18px; font-size: .85rem; color: var(--muted); }
 
 /* Galerie photos du produit */
@@ -256,7 +260,7 @@ textarea { resize: vertical; }
 .gal-item { position: relative; aspect-ratio: 1; border-radius: 10px; overflow: hidden; background: var(--paper-2); }
 .gal-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .gal-main { position: absolute; left: 4px; bottom: 4px; background: var(--brand-deep); color: #fff; font-size: .68rem; padding: 1px 7px; border-radius: 999px; }
-.gal-btn { position: absolute; top: 4px; left: 4px; width: 28px; height: 28px; border-radius: 50%; border: 0; background: rgba(0,0,0,.65); color: var(--mango); cursor: pointer; font-weight: 800; }
+.gal-btn { position: absolute; top: 4px; left: 4px; width: 28px; height: 28px; border-radius: 50%; border: 0; background: rgba(0,0,0,.65); color: var(--mango); cursor: pointer; font-weight: 700; }
 .gal-del { left: auto; right: 4px; color: var(--err); }
 .gal-empty { grid-column: 1 / -1; text-align: center; font-size: 2rem; padding: 16px; background: var(--paper-2); border-radius: 10px; }
 
@@ -348,7 +352,7 @@ input[type=date] { width: 100%; padding: 10px 12px; border: 1px solid var(--line
 .deliv { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; }
 .deliv h3 { margin: 8px 0 2px; font-size: 1.15rem; color: #fff; }
 .deliv-addr { margin: 0 0 8px; }
-.collect-tag { background: linear-gradient(135deg, #FFB300, #FF9F43); color: #241A45; font-weight: 800; border-radius: 999px; padding: 3px 10px; font-size: .85rem; }
+.collect-tag { background: linear-gradient(135deg, #FFB300, #FF9F43); color: #241A45; font-weight: 700; border-radius: 999px; padding: 3px 10px; font-size: .85rem; }
 .code-input-pro { font-size: 1.6rem !important; letter-spacing: .5em; text-align: center; font-weight: 700; }
 
 /* ---------- Achat en France ---------- */
@@ -394,7 +398,7 @@ input[type=date] { width: 100%; padding: 10px 12px; border: 1px solid var(--line
 .msg-item.on { background: rgba(124,92,255,.16); }
 .msg-item.team { grid-template-columns: 38px minmax(0, 1fr) auto; border: 1px dashed var(--line); margin-bottom: 4px; }
 .msg-item.team > .ico { font-size: 1.8rem; color: #FFB300; justify-self: center; }
-.msg-item .av { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; background: linear-gradient(135deg, #5236C9, #FF5A3C); color: #fff; }
+.msg-item .av { width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; background: linear-gradient(135deg, #5236C9, #FF5A3C); color: #fff; }
 .msg-item span { min-width: 0; display: flex; flex-direction: column; }
 .msg-item small { color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .msg-item.unread strong { color: var(--ink); } .msg-item.unread small { color: var(--ink); font-weight: 600; }
@@ -431,7 +435,7 @@ input[type=date] { width: 100%; padding: 10px 12px; border: 1px solid var(--line
 /* ---------- Cartes (points relais, suivi du livreur) ---------- */
 .kmap { height: 320px; border-radius: 16px; overflow: hidden; border: 1px solid var(--line); background: #E8EEF2; z-index: 0; }
 .kmap-pin { background: none; border: 0; }
-.kmap-pin span { position: relative; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); background: #2D1B69; border: 3px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,.3); color: #fff; font-weight: 800; font-size: .8rem; }
+.kmap-pin span { position: relative; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); background: #2D1B69; border: 3px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,.3); color: #fff; font-weight: 700; font-size: .8rem; }
 .kmap-pin span::after { content: ''; position: absolute; width: 10px; height: 10px; border-radius: 50%; background: #FFB300; transform: rotate(45deg); }
 .kmap-relay.on span, .kmap-relay.on span::after { background: #FF5A3C; }
 .kmap-relay.on span::after { background: #fff; }

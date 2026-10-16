@@ -2,10 +2,14 @@
    Couleurs de la marque dosées : violet nuit (boutons, carrousel), corail (promos), mangue (badges, détails).
    Arrière-plan : formes géométriques qui bougent lentement (désactivées si l'appareil demande moins d'animations).
    Police : celle du système sur iPhone/Mac (San Francisco), Inter (libre, hébergée ici) ailleurs. */
-@font-face { font-family: 'Inter'; src: url('/fonts/inter.woff2') format('woff2'); font-weight: 100 900; font-display: swap; }
+/* Police : IBM Plex Sans (libre, licence OFL — public/fonts/OFL-ibm-plex.txt), hébergée sur Kamwa : sobre et professionnelle */
+@font-face { font-family: 'IBM Plex Sans'; src: url('/fonts/ibm-plex-sans-latin-wght-normal.woff2') format('woff2-variations'), url('/fonts/ibm-plex-sans-latin-wght-normal.woff2') format('woff2'); font-weight: 100 700; font-style: normal; font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'IBM Plex Sans'; src: url('/fonts/ibm-plex-sans-latin-ext-wght-normal.woff2') format('woff2-variations'), url('/fonts/ibm-plex-sans-latin-ext-wght-normal.woff2') format('woff2'); font-weight: 100 700; font-style: normal; font-display: swap;
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF; }
 :root {
   --brand-text: #2D1B69;  /* texte violet : identique à --brand en clair, éclairci en sombre */
-  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Inter", "Helvetica Neue", "Segoe UI", Roboto, Arial, sans-serif;
+  --font: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --ink: #1B1530;          /* texte : violet presque noir */
   --muted: #6B6585;
   --bg: #FAF9FE;           /* fond : blanc à peine lavande */
@@ -34,18 +38,18 @@
   --shadow-hover: 0 16px 34px rgba(45,27,105,.14);
 }
 * { box-sizing: border-box; }
-html { background: var(--bg); font-size: 15px; } /* taille de base un cran plus petite (16 → 15 px) : tout le texte en rem suit */
+html { background: var(--bg); font-size: 14.5px; } /* taille de base 14,5 px (équilibre lisibilité / densité) : tout le texte en rem suit */
 /* iPhone : un champ de saisie sous 16 px fait zoomer la page quand on touche dedans → on garde 16 px pour les champs */
 @supports (-webkit-touch-callout: none) { input, select, textarea { font-size: 16px !important; } }
 html, body { margin: 0; }
 body {
-  font-family: var(--font); font-size: 1rem; line-height: 1.5; letter-spacing: -0.011em;
+  font-family: var(--font); font-size: 1rem; line-height: 1.5; letter-spacing: 0;
   background: transparent; color: var(--ink); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
 }
 a { color: inherit; text-decoration: none; }
-h1, h2, h3 { font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; margin: 0 0 .5rem; color: var(--ink); }
-h1 { font-size: clamp(1.9rem, 5vw, 2.8rem); }
+h1, h2, h3 { font-weight: 600; letter-spacing: -0.02em; line-height: 1.1; margin: 0 0 .5rem; color: var(--ink); }
+h1 { font-size: clamp(1.55rem, 4vw, 2.2rem); }
 button { font: inherit; letter-spacing: inherit; }
 .ico { width: 1.15em; height: 1.15em; fill: currentColor; vertical-align: -0.2em; flex: none; }
 
@@ -120,7 +124,7 @@ button { font: inherit; letter-spacing: inherit; }
 .cart-label { font-size: .9rem; font-weight: 700; }
 .badge {
   position: absolute; top: -7px; right: -9px; min-width: 19px; height: 19px; padding: 0 5px;
-  background: var(--mango); color: var(--ink); font-weight: 800; border-radius: 999px; font-size: .7rem; line-height: 19px; text-align: center; box-shadow: 0 0 0 2px var(--brand);
+  background: var(--mango); color: var(--ink); font-weight: 700; border-radius: 999px; font-size: .7rem; line-height: 19px; text-align: center; box-shadow: 0 0 0 2px var(--brand);
 }
 .badge:empty { display: none; }
 .search-toggle { display: none !important; }
@@ -202,8 +206,8 @@ main { max-width: 1180px; margin: 0 auto; padding: 20px 20px 40px; min-height: 6
   display: grid; grid-template-columns: 1.05fr 1fr; align-items: center; gap: 24px; min-height: 400px; padding: 48px 64px;
 }
 .slide-text { position: relative; z-index: 2; }
-.slide h2 { font-size: clamp(2rem, 5vw, 3.4rem); color: inherit; margin: 14px 0 10px; }
-.slide p { font-size: clamp(1rem, 2.2vw, 1.15rem); margin: 0; opacity: .92; max-width: 30em; }
+.slide h2 { font-size: clamp(1.65rem, 4vw, 2.6rem); font-weight: 700; color: inherit; margin: 14px 0 10px; }
+.slide p { font-size: clamp(.95rem, 1.8vw, 1.05rem); margin: 0; opacity: .92; max-width: 30em; }
 .pill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 999px; font-size: .8rem; font-weight: 700; background: rgba(255,255,255,.18); }
 .slide-ctas { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-top: 24px; }
 .slide-more { font-weight: 600; text-decoration: underline; text-underline-offset: 4px; }
@@ -216,7 +220,7 @@ main { max-width: 1180px; margin: 0 auto; padding: 20px 20px 40px; min-height: 6
 .o3 { width: 60px; height: 60px; background: var(--mango); bottom: 20px; left: 10%; opacity: .9; animation-duration: 10s; }
 .slide-badge {
   position: absolute; z-index: 3; top: 8%; right: 6%; width: 86px; height: 86px; border-radius: 50%; display: grid; place-items: center;
-  background: var(--mango); color: var(--brand-text); font-weight: 800; font-size: 1.25rem; transform: rotate(12deg); box-shadow: 0 10px 24px rgba(0,0,0,.18);
+  background: var(--mango); color: var(--brand-text); font-weight: 700; font-size: 1.25rem; transform: rotate(12deg); box-shadow: 0 10px 24px rgba(0,0,0,.18);
 }
 .theme-violet { background: linear-gradient(135deg, #2D1B69 0%, #4B2FB0 60%, #6A47E0 100%); color: #fff; }
 .theme-coral { background: linear-gradient(135deg, #FF5A3C 0%, #FF7A45 55%, #FF9F43 100%); color: #fff; }
@@ -269,7 +273,7 @@ main { max-width: 1180px; margin: 0 auto; padding: 20px 20px 40px; min-height: 6
 /* ---------- Étagères de produits ---------- */
 .shelf { margin: 48px 0 0; }
 .shelf-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 18px; flex-wrap: wrap; }
-.shelf-head h2 { font-size: clamp(1.45rem, 3.4vw, 2rem); margin: 0; }
+.shelf-head h2 { font-size: clamp(1.2rem, 2.6vw, 1.55rem); margin: 0; }
 .kicker { margin: 0 0 4px; font-size: .85rem; font-weight: 700; color: var(--accent-dark); display: flex; align-items: center; gap: 6px; }
 .kicker.k-violet { color: var(--link); } .kicker.k-mango { color: var(--mango-dark); } .kicker.k-coral { color: var(--accent-dark); }
 .see-all { display: inline-flex; align-items: center; gap: 4px; font-weight: 600; font-size: .9rem; color: var(--brand-text); border: 1.5px solid var(--line); border-radius: 999px; padding: 7px 14px; transition: border-color .2s, background .2s; }
@@ -301,7 +305,7 @@ main { max-width: 1180px; margin: 0 auto; padding: 20px 20px 40px; min-height: 6
 @media (min-width: 760px) { .duo { grid-template-columns: 1fr 1fr; } }
 .promo-card { display: flex; align-items: center; gap: 16px; padding: 22px 24px; border-radius: 22px; position: relative; overflow: hidden; transition: transform .25s, box-shadow .25s; }
 .promo-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-hover); }
-.promo-card b { display: block; font-size: 1.12rem; font-weight: 800; letter-spacing: -0.02em; }
+.promo-card b { display: block; font-size: 1.12rem; font-weight: 700; letter-spacing: -0.02em; }
 .promo-card small { display: block; font-size: .9rem; opacity: .85; margin-top: 2px; }
 .promo-card .ic { width: 54px; height: 54px; border-radius: 18px; display: grid; place-items: center; font-size: 1.6rem; flex: none; }
 .promo-card .go { margin-left: auto; width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; flex: none; }
@@ -317,7 +321,7 @@ main { max-width: 1180px; margin: 0 auto; padding: 20px 20px 40px; min-height: 6
 .reassure { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
 .reassure > div { background: var(--paper); border: 1px solid var(--line-soft); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); }
 .reassure .ic { width: 50px; height: 50px; border-radius: 16px; display: grid; place-items: center; font-size: 1.5rem; margin-bottom: 14px; }
-.reassure b { display: block; font-size: 1.08rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 4px; }
+.reassure b { display: block; font-size: 1.08rem; font-weight: 700; letter-spacing: -0.02em; margin-bottom: 4px; }
 .reassure p { margin: 0; color: var(--muted); font-size: .92rem; }
 .r-violet .ic { background: var(--violet-soft); color: var(--brand-text); }
 .r-mango .ic { background: var(--mango-soft); color: var(--mango-dark); }
@@ -350,7 +354,7 @@ main { max-width: 1180px; margin: 0 auto; padding: 20px 20px 40px; min-height: 6
 .tag-violet { background: var(--violet-soft); color: var(--brand-text); }
 .prices { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; margin-top: 2px; }
 .old { color: var(--muted); text-decoration: line-through; font-size: .82rem; }
-.price { font-weight: 800; color: var(--price); font-size: 1.05rem; white-space: nowrap; letter-spacing: -0.02em; }
+.price { font-weight: 700; color: var(--price); font-size: 1.05rem; white-space: nowrap; letter-spacing: -0.02em; }
 .momo-note { font-size: .85rem; color: var(--ok); }
 .stock-low { font-size: .78rem; color: var(--accent-dark); font-weight: 600; }
 .brand { font-size: .75rem; font-weight: 600; color: var(--accent-dark); }
@@ -400,7 +404,7 @@ main { max-width: 1180px; margin: 0 auto; padding: 20px 20px 40px; min-height: 6
 .pdp { display: grid; gap: 28px; }
 @media (min-width: 820px) { .pdp { grid-template-columns: 1.1fr 1fr; gap: 48px; align-items: start; } .pdp > div:last-child { position: sticky; top: 130px; } }
 .pdp .thumb { border-radius: 24px; font-size: 5rem; position: relative; background: var(--paper); border: 1px solid var(--line-soft); box-shadow: var(--shadow); }
-.pdp h1 { font-size: clamp(1.8rem, 4.2vw, 2.5rem); margin-bottom: 12px; }
+.pdp h1 { font-size: clamp(1.4rem, 3.2vw, 1.9rem); margin-bottom: 12px; }
 .pdp .price { font-size: 1.9rem; }
 .buybox { background: var(--paper); border: 1px solid var(--line-soft); border-radius: var(--radius); padding: 22px; display: grid; gap: 10px; margin-top: 20px; box-shadow: var(--shadow); }
 .buybox .btn { min-height: 52px; font-size: 1.02rem; }
@@ -421,13 +425,13 @@ main { max-width: 1180px; margin: 0 auto; padding: 20px 20px 40px; min-height: 6
 .qty button { width: 30px; height: 30px; border-radius: 50%; border: 0; background: var(--violet-soft); color: var(--brand-text); font-weight: 700; cursor: pointer; }
 .row { display: flex; justify-content: space-between; align-items: center; }
 .total { font-size: 1.1rem; margin-bottom: 16px; font-weight: 700; }
-.total strong { font-size: 1.35rem; font-weight: 800; }
+.total strong { font-size: 1.35rem; font-weight: 700; }
 .saving { color: var(--ok); font-size: .9rem; font-weight: 600; margin-bottom: 6px; }
 .empty { color: var(--muted); text-align: center; padding: 48px 0; }
 
 /* ---------- Commande et formulaires ---------- */
 .panel { background: var(--paper); border: 1px solid var(--line-soft); border-radius: var(--radius); padding: 26px; margin-bottom: 16px; box-shadow: var(--shadow); }
-.panel h1 { font-size: clamp(1.6rem, 4vw, 2.1rem); }
+.panel h1 { font-size: clamp(1.35rem, 3.2vw, 1.75rem); }
 .panel h2 { font-size: 1.3rem; }
 .checkout { display: grid; gap: 16px; }
 @media (min-width: 860px) { .checkout { grid-template-columns: 1.4fr 1fr; align-items: start; } }
@@ -489,11 +493,11 @@ input:focus, select:focus, textarea:focus { outline: 4px solid rgba(82,54,201,.1
 /* ---------- Espace client ---------- */
 .account-grid { display: grid; gap: 16px; }
 @media (min-width: 860px) { .account-grid { grid-template-columns: 1fr 1fr; align-items: start; } }
-.code-box { font-size: 2.6rem; font-weight: 800; letter-spacing: .2em; color: var(--brand-text); background: var(--mango-soft); border: 2px dashed var(--mango); border-radius: var(--radius-sm); padding: 16px; text-align: center; margin: 14px 0; font-variant-numeric: tabular-nums; }
+.code-box { font-size: 2.6rem; font-weight: 700; letter-spacing: .2em; color: var(--brand-text); background: var(--mango-soft); border: 2px dashed var(--mango); border-radius: var(--radius-sm); padding: 16px; text-align: center; margin: 14px 0; font-variant-numeric: tabular-nums; }
 .code-input { font-size: 1.4rem; letter-spacing: .4em; text-align: center; font-weight: 700; }
 .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 14px 0; }
 .stats div { background: var(--soft); border-radius: var(--radius-sm); padding: 14px; }
-.stats b { display: block; font-size: 1.2rem; font-weight: 800; }
+.stats b { display: block; font-size: 1.2rem; font-weight: 700; }
 .order-card { display: block; border: 1px solid var(--line-soft); border-radius: var(--radius-sm); padding: 16px; margin-top: 10px; background: var(--paper); transition: border-color .2s; }
 .order-card:hover { border-color: var(--link); }
 .order-card .top { display: flex; justify-content: space-between; gap: 10px; }
@@ -649,7 +653,7 @@ html.standalone input, html.standalone textarea, html.standalone .legal { -webki
 /* ---------- Achat en France ---------- */
 .fr-hero { position: relative; overflow: hidden; border-radius: 28px; padding: 40px 32px; color: #fff; background: linear-gradient(135deg, #1E1247 0%, #3C2A9E 50%, #2F5BD3 100%); box-shadow: 0 20px 50px rgba(45,27,105,.2); }
 .fr-hero > div { position: relative; z-index: 1; max-width: 640px; }
-.fr-hero h1 { color: #fff; font-size: clamp(2rem, 5.5vw, 3.2rem); margin: 14px 0 10px; }
+.fr-hero h1 { color: #fff; font-size: clamp(1.65rem, 4.4vw, 2.5rem); margin: 14px 0 10px; }
 .fr-hero p { margin: 0; font-size: 1.05rem; opacity: .95; }
 .fr-hero .o1 { right: -80px; top: -80px; }
 .fr-hero .o2 { right: 18%; bottom: -60px; }
@@ -784,7 +788,7 @@ p.lbl { font-weight: 600; font-size: .88rem; margin: 16px 0 0; }
 /* ---------- Cartes (points relais, suivi du livreur) ---------- */
 .kmap { height: 320px; border-radius: 16px; overflow: hidden; border: 1px solid var(--line-soft); background: #E8EEF2; z-index: 0; }
 .kmap-pin { background: none; border: 0; }
-.kmap-pin span { position: relative; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); background: var(--brand); border: 3px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,.3); color: #fff; font-weight: 800; font-size: .8rem; }
+.kmap-pin span { position: relative; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); background: var(--brand); border: 3px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,.3); color: #fff; font-weight: 700; font-size: .8rem; }
 .kmap-pin span::after { content: ''; position: absolute; width: 10px; height: 10px; border-radius: 50%; background: var(--mango); transform: rotate(45deg); }
 .kmap-relay.on span, .kmap-relay.on span::after { background: var(--accent); }
 .kmap-relay.on span::after { background: #fff; }
@@ -876,8 +880,8 @@ html[data-theme="dark"] .st-shipped { background: #182A47; color: #8CC0FF; }
 html[data-theme="dark"] .kmap { background: #1A1E24; }
 
 /* ---------- Réglages personnels du client (appliqués seulement chez lui) ---------- */
-html[data-text="large"] { font-size: 16.5px; }
-html[data-text="xlarge"] { font-size: 18.5px; }
+html[data-text="large"] { font-size: 16px; }
+html[data-text="xlarge"] { font-size: 17.5px; }
 html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-motion="reduce"] *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
 html[data-motion="reduce"] .bg-shapes, html[data-saver="on"] .bg-shapes { display: none; }
 @media (max-width: 700px) {
@@ -898,7 +902,7 @@ html[data-motion="reduce"] .bg-shapes, html[data-saver="on"] .bg-shapes { displa
 .acc-head h1 { margin: 0; color: #fff; font-size: 1.5rem; } .acc-head .hint { color: #CFC6F2; }
 .acc-head > div:not(.acc-avatar) { flex: 1; min-width: 180px; }
 .acc-avatar { flex: none; }
-.acc-avatar { width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 1.4rem; background: linear-gradient(135deg, var(--mango), var(--accent)); color: #2D1B69; }
+.acc-avatar { width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 1.4rem; background: linear-gradient(135deg, var(--mango), var(--accent)); color: #2D1B69; }
 .acc-id { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; font-size: .8rem; font-weight: 700; background: rgba(255,255,255,.12); }
 .acc-id.ok { color: #7EF0B8; } .acc-id.warn { color: #FFD27A; }
 .acc-tabs { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 0 0 14px; padding: 4px; border-radius: 999px; background: var(--paper); border: 1px solid var(--line-soft); }
