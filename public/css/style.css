@@ -33,10 +33,12 @@
   --shadow-hover: 0 16px 34px rgba(45,27,105,.14);
 }
 * { box-sizing: border-box; }
-html { background: var(--bg); }
+html { background: var(--bg); font-size: 15px; } /* taille de base un cran plus petite (16 → 15 px) : tout le texte en rem suit */
+/* iPhone : un champ de saisie sous 16 px fait zoomer la page quand on touche dedans → on garde 16 px pour les champs */
+@supports (-webkit-touch-callout: none) { input, select, textarea { font-size: 16px !important; } }
 html, body { margin: 0; }
 body {
-  font-family: var(--font); font-size: 16px; line-height: 1.5; letter-spacing: -0.011em;
+  font-family: var(--font); font-size: 1rem; line-height: 1.5; letter-spacing: -0.011em;
   background: transparent; color: var(--ink); -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
 }
