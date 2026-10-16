@@ -9,7 +9,7 @@
   // Univers et catégories affichés dans le menu : fournis par le serveur (src/catalog.js), même liste que l'admin
   let UNIVERSES = [];
   // Icônes Phosphor (fichier /icons.svg, récupérées via Iconify)
-  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=3#${name}"></use></svg>`;
+  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=4#${name}"></use></svg>`;
   const ICONS = { 'Téléphones': 'device-mobile-duotone', 'Tablettes': 'device-tablet-duotone', 'Ordinateurs': 'laptop-duotone', 'Montres': 'watch-duotone', 'Audio': 'headphones-duotone', 'TV & Maison': 'television-duotone', 'Composants': 'cpu-duotone', 'Accessoires': 'plug-duotone', 'Homme': 't-shirt-duotone', 'Femme': 'dress-duotone', 'Chaussures': 'sneaker-duotone' };
   const catIcon = (cat, cls = '') => icon(ICONS[cat] || 'shopping-bag-duotone', cls);
   // Vignettes sans photo : une des trois teintes de la charte, selon la catégorie
@@ -138,13 +138,13 @@
   });
 
   // ---------- Recherche (panneau sous l'en-tête) ----------
+  const header = $('.header');
   const toggleSearch = (open) => {
-    $('#searchForm').hidden = !open;
+    header.classList.toggle('search-open', open);
     $('#searchToggle').setAttribute('aria-expanded', String(open));
     if (open) $('#searchInput').focus();
   };
-  $('#searchToggle').addEventListener('click', () => toggleSearch($('#searchForm').hidden));
-  $('#searchClose').addEventListener('click', () => toggleSearch(false));
+  $('#searchToggle').addEventListener('click', () => toggleSearch(!header.classList.contains('search-open')));
   $('#searchForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const q = $('#searchInput').value.trim();
@@ -177,6 +177,8 @@
 
   function card(p) {
     const d = discount(p);
+    const tag = p.condition && p.condition !== 'neuf' ? `<span class="tag tag-violet">${esc(p.condition === 'reconditionné' ? 'Reconditionné' : 'Occasion')}</span>`
+      : p.featured ? '<span class="tag tag-mango">Nouveau</span>' : '';
     return `
       <article class="card">
         <a href="#/p/${p.id}" class="card-link">
@@ -184,13 +186,62 @@
           ${d ? `<span class="disc">-${d} %</span>` : ''}
         </a>
         <div class="card-body">
-          ${p.condition && p.condition !== 'neuf' ? `<span class="brand">${esc(p.condition === 'reconditionné' ? 'Reconditionné' : 'Occasion')}</span>` : p.featured ? '<span class="brand">Nouveau</span>' : ''}
+          ${tag}
           <a href="#/p/${p.id}"><h3>${esc(p.name)}</h3></a>
           <div class="prices"><span class="price">${fcfa(p.price)}</span>${d ? `<span class="old">${fcfa(p.oldPrice)}</span>` : ''}</div>
-          ${p.stock > 0 && p.stock <= 6 ? `<span class="stock-low">Plus que ${p.stock} en stock</span>` : ''}
-          <button class="btn cta small" data-add="${p.id}" ${p.stock === 0 ? 'disabled' : ''}>${p.stock === 0 ? 'Épuisé' : 'Ajouter'}</button>
+          ${p.stock > 0 && p.stock <= 6 ? `<span class="stock-low">${icon('fire')} Plus que ${p.stock} en stock</span>` : ''}
+          <button class="btn cta small" data-add="${p.id}" ${p.stock === 0 ? 'disabled' : ''}>${p.stock === 0 ? 'Épuisé' : `${icon('plus')} Ajouter`}</button>
         </div>
       </article>`;
+  }
+
+  // Rangée de produits défilante, avec flèches sur ordinateur (glisser au doigt sur téléphone)
+  let railSeq = 0;
+  function railCarousel(list) {
+    const id = 'rail' + ++railSeq;
+    return `<div class="rail-wrap">
+      <button class="rail-arrow prev" data-rail="${id}" data-dir="-1" aria-label="Produits précédents">${icon('caret-left')}</button>
+      <div class="rail" id="${id}">${list.map(card).join('')}</div>
+      <button class="rail-arrow next" data-rail="${id}" data-dir="1" aria-label="Produits suivants">${icon('caret-right')}</button>
+    </div>`;
+  }
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-rail]');
+    if (!b) return;
+    const rail = document.getElementById(b.dataset.rail);
+    rail?.scrollBy({ left: Number(b.dataset.dir) * rail.clientWidth * 0.85, behavior: 'smooth' });
+  });
+
+  // Grand carrousel de l'accueil : défile seul toutes les 6 s (pause au survol / au toucher), flèches et points
+  function setupSlider(root, delay = 6000) {
+    const track = root.querySelector('.slider-track');
+    const n = track.children.length;
+    const dots = root.querySelector('.slider-dots');
+    dots.innerHTML = n > 1 ? Array.from({ length: n }, (_, i) => `<button type="button" aria-label="Diapositive ${i + 1}" data-go="${i}"></button>`).join('') : '';
+    const cur = () => Math.round(track.scrollLeft / track.clientWidth);
+    const go = (i) => track.scrollTo({ left: ((i + n) % n) * track.clientWidth, behavior: 'smooth' });
+    const mark = () => [...dots.children].forEach((d, j) => d.classList.toggle('on', j === cur()));
+    let t;
+    track.addEventListener('scroll', () => { clearTimeout(t); t = setTimeout(mark, 60); }, { passive: true });
+    root.addEventListener('click', (e) => {
+      const d = e.target.closest('[data-go]'); if (d) go(Number(d.dataset.go));
+      const a = e.target.closest('[data-slide]'); if (a) go(cur() + Number(a.dataset.slide));
+    });
+    let paused = false;
+    root.addEventListener('mouseenter', () => (paused = true));
+    root.addEventListener('mouseleave', () => (paused = false));
+    root.addEventListener('touchstart', () => { paused = true; setTimeout(() => (paused = false), 8000); }, { passive: true });
+    if (n > 1 && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      state.timers.push(setInterval(() => { if (!paused && !document.hidden) go(cur() + 1); }, delay));
+    }
+    mark();
+  }
+
+  // Temps restant jusqu'à minuit (ventes flash du jour)
+  function untilMidnight() {
+    const now = new Date(); const end = new Date(now); end.setHours(24, 0, 0, 0);
+    const sec = Math.floor((end - now) / 1000);
+    return [Math.floor(sec / 3600), Math.floor((sec % 3600) / 60), sec % 60].map((x) => String(x).padStart(2, '0'));
   }
 
   function sortList(list) {
@@ -204,59 +255,102 @@
   // ---------- Vues ----------
   function viewHome() {
     renderNav(null);
-    const deals = [...state.products].filter((p) => discount(p) > 0).sort((a, b) => discount(b) - discount(a)).slice(0, 10);
+    const deals = [...state.products].filter((p) => discount(p) > 0).sort((a, b) => discount(b) - discount(a)).slice(0, 12);
     const inUniverse = (u) => state.products.filter((p) => p.universe === u);
-    const featured = (u) => inUniverse(u).filter((p) => p.featured).concat(inUniverse(u).filter((p) => !p.featured)).slice(0, 10);
+    const featured = (u) => inUniverse(u).filter((p) => p.featured).concat(inUniverse(u).filter((p) => !p.featured)).slice(0, 12);
     const withImg = (list) => list.find((p) => p.image);
     const heroP = withImg(state.products.filter((p) => p.featured)) || withImg(state.products);
-    const tile = (p, { kicker, title, text, href, cta = 'Acheter', cls = '' }) => `
-      <section class="tile ${cls}">
-        <div class="tile-text">
-          ${kicker ? `<p class="tile-kicker">${esc(kicker)}</p>` : ''}
+    const used = new Set([heroP?.id]);
+    const pick = (list) => { const p = list.find((x) => x.image && !used.has(x.id)); if (p) used.add(p.id); return p; };
+
+    // Diapositives du grand carrousel (construites à partir du catalogue)
+    const slide = ({ theme, kicker, title, text, href, cta, p, extra = '' }) => `
+      <div class="slide theme-${theme}">
+        <div class="slide-text">
+          <span class="pill">${kicker}</span>
           <h2>${title}</h2>
-          <p class="tile-sub">${text}</p>
-          <div class="tile-ctas"><a class="btn cta" href="${href}">${esc(cta)}</a>${p ? `<a class="link-more" href="#/p/${p.id}">En savoir plus ${icon('caret-right')}</a>` : ''}</div>
+          <p>${text}</p>
+          ${extra}
+          <div class="slide-ctas"><a class="btn ${theme === 'light' || theme === 'mango' ? 'cta' : 'light'}" href="${href}">${esc(cta)} ${icon('arrow-right')}</a>${p ? `<a class="slide-more" href="#/p/${p.id}">Voir la fiche</a>` : ''}</div>
         </div>
-        ${p?.image ? `<a class="tile-img" href="#/p/${p.id}"><img src="${esc(p.image)}" alt="${esc(p.name)}" loading="lazy"></a>` : ''}
-      </section>`;
-    const tiles = UNIVERSES.map((u) => {
-      const p = withImg(featured(u.name).filter((x) => x !== heroP));
-      return tile(p, { title: esc(u.name), text: esc(u.categories.slice(0, 4).join(' · ')), href: `#/c/${enc(u.name)}`, cta: 'Découvrir' });
-    });
-    if (deals.length) tiles.push(tile(withImg(deals), { kicker: 'Bonnes affaires', title: `Jusqu'à -${discount(deals[0])} %`, text: 'Des prix réduits sur une sélection de produits.', href: '#/promos', cta: 'Voir les offres' }));
+        <div class="slide-visual">
+          <span class="deco o1"></span><span class="deco o2"></span><span class="deco o3"></span>
+          ${p?.image ? `<img src="${esc(p.image)}" alt="${esc(p.name)}" ${p === heroP ? '' : 'loading="lazy"'}>` : ''}
+          ${p && discount(p) ? `<span class="slide-badge">-${discount(p)} %</span>` : ''}
+        </div>
+      </div>`;
+    const slides = [];
+    if (heroP) slides.push(slide({ theme: 'violet', kicker: `${icon('sparkle-fill')} Nouveauté`, title: esc(heroP.name.replace(/^Apple /, '')), text: `À partir de <strong>${fcfa(heroP.price)}</strong>, livré chez vous en 24-48 h.`, href: `#/p/${heroP.id}`, cta: 'Je le veux', p: heroP }));
+    if (deals.length) slides.push(slide({ theme: 'coral', kicker: `${icon('lightning-fill')} Bonnes affaires`, title: `Jusqu'à -${discount(deals[0])} %`, text: 'Des prix cassés sur une sélection de produits, dans la limite des stocks.', href: '#/promos', cta: 'Voir les offres', p: pick(deals) }));
+    for (const u of UNIVERSES) {
+      const p = pick(featured(u.name));
+      if (p) slides.push(slide({ theme: 'mango', kicker: esc(u.name), title: u.name === 'Mode' ? 'Le style, sans se ruiner' : 'Le meilleur de la tech', text: esc(u.categories.slice(0, 4).join(' · ')), href: `#/c/${enc(u.name)}`, cta: 'Découvrir', p }));
+    }
+    slides.push(slide({
+      theme: 'light', kicker: `${icon('wallet')} Paiement`, title: 'Payez comme vous voulez', text: 'Vous validez le paiement sur votre téléphone, avec votre code secret.', href: '#/promos', cta: 'Commencer mes achats',
+      extra: '<div class="pay-chips"><span><i class="dot mtn"></i>MTN MoMo</span><span><i class="dot airtel"></i>Airtel Money</span><span>' + icon('credit-card') + 'Carte</span><span>' + icon('storefront') + 'Espèces en agence</span></div>',
+    }));
 
+    const [h, m, sec] = untilMidnight();
+    const tints = ['violet', 'mango', 'coral'];
     app.innerHTML = `
-      ${heroP ? tile(heroP, { kicker: heroP.featured ? 'Nouveau' : 'À la une', title: esc(heroP.name.replace(/^Apple /, '')), text: `À partir de ${fcfa(heroP.price)}. Livré en 24-48 h à Pointe-Noire et Brazzaville.`, href: `#/p/${heroP.id}`, cls: 'hero' }) : ''}
-
-      <div class="tiles">${tiles.join('')}</div>
-
-      <section class="shelf">
-        <h2 class="shelf-title">Tous les rayons.</h2>
-        <nav class="universes" aria-label="Rayons">
-          ${UNIVERSES.flatMap((u) => u.categories.map((c) => `<a href="#/c/${enc(u.name)}/${enc(c)}"><span class="ic">${icon((ICONS[c] || 'shopping-bag-duotone').replace('-duotone', ''))}</span>${esc(c)}</a>`)).join('')}
-        </nav>
+      <section class="hero slider" id="hero" aria-roledescription="carrousel" aria-label="Offres du moment">
+        <div class="slider-track">${slides.join('')}</div>
+        <button type="button" class="slider-arrow prev" data-slide="-1" aria-label="Offre précédente">${icon('caret-left')}</button>
+        <button type="button" class="slider-arrow next" data-slide="1" aria-label="Offre suivante">${icon('caret-right')}</button>
+        <div class="slider-dots"></div>
       </section>
 
-      ${UNIVERSES.map((u) => `
-        <section class="shelf">
-          <div class="shelf-head"><h2 class="shelf-title">${esc(u.name)}. <span>Les derniers arrivages.</span></h2><a class="link-more" href="#/c/${enc(u.name)}">Tout voir ${icon('caret-right')}</a></div>
-          <div class="rail">${featured(u.name).map(card).join('')}</div>
-        </section>`).join('')}
+      <nav class="bubbles" aria-label="Rayons">
+        ${UNIVERSES.flatMap((u) => u.categories).map((c, i) => `<a href="#/c/${enc(universeOf(c))}/${enc(c)}"><span class="ic tint-${tints[i % 3]}">${icon((ICONS[c] || 'shopping-bag-duotone').replace('-duotone', ''))}</span>${esc(c)}</a>`).join('')}
+      </nav>
 
-      ${deals.length ? `<section class="shelf">
-        <div class="shelf-head"><h2 class="shelf-title">Bonnes affaires. <span>Des prix qui font plaisir.</span></h2><a class="link-more" href="#/promos">Tout voir ${icon('caret-right')}</a></div>
-        <div class="rail">${deals.map(card).join('')}</div>
+      ${deals.length ? `<section class="shelf flash">
+        <div class="shelf-head">
+          <div><p class="kicker">${icon('fire')} Ventes flash</p><h2>Les prix fondent aujourd'hui</h2></div>
+          <div class="countdown" aria-label="Temps restant"><span>Fin dans</span><b id="cdH">${h}</b>:<b id="cdM">${m}</b>:<b id="cdS">${sec}</b></div>
+        </div>
+        ${railCarousel(deals)}
       </section>` : ''}
 
+      <section class="duo">
+        <a class="promo-card pc-violet" href="#/compte/creer">
+          <span class="ic">${icon('gift')}</span>
+          <span><b>Créez votre compte Kamwa</b><small>Gratuit, sans SMS : suivez vos commandes et retrouvez vos achats.</small></span>
+          <span class="go">${icon('arrow-right')}</span>
+        </a>
+        <a class="promo-card pc-mango" href="#/legal/vente">
+          <span class="ic">${icon('truck')}</span>
+          <span><b>Livré en 24-48 h</b><small>À Pointe-Noire et Brazzaville, ou retrait en agence.</small></span>
+          <span class="go">${icon('arrow-right')}</span>
+        </a>
+      </section>
+
+      ${UNIVERSES.map((u, i) => `
+        <section class="shelf">
+          <div class="shelf-head">
+            <div><p class="kicker k-${tints[(i + 1) % 3]}">${esc(u.name)}</p><h2>${i === 0 ? 'Nos coups de cœur' : 'À ne pas manquer'}</h2></div>
+            <a class="see-all" href="#/c/${enc(u.name)}">Tout voir ${icon('caret-right')}</a>
+          </div>
+          ${railCarousel(featured(u.name))}
+        </section>`).join('')}
+
       <section class="shelf">
-        <h2 class="shelf-title">Pourquoi Kamwa. <span>Simple, du choix à la livraison.</span></h2>
+        <div class="shelf-head"><div><p class="kicker">${icon('seal-check-duotone')} Acheter en confiance</p><h2>Pourquoi choisir Kamwa</h2></div></div>
         <div class="reassure">
-          <div><span class="ic">${icon('credit-card')}</span><b>Payez comme vous voulez</b><p>Mobile Money (MTN, Airtel), carte bancaire ou espèces en agence.</p></div>
-          <div><span class="ic">${icon('truck')}</span><b>Livraison en 24-48 h</b><p>À Pointe-Noire et Brazzaville. Autres villes sur demande.</p></div>
-          <div><span class="ic">${icon('storefront')}</span><b>Retrait en agence</b><p>Réservez en ligne, payez et repartez avec votre commande.</p></div>
-          <div><span class="ic">${icon('chat-circle')}</span><b>Un vrai service client</b><p>Nous vous appelons après chaque commande.</p></div>
+          <div class="r-violet"><span class="ic">${icon('credit-card')}</span><b>Paiement simple</b><p>Mobile Money (MTN, Airtel), carte bancaire ou espèces en agence.</p></div>
+          <div class="r-mango"><span class="ic">${icon('truck')}</span><b>Livraison rapide</b><p>24-48 h à Pointe-Noire et Brazzaville. Autres villes sur demande.</p></div>
+          <div class="r-coral"><span class="ic">${icon('storefront')}</span><b>Retrait en agence</b><p>Réservez en ligne, payez et repartez avec votre commande.</p></div>
+          <div class="r-green"><span class="ic">${icon('chat-circle')}</span><b>Service client</b><p>Nous vous appelons après chaque commande.</p></div>
         </div>
       </section>`;
+
+    setupSlider($('#hero'));
+    state.timers.push(setInterval(() => {
+      const [hh, mm, ss] = untilMidnight();
+      if (!$('#cdS')) return;
+      $('#cdH').textContent = hh; $('#cdM').textContent = mm; $('#cdS').textContent = ss;
+    }, 1000));
   }
 
   function viewList({ title, crumbs, list, active, chips }) {
@@ -337,7 +431,7 @@
     if (!p) return viewHome();
     renderNav(p.category);
     const d = discount(p);
-    const similar = state.products.filter((x) => x.category === p.category && x.id !== p.id).slice(0, 5);
+    const similar = state.products.filter((x) => x.category === p.category && x.id !== p.id).slice(0, 10);
     app.innerHTML = `
       <div class="crumbs"><a href="#/">Accueil</a> › <a href="#/c/${enc(p.universe)}">${esc(p.universe)}</a> › <a href="#/c/${enc(p.universe)}/${enc(p.category)}">${esc(p.category)}</a></div>
       <div class="pdp">
@@ -361,7 +455,7 @@
           </div>
         </div>
       </div>
-      ${similar.length ? `<section class="section" style="margin-top:12px"><div class="section-head"><h2>Dans la même catégorie</h2></div><div class="rail">${similar.map(card).join('')}</div></section>` : ''}`;
+      ${similar.length ? `<section class="shelf"><div class="shelf-head"><div><p class="kicker">${esc(p.category)}</p><h2>Vous aimerez aussi</h2></div></div>${railCarousel(similar)}</section>` : ''}`;
     $('#buyNow').addEventListener('click', () => { if (!state.cart[p.id]) addToCart(p.id); });
     // Galerie : cliquer sur une miniature change la photo principale (le crédit ne vaut que pour la photo d'origine)
     app.querySelectorAll('[data-img]').forEach((b) => b.addEventListener('click', () => {
@@ -844,7 +938,7 @@
   function route() {
     state.timers.forEach(clearInterval); state.timers = [];
     const parts = (location.hash || '#/').slice(2).split('#')[0].split('/').map(decodeURIComponent);
-    $('#searchForm').hidden = parts[0] !== 'recherche';
+    if (parts[0] !== 'recherche') $('.header').classList.remove('search-open');
     window.scrollTo(0, 0);
     switch (parts[0]) {
       case 'c': return viewCategory(parts[1], parts[2]);

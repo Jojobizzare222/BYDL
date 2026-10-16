@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#ffffff">
+  <meta name="theme-color" content="#2D1B69">
   <link rel="icon" href="/brand/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="/brand/favicon-32.png" sizes="32x32" type="image/png">
   <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png">
@@ -14,30 +14,44 @@
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-  <div class="promo-strip">Payez en Mobile Money, par carte ou en espèces · Livraison en 24-48 h à Pointe-Noire et Brazzaville</div>
+  <!-- Formes géométriques animées en arrière-plan (décor, ignorées par les lecteurs d'écran) -->
+  <div class="bg-shapes" aria-hidden="true">
+    <span class="shape ring r1"></span><span class="shape blob b1"></span><span class="shape spark k1"></span>
+    <span class="shape square q1"></span><span class="shape ring r2"></span><span class="shape dots d1"></span>
+    <span class="shape blob b2"></span><span class="shape spark k2"></span><span class="shape tri t1"></span>
+  </div>
+
+  <!-- Bandeau défilant -->
+  <div class="promo-strip" aria-label="Avantages Kamwa">
+    <div class="ticker">
+      <span>Paiement Mobile Money MTN et Airtel</span><span>Livraison 24-48 h à Pointe-Noire et Brazzaville</span><span>Carte bancaire acceptée</span><span>Retrait et paiement en agence</span><span>Nouveaux arrivages chaque semaine</span>
+      <span aria-hidden="true">Paiement Mobile Money MTN et Airtel</span><span aria-hidden="true">Livraison 24-48 h à Pointe-Noire et Brazzaville</span><span aria-hidden="true">Carte bancaire acceptée</span><span aria-hidden="true">Retrait et paiement en agence</span><span aria-hidden="true">Nouveaux arrivages chaque semaine</span>
+    </div>
+  </div>
 
   <header class="header">
     <div class="header-inner">
-      <a href="#/" class="logo" aria-label="Kamwa, accueil"><img src="/brand/logo-kamwa.svg" alt="Kamwa" width="112" height="27"></a>
+      <a href="#/" class="logo" aria-label="Kamwa, accueil"><img src="/brand/logo-kamwa.svg" alt="Kamwa" width="124" height="30"></a>
+      <form class="search" id="searchForm" role="search">
+        <svg class="ico" aria-hidden="true"><use href="/icons.svg?v=4#magnifying-glass"></use></svg>
+        <input id="searchInput" type="search" placeholder="iPhone, MacBook, écouteurs…" aria-label="Rechercher un produit">
+        <button type="submit" class="search-go">Rechercher</button>
+      </form>
       <div class="header-actions">
-        <button class="cart-btn" id="searchToggle" aria-label="Rechercher" aria-expanded="false">
-          <svg class="ico" aria-hidden="true"><use href="/icons.svg?v=3#magnifying-glass"></use></svg>
+        <button class="cart-btn search-toggle" id="searchToggle" aria-label="Rechercher" aria-expanded="false">
+          <svg class="ico" aria-hidden="true"><use href="/icons.svg?v=4#magnifying-glass"></use></svg>
         </button>
         <a class="cart-btn" id="accountBtn" href="#/compte" aria-label="Mon compte">
-          <svg class="ico" aria-hidden="true"><use href="/icons.svg?v=3#user-circle"></use></svg>
+          <svg class="ico" aria-hidden="true"><use href="/icons.svg?v=4#user-circle"></use></svg>
           <span class="cart-label" id="accountLabel">Compte</span>
         </a>
-        <button class="cart-btn" id="cartBtn" aria-label="Ouvrir le panier">
-          <svg class="ico" aria-hidden="true"><use href="/icons.svg?v=3#handbag"></use></svg>
-          <span class="badge" id="cartCount">0</span>
+        <button class="cart-btn cart-main" id="cartBtn" aria-label="Ouvrir le panier">
+          <svg class="ico" aria-hidden="true"><use href="/icons.svg?v=4#handbag"></use></svg>
+          <span class="cart-label">Panier</span>
+          <span class="badge" id="cartCount"></span>
         </button>
       </div>
     </div>
-    <form class="search" id="searchForm" role="search" hidden>
-      <svg class="ico" aria-hidden="true"><use href="/icons.svg?v=3#magnifying-glass"></use></svg>
-      <input id="searchInput" type="search" placeholder="Rechercher sur Kamwa" aria-label="Rechercher">
-      <button type="button" class="icon-btn" id="searchClose" aria-label="Fermer la recherche"><svg class="ico" aria-hidden="true"><use href="/icons.svg?v=3#x"></use></svg></button>
-    </form>
     <nav class="catnav" id="catnav" aria-label="Catégories"></nav>
   </header>
 
@@ -47,7 +61,7 @@
     <div class="drawer-panel" role="dialog" aria-label="Panier">
       <div class="drawer-head">
         <h2>Mon panier</h2>
-        <button class="icon-btn" id="closeDrawer" aria-label="Fermer"><svg class="ico" aria-hidden="true"><use href="/icons.svg?v=3#x-bold"></use></svg></button>
+        <button class="icon-btn" id="closeDrawer" aria-label="Fermer"><svg class="ico" aria-hidden="true"><use href="/icons.svg?v=4#x-bold"></use></svg></button>
       </div>
       <div id="cartLines"></div>
       <div class="drawer-foot">
