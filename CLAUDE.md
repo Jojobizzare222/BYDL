@@ -63,6 +63,12 @@ Lancer : `npm install` puis `npm start` → boutique http://localhost:3000 · ad
 - **Comptes clients** (décision Joseph 16/10/2026 : gratuit, pas de SMS) : le code seul ne donne JAMAIS accès (il faut identifiant + code). Numéro/e-mail non vérifiés → on ne rattache JAMAIS automatiquement des commandes par numéro ; seulement les commandes passées connecté ou prouvées par leur clé. Code oublié : l'admin génère un nouveau code (onglet Clients) et l'envoie par WhatsApp. Achat sans compte toujours possible.
 - Alternative envisageable plus tard : agrégateur (CinetPay, pawaPay…) via un nouveau provider.
 
+## Vitrine de démonstration sur Vercel (16/10/2026)
+- Joseph a déployé le dépôt sur **Vercel** : https://bydl.vercel.app (se met à jour à chaque « Push origin »). Vercel = DÉMO UNIQUEMENT, pas la vraie boutique (vraie mise en ligne : VPS, étape 4).
+- Sur Vercel (`process.env.VERCEL`) : disque en lecture seule sauf /tmp → base `/tmp/kamwa-demo.db` TEMPORAIRE (repart de `data/products.json` à chaque redémarrage), photos envoyées dans `/tmp/kamwa-uploads`, `config.demo = true` → bandeau « Site de démonstration » + paiements en simulation. `express.static` y est ignoré : les fichiers de `public/` sont servis par Vercel, les photos envoyées par la route `/images/uploads/:name`.
+- Mot de passe admin de la démo : réglage Vercel `ADMIN_PASSWORD_HASH` = empreinte créée par `npm run admin:hash` (jamais le mot de passe en clair). Sans ce réglage, l'admin de la démo est inaccessible.
+- `data/products.json` (catalogue de départ) est aligné sur la boutique : produits non-Apple `active: false`.
+
 ## Espace pro : équipe et fournisseurs (décisions Joseph 16/10/2026)
 - Rôles : **admin** (tout), **supplier** (fournisseur : ses produits, son stock, son prix fournisseur, les commandes de ses produits), **catalog** (employé Catalogue : ajout/modif de tous les produits, ne voit pas les prix fournisseur), **orders** (employé Commandes : commandes et statuts).
 - **Kamwa livre** : le fournisseur ne voit jamais les coordonnées des clients ; il voit les commandes payées contenant ses produits (ses lignes seulement).

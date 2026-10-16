@@ -44,7 +44,10 @@ function tempPassword() {
   return Array.from({ length: 10 }, () => chars[crypto.randomInt(chars.length)]).join('').replace(/(.{5})/, '$1-');
 }
 
-const isPasswordSet = () => Boolean(settings.get('admin_password'));
+// Mot de passe admin : dans la base, ou (vitrine de démo Vercel, base temporaire) dans le réglage ADMIN_PASSWORD_HASH
+// créé avec `npm run admin:hash` — seule l'empreinte est stockée, jamais le mot de passe.
+const adminHash = () => settings.get('admin_password') || process.env.ADMIN_PASSWORD_HASH || null;
+const isPasswordSet = () => Boolean(adminHash());
 
 function setPassword(password) {
   settings.set('admin_password', hashPassword(password));
@@ -79,7 +82,11 @@ function login(req, res) {
   const loginName = normLogin(req.body?.login) || ADMIN_LOGIN; // ancien formulaire sans identifiant = admin
   const password = req.body?.password || '';
   if (loginName === ADMIN_LOGIN && !isPasswordSet()) {
-    return res.status(503).json({ error: 'Mot de passe admin pas encore défini. Dans le Terminal : npm run admin:password' });
+    return res.status(503).json({
+      error: process.env.VERCEL
+        ? 'Démo : mot de passe admin non défini. Ajoutez ADMIN_PASSWORD_HASH dans les réglages Vercel (créé avec npm run admin:hash).'
+        : 'Mot de passe admin pas encore défini. Dans le Terminal : npm run admin:password',
+    });
   }
   const ipKey = 'ip:' + req.ip;
   const accKey = 'acc:' + loginName;
@@ -88,7 +95,7 @@ function login(req, res) {
 
   let userId = null;
   if (loginName === ADMIN_LOGIN) {
-    if (checkPassword(password, settings.get('admin_password'))) userId = ADMIN_LOGIN;
+    if (checkPassword(password, adminHash())) userId = ADMIN_LOGIN;
   } else {
     const u = findStaff(loginName);
     if (u && u.active !== false && checkPassword(password, u.passwordHash)) userId = u.id;

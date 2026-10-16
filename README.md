@@ -18,6 +18,16 @@ npm start
 
 Ouvrez ensuite http://localhost:3000 dans votre navigateur.
 
+## Vitrine de démonstration (Vercel)
+
+Le dépôt peut être déployé sur Vercel comme **site de démonstration** (bandeau visible, paiements simulés, données temporaires remises à zéro régulièrement). Pour accéder à l'espace pro de la démo, créez l'empreinte de votre mot de passe :
+
+```bash
+npm run admin:hash
+```
+
+puis collez la ligne affichée dans Vercel → Settings → Environment Variables, sous le nom `ADMIN_PASSWORD_HASH`, et redéployez.
+
 ## Espace admin
 
 1. Créez votre mot de passe (une seule fois, ou pour le changer) :

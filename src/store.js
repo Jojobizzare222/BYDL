@@ -7,7 +7,11 @@ const path = require('path');
 const { DatabaseSync } = require('node:sqlite');
 
 const DATA_DIR = path.join(__dirname, '..', 'data');
-const DB_FILE = process.env.DB_FILE || path.join(DATA_DIR, 'baydel.db');
+// Sur Vercel, le disque est en lecture seule sauf /tmp, qui est vidé régulièrement :
+// la base y est donc TEMPORAIRE (vitrine de démonstration), et repart du catalogue de départ à chaque redémarrage.
+const DB_FILE = process.env.DB_FILE || (process.env.VERCEL ? '/tmp/kamwa-demo.db' : path.join(DATA_DIR, 'baydel.db'));
+// Catalogue de départ chargé avec require() : ainsi Vercel l'embarque avec le serveur.
+const SEEDS = { products: () => require('../data/products.json') };
 
 fs.mkdirSync(path.dirname(DB_FILE), { recursive: true });
 const db = new DatabaseSync(DB_FILE);
@@ -46,7 +50,7 @@ function createCollection(name) {
   if (!settings.get(`imported:${name}`)) {
     let seed = [];
     try {
-      seed = JSON.parse(fs.readFileSync(seedFile, 'utf8'));
+      seed = SEEDS[name] ? SEEDS[name]() : JSON.parse(fs.readFileSync(seedFile, 'utf8'));
     } catch {}
     transaction(() => {
       for (const item of seed) q.insert.run(item.id, JSON.stringify(item));

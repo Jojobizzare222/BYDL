@@ -9,6 +9,8 @@ module.exports = {
   currency: env('CURRENCY', 'XAF'),
   country: env('COUNTRY', 'CG'),
   paymentMode: env('PAYMENT_MODE', 'simulation'), // simulation | live
+  // Vitrine de démonstration (Vercel) : données temporaires, bandeau « Site de démonstration »
+  demo: Boolean(process.env.VERCEL) || env('DEMO_MODE') === '1',
   // Durée pendant laquelle une demande de paiement en attente bloque une nouvelle demande et réserve le stock.
   paymentPendingMinutes: Number(env('PAYMENT_PENDING_MINUTES', 10)),
   // Retrait en agence : durée de réservation de l'article avant paiement en espèces.

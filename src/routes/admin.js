@@ -14,7 +14,7 @@ const {
 const { UNIVERSES, universeOf } = require('../catalog');
 const { normalizeLocal } = require('../utils/phone');
 
-const UPLOAD_DIR = process.env.UPLOAD_DIR || path.join(__dirname, '..', '..', 'data', 'uploads');
+const UPLOAD_DIR = process.env.UPLOAD_DIR || (process.env.VERCEL ? '/tmp/kamwa-uploads' : path.join(__dirname, '..', '..', 'data', 'uploads'));
 
 router.post('/login', login);
 router.post('/logout', logout);

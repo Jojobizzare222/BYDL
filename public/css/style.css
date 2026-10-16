@@ -323,3 +323,5 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--mango); bor
 .specs { width: 100%; border-collapse: collapse; margin: 8px 0 4px; font-size: .88rem; }
 .specs th { text-align: left; font-weight: 600; color: var(--muted); padding: 6px 8px 6px 0; width: 40%; border-bottom: 1px solid var(--line); vertical-align: top; }
 .specs td { padding: 6px 0; border-bottom: 1px solid var(--line); }
+
+.demo-strip { background: var(--ink); color: var(--mango); text-align: center; font-size: .78rem; font-weight: 700; padding: 6px 12px; }

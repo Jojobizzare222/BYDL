@@ -1617,7 +1617,8 @@
     "stock": 25,
     "description": "DDR4 3200 MHz, format SO-DIMM pour PC portable.",
     "color": "#3B4A3F",
-    "featured": true
+    "featured": true,
+    "active": false
   },
   {
     "id": "e010",
@@ -1628,7 +1629,8 @@
     "oldPrice": null,
     "stock": 15,
     "description": "DDR4 3200 MHz, format DIMM pour PC de bureau.",
-    "color": "#40513F"
+    "color": "#40513F",
+    "active": false
   },
   {
     "id": "e011",
@@ -1639,7 +1641,8 @@
     "oldPrice": 45000,
     "stock": 20,
     "description": "Accélère fortement un ancien ordinateur.",
-    "color": "#455A47"
+    "color": "#455A47",
+    "active": false
   },
   {
     "id": "e012",
@@ -1650,7 +1653,8 @@
     "oldPrice": 8000,
     "stock": 60,
     "description": "USB 3.0, rapide et compacte.",
-    "color": "#4B5E4C"
+    "color": "#4B5E4C",
+    "active": false
   },
   {
     "id": "m001",
@@ -1662,7 +1666,8 @@
     "stock": 40,
     "description": "100 % coton, plusieurs coloris, tailles S à XXL.",
     "color": "#2C5E7A",
-    "featured": true
+    "featured": true,
+    "active": false
   },
   {
     "id": "m002",
@@ -1673,7 +1678,8 @@
     "oldPrice": null,
     "stock": 35,
     "description": "Coton, motifs variés.",
-    "color": "#1F6F5C"
+    "color": "#1F6F5C",
+    "active": false
   },
   {
     "id": "m003",
@@ -1685,7 +1691,8 @@
     "stock": 20,
     "description": "Denim résistant, tailles 38 à 48.",
     "color": "#2E4A6B",
-    "featured": true
+    "featured": true,
+    "active": false
   },
   {
     "id": "m004",
@@ -1696,7 +1703,8 @@
     "oldPrice": null,
     "stock": 18,
     "description": "Coupe ajustée, beige, bleu marine ou noir.",
-    "color": "#5A5040"
+    "color": "#5A5040",
+    "active": false
   },
   {
     "id": "m005",
@@ -1708,7 +1716,8 @@
     "stock": 15,
     "description": "Sweat zippé + pantalon, molleton léger.",
     "color": "#33415C",
-    "featured": true
+    "featured": true,
+    "active": false
   },
   {
     "id": "m006",
@@ -1719,7 +1728,8 @@
     "oldPrice": null,
     "stock": 30,
     "description": "Coton molletonné, poches zippées.",
-    "color": "#3A3F4A"
+    "color": "#3A3F4A",
+    "active": false
   },
   {
     "id": "m007",
@@ -1730,7 +1740,8 @@
     "oldPrice": 6500,
     "stock": 25,
     "description": "Coton doux, coupe cintrée.",
-    "color": "#B4472A"
+    "color": "#B4472A",
+    "active": false
   },
   {
     "id": "m008",
@@ -1742,7 +1753,8 @@
     "stock": 14,
     "description": "Taille haute, stretch.",
     "color": "#3F4F7A",
-    "featured": true
+    "featured": true,
+    "active": false
   },
   {
     "id": "m009",
@@ -1753,7 +1765,8 @@
     "oldPrice": 21000,
     "stock": 10,
     "description": "Sweat + pantalon, coupe confortable.",
-    "color": "#7A3F6B"
+    "color": "#7A3F6B",
+    "active": false
   },
   {
     "id": "m010",
@@ -1765,7 +1778,8 @@
     "stock": 22,
     "description": "Légères et respirantes, pointures 36 à 45.",
     "color": "#5A4E7A",
-    "featured": true
+    "featured": true,
+    "active": false
   },
   {
     "id": "m011",
@@ -1776,7 +1790,8 @@
     "oldPrice": 26000,
     "stock": 12,
     "description": "Semelle amortissante, pointures 39 à 46.",
-    "color": "#2F4858"
+    "color": "#2F4858",
+    "active": false
   },
   {
     "id": "m012",
@@ -1787,7 +1802,8 @@
     "oldPrice": null,
     "stock": 15,
     "description": "Cuir véritable, semelle renforcée.",
-    "color": "#8A4B2A"
+    "color": "#8A4B2A",
+    "active": false
   },
   {
     "id": "m013",
@@ -1798,6 +1814,7 @@
     "oldPrice": 5000,
     "stock": 50,
     "description": "Légères, pointures 36 à 46.",
-    "color": "#4A6670"
+    "color": "#4A6670",
+    "active": false
   }
 ]

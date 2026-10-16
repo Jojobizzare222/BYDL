@@ -855,6 +855,10 @@
       [state.products, state.config] = await Promise.all([api('/products'), api('/config')]);
       // On n'affiche que les rayons qui ont au moins un produit visible (les rayons vides réapparaissent
       // automatiquement dès qu'un produit y est ajouté ou réaffiché depuis l'admin).
+      // Vitrine de démonstration (Vercel) : bandeau bien visible, pour que personne ne prenne le site pour la vraie boutique
+      if (state.config.demo && !document.querySelector('.demo-strip')) {
+        document.body.insertAdjacentHTML('afterbegin', '<div class="demo-strip">Site de démonstration : commandes fictives, aucun paiement réel, données remises à zéro régulièrement.</div>');
+      }
       UNIVERSES = (state.config.universes || [])
         .map((u) => ({ ...u, categories: u.categories.filter((c) => state.products.some((p) => p.category === c)) }))
         .filter((u) => u.categories.length);

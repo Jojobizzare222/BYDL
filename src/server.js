@@ -19,11 +19,17 @@ app.use(
     },
   })
 );
-// Photos envoyées depuis l'espace admin (rangées dans data/uploads, hors de GitHub)
-app.use('/images/uploads', express.static(UPLOAD_DIR, { maxAge: '1d' }));
+// Photos envoyées depuis l'espace pro (rangées dans data/uploads, hors de GitHub).
+// Route explicite (et non express.static, ignoré par Vercel) ; seuls des noms de fichiers simples sont acceptés.
+app.get('/images/uploads/:name', (req, res) => {
+  if (!/^[\w.-]+\.(jpg|png|webp)$/.test(req.params.name)) return res.sendStatus(404);
+  res.sendFile(path.join(UPLOAD_DIR, req.params.name), { maxAge: '1d' }, (err) => {
+    if (err && !res.headersSent) res.sendStatus(404);
+  });
+});
 
 app.get('/api/config', (req, res) =>
-  res.json({ shopName: config.shopName, currency: config.currency, paymentMode: config.paymentMode, universes: UNIVERSES })
+  res.json({ shopName: config.shopName, currency: config.currency, paymentMode: config.paymentMode, demo: config.demo, universes: UNIVERSES })
 );
 app.use('/api/products', require('./routes/products'));
 app.use('/api/orders', require('./routes/orders'));
