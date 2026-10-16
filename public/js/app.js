@@ -9,7 +9,7 @@
   // Univers et catégories affichés dans le menu : fournis par le serveur (src/catalog.js), même liste que l'admin
   let UNIVERSES = [];
   // Icônes Phosphor (fichier /icons.svg, récupérées via Iconify)
-  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=10#${name}"></use></svg>`;
+  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=11#${name}"></use></svg>`;
   const ICONS = { 'Téléphones': 'device-mobile-duotone', 'Tablettes': 'device-tablet-duotone', 'Ordinateurs': 'laptop-duotone', 'Montres': 'watch-duotone', 'Audio': 'headphones-duotone', 'TV & Maison': 'television-duotone', 'Jeux vidéo & consoles': 'game-controller-duotone', 'Composants': 'cpu-duotone', 'Accessoires': 'plug-duotone', 'Homme': 't-shirt-duotone', 'Femme': 'dress-duotone', 'Chaussures': 'sneaker-duotone' };
   const catIcon = (cat, cls = '') => icon(ICONS[cat] || 'shopping-bag-duotone', cls);
   // Vignettes sans photo : une des trois teintes de la charte, selon la catégorie
@@ -215,6 +215,15 @@
   menu.addEventListener('click', (e) => { if (e.target === menu || e.target.closest('a')) openMenu(false); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && menu.classList.contains('open')) openMenu(false); });
 
+  // ---------- Apparence : clair / sombre / automatique (comme le téléphone) ----------
+  const themeSwitch = () => {
+    const m = window.kamwaTheme?.mode() || 'light';
+    return `<div class="theme-switch" role="group" aria-label="Apparence">${[['light', 'sun', 'Clair'], ['dark', 'moon', 'Sombre'], ['auto', 'circle-half', 'Auto']]
+      .map(([k, ic, l]) => `<button type="button" data-theme-set="${k}" class="${m === k ? 'on' : ''}" aria-pressed="${m === k}">${icon(ic)} ${l}</button>`).join('')}</div>`;
+  };
+  const renderThemeSwitches = () => document.querySelectorAll('[data-theme-host]').forEach((h) => { h.innerHTML = themeSwitch(); });
+  document.addEventListener('click', (e) => { const b = e.target.closest('[data-theme-set]'); if (b) { window.kamwaTheme?.set(b.dataset.themeSet); renderThemeSwitches(); } });
+
   // ---------- Menu déroulant des grandes catégories (en-tête) ----------
   let dropTimer = null;
   function closeDrop() {
@@ -267,7 +276,9 @@
         UNIVERSES.map((u) => `<h3>${esc(u.name)}</h3><a href="#/c/${enc(u.name)}">Tout ${esc(u.name.toLowerCase())}</a>` +
           u.categories.map((c) => `<a href="#/c/${enc(u.name)}/${enc(c)}">${catIcon(c)} ${esc(c)}</a>`).join('')).join('') +
         `<h3>Aide et compte</h3><a href="#/compte">${icon('user-circle')} Mon compte et mes commandes</a>
-        <a href="#/legal/vente">${icon('arrow-counter-clockwise')} Livraison et retours</a>`;
+        <a href="#/legal/vente">${icon('arrow-counter-clockwise')} Livraison et retours</a>
+        <h3>Apparence</h3><div style="padding:6px 20px 0" data-theme-host></div>`;
+      renderThemeSwitches();
       $('#searchCat').innerHTML = '<option value="">Tous les rayons</option>' +
         UNIVERSES.map((u) => `<option value="u:${esc(u.name)}">${esc(u.name)}</option>` + u.categories.map((c) => `<option value="c:${esc(c)}">&nbsp;&nbsp;${esc(c)}</option>`).join('')).join('');
     }
@@ -1061,6 +1072,7 @@
           </div>
           ${idStatusPanel(c).startsWith('<form') ? '' : idStatusPanel(c)}
           ${pushCard(null)}
+          <div class="row" style="display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap"><span class="hint">Apparence</span><span data-theme-host></span></div>
           <div class="stats">
             <div><span class="hint">Commandes payées</span><b>${paid.length}</b></div>
             <div><span class="hint">Total de vos achats</span><b>${fcfa(paid.reduce((s, o) => s + o.total, 0))}</b></div>
@@ -1786,6 +1798,7 @@
       setTimeout(() => { pulse(); }, 50);
     }
     setTimeout(armLive, 400);
+    setTimeout(renderThemeSwitches, 0);
     switch (parts[0]) {
       case 'c': return viewCategory(parts[1], parts[2]);
       case 'p': return viewProduct(parts[1]);

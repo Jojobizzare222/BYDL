@@ -7,7 +7,7 @@
   const DISMISS_KEY = isAdmin ? 'kamwa-pro-install-later' : 'kamwa-install-later';
   const DISMISS_DAYS = 21;
   let deferred = null; // l'invitation d'installation fournie par Chrome / Android
-  const ico = (n) => `<svg class="ico" aria-hidden="true"><use href="/icons.svg?v=10#${n}"></use></svg>`;
+  const ico = (n) => `<svg class="ico" aria-hidden="true"><use href="/icons.svg?v=11#${n}"></use></svg>`;
   if (standalone) document.documentElement.classList.add('standalone');
 
   if ('serviceWorker' in navigator) {

@@ -2,7 +2,7 @@
 // Le visiteur sans compte est reconnu par une clé secrète gardée sur ce téléphone (kamwa-chat), jamais dans l'adresse.
 (() => {
   const KEY = 'kamwa-chat';
-  const ico = (n) => `<svg class="ico" aria-hidden="true"><use href="/icons.svg?v=10#${n}"></use></svg>`;
+  const ico = (n) => `<svg class="ico" aria-hidden="true"><use href="/icons.svg?v=11#${n}"></use></svg>`;
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
   const token = () => { try { return localStorage.getItem(KEY) || ''; } catch { return ''; } };
   const saveToken = (t) => { try { if (t) localStorage.setItem(KEY, t); } catch {} };

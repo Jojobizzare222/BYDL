@@ -43,7 +43,7 @@
   }
 
   // ---------- Outils d'affichage ----------
-  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=10#${name}"></use></svg>`;
+  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=11#${name}"></use></svg>`;
   // En-tête de page façon « Espace pro › Commandes » + titre + description + boutons d'action à droite
   const pageHead = ({ crumb, title, desc = '', actions = '' }) => `
     <div class="page-head">
@@ -93,12 +93,16 @@
   // ---------- Tableau de bord (graphiques Chart.js, adaptés au rôle) ----------
   const charts = [];
   const PALETTE = ['#FFB300', '#9D8CFF', '#FF6B4F', '#2BC48A', '#5AB4FF', '#F278B6'];
-  if (window.Chart) {
-    Chart.defaults.color = '#A69FBF';
-    Chart.defaults.borderColor = 'rgba(255,255,255,.08)';
+  // Couleurs des graphiques selon l'apparence (recalculées à chaque affichage du tableau de bord)
+  function chartTheme() {
+    if (!window.Chart) return;
+    const lightTheme = document.documentElement.getAttribute('data-theme') === 'light';
+    Chart.defaults.color = lightTheme ? '#6B6585' : '#A69FBF';
+    Chart.defaults.borderColor = lightTheme ? 'rgba(27,21,48,.08)' : 'rgba(255,255,255,.08)';
     Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
     Chart.defaults.plugins.legend.labels.boxWidth = 12;
   }
+  chartTheme();
   const shortNum = (n) => new Intl.NumberFormat('fr-FR', { notation: 'compact', maximumFractionDigits: 1 }).format(n);
   const dayLabel = (d) => d.slice(8, 10) + '/' + d.slice(5, 7);
   const isEmpty = (list) => !list || !list.length || list.every((x) => !(x.value ?? x));
@@ -123,6 +127,7 @@
   });
 
   async function viewDashboard() {
+    chartTheme();
     const days = state.days || 30;
     app.innerHTML = '<p class="muted">Chargement du tableau de bord…</p>';
     let d;
@@ -2058,6 +2063,15 @@
     } catch {}
   }
   setInterval(() => { if (!document.hidden) loadChatCounts(); }, 15000);
+
+  // ---------- Apparence : sombre / clair / automatique ----------
+  function renderProTheme() {
+    const m = window.kamwaTheme?.mode() || 'dark';
+    $('#proTheme').innerHTML = `<div class="theme-switch" role="group" aria-label="Apparence">${[['dark', 'moon', 'Sombre'], ['light', 'sun', 'Clair'], ['auto', 'circle-half', 'Auto']]
+      .map(([k, ic, l]) => `<button type="button" data-theme-set="${k}" class="${m === k ? 'on' : ''}" aria-pressed="${m === k}">${icon(ic)} ${l}</button>`).join('')}</div>`;
+  }
+  document.addEventListener('click', (e) => { const b = e.target.closest('[data-theme-set]'); if (b) { window.kamwaTheme?.set(b.dataset.themeSet); renderProTheme(); if (state.user && !proBusy()) route({ keep: true }); } });
+  renderProTheme();
 
   // ---------- Rafraîchissement instantané (signal du serveur) ----------
   // Le serveur signale chaque changement qui concerne ce rôle ; la page affichée se redessine tout de suite,
