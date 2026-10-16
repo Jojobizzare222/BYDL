@@ -126,3 +126,5 @@ textarea { resize: vertical; }
 .top-actions { flex-wrap: wrap; align-items: center; }
 .top-actions .ghost { min-height: 34px; padding: 5px 12px; font-size: .85rem; white-space: nowrap; }
 @media (max-width: 480px) { .whoami { flex-basis: 100%; max-width: none; order: -1; } }
+.demo-box { margin-top: 16px; padding: 12px; border: 2px dashed var(--mango); border-radius: 12px; background: #FFF8E6; display: grid; gap: 8px; }
+.demo-box .muted { margin: 0; }

@@ -12,6 +12,7 @@ const {
   hashPassword, checkPassword, tempPassword, normLogin, findStaff, closeSessionsOf,
 } = require('../admin/auth');
 const { UNIVERSES, universeOf } = require('../catalog');
+const demo = require('../demo');
 const { normalizeLocal } = require('../utils/phone');
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR || (process.env.VERCEL ? '/tmp/kamwa-uploads' : path.join(__dirname, '..', '..', 'data', 'uploads'));
@@ -20,7 +21,7 @@ router.post('/login', login);
 router.post('/logout', logout);
 router.get('/me', (req, res) => {
   const user = currentUser(req);
-  res.json({ loggedIn: Boolean(user), passwordSet: isPasswordSet(), user, roles: ROLES });
+  res.json({ loggedIn: Boolean(user), passwordSet: isPasswordSet(), user, roles: ROLES, demoAccounts: demo.publicAccounts() });
 });
 
 router.use(requireStaff);
@@ -391,6 +392,7 @@ router.post('/staff', requireRole(), (req, res) => {
 router.patch('/staff/:id', requireRole(), (req, res) => {
   const u = staff.get(req.params.id);
   if (!u) return res.status(404).json({ error: 'Compte introuvable' });
+  if (demo.isDemoLogin(u.login)) return res.status(403).json({ error: 'Compte de démonstration : il ne peut pas être modifié' });
   const patch = {};
   if ('active' in (req.body || {})) patch.active = Boolean(req.body.active);
   if ('name' in (req.body || {}) && String(req.body.name).trim()) patch.name = String(req.body.name).trim().slice(0, 80);
@@ -404,6 +406,7 @@ router.patch('/staff/:id', requireRole(), (req, res) => {
 router.post('/staff/:id/reset-password', requireRole(), (req, res) => {
   const u = staff.get(req.params.id);
   if (!u) return res.status(404).json({ error: 'Compte introuvable' });
+  if (demo.isDemoLogin(u.login)) return res.status(403).json({ error: 'Compte de démonstration : son mot de passe ne peut pas être changé' });
   const password = tempPassword();
   staff.update(u.id, { passwordHash: hashPassword(password), mustChangePassword: true });
   closeSessionsOf(u.id);
@@ -414,6 +417,7 @@ router.post('/staff/:id/reset-password', requireRole(), (req, res) => {
 // Chacun peut changer son propre mot de passe (l'admin le fait avec npm run admin:password)
 router.post('/me/password', (req, res) => {
   if (req.user.role === 'admin') return res.status(400).json({ error: 'Admin : utilisez « npm run admin:password » dans le Terminal' });
+  if (demo.isDemoLogin(req.user.login)) return res.status(403).json({ error: 'Compte de démonstration : son mot de passe ne peut pas être changé' });
   const { current, next } = req.body || {};
   const u = staff.get(req.user.id);
   if (!checkPassword(current || '', u.passwordHash)) return res.status(401).json({ error: 'Mot de passe actuel incorrect' });

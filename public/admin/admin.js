@@ -55,7 +55,18 @@
         <input id="password" type="password" autocomplete="current-password" required>
         <button class="btn dark" style="width:100%;margin-top:16px">Se connecter</button>
         <p class="muted">Mot de passe oublié ? Demandez-en un nouveau à l'administrateur. (Administrateur : <code>npm run admin:password</code> dans le Terminal.)</p>
+        ${state.demoAccounts?.length ? `
+        <div class="demo-box">
+          <strong>Démonstration : connectez-vous en un clic</strong>
+          <p class="muted">Comptes publics de la démo (données fictives, remises à zéro régulièrement).</p>
+          ${state.demoAccounts.map((a) => `<button type="button" class="ghost" data-demo="${esc(a.login)}" data-pw="${esc(a.password)}">${esc(a.label)}</button>`).join('')}
+        </div>` : ''}
       </form>`;
+    app.querySelectorAll('[data-demo]').forEach((b) => b.addEventListener('click', () => {
+      $('#login').value = b.dataset.demo;
+      $('#password').value = b.dataset.pw;
+      $('#loginForm').requestSubmit();
+    }));
     $('#loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const btn = e.target.querySelector('button');
@@ -74,7 +85,7 @@
     await api('/logout', { method: 'POST' }).catch(() => {});
     location.hash = '';
     // On vide tout : la personne suivante (autre rôle) recharge ses propres données
-    Object.assign(state, { user: null, seenPaid: null, orders: [], products: [], universes: [], suppliers: [], productFilter: 'all', productQuery: '' });
+    Object.assign(state, { user: null, seenPaid: null, orders: [], products: [], universes: [], suppliers: [], productFilter: 'all', productQuery: '', demoAccounts: state.demoAccounts });
     document.title = 'Kamwa Admin';
     showLogin();
   });
@@ -786,6 +797,7 @@
   (async () => {
     try {
       const me = await api('/me');
+      state.demoAccounts = me.demoAccounts || [];
       if (!me.loggedIn) return showLogin(me.passwordSet ? '' : "Le mot de passe n'est pas encore créé. Dans le Terminal : npm run admin:password");
       // Déjà connecté : le son ne pourra démarrer qu'après un clic (règle des navigateurs)
       if (soundWanted()) document.addEventListener('click', () => enableSound(true), { once: true });
