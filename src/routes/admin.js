@@ -37,6 +37,7 @@ router.use('/finance', requireRole(), require('./finance'));
 // Achat en Europe (devis, agent Europe, envois)
 router.use('/france', require('./import-admin'));
 router.use('/chat', require('./chat-admin')); // messagerie : clients + salon de l'équipe
+router.use('/trends', require('./trends-admin')); // agent Tendances (admin)
 
 // Rafraîchissement instantané de Kamwa Pro : signaux filtrés selon le rôle (jamais de données dans le signal)
 router.get('/events', (req, res) => {
@@ -59,6 +60,7 @@ router.get('/events', (req, res) => {
     if (col === 'imports' || col === 'shipments') return ordersRole || role === 'agent' ? { topic: 'imports' } : null;
     if (col === 'ledger') return role === 'admin' ? { topic: 'finance' } : null;
     if (col === 'staff') return role === 'admin' && doc.livePos === before?.livePos ? { topic: 'staff' } : null;
+    if (col === 'trends') return role === 'admin' && doc.status === 'new' ? { topic: 'trends' } : null;
     return null;
   });
 });

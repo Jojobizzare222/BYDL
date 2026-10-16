@@ -838,7 +838,8 @@ html[data-theme="dark"] {
   --violet-soft: #2A2148; --mango-soft: #3A2E12; --coral-soft: #3D211B; --price: #F4F1FF; --mango-dark: #FFC94D; --accent-dark: #FF8A70;
   --shadow: 0 2px 10px rgba(0,0,0,.35); --shadow-hover: 0 16px 34px rgba(0,0,0,.5);
 }
-html[data-theme="dark"] body { background: var(--bg); color: var(--ink); }
+html[data-theme="dark"] { background: var(--bg); } /* fond sur <html> seulement : les formes géométriques restent visibles */
+html[data-theme="dark"] body { color: var(--ink); }
 html[data-theme="dark"] .search, html[data-theme="dark"] .search input { background: var(--paper); color: var(--ink); }
 html[data-theme="dark"] .search-cat { background: var(--soft); color: var(--brand-text); }
 html[data-theme="dark"] .catnav a.active, html[data-theme="dark"] .catnav .uni.active { background: #fff; color: #2D1B69; }
@@ -856,7 +857,6 @@ html[data-theme="dark"] .install-card, html[data-theme="dark"] .quote-msg, html[
 html[data-theme="dark"] .msg.staff .bubble { background: #3A2E12; border-color: #5A4310; }
 html[data-theme="dark"] .live-box { background: linear-gradient(160deg, #221A3D, #2E1F1A); }
 html[data-theme="dark"] .live-bar { background: #3A3250; }
-html[data-theme="dark"] .bg-shapes { opacity: .45; }
 html[data-theme="dark"] .kmap { border-color: var(--line); }
 html[data-theme="dark"] .kmap .leaflet-tile-pane { filter: brightness(.78) contrast(1.1) saturate(.85); }
 html[data-theme="dark"] .leaflet-popup-content-wrapper, html[data-theme="dark"] .leaflet-popup-tip { background: var(--paper); color: var(--ink); }
@@ -936,3 +936,28 @@ html[data-motion="reduce"] .bg-shapes, html[data-saver="on"] .bg-shapes { displa
   .acc-ongoing { grid-template-columns: minmax(0, 1fr) auto; } .acc-prog { grid-column: 1 / -1; grid-row: 2; }
   .pref-row { flex-direction: column; align-items: flex-start; }
 }
+
+/* Thème sombre : tout le décor s'adapte (pas seulement le fond) — formes plus lumineuses, en-tête et pied plus profonds,
+   boutons violets plus visibles, photos légèrement adoucies pour ne pas éblouir. */
+html[data-theme="dark"] { --brand: #5A3FD8; --brand-2: #7B62F0; }
+html[data-theme="dark"] .r1 { border-color: rgba(157,140,255,.16); }
+html[data-theme="dark"] .r2 { border-color: rgba(255,107,79,.2); }
+html[data-theme="dark"] .b1 { background: radial-gradient(circle, rgba(255,179,0,.13), rgba(255,179,0,0) 68%); }
+html[data-theme="dark"] .b2 { background: radial-gradient(circle, rgba(123,98,240,.24), rgba(123,98,240,0) 68%); }
+html[data-theme="dark"] .spark { opacity: .55; filter: drop-shadow(0 0 10px rgba(255,179,0,.45)); }
+html[data-theme="dark"] .k2 { opacity: .5; filter: drop-shadow(0 0 10px rgba(255,90,60,.45)); }
+html[data-theme="dark"] .square { border-color: rgba(255,107,79,.3); }
+html[data-theme="dark"] .dots { background-image: radial-gradient(rgba(185,168,255,.22) 2px, transparent 2.5px); }
+html[data-theme="dark"] .tri { background: rgba(157,140,255,.1); }
+html[data-theme="dark"] .hdr-top { background: radial-gradient(120% 180% at 0% 0%, #2A1D63 0%, #1A1240 45%, #110B28 100%); }
+html[data-theme="dark"] .hdr-sub { background-color: #150E30; border-top-color: rgba(255,255,255,.06); }
+html[data-theme="dark"] .footer { background: #0C0915; color: #A9A2C4; border-top: 1px solid var(--line-soft); }
+html[data-theme="dark"] .thumb.has-img { background: #241F33; }
+html[data-theme="dark"] .thumb.has-img img, html[data-theme="dark"] .slide-visual img, html[data-theme="dark"] .tr-card > img { filter: brightness(.9) contrast(1.05); }
+html[data-theme="dark"] .card { border-color: var(--line-soft); }
+html[data-theme="dark"] .card:hover { border-color: #4A3F6B; }
+html[data-theme="dark"] .panel { background: var(--paper); border-color: var(--line-soft); }
+html[data-theme="dark"] .acc-tabs a.on { background: var(--brand); }
+html[data-theme="dark"] .chat-fab { background: linear-gradient(135deg, #6A4FE8, #3A2585); }
+html[data-theme="dark"] .see-all { border-color: var(--line); color: var(--ink); }
+html[data-theme="dark"] .acc-head { background: radial-gradient(120% 180% at 0% 0%, #3A2585, #1E1550 60%); }

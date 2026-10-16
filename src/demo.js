@@ -2,7 +2,7 @@
 // Ces comptes sont PUBLICS (affichés sur la page de connexion de la démo) et n'existent jamais sur la vraie boutique.
 const crypto = require('crypto');
 const config = require('./config');
-const { settings, staff, products, orders, payments, ledger, imports, agencies } = require('./store');
+const { settings, staff, products, orders, payments, ledger, imports, agencies, trends } = require('./store');
 const { hashPassword } = require('./admin/auth');
 
 const DEMO_PASSWORD = 'demo-kamwa';
@@ -24,6 +24,17 @@ function seed() {
 
   // Administrateur de la démo (mot de passe public, base temporaire)
   settings.set('admin_password', hashPassword(DEMO_PASSWORD));
+
+  // Agent Tendances : quelques propositions d'EXEMPLE (la démo n'a pas de clés AliExpress / IA)
+  const tr = (id, title, image, priceEur, volume, rating, verdict, score, reason, risks) => {
+    const { landed } = require('./trends/analyze');
+    const c = { title, priceEur, category: '' };
+    trends.insert({ id, source: 'aliexpress', sourceId: id, title: `${title} (exemple)`, image, images: [], url: 'https://www.aliexpress.com/', priceEur, volume, rating, keyword: 'exemple', landed: landed(c),
+      review: { verdict, score, reason, risks, suggestedPriceFcfa: null, by: 'exemple de démonstration' }, status: 'new', example: true, createdAt: now });
+  };
+  tr('TR-DEMO-1', 'Écouteurs sans fil Bluetooth 5.3 avec boîtier de charge', '/images/commons/airpodspro-6.jpg', 12.9, 18400, 96.4, 'integrate', 86, 'Très demandé, petit prix final, léger pour l\'avion. Bonne marge possible.', ['batterie lithium : vérifier avec l\'expéditeur']);
+  tr('TR-DEMO-2', 'Montre connectée sport étanche', '/images/commons/watch9-3.jpg', 24.5, 7300, 94.1, 'integrate', 78, 'Tendance forte, cadeau apprécié ; prix Kamwa accessible.', ['qualité variable selon le vendeur']);
+  tr('TR-DEMO-3', 'Batterie externe 20 000 mAh charge rapide', null, 16.0, 25100, 95.2, 'watch', 64, 'Très utile avec les coupures de courant, mais les batteries seules sont souvent refusées en avion.', ['transport aérien des batteries seules']);
 
   // Agences d'exemple : le paiement en espèces en agence est le seul moyen proposé par défaut
   agencies.insert({ id: 'AG-DEMO-PNR', name: 'Agence Kamwa Centre-ville (démo)', city: 'Pointe-Noire', address: 'Avenue Charles de Gaulle (exemple)', hours: 'Lun-Sam 8 h - 18 h', phone: '06 000 00 01', kind: 'agency', lat: -4.7792, lng: 11.8638, active: true, createdAt: now });

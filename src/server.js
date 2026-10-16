@@ -61,6 +61,8 @@ push.watchOrders();
 // Rafraîchissement instantané des écrans ouverts (boutique) : seulement ce qui concerne ce client
 const events = require('./events');
 events.watchStore();
+// Agent Tendances : passages automatiques plusieurs fois par jour (pas sur la démo Vercel)
+require('./trends').startScheduler();
 app.get('/api/events', (req, res) => {
   const { currentCustomer } = require('./customer/auth');
   const me = currentCustomer(req)?.id || null;

@@ -2073,13 +2073,126 @@
   document.addEventListener('click', (e) => { const b = e.target.closest('[data-theme-set]'); if (b) { window.kamwaTheme?.set(b.dataset.themeSet); renderProTheme(); if (state.user && !proBusy()) route({ keep: true }); } });
   renderProTheme();
 
+  // ---------- Agent Tendances (admin) ----------
+  const VERDICT = { integrate: ['À intégrer', 'ok'], watch: ['À surveiller', 'warn'], avoid: ['À éviter', 'danger'] };
+  const TR_TABS = [['new', 'Nouvelles'], ['kept', 'Gardées'], ['integrated', 'Intégrées'], ['ignored', 'Ignorées']];
+  async function viewTrends() {
+    let d; try { d = await api('/trends'); } catch { return; }
+    const f = state.trFilter || 'new';
+    const list = d.proposals.filter((t) => t.status === f);
+    const k = d.keys, last = d.runs[0];
+    const nowH = new Date(Date.now() + 3600e3).getUTCHours();
+    const next = d.settings.hours.find((h) => h > nowH) ?? d.settings.hours[0];
+    app.innerHTML = pageHead({ title: 'Tendances', desc: "L'agent repère plusieurs fois par jour les produits qui se vendent le mieux (sources officielles) et ce que vos clients cherchent sans le trouver, puis vous propose ceux à intégrer. Vous décidez.", actions: `<button class="btn" id="trRun">${icon('magic-wand-duotone')} Analyser maintenant</button>` }) + `
+      <div class="tr-status">
+        <span class="${k.aliexpress ? 'ok' : 'off'}">${icon(k.aliexpress ? 'check-bold' : 'x-bold')} AliExpress ${k.aliexpress ? 'connecté' : 'à connecter'}</span>
+        <span class="off">${icon('x-bold')} Amazon : en attente d'accès</span>
+        <span class="ok">${icon('check-bold')} Recherches Kamwa</span>
+        <span class="${k.ai ? 'ok' : 'off'}">${icon(k.ai ? 'check-bold' : 'x-bold')} Analyse ${k.ai ? 'IA Claude' : 'intégrée (sans IA)'}</span>
+        <span class="muted">${d.settings.enabled ? `Prochain passage : ${next} h` : 'Passages automatiques arrêtés'}${last ? ` · dernier : ${date(last.at)} (${last.proposed} proposition(s))` : ''}</span>
+      </div>
+      ${last?.errors?.length ? `<div class="alert warn">Dernier passage : ${esc(last.errors.join(' · '))}</div>` : ''}
+      ${!k.aliexpress ? `<div class="alert warn">Pour recevoir les produits tendance, saisissez vos clés AliExpress dans « Réglages de l'agent » ci-dessous (en attendant, l'agent analyse les recherches de vos clients).</div>` : ''}
+      ${tabsBar(TR_TABS.map(([key, l]) => [key, l, d.proposals.filter((t) => t.status === key).length]), f, 'trf')}
+      <div class="tr-grid">${list.length ? list.map(trendCard).join('') : `<p class="muted" style="padding:20px">${f === 'new' ? 'Pas de nouvelle proposition pour le moment. Elles arrivent à chaque passage de l\'agent.' : 'Rien ici.'}</p>`}</div>
+      <div class="panel" style="margin-top:16px"><h2>${icon('magnifying-glass')} Ce que vos clients cherchent (7 jours)</h2>
+        ${d.demand.length ? `<ul class="mini-list">${d.demand.map((x) => `<li><span>« ${esc(x.q)} »</span><span>${x.n} fois · ${x.results ? `${x.results} résultat(s)` : '<strong style="color:var(--accent)">aucun produit</strong>'}</span></li>`).join('')}</ul>` : '<p class="muted">Pas encore de recherche enregistrée.</p>'}
+      </div>
+      <details class="panel tr-settings"><summary><h2 style="display:inline">${icon('key-bold')} Réglages de l'agent</h2></summary>
+        <form id="trKeys" autocomplete="off">
+          <h3>AliExpress (programme d'affiliation, gratuit)</h3>
+          <p class="muted">1. Créez un compte sur <a href="https://portals.aliexpress.com" target="_blank" rel="noopener">portals.aliexpress.com</a> (récupérez votre « Tracking ID »). 2. Sur <a href="https://openservice.aliexpress.com" target="_blank" rel="noopener">openservice.aliexpress.com</a>, créez une application « Affiliate » : vous obtenez une App Key et une App Secret.</p>
+          <div class="grid2">
+            <div><label>App Key</label><input name="aliAppKey" type="password" placeholder="${esc(k.aliAppKey || 'à saisir')}"></div>
+            <div><label>App Secret</label><input name="aliAppSecret" type="password" placeholder="${esc(k.aliAppSecret || 'à saisir')}"></div>
+            <div><label>Tracking ID</label><input name="aliTrackingId" type="password" placeholder="${esc(k.aliTrackingId || 'à saisir')}"></div>
+          </div>
+          <h3>IA Claude (analyse des produits)</h3>
+          <p class="muted">Créez une clé sur <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a> (paiement à l'usage : quelques centimes par analyse avec le modèle ${esc(k.model)}).</p>
+          <div class="grid2"><div><label>Clé Anthropic</label><input name="anthropicKey" type="password" placeholder="${esc(k.anthropicKey || 'à saisir')}"></div></div>
+          <p class="muted">Les clés restent sur le serveur Kamwa : elles ne sont plus jamais affichées en entier.</p>
+          <div class="row"><button class="btn">Enregistrer les clés</button><button type="button" class="ghost" id="trTest">Vérifier les clés</button></div>
+          <div id="trKeyMsg"></div>
+        </form>
+        <form id="trConf">
+          <h3>Passages et recherche</h3>
+          <label class="check"><input type="checkbox" id="trOn" ${d.settings.enabled ? 'checked' : ''}> Passages automatiques</label>
+          <label>Heures de passage (heure du Congo)</label>
+          <div class="chips">${Array.from({ length: 17 }, (_, i) => i + 6).map((h) => `<label class="chip-check"><input type="checkbox" data-h="${h}" ${d.settings.hours.includes(h) ? 'checked' : ''}> ${h} h</label>`).join('')}</div>
+          <label>Produits à surveiller (un par ligne)</label>
+          <textarea id="trKw" rows="6">${esc(d.settings.keywords.join('\n'))}</textarea>
+          <div class="grid2">
+            <div><label>Propositions par passage</label><input id="trPer" type="number" min="1" max="20" value="${d.settings.perRun}"></div>
+            <div><label>Prix maximum de l'article (€)</label><input id="trMax" type="number" min="5" max="2000" value="${d.settings.maxPriceEur}"></div>
+          </div>
+          <button class="btn" style="margin-top:10px">Enregistrer</button>
+        </form>
+      </details>`;
+    app.querySelectorAll('[data-trf]').forEach((b) => b.addEventListener('click', () => { state.trFilter = b.dataset.trf; viewTrends(); }));
+    $('#trRun').addEventListener('click', async (e) => {
+      e.target.disabled = true; e.target.textContent = 'Analyse en cours…';
+      try { const r = await api('/trends/run', { method: 'POST' }); toast(`Analyse terminée : ${r.proposed} proposition(s)`); state.trFilter = 'new'; viewTrends(); }
+      catch (err) { toast(err.message); e.target.disabled = false; }
+    });
+    app.querySelector('.tr-grid').addEventListener('click', async (e) => {
+      const b = e.target.closest('[data-tr]'); if (!b) return;
+      const t = d.proposals.find((x) => x.id === b.dataset.id);
+      if (b.dataset.tr === 'integrate') {
+        await api('/trends/' + enc(t.id) + '/decision', { method: 'POST', body: { status: 'integrated' } }).catch(() => {});
+        // Fiche produit pré-remplie (même mécanisme que le bouton « → Kamwa »)
+        const data = t.source === 'kamwa' ? { u: '', n: t.keyword, im: [], p: null, c: null, de: '' }
+          : { u: t.url || '', n: t.title, b: '', de: (t.review?.reason || ''), im: [t.image, ...(t.images || [])].filter(Boolean).slice(0, 6), p: t.priceEur, c: 'EUR', co: [], si: [] };
+        location.hash = '#/produit/nouveau?kamwa2=' + encodeURIComponent(JSON.stringify(data));
+        return;
+      }
+      await api('/trends/' + enc(t.id) + '/decision', { method: 'POST', body: { status: b.dataset.tr } });
+      toast(b.dataset.tr === 'kept' ? 'Gardée dans « Gardées »' : b.dataset.tr === 'ignored' ? 'Ignorée' : 'Remise dans les nouvelles');
+      viewTrends();
+    });
+    $('#trKeys').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const body = {}; for (const i of e.target.querySelectorAll('input')) if (i.value.trim()) body[i.name] = i.value.trim();
+      try { await api('/trends/keys', { method: 'PUT', body }); toast('Clés enregistrées ✓'); viewTrends(); } catch (err) { $('#trKeyMsg').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; }
+    });
+    $('#trTest').addEventListener('click', async () => {
+      $('#trKeyMsg').innerHTML = '<p class="muted">Vérification…</p>';
+      const r = await api('/trends/test', { method: 'POST' }).catch((err) => ({ err: err.message }));
+      $('#trKeyMsg').innerHTML = r.err ? `<div class="alert err">${esc(r.err)}</div>` : `<div class="alert ${r.aliexpress.ok && r.ai.ok ? 'ok' : 'warn'}">AliExpress : ${r.aliexpress.ok ? 'OK ✓' : esc(r.aliexpress.error)}<br>IA Claude : ${r.ai.ok ? 'OK ✓' : esc(r.ai.error)}</div>`;
+    });
+    $('#trConf').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const body = { enabled: $('#trOn').checked, hours: [...app.querySelectorAll('[data-h]:checked')].map((i) => Number(i.dataset.h)), keywords: $('#trKw').value.split('\n'), perRun: Number($('#trPer').value), maxPriceEur: Number($('#trMax').value) };
+      try { await api('/trends/settings', { method: 'PUT', body }); toast('Réglages enregistrés ✓'); viewTrends(); } catch (err) { toast(err.message); }
+    });
+  }
+  function trendCard(t) {
+    const v = VERDICT[t.review?.verdict] || ['', ''];
+    const L = t.landed;
+    return `<article class="tr-card">
+      ${t.image ? `<img src="${esc(t.image)}" alt="" loading="lazy">` : `<div class="tr-noimg">${icon(t.source === 'kamwa' ? 'magnifying-glass' : 'package')}</div>`}
+      <div class="tr-body">
+        <div class="row between"><span class="tag">${t.source === 'aliexpress' ? 'AliExpress' : t.source === 'kamwa' ? 'Clients Kamwa' : esc(t.source)}</span><span class="tag ${v[1]}">${v[0]} · ${t.review?.score ?? '—'}/100</span></div>
+        <h3>${esc(t.title)}</h3>
+        ${L ? `<div class="tr-nums"><span><b>${t.priceEur != null ? String(t.priceEur).replace('.', ',') + ' €' : '—'}</b><small>prix d'achat</small></span><span><b>${fcfa(t.review?.suggestedPriceFcfa || L.priceFcfa)}</b><small>prix Kamwa${t.review?.suggestedPriceFcfa ? ' conseillé' : ' (tout compris)'}</small></span><span><b>${fcfa(L.marginFcfa)}</b><small>marge</small></span>${t.volume ? `<span><b>${Number(t.volume).toLocaleString('fr-FR')}</b><small>ventes récentes</small></span>` : ''}${t.rating ? `<span><b>${t.rating} %</b><small>avis positifs</small></span>` : ''}</div>` : `<p class="muted">${t.searches} recherche(s) cette semaine, aucun produit.</p>`}
+        <p class="tr-why">${icon('magic-wand-duotone')} ${esc(t.review?.reason || '')} <span class="muted">(${esc(t.review?.by || '')})</span></p>
+        ${(t.review?.risks || []).length ? `<p class="muted">Attention : ${t.review.risks.map(esc).join(' · ')}</p>` : ''}
+        <div class="row">
+          ${t.status !== 'integrated' ? `<button class="btn small" data-tr="integrate" data-id="${esc(t.id)}">${icon('plus-bold')} ${t.source === 'kamwa' ? 'Créer la fiche' : 'Intégrer'}</button>` : ''}
+          ${t.status !== 'kept' ? `<button class="ghost" data-tr="kept" data-id="${esc(t.id)}">Garder</button>` : ''}
+          ${t.status !== 'ignored' ? `<button class="ghost" data-tr="ignored" data-id="${esc(t.id)}">Ignorer</button>` : `<button class="ghost" data-tr="new" data-id="${esc(t.id)}">Remettre</button>`}
+          ${t.url ? `<a class="ghost" href="${esc(t.url)}" target="_blank" rel="noopener">${icon('arrow-square-out-bold')} Voir</a>` : ''}
+        </div>
+      </div>
+    </article>`;
+  }
+
   // ---------- Rafraîchissement instantané (signal du serveur) ----------
   // Le serveur signale chaque changement qui concerne ce rôle ; la page affichée se redessine tout de suite,
   // à la même position, sauf pendant une saisie (elle se met alors à jour dès que la saisie est terminée).
   const LIVE_TOPICS = {
     tableau: ['orders', 'products', 'customers', 'chat', 'imports', 'finance'], commandes: ['orders'], commande: ['orders'], clients: ['customers'],
     france: ['imports', 'orders'], envois: ['imports', 'orders'], agent: ['imports', 'orders'], livraisons: ['orders'], fournisseur: ['orders', 'products'],
-    produits: ['products'], agences: ['agencies'], journal: ['orders', 'products', 'customers', 'staff', 'finance'], finances: ['finance', 'orders'], equipe: ['staff'],
+    produits: ['products'], agences: ['agencies'], tendances: ['trends'], journal: ['orders', 'products', 'customers', 'staff', 'finance'], finances: ['finance', 'orders'], equipe: ['staff'],
   };
   const NO_LIVE_WITH_ID = ['produit', 'agences', 'equipe', 'finances', 'reglages', 'mot-de-passe'];
   const proBusy = () => {
@@ -2139,12 +2252,14 @@
       tableau: () => Boolean(state.user),
       commandes: CAN.orders, commande: CAN.orders, produits: CAN.products, produit: CAN.products,
       messagerie: () => Boolean(state.user) && !CAN.supplier(),
+      tendances: CAN.admin,
       fournisseur: CAN.supplier, clients: CAN.admin, agences: CAN.admin, equipe: CAN.admin, journal: CAN.admin, finances: CAN.admin, reglages: CAN.admin, livraisons: CAN.courier, france: CAN.orders, envois: () => CAN.orders() || CAN.agent(), agent: () => CAN.agent() || CAN.admin(), 'mot-de-passe': () => !CAN.admin(),
     };
     if (!allowed[page]?.()) [page, id] = homeHash().slice(2).split('/');
     const tab = page.startsWith('produit') ? 'produits' : page === 'commande' ? 'commandes' : page;
     document.querySelectorAll('[data-tab]').forEach((a) => a.classList.toggle('on', a.dataset.tab === tab));
     if (page === 'messagerie') return viewMessaging(id);
+    if (page === 'tendances') return viewTrends();
     if (page === 'clients') return viewCustomers();
     if (page === 'agences') return viewAgencies(id);
     if (page === 'equipe') return viewStaff(id);
