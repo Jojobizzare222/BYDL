@@ -27,7 +27,7 @@ function seed() {
   const users = {};
   for (const a of DEMO_ACCOUNTS.filter((x) => x.role !== 'admin')) {
     users[a.role] = staff.insert({
-      id: id('U-'), name: a.name, login: a.login, role: a.role, company: a.company || null, phone: null,
+      id: 'U-DEMO-' + a.role.toUpperCase(), name: a.name, login: a.login, role: a.role, company: a.company || null, phone: null,
       active: true, mustChangePassword: false, passwordHash: hashPassword(DEMO_PASSWORD), createdAt: now,
     });
   }
@@ -53,8 +53,8 @@ function seed() {
   const lines = [{ productId: chemise.id, name: chemise.name, unitPrice: chemise.price, qty: 3, total: chemise.price * 3 }];
   if (iphone) lines.push({ productId: iphone.id, name: iphone.name, unitPrice: iphone.price, qty: 1, total: iphone.price });
   const total = lines.reduce((s, l) => s + l.total, 0);
-  const orderId = id('CMD-DEMO-', 3);
-  const paymentId = 'PAY-' + crypto.randomUUID();
+  const orderId = 'CMD-DEMO-0001';
+  const paymentId = 'PAY-DEMO-0001';
   orders.insert({
     id: orderId, accessToken: crypto.randomBytes(16).toString('hex'), customerId: null, lines, subtotal: total, deliveryFee: 0, total, currency: 'XAF',
     customer: { name: 'Client Démo', phone: '060000000', city: 'Brazzaville', address: 'Quartier fictif' },
@@ -65,7 +65,8 @@ function seed() {
   // Volet Finances : prix d'achat du produit Kamwa vendu + quelques écritures d'exemple
   if (iphone) products.update(iphone.id, { costPrice: Math.round(iphone.price * 0.86) });
   const d = (n) => new Date(Date.now() - n * 864e5).toISOString().slice(0, 10);
-  const entry = (n, type, category, amount, method, label, extra = {}) => ledger.insert({ id: id('FIN-DEMO-', 3), type, category, amount, method, date: d(n), label, note: 'Exemple de démonstration', toMethod: null, supplierId: null, receipt: null, createdBy: 'admin', createdAt: now, ...extra });
+  let seq = 0;
+  const entry = (n, type, category, amount, method, label, extra = {}) => ledger.insert({ id: `FIN-DEMO-${String(++seq).padStart(2, '0')}`, type, category, amount, method, date: d(n), label, note: 'Exemple de démonstration', toMethod: null, supplierId: null, receipt: null, createdBy: 'admin', createdAt: now, ...extra });
   entry(20, 'income', 'capital', 1500000, 'bank', 'Apport de départ');
   entry(18, 'expense', 'rent', 150000, 'bank', 'Loyer agence Pointe-Noire');
   entry(12, 'expense', 'marketing', 35000, 'momo', 'Publicité Facebook');

@@ -9,6 +9,7 @@
 //  - 5 essais ratés depuis une même adresse ou sur un même compte => blocage 15 minutes.
 const crypto = require('crypto');
 const { db, settings, staff } = require('../store');
+const config = require('../config');
 
 const COOKIE = 'kamwa_admin';
 const SESSION_DAYS = 7;
@@ -60,8 +61,31 @@ const normLogin = (s) => String(s || '').trim().toLowerCase();
 const findStaff = (login) => staff.find((u) => u.login === normLogin(login));
 
 function readCookie(req) {
-  const match = (req.get('Cookie') || '').match(new RegExp(`(?:^|;\\s*)${COOKIE}=([a-f0-9]{64})`));
+  const match = (req.get('Cookie') || '').match(new RegExp(`(?:^|;\\s*)${COOKIE}=([a-f0-9]{64}|d\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+)`));
   return match ? match[1] : null;
+}
+
+// Vitrine de démo UNIQUEMENT (Vercel) : l'hébergeur lance plusieurs copies du serveur, chacune avec sa propre base
+// temporaire ; une session enregistrée dans une copie est inconnue des autres (« Session expirée » à chaque clic).
+// On y utilise donc une session « signée » portée par le cookie : identifiant + date d'expiration + signature HMAC.
+// Les comptes de démo sont publics : la clé n'a pas besoin d'être secrète (réglable par DEMO_SESSION_SECRET).
+// Sur la vraie boutique (config.demo = false), seules les sessions enregistrées en base sont acceptées.
+const DEMO_KEY = process.env.DEMO_SESSION_SECRET || 'kamwa-demo-sessions-publiques';
+const b64 = (s) => Buffer.from(s).toString('base64url');
+const demoSign = (payload) => crypto.createHmac('sha256', DEMO_KEY).update(payload).digest('base64url');
+function demoToken(login, maxAgeSec) {
+  const payload = b64(JSON.stringify({ l: login, e: Date.now() + maxAgeSec * 1000 }));
+  return `d.${payload}.${demoSign(payload)}`;
+}
+function demoLogin(token) {
+  if (!config.demo || !token?.startsWith('d.')) return null;
+  const [, payload, sig] = token.split('.');
+  const expected = demoSign(payload);
+  if (!sig || sig.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return null;
+  try {
+    const { l, e } = JSON.parse(Buffer.from(payload, 'base64url').toString());
+    return e > Date.now() ? l : null;
+  } catch { return null; }
 }
 
 function cookieHeader(req, value, maxAgeSec) {
@@ -108,8 +132,12 @@ function login(req, res) {
   failures.delete(ipKey);
   failures.delete(accKey);
 
-  const token = crypto.randomBytes(32).toString('hex');
   const maxAge = SESSION_DAYS * 24 * 3600;
+  if (config.demo) {
+    res.setHeader('Set-Cookie', cookieHeader(req, demoToken(loginName, maxAge), maxAge));
+    return res.json({ ok: true });
+  }
+  const token = crypto.randomBytes(32).toString('hex');
   db.prepare('DELETE FROM admin_sessions WHERE expires_at < ?').run(Date.now());
   db.prepare('INSERT INTO admin_sessions (token_hash, expires_at, user_id) VALUES (?, ?, ?)').run(sha256(token), Date.now() + maxAge * 1000, userId);
   res.setHeader('Set-Cookie', cookieHeader(req, token, maxAge));
@@ -127,6 +155,14 @@ function logout(req, res) {
 function currentUser(req) {
   const token = readCookie(req);
   if (!token) return null;
+  if (token.startsWith('d.')) {
+    const login = demoLogin(token);
+    if (!login) return null;
+    if (login === ADMIN_LOGIN) return { id: ADMIN_LOGIN, login: ADMIN_LOGIN, name: 'Administrateur', role: 'admin' };
+    const u = findStaff(login);
+    if (!u || u.active === false) return null;
+    return { id: u.id, login: u.login, name: u.name, role: u.role, company: u.company || null, mustChangePassword: Boolean(u.mustChangePassword) };
+  }
   const row = db.prepare('SELECT expires_at, user_id FROM admin_sessions WHERE token_hash = ?').get(sha256(token));
   if (!row || row.expires_at < Date.now()) return null;
   if (row.user_id === ADMIN_LOGIN) return { id: ADMIN_LOGIN, login: ADMIN_LOGIN, name: 'Administrateur', role: 'admin' };
