@@ -607,3 +607,10 @@ html.standalone input, html.standalone textarea, html.standalone .legal { -webki
 .import-photos > div { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
 .import-photos img { width: 96px; height: 96px; object-fit: cover; border-radius: 12px; border: 1px solid var(--line-soft); }
 .quote-box .row span:last-child { white-space: nowrap; text-align: right; }
+.tag-fr { background: #E5EEFF; color: #2F5BD3; display: inline-flex; align-items: center; gap: 3px; }
+.fr-hint, .fr-note { color: #2F5BD3 !important; }
+.opt-label { margin: 6px 0 4px; }
+.opt-choices { display: flex; flex-wrap: wrap; gap: 8px; }
+.opt { border: 1.5px solid var(--line); background: var(--paper); color: var(--ink); border-radius: 12px; padding: 8px 14px; font-weight: 600; cursor: pointer; min-width: 48px; }
+.opt:hover { border-color: var(--brand); }
+.opt.on { border-color: var(--brand); background: var(--violet-soft); color: var(--brand); box-shadow: 0 0 0 1px var(--brand); }

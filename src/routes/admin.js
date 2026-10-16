@@ -17,6 +17,8 @@ const {
 const { UNIVERSES, universeOf } = require('../catalog');
 const demo = require('../demo');
 const { normalizeLocal, detectOperator } = require('../utils/phone');
+const imp = require('../imports');
+const scrape = require('../scrape');
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR || (process.env.VERCEL ? '/tmp/kamwa-uploads' : path.join(__dirname, '..', '..', 'data', 'uploads'));
 
@@ -412,6 +414,24 @@ function cleanProduct(input, current, { role }) {
     p.supplierPrice = input.supplierPrice === '' || input.supplierPrice === null ? null : toInt(input.supplierPrice);
   }
   if ('stock' in input) p.stock = toInt(input.stock);
+  // Choix proposés au client (ex. « Couleur : Noir, Bleu » / « Taille : 40, 41, 42 »), une ligne par choix
+  if ('options' in input) {
+    const lines = Array.isArray(input.options) ? input.options.map((o) => `${o.name} : ${(o.values || []).join(', ')}`) : String(input.options || '').split('\n');
+    p.options = lines.map((l) => l.split(/\s*:\s*/)).map(([name, ...rest]) => ({ name: str(name, 30), values: [...new Set(rest.join(':').split(/\s*,\s*/).map((v) => str(v, 40)).filter(Boolean))].slice(0, 40) }))
+      .filter((o) => o.name && o.values.length).slice(0, 3);
+  }
+  // Produit venu de France (expédié par avion) : prix tout compris calculé depuis le prix en € et le poids
+  if ('origin' in input && role !== 'supplier') p.origin = input.origin === 'FR' ? 'FR' : null;
+  if ('sourceUrl' in input && role !== 'supplier') p.sourceUrl = /^https?:\/\//.test(String(input.sourceUrl || '')) ? str(input.sourceUrl, 600) : null;
+  if ('priceEur' in input && role !== 'supplier') p.priceEur = input.priceEur === '' || input.priceEur == null ? null : Math.round(Number(String(input.priceEur).replace(',', '.')) * 100) / 100;
+  if ('weightKg' in input && role !== 'supplier') p.weightKg = input.weightKg === '' || input.weightKg == null ? null : Math.round(Number(String(input.weightKg).replace(',', '.')) * 100) / 100;
+  if (p.origin === 'FR') {
+    if (!(p.priceEur > 0 && p.priceEur < 100000)) return { error: 'Produit venu de France : indiquez son prix en euros' };
+    if (!(p.weightKg > 0 && p.weightKg <= 200)) return { error: 'Produit venu de France : indiquez son poids (kg, emballage compris)' };
+    const q = imp.computeQuote([{ priceEur: p.priceEur, qty: 1 }], p.weightKg);
+    p.costPrice = q.cost; // coût réel estimé (article + transport avion + douane) : sert au calcul de la marge
+    if (!('price' in input) || input.price === '' || input.price == null) p.price = q.total; // prix tout compris automatique
+  }
   // Photos : plusieurs possibles ; la première est la photo principale
   if ('images' in input || 'image' in input) {
     const list = 'images' in input ? (Array.isArray(input.images) ? input.images : []) : [input.image].filter(Boolean);
@@ -825,6 +845,39 @@ router.post('/uploads', requireRole('catalog', 'supplier', 'agent'), express.raw
   const name = `${Date.now().toString(36)}-${crypto.randomBytes(4).toString('hex')}.${type.ext}`;
   fs.writeFileSync(path.join(UPLOAD_DIR, name), buf);
   res.status(201).json({ url: `/images/uploads/${name}` });
+});
+
+// ---------- Remplir une fiche depuis un lien (site vendeur en France) ----------
+// Photos récupérées puis ré-enregistrées sur Kamwa (JPEG, 1600 px max) : plus rapides et indépendantes du site d'origine.
+async function importImages(urls) {
+  const sharp = require('sharp');
+  const out = []; let failed = 0;
+  for (const u of [...new Set((Array.isArray(urls) ? urls : []).filter((x) => /^https?:\/\//.test(String(x))))].slice(0, 6)) {
+    try {
+      const buf = await scrape.fetchImage(u);
+      const jpg = await sharp(buf).rotate().resize(1600, 1600, { fit: 'inside', withoutEnlargement: true }).flatten({ background: '#ffffff' }).jpeg({ quality: 86 }).toBuffer();
+      fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+      const name = `${Date.now().toString(36)}-${crypto.randomBytes(4).toString('hex')}-s.jpg`;
+      fs.writeFileSync(path.join(UPLOAD_DIR, name), jpg);
+      out.push(`/images/uploads/${name}`);
+    } catch { failed++; }
+  }
+  return { images: out, failedImages: failed };
+}
+router.post('/products/scrape', requireRole('catalog'), async (req, res) => {
+  try {
+    const data = await scrape.readProduct(String(req.body?.url || '').trim());
+    const imgs = await importImages(data.images);
+    log(req, 'Fiche remplie depuis un lien', null, data.source.slice(0, 120));
+    res.json({ ...data, sourceImages: data.images, ...imgs });
+  } catch (err) {
+    res.status(422).json({ error: err.message || 'Lecture impossible' });
+  }
+});
+// Données envoyées par le bouton « → Kamwa » (favori) : seules les photos sont récupérées ici
+router.post('/products/import-images', requireRole('catalog'), async (req, res) => {
+  const category = scrape.guessCategory(String(req.body?.name || ''));
+  res.json({ ...(await importImages(req.body?.urls)), category, weightKg: scrape.WEIGHT[category] || 1 });
 });
 
 // ---------- Détourage automatique (retrait de l'arrière-plan) ----------

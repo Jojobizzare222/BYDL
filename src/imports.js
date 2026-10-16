@@ -1,5 +1,8 @@
 // Achat en France (décision Joseph 16/10/2026) : « tu achètes, tu reçois, point ».
-// Modèle « lien + devis tout compris » :
+// Depuis le 16/10/2026 : l'équipe ajoute elle-même les produits venus de France au catalogue (origin 'FR', prix tout compris
+// calculé depuis le prix en € et le poids, transport TOUJOURS en avion). Les demandes de devis sur lien par les clients
+// restent possibles mais sont désactivées par défaut (réglage customerRequests).
+// Modèle « lien + devis tout compris » (demandes des clients) :
 //  1. le client colle le lien d'un produit vendu en France (+ taille, couleur, quantité) ;
 //  2. Kamwa calcule un DEVIS TOUT COMPRIS en FCFA (prix en € × 655,957 + port en France + transport + douane + commission) ;
 //  3. le client accepte et paie EN ENTIER (Mobile Money ou carte) : le devis devient une commande Kamwa normale ;
@@ -12,7 +15,8 @@ const { settings } = require('./store');
 const EUR = 655.957;
 const DEFAULTS = {
   enabled: true,
-  freightPerKg: 9000,     // transport France → Congo, FCFA par kg (À CONFIRMER avec l'expéditeur)
+  customerRequests: false, // demandes de devis « sur lien » par les clients (Joseph : les produits sont ajoutés par l'équipe)
+  freightPerKg: 9000,     // transport France → Congo EN AVION, FCFA par kg (À CONFIRMER avec l'expéditeur)
   minWeightKg: 0.5,       // poids minimum facturé par commande
   customsPercent: 20,     // douane et taxes estimées, en % de la valeur (À AFFINER après les premiers envois)
   commissionPercent: 12,  // commission Kamwa, en % du coût total
@@ -29,6 +33,7 @@ function saveImportSettings(input) {
   const num = (v, min, max) => { const n = Number(v); return Number.isFinite(n) && n >= min && n <= max ? n : null; };
   const next = {
     enabled: 'enabled' in input ? Boolean(input.enabled) : cur.enabled,
+    customerRequests: 'customerRequests' in input ? Boolean(input.customerRequests) : cur.customerRequests,
     freightPerKg: 'freightPerKg' in input ? num(input.freightPerKg, 0, 1000000) : cur.freightPerKg,
     minWeightKg: 'minWeightKg' in input ? num(input.minWeightKg, 0, 1000) : cur.minWeightKg,
     customsPercent: 'customsPercent' in input ? num(input.customsPercent, 0, 200) : cur.customsPercent,

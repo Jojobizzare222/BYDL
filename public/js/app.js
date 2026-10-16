@@ -95,10 +95,13 @@
   function loadCart() { try { return JSON.parse(localStorage.getItem('kamwa-cart')) || {}; } catch { return {}; } }
   function saveCart() { try { localStorage.setItem('kamwa-cart', JSON.stringify(state.cart)); } catch {} renderCart(); }
   const byId = (id) => state.products.find((p) => p.id === id);
-  const cartItems = () => Object.entries(state.cart).map(([id, qty]) => ({ product: byId(id), qty })).filter((l) => l.product);
+  // Clé de panier : « id » (produit simple) ou « id|{"Couleur":"Noir"} » (produit avec choix)
+  const parseKey = (key) => { const i = key.indexOf('|'); if (i < 0) return { id: key, variant: null }; try { return { id: key.slice(0, i), variant: JSON.parse(key.slice(i + 1)) }; } catch { return { id: key.slice(0, i), variant: null }; } };
+  const variantText = (v) => (v ? Object.entries(v).map(([k, x]) => `${k} : ${x}`).join(' · ') : '');
+  const cartItems = () => Object.entries(state.cart).map(([key, qty]) => { const { id, variant } = parseKey(key); return { key, product: byId(id), variant, qty }; }).filter((l) => l.product);
   const cartTotal = () => cartItems().reduce((s, l) => s + l.product.price * l.qty, 0);
   const cartSaving = () => cartItems().reduce((s, l) => s + ((l.product.oldPrice || l.product.price) - l.product.price) * l.qty, 0);
-  const addToCart = (id) => { state.cart[id] = (state.cart[id] || 0) + 1; saveCart(); };
+  const addToCart = (id, variant) => { const key = variant ? `${id}|${JSON.stringify(variant)}` : id; state.cart[key] = (state.cart[key] || 0) + 1; saveCart(); };
   const setQty = (id, qty) => { if (qty <= 0) delete state.cart[id]; else state.cart[id] = qty; saveCart(); };
 
   function renderCart() {
@@ -110,14 +113,15 @@
     const saving = cartSaving();
     $('#cartSaving').innerHTML = saving > 0 ? `<span>Vous économisez</span><span>${fcfa(saving)}</span>` : '';
     $('#cartLines').innerHTML = items.length
-      ? items.map(({ product: p, qty }) => `
+      ? items.map(({ key, product: p, variant, qty }) => `
         <div class="line">
           <div>
             <div>${esc(p.name)}</div>
+            ${variant ? `<div class="hint">${esc(variantText(variant))}</div>` : ''}${p.origin === 'FR' ? `<div class="hint fr-hint">${icon('airplane-tilt')} Venu de France · ${esc(state.frDelay || '10 à 21 jours')}</div>` : ''}
             <div class="qty">
-              <button data-qty="${p.id}" data-d="-1" aria-label="Retirer un">−</button>
+              <button data-qty="${esc(key)}" data-d="-1" aria-label="Retirer un">−</button>
               <span>${qty}</span>
-              <button data-qty="${p.id}" data-d="1" aria-label="Ajouter un">+</button>
+              <button data-qty="${esc(key)}" data-d="1" aria-label="Ajouter un">+</button>
             </div>
           </div>
           <strong>${fcfa(p.price * qty)}</strong>
@@ -138,6 +142,7 @@
     const add = e.target.closest('[data-add]');
     if (add) {
       e.preventDefault();
+      if ((byId(add.dataset.add)?.options || []).length) { location.hash = '#/p/' + add.dataset.add; return; } // choisir la couleur / taille d'abord
       addToCart(add.dataset.add);
       const label = add.innerHTML;
       add.innerHTML = `${icon('check-bold')} Ajouté`;
@@ -197,7 +202,8 @@
 
   function card(p) {
     const d = discount(p);
-    const tag = p.condition && p.condition !== 'neuf' ? `<span class="tag tag-violet">${esc(p.condition === 'reconditionné' ? 'Reconditionné' : 'Occasion')}</span>`
+    const tag = p.origin === 'FR' ? `<span class="tag tag-fr">${icon('airplane-tilt')} Venu de France</span>`
+      : p.condition && p.condition !== 'neuf' ? `<span class="tag tag-violet">${esc(p.condition === 'reconditionné' ? 'Reconditionné' : 'Occasion')}</span>`
       : p.featured ? '<span class="tag tag-mango">Nouveau</span>' : '';
     return `
       <article class="card">
@@ -210,7 +216,7 @@
           <a href="#/p/${p.id}"><h3>${esc(p.name)}</h3></a>
           <div class="prices"><span class="price">${fcfa(p.price)}</span>${d ? `<span class="old">${fcfa(p.oldPrice)}</span>` : ''}</div>
           ${p.stock > 0 && p.stock <= 6 ? `<span class="stock-low">${icon('fire')} Plus que ${p.stock} en stock</span>` : ''}
-          <button class="btn cta small" data-add="${p.id}" ${p.stock === 0 ? 'disabled' : ''}>${p.stock === 0 ? 'Épuisé' : `${icon('plus')} Ajouter`}</button>
+          <button class="btn cta small" data-add="${p.id}" ${p.stock === 0 ? 'disabled' : ''}>${p.stock === 0 ? 'Épuisé' : (p.options || []).length ? 'Choisir' : `${icon('plus')} Ajouter`}</button>
         </div>
       </article>`;
   }
@@ -307,8 +313,8 @@
       if (p) slides.push(slide({ theme: 'mango', kicker: esc(u.name), title: u.name === 'Mode' ? 'Le style, sans se ruiner' : 'Le meilleur de la tech', text: esc(u.categories.slice(0, 4).join(' · ')), href: `#/c/${enc(u.name)}`, cta: 'Découvrir', p }));
     }
     slides.splice(1, 0, slide({
-      theme: 'violet', kicker: `${icon('airplane-tilt')} Nouveau`, title: 'Achetez en France, recevez au Congo', text: "Envoyez-nous le lien d'un produit vendu en France : prix tout compris en FCFA, payé en Mobile Money, livré chez vous.", href: '#/france', cta: 'Demander un devis',
-      extra: '<div class="pay-chips"><span>Amazon.fr</span><span>Fnac</span><span>Decathlon</span><span>Zara</span><span>et les autres</span></div>',
+      theme: 'violet', kicker: `${icon('airplane-tilt')} Nouveau`, title: 'Achetez en France, recevez au Congo', text: 'Des produits venus de France à un prix tout compris en FCFA : transport en avion et douane inclus, payé en Mobile Money, livré chez vous.', href: '#/france', cta: 'Voir les produits',
+      extra: '<div class="pay-chips"><span>Avion</span><span>Prix tout compris</span><span>Suivi étape par étape</span></div>',
     }));
     slides.push(slide({
       theme: 'light', kicker: `${icon('wallet')} Paiement`, title: 'Payez comme vous voulez', text: 'Vous validez le paiement sur votre téléphone, avec votre code secret.', href: '#/promos', cta: 'Commencer mes achats',
@@ -471,16 +477,42 @@
           <div class="buybox">
             ${d ? `<div><span class="old">${fcfa(p.oldPrice)}</span> <span class="save-tag">Économisez ${fcfa(p.oldPrice - p.price)}</span></div>` : ''}
             <span class="price">${fcfa(p.price)}</span>
-            <span class="momo-note">${icon('check-circle-duotone')} Payable en Mobile Money, par carte ou en espèces</span>
-            <span class="hint">${icon('truck-duotone')} Livraison 24-48 h à Pointe-Noire et Brazzaville</span>
+            ${(p.options || []).map((o, i) => `<label class="opt-label" for="opt${i}">${esc(o.name)}</label><div class="opt-choices" id="opt${i}" data-opt="${esc(o.name)}">${o.values.map((v) => `<button type="button" class="opt" data-v="${esc(v)}">${esc(v)}</button>`).join('')}</div>`).join('')}
+            ${p.origin === 'FR'
+              ? `<span class="momo-note fr-note">${icon('airplane-tilt')} Venu de France par avion · livré en ${esc(state.frDelay || '10 à 21 jours')}</span>
+                 <span class="hint">${icon('check-circle-duotone')} Prix tout compris (transport et douane inclus) · payable à la commande en Mobile Money ou par carte</span>`
+              : `<span class="momo-note">${icon('check-circle-duotone')} Payable en Mobile Money, par carte ou en espèces</span>
+            <span class="hint">${icon('truck-duotone')} Livraison 24-48 h à Pointe-Noire et Brazzaville</span>`}
             ${p.stock === 0 ? '<span class="stock-low">Épuisé</span>' : p.stock <= 6 ? `<span class="stock-low">Plus que ${p.stock} en stock</span>` : '<span class="momo-note">En stock</span>'}
-            <button class="btn cta block" data-add="${p.id}" ${p.stock === 0 ? 'disabled' : ''}>Ajouter au panier</button>
+            <div id="optErr"></div>
+            <button class="btn cta block" ${(p.options || []).length ? 'id="addOpt"' : `data-add="${p.id}"`} ${p.stock === 0 ? 'disabled' : ''}>Ajouter au panier</button>
             <a class="btn ghost block" href="#/commande" id="buyNow">Acheter maintenant</a>
           </div>
         </div>
       </div>
       ${similar.length ? `<section class="shelf"><div class="shelf-head"><div><p class="kicker">${esc(p.category)}</p><h2>Vous aimerez aussi</h2></div></div>${railCarousel(similar)}</section>` : ''}`;
-    $('#buyNow').addEventListener('click', () => { if (!state.cart[p.id]) addToCart(p.id); });
+    // Choix couleur / taille : un bouton par valeur
+    const sel = {};
+    app.querySelectorAll('.opt-choices').forEach((g) => g.addEventListener('click', (e) => {
+      const b = e.target.closest('.opt'); if (!b) return;
+      sel[g.dataset.opt] = b.dataset.v;
+      g.querySelectorAll('.opt').forEach((x) => x.classList.toggle('on', x === b));
+      $('#optErr').innerHTML = '';
+    }));
+    const missing = () => (p.options || []).find((o) => !sel[o.name]);
+    const addWithChoice = () => {
+      const m = missing();
+      if (m) { $('#optErr').innerHTML = `<div class="alert err">Choisissez : ${esc(m.name)}</div>`; return false; }
+      addToCart(p.id, { ...sel }); return true;
+    };
+    $('#addOpt')?.addEventListener('click', (e) => {
+      if (!addWithChoice()) return;
+      const b = e.currentTarget; const label = b.innerHTML; b.innerHTML = `${icon('check-bold')} Ajouté`; setTimeout(() => (b.innerHTML = label), 1200);
+    });
+    $('#buyNow').addEventListener('click', (e) => {
+      if ((p.options || []).length) { if (!addWithChoice()) e.preventDefault(); return; }
+      if (!state.cart[p.id]) addToCart(p.id);
+    });
     // Galerie : cliquer sur une miniature change la photo principale (le crédit ne vaut que pour la photo d'origine)
     app.querySelectorAll('[data-img]').forEach((b) => b.addEventListener('click', () => {
       const img = app.querySelector('.pdp-main img');
@@ -516,6 +548,7 @@
       saved.phone = saved.phone || state.customer.phone || '';
     }
     const total = fcfa(cartTotal());
+    const hasFr = items.some((l) => l.product.origin === 'FR');
 
     app.innerHTML = `
       <h1>Finaliser ma commande</h1>
@@ -538,11 +571,12 @@
           </div>
 
           <h2 style="margin-top:24px">2. Paiement</h2>
+          ${hasFr ? `<div class="alert warn">${icon('airplane-tilt')} Votre panier contient des articles venus de France : nous les achetons pour vous, la commande se paie donc à la commande (Mobile Money ou carte). Livraison de toute la commande en ${esc(state.frDelay || '10 à 21 jours')}.</div>` : ''}
           <div class="methods">
             <label class="op"><input type="radio" name="method" value="momo" checked><span>${icon('device-mobile-duotone')}<span class="txt">Mobile Money<small>MTN MoMo · Airtel Money</small></span></span></label>
             ${methods.card ? `<label class="op"><input type="radio" name="method" value="card"><span>${icon('credit-card-duotone')}<span class="txt">Carte bancaire<small>Visa · Mastercard</small></span></span></label>` : ''}
-            ${methods.cod?.enabled ? `<label class="op"><input type="radio" name="method" value="cod"><span>${icon('hand-coins-duotone')}<span class="txt">Payer à la réception<small>Espèces ou Mobile Money au livreur${methods.cod.deposit ? ` · acompte de ${fcfa(methods.cod.deposit)} pour confirmer` : ''}</small></span></span></label>` : ''}
-            ${methods.cash ? `<label class="op"><input type="radio" name="method" value="cash"><span>${icon('storefront-duotone')}<span class="txt">Espèces en agence<small>Retrait en agence</small></span></span></label>` : ''}
+            ${methods.cod?.enabled && !hasFr ? `<label class="op"><input type="radio" name="method" value="cod"><span>${icon('hand-coins-duotone')}<span class="txt">Payer à la réception<small>Espèces ou Mobile Money au livreur${methods.cod.deposit ? ` · acompte de ${fcfa(methods.cod.deposit)} pour confirmer` : ''}</small></span></span></label>` : ''}
+            ${methods.cash && !hasFr ? `<label class="op"><input type="radio" name="method" value="cash"><span>${icon('storefront-duotone')}<span class="txt">Espèces en agence<small>Retrait en agence</small></span></span></label>` : ''}
           </div>
 
           <div id="momoFields">
@@ -575,7 +609,7 @@
 
         <div class="panel">
           <h2>Récapitulatif</h2>
-          ${items.map(({ product: p, qty }) => `<div class="line"><span>${qty} × ${esc(p.name)}</span><strong>${fcfa(p.price * qty)}</strong></div>`).join('')}
+          ${items.map(({ product: p, qty, variant }) => `<div class="line"><span>${qty} × ${esc(p.name)}${variant ? `<br><span class="hint">${esc(variantText(variant))}</span>` : ''}</span><strong>${fcfa(p.price * qty)}</strong></div>`).join('')}
           ${cartSaving() > 0 ? `<div class="row saving" style="margin-top:10px"><span>Vous économisez</span><span>${fcfa(cartSaving())}</span></div>` : ''}
           <div class="row total" style="margin-top:10px"><span>Total</span><strong>${total}</strong></div>
         </div>
@@ -631,7 +665,7 @@
           if (order?.status !== 'pending_payment') order = null;
         }
         if (!order) {
-          const created = await api('/orders', { method: 'POST', body: { customer, items: items.map(({ product, qty }) => ({ productId: product.id, qty })) } });
+          const created = await api('/orders', { method: 'POST', body: { customer, items: items.map(({ product, qty, variant }) => ({ productId: product.id, qty, variant: variant || undefined })) } });
           checkout = { orderId: created.id, token: created.token, cartKey: cartKey() };
           rememberOrder(created.id, created.token);
           saveCheckout(checkout);
@@ -1002,22 +1036,23 @@
       <section class="fr-hero">
         <span class="deco o1"></span><span class="deco o2"></span>
         <div>
-          <span class="pill">${icon('airplane-tilt')} Nouveau</span>
+          <span class="pill">${icon('airplane-tilt')} Venu de France</span>
           <h1>Achetez en France,<br>recevez au Congo.</h1>
-          <p>Vous trouvez un article sur un site français&nbsp;? Envoyez-nous le lien. Nous vous donnons un <strong>prix tout compris en FCFA</strong>, vous payez en Mobile Money, et nous vous le livrons. <strong>Vous achetez, vous recevez, point.</strong></p>
+          <p>Des produits choisis en France, à un <strong>prix tout compris en FCFA</strong> (transport en avion et douane inclus). Vous payez en Mobile Money, notre agent achète en France, et nous vous livrons. <strong>Vous achetez, vous recevez, point.</strong></p>
         </div>
       </section>
       <div class="fr-steps">
-        <div><b>1</b><span>Vous collez le lien du produit</span></div>
-        <div><b>2</b><span>Devis tout compris sous 24 h</span></div>
-        <div><b>3</b><span>Vous payez en Mobile Money</span></div>
-        <div><b>4</b><span>Notre agent l'achète en France</span></div>
+        <div><b>1</b><span>Vous choisissez votre article</span></div>
+        <div><b>2</b><span>Vous payez en Mobile Money</span></div>
+        <div><b>3</b><span>Notre agent l'achète en France</span></div>
+        <div><b>4</b><span>Il voyage en avion vers le Congo</span></div>
         <div><b>5</b><span>Livré chez vous en ${esc(conf.delay)}</span></div>
       </div>
+      ${(() => { const list = state.products.filter((x) => x.origin === 'FR'); return list.length ? `<section class="shelf" style="margin-top:8px"><div class="shelf-head"><div><p class="kicker k-violet">${icon('airplane-tilt')} Venus de France</p><h2>Nos produits</h2></div></div><div class="grid">${list.map(card).join('')}</div></section>` : '<div class="panel empty">Les premiers produits venus de France arrivent très bientôt.</div>'; })()}
       ${mine.length ? `<section class="panel"><h2>Mes demandes</h2>${mine.map((d) => `<a class="order-card" href="#/devis/${enc(d.id)}/${enc(d.token)}"><div class="top"><strong>${esc(d.id)}</strong>${devisBadge(d.status)}</div><div class="hint">${esc(d.items.map((it) => it.title || it.url).join(', ').slice(0, 100))}${d.quote ? ` · <strong style="color:var(--ink)">${fcfa(d.quote.total)}</strong>` : ''}</div></a>`).join('')}</section>` : ''}
-      ${conf.enabled ? `
+      ${conf.enabled && conf.customerRequests ? `
       <form class="panel" id="frForm" novalidate>
-        <h2>Ma demande de devis</h2>
+        <h2>Vous cherchez autre chose ? Demandez un devis</h2>
         <div id="frItems">${itemRow(0)}</div>
         <button type="button" class="btn ghost" id="frAdd">${icon('plus')} Ajouter un autre article</button>
         <h2 style="margin-top:22px">Mes coordonnées</h2>
@@ -1033,8 +1068,8 @@
         <div id="frError"></div>
         <button class="btn cta block" style="margin-top:16px">Recevoir mon devis gratuit</button>
         <p class="hint">Gratuit et sans engagement. Le devis est valable ${conf.validityHours} h. Certains articles ne peuvent pas voyager (produits dangereux, liquides inflammables…) : nous vous le dirons.</p>
-      </form>` : '<div class="panel empty">L\'achat en France ouvre très bientôt.</div>'}`;
-    if (!conf.enabled) return;
+      </form>` : ''}`;
+    if (!(conf.enabled && conf.customerRequests)) return;
     let n = 1;
     $('#frAdd').addEventListener('click', () => {
       if (n >= 5) return;
@@ -1207,6 +1242,7 @@
     }
     renderCart();
     $('#year').textContent = new Date().getFullYear();
+    api('/imports/settings').then((c) => { state.frDelay = c.delay; state.frConf = c; }).catch(() => {});
     const last = loadJSON('kamwa-last-order');
     if (last?.id && !tokenOf(last.id)) rememberOrder(last.id, last.token);
     await refreshCustomer();

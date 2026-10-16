@@ -88,6 +88,15 @@ function seed() {
   entry(6, 'transfer', 'transfer', 200000, 'bank', 'Retrait pour la caisse', { toMethod: 'cash' });
   entry(3, 'expense', 'supplier', 15000, 'momo', 'Acompte Mode Congo', { supplierId: sup });
 
+  // Produit venu de France (catalogue) : prix tout compris calculé depuis le prix en € et le poids, avec choix couleur / pointure
+  products.insert({
+    id: 'pdemo-fr1', name: 'Baskets de running légères (exemple)', brand: 'Exemple', universe: 'Mode', category: 'Chaussures', condition: 'neuf',
+    origin: 'FR', priceEur: 59.99, weightKg: 1.3, sourceUrl: 'https://www.exemple.fr/baskets', price: 69000, costPrice: 58921, stock: 5, active: true, images: [],
+    options: [{ name: 'Couleur', values: ['Noir', 'Blanc'] }, { name: 'Pointure', values: ['40', '41', '42', '43', '44'] }],
+    description: "Produit de démonstration venu de France : acheté par notre agent après votre commande, expédié par avion, livré en 10 à 21 jours.",
+    specs: [{ label: 'Origine', value: 'France' }], createdAt: now, createdBy: 'admin',
+  });
+
   // Achat en France : une demande à chiffrer et une commande payée à acheter
   imports.insert({
     id: 'FR-DEMO-0001', accessToken: 'demo-fr-0001-' + crypto.randomBytes(8).toString('hex'), customerId: null,

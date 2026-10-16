@@ -24,7 +24,7 @@ const publicImport = (r) => ({
 
 router.get('/settings', (req, res) => {
   const s = imp.importSettings();
-  res.json({ enabled: s.enabled, delay: s.delay, validityHours: s.validityHours });
+  res.json({ enabled: s.enabled, customerRequests: s.customerRequests, delay: s.delay, validityHours: s.validityHours });
 });
 
 // Anti-abus : 10 demandes par heure et par adresse
@@ -41,7 +41,7 @@ const cleanUrl = (u) => {
 };
 
 router.post('/', (req, res) => {
-  if (!imp.importSettings().enabled) return res.status(403).json({ error: "L'achat en France n'est pas ouvert pour le moment" });
+  if (!imp.importSettings().enabled || !imp.importSettings().customerRequests) return res.status(403).json({ error: "Les demandes de devis sur lien ne sont pas ouvertes" });
   if (tooMany(req.ip)) return res.status(429).json({ error: 'Trop de demandes. Réessayez dans une heure.' });
   const { items, customer, note } = req.body || {};
   if (!Array.isArray(items) || !items.length || items.length > 5) return res.status(400).json({ error: 'Ajoutez de 1 à 5 articles' });

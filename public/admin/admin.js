@@ -495,6 +495,46 @@
     });
   }
 
+  // Bouton « → Kamwa » (favori) : copie les informations publiques de la page produit ouverte et ouvre une fiche pré-remplie.
+  // Fonction AUTONOME (convertie en texte) : elle s'exécute sur la page du site vendeur, pas dans Kamwa.
+  function KAMWA_BM(origin) {
+    var d = { u: location.href, n: '', b: '', de: '', im: [], p: null, c: null, co: [], si: [] };
+    var A = function (x) { return x == null ? [] : Array.isArray(x) ? x : [x]; };
+    var T = function (x) { return (new DOMParser().parseFromString(String(x || ''), 'text/html').body.textContent || '').replace(/\s+/g, ' ').trim(); }; // analyse inerte (aucun script exécuté)
+    var N = [];
+    document.querySelectorAll('script[type="application/ld+json"]').forEach(function (s) {
+      try { (function w(n) { A(n).forEach(function (x) { if (x && typeof x === 'object') { N.push(x); if (x['@graph']) w(x['@graph']); } }); })(JSON.parse(s.textContent)); } catch (e) { /* ignoré */ }
+    });
+    var isT = function (x, t) { return A(x['@type']).join(',').indexOf(t) >= 0; };
+    var P = N.filter(function (x) { return isT(x, 'ProductGroup'); })[0] || N.filter(function (x) { return isT(x, 'Product'); })[0];
+    if (P) {
+      d.n = T(P.name); d.b = T(P.brand && P.brand.name || P.brand); d.de = T(P.description);
+      A(P.image).forEach(function (i) { d.im.push(i && i.url || i); });
+      var gid = P['@id'];
+      var V = A(P.hasVariant).concat(N.filter(function (x) { return x !== P && isT(x, 'Product') && gid && x.isVariantOf && x.isVariantOf['@id'] === gid; })); // variantes séparées (ex. Decathlon)
+      A(P.offers).concat(V.map(function (v) { return v.offers; })).forEach(function (o) {
+        A(o).forEach(function (o) { var ps = o && A(o.priceSpecification)[0]; var p = parseFloat(String(o && (o.price || o.lowPrice || (ps && ps.price)) || '').replace(',', '.')); if (p && (!d.p || p < d.p)) { d.p = p; d.c = o.priceCurrency || (ps && ps.priceCurrency); } });
+      });
+      [P].concat(V).forEach(function (v) {
+        A(v.color).forEach(function (c) { c = T(c); if (c && d.co.indexOf(c) < 0) d.co.push(c); });
+        A(v.size).forEach(function (c) { c = T(c && c.name || c); if (c && d.si.indexOf(c) < 0) d.si.push(c); });
+        if (V.length) A(v.image).forEach(function (i) { d.im.push(i && i.url || i); });
+      });
+    }
+    var M = function (k) { var m = document.querySelector('meta[property="' + k + '"],meta[name="' + k + '"]'); return m && m.content; };
+    d.n = d.n || M('og:title') || document.title; d.de = d.de || M('og:description') || M('description') || '';
+    if (!d.im.length && M('og:image')) d.im.push(M('og:image'));
+    // Grandes photos affichées sur la page (souvent plus nombreuses que dans les données structurées)
+    Array.prototype.slice.call(document.images).filter(function (i) { return i.naturalWidth >= 500 && i.naturalHeight >= 400 && /^https?:/.test(i.currentSrc || i.src); })
+      .forEach(function (i) { var u = i.currentSrc || i.src; if (d.im.indexOf(u) < 0) d.im.push(u); });
+    if (!d.p) { d.p = parseFloat(String(M('product:price:amount') || '').replace(',', '.')) || null; d.c = M('product:price:currency'); }
+    d.im = d.im.filter(Boolean).map(function (u) { try { return new URL(u, location.href).href; } catch (e) { return null; } }).filter(Boolean).slice(0, 6);
+    d.de = d.de.slice(0, 1500); d.co = d.co.slice(0, 20); d.si = d.si.slice(0, 30);
+    var s = btoa(unescape(encodeURIComponent(JSON.stringify(d)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    window.open(origin + '/admin/#/produit/nouveau?kamwa=' + s, '_blank');
+  }
+  const bookmarklet = () => 'javascript:' + encodeURIComponent(`(${KAMWA_BM.toString()})(${JSON.stringify(location.origin)})`);
+
   // ---------- Achat en France ----------
   const FR_STAGES = { to_buy: 'à acheter', bought: 'acheté', received: "reçu par l'agent", shipped_fr: 'parti de France', arrived: 'arrivé au Congo' };
   const eur = (n) => `${Number(n || 0).toFixed(2).replace('.', ',')} €`;
@@ -1070,6 +1110,17 @@
       ${p.pending ? `<div class="alert warn">⏳ En attente de validation : ce produit n'est pas encore visible des clients.${isAdmin() ? ' Vérifiez la fiche, fixez le prix de vente, enregistrez, puis cliquez « Valider et publier ».' : " L'administrateur doit le valider."}</div>` : ''}
       ${isNew && !isAdmin() ? '<div class="alert warn">Le produit sera visible des clients après validation par l\'administrateur.</div>' : ''}
       ${limited ? '<div class="alert warn">Produit publié : vous pouvez modifier le <strong>stock</strong> et <strong>votre prix</strong>. Pour le reste, contactez Kamwa.</div>' : ''}
+      ${isSupplier() ? '' : `<div class="panel link-import">
+        <h2>${icon('airplane-tilt')} Remplir depuis un lien</h2>
+        <p class="muted">Collez le lien de la page du produit (site français) : nom, photos, description, couleurs et tailles, prix en euros se remplissent tout seuls. Vérifiez, puis indiquez la <strong>quantité</strong>.</p>
+        <div class="row"><input id="srcUrl" type="text" inputmode="url" placeholder="https://www.site.fr/produit…" value="${esc(p.sourceUrl || '')}" style="flex:1;min-width:220px"><button type="button" class="btn" id="scrapeBtn">Remplir</button></div>
+        <div id="scrapeMsg"></div>
+        <details class="deliver-box"><summary>Le site refuse la lecture ? Utilisez le bouton « → Kamwa »</summary>
+          <p class="muted">Les grands sites (Decathlon, Boulanger, Amazon…) bloquent la lecture automatique. Solution : sur ordinateur, <strong>glissez ce bouton dans votre barre de favoris</strong> :</p>
+          <p><a class="btn small bookmarklet" href="${esc(bookmarklet())}" onclick="event.preventDefault(); alert('Ne cliquez pas ici : glissez ce bouton dans votre barre de favoris, puis utilisez-le sur la page du produit.')">→ Kamwa</a></p>
+          <p class="muted">Ensuite, ouvrez la page du produit sur le site, cliquez sur le favori « → Kamwa » : une fiche Kamwa pré-remplie s'ouvre. C'est comme un copier-coller, mais en un clic.</p>
+        </details>
+      </div>`}
       <form class="panel" id="pform" novalidate>
         <h2>Photos</h2>
         <div class="gallery" id="gallery"></div>
@@ -1099,6 +1150,19 @@
         <select id="condition" ${dis}>${['neuf', 'reconditionné', 'occasion'].map((c) => `<option ${c === (p.condition || 'neuf') ? 'selected' : ''}>${c}</option>`).join('')}</select>
         <label for="description">Description</label>
         <textarea id="description" rows="4" placeholder="Points forts, contenu de la boîte, garantie…" ${dis}>${esc(p.description)}</textarea>
+        <label for="options">Choix proposés au client (une ligne par choix)</label>
+        <textarea id="options" rows="2" placeholder="Couleur : Noir, Bleu, Rouge&#10;Taille : 40, 41, 42, 43" ${dis}>${esc((p.options || []).map((o) => `${o.name} : ${o.values.join(', ')}`).join('\n'))}</textarea>
+        <p class="muted" style="margin-top:4px">Le client devra choisir avant d'ajouter au panier.</p>
+        ${isSupplier() ? '' : `
+        <label class="check" style="margin-top:14px"><input id="originFr" type="checkbox" ${p.origin === 'FR' ? 'checked' : ''}> ${icon('airplane-tilt')} Produit venu de France (expédié par avion, payé à la commande)</label>
+        <div id="frFields" ${p.origin === 'FR' ? '' : 'hidden'}>
+          <div class="grid2">
+            <div><label for="priceEur">Prix en France (€)</label><input id="priceEur" type="text" inputmode="decimal" value="${esc(p.priceEur ?? '')}"></div>
+            <div><label for="weightKg">Poids avec emballage (kg)</label><input id="weightKg" type="text" inputmode="decimal" value="${esc(p.weightKg ?? '')}"></div>
+          </div>
+          <div class="calc" id="frCalc"></div>
+          <button type="button" class="ghost" id="frPriceBtn">Mettre ce prix tout compris comme prix de vente</button>
+        </div>`}
         <label for="specs">Caractéristiques (une par ligne)</label>
         <textarea id="specs" rows="4" placeholder="Couleur : Noir&#10;Capacité : 128 Go&#10;Taille : M" ${dis}>${esc((p.specs || []).map((x) => `${x.label} : ${x.value}`).join('\n'))}</textarea>
 
@@ -1184,6 +1248,63 @@
       }
     };
     $('#camera')?.addEventListener('change', (e) => { addFiles(e.target.files); e.target.value = ''; });
+
+    // --- Produit venu de France : prix tout compris (même calcul que le serveur) ---
+    let frConf = null;
+    const num = (v) => Number(String(v ?? '').replace(',', '.')) || 0;
+    const frCalc = async () => {
+      if (!$('#frCalc') || $('#frFields').hidden) return null;
+      if (!frConf) { try { frConf = await api('/france/settings'); } catch { return null; } }
+      const e = num($('#priceEur').value); const w = Math.max(num($('#weightKg').value), frConf.minWeightKg);
+      if (!e) { $('#frCalc').innerHTML = '<p class="muted">Indiquez le prix en euros et le poids.</p>'; return null; }
+      const goods = Math.round(e * frConf.rate); const freight = Math.round(w * frConf.freightPerKg); const customs = Math.round((goods * frConf.customsPercent) / 100);
+      const cost = goods + freight + customs;
+      const total = Math.ceil((cost + Math.round((cost * frConf.commissionPercent) / 100) + frConf.fixedFee) / frConf.roundTo) * frConf.roundTo;
+      const priceNow = num($('#price')?.value);
+      $('#frCalc').innerHTML = `<div class="lines"><div><span>Article (${String(e).replace('.', ',')} € × ${frConf.rate})</span><span>${fcfa(goods)}</span></div><div><span>Avion (${String(w).replace('.', ',')} kg × ${fcfa(frConf.freightPerKg)})</span><span>${fcfa(freight)}</span></div><div><span>Douane estimée (${frConf.customsPercent} %)</span><span>${fcfa(customs)}</span></div><div><span>Coût pour Kamwa</span><span>${fcfa(cost)}</span></div><div><span>Prix tout compris conseillé</span><span class="price">${fcfa(total)}</span></div>${priceNow ? `<div><span>Marge avec le prix de vente actuel</span><span class="${priceNow - cost < 0 ? 'neg' : 'pos'}">${fcfa(priceNow - cost)}</span></div>` : ''}</div>`;
+      return total;
+    };
+    $('#originFr')?.addEventListener('change', () => { $('#frFields').hidden = !$('#originFr').checked; frCalc(); });
+    ['#priceEur', '#weightKg', '#price'].forEach((sel) => $(sel)?.addEventListener('input', frCalc));
+    $('#frPriceBtn')?.addEventListener('click', async () => { const t = await frCalc(); if (t && $('#price')) { $('#price').value = t; frCalc(); toast('Prix de vente mis à jour'); } });
+    frCalc();
+
+    // --- Remplissage automatique (lien lu par le serveur, ou données envoyées par le favori « → Kamwa ») ---
+    const applyImport = (d) => {
+      const set = (sel, v) => { if (v != null && v !== '' && $(sel)) $(sel).value = v; };
+      set('#name', d.name); set('#brand', d.brand); set('#description', d.description);
+      if (d.specs?.length) set('#specs', d.specs.map((x) => `${x.label} : ${x.value}`).join('\n'));
+      if (d.options?.length) set('#options', d.options.map((o) => `${o.name} : ${o.values.join(', ')}`).join('\n'));
+      if (d.category && [...$('#category').options].some((o) => o.value === d.category || o.text === d.category)) $('#category').value = d.category;
+      if ($('#originFr')) { $('#originFr').checked = true; $('#frFields').hidden = false; }
+      set('#priceEur', d.priceEur); set('#weightKg', d.weightKg); set('#srcUrl', d.source || d.url);
+      for (const u of d.images || []) if (images.length < 8 && !images.includes(u)) images.push(u);
+      renderGallery();
+      if ($('#price') && !$('#price').value) frCalc().then((t) => { if (t) { $('#price').value = t; frCalc(); } });
+      else frCalc();
+    };
+    const importNotice = (d) => `<div class="alert ok">Fiche remplie ✓ ${d.images?.length ? `${d.images.length} photo(s) récupérée(s)` : 'aucune photo récupérée'}${d.failedImages ? `, ${d.failedImages} impossible(s)` : ''}. Vérifiez les informations, choisissez la catégorie si besoin, puis indiquez la <strong>quantité</strong> (stock).${d.priceEur ? '' : ' Prix en euros introuvable : saisissez-le.'}</div>
+      <div class="alert warn">Photos du site vendeur : assurez-vous d'avoir le droit de les utiliser, ou remplacez-les par les photos de votre agent.</div>`;
+    $('#scrapeBtn')?.addEventListener('click', async () => {
+      const url = $('#srcUrl').value.trim();
+      if (!/^https?:\/\//.test(url)) { $('#scrapeMsg').innerHTML = '<div class="alert err">Collez un lien complet (commençant par https://)</div>'; return; }
+      const b = $('#scrapeBtn'); b.disabled = true; b.innerHTML = '<span class="spin"></span> Lecture…';
+      $('#scrapeMsg').innerHTML = '<p class="muted">Lecture de la page et récupération des photos (quelques secondes)…</p>';
+      try { const d = await api('/products/scrape', { method: 'POST', body: { url } }); applyImport(d); $('#scrapeMsg').innerHTML = importNotice(d); }
+      catch (err) { $('#scrapeMsg').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; }
+      b.disabled = false; b.textContent = 'Remplir';
+    });
+    const fromBookmark = new URLSearchParams(location.hash.split('?')[1] || '').get('kamwa');
+    if (isNew && fromBookmark) {
+      try {
+        const raw = JSON.parse(decodeURIComponent(escape(atob(fromBookmark.replace(/-/g, '+').replace(/_/g, '/')))));
+        const d = { name: raw.n, brand: raw.b, description: raw.de, url: raw.u, priceEur: !raw.c || String(raw.c).toUpperCase() === 'EUR' ? raw.p : null, options: [raw.co?.length && { name: 'Couleur', values: raw.co }, raw.si?.length && { name: 'Taille', values: raw.si }].filter(Boolean) };
+        $('#scrapeMsg').innerHTML = '<p class="muted">Récupération des photos…</p>';
+        api('/products/import-images', { method: 'POST', body: { urls: raw.im || [], name: raw.n } }).then((r) => { applyImport({ ...d, ...r }); $('#scrapeMsg').innerHTML = importNotice({ ...d, ...r }); })
+          .catch(() => { applyImport(d); $('#scrapeMsg').innerHTML = importNotice({ ...d, images: [] }); });
+        history.replaceState(null, '', '#/produit/nouveau');
+      } catch { $('#scrapeMsg').innerHTML = '<div class="alert err">Données du favori illisibles. Réessayez depuis la page du produit.</div>'; }
+    }
     $('#files')?.addEventListener('change', (e) => { addFiles(e.target.files); e.target.value = ''; });
 
     const val = (sel) => $(sel)?.value;
@@ -1200,6 +1321,9 @@
         if (showSale) Object.assign(body, { price: val('#price'), oldPrice: val('#oldPrice') });
         if (showSupplierPrice) body.supplierPrice = val('#supplierPrice');
         if (isAdmin()) Object.assign(body, { supplierId: val('#supplierId'), costPrice: val('#costPrice') });
+        body.options = val('#options');
+        if (!isSupplier()) Object.assign(body, { origin: $('#originFr').checked ? 'FR' : null, sourceUrl: val('#srcUrl'), priceEur: val('#priceEur'), weightKg: val('#weightKg') });
+        if (body.origin === 'FR') delete body.costPrice; // calculé par le serveur (article + avion + douane)
         if (!isSupplier()) Object.assign(body, { active: $('#active').checked, featured: $('#featured').checked });
       }
       const btn = e.target.querySelector('button.btn');
@@ -1618,6 +1742,7 @@
   // ---------- Routeur ----------
   function route() {
     let [page, id] = (location.hash || homeHash()).slice(2).split('/').map(decodeURIComponent);
+    if (id && id.includes('?') && page !== 'finances') id = id.split('?')[0]; // ex. #/produit/nouveau?kamwa=… (bouton « → Kamwa »)
     window.scrollTo(0, 0);
     // Pages autorisées selon le rôle ; sinon retour à l'accueil du rôle
     document.body.classList.remove('menu-open');

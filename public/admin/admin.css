@@ -359,3 +359,5 @@ input[type=date] { width: 100%; padding: 10px 12px; border: 1px solid var(--line
 .calc .lines div:last-child { font-size: 1.1rem; }
 .fr-list { margin: 6px 0 10px; padding-left: 18px; }
 .alert.ok a { color: inherit; text-decoration: underline; }
+.link-import { border: 1px solid rgba(90,180,255,.35); background: linear-gradient(135deg, rgba(47,91,211,.12), rgba(106,71,224,.08)); }
+.bookmarklet { cursor: grab; }

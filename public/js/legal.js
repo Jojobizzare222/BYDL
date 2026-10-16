@@ -189,10 +189,10 @@
         Produits reconditionnés et d'occasion : garantie Kamwa de ${T('durée, ex. 3 mois')}. La garantie ne couvre pas la casse, l'oxydation ou une mauvaise utilisation.</p>
 
         <h2 id="france">9. Achats en France</h2>
-        <p>Avec « Achat en France », Kamwa achète pour vous un article vendu par un site français et vous le livre au Congo.</p>
+        <p>Les produits marqués « Venu de France » sont achetés en France par notre agent après votre commande, puis expédiés par avion et livrés au Congo.</p>
         <ul>
-          <li><strong>Devis</strong> : gratuit et sans engagement, valable pendant la durée indiquée. Le prix est <strong>tout compris</strong> (article, port, transport, douane, service Kamwa, livraison) : aucun supplément ne vous sera demandé à l'arrivée.</li>
-          <li><strong>Paiement</strong> : la commande se paie en entier à l'acceptation du devis (Mobile Money ou carte), car Kamwa achète l'article en votre nom.</li>
+          <li><strong>Prix</strong> : <strong>tout compris</strong> (article, transport en avion, douane, service Kamwa, livraison) : aucun supplément ne vous sera demandé à l'arrivée.</li>
+          <li><strong>Paiement</strong> : la commande se paie en entier à la commande (Mobile Money ou carte), car Kamwa achète l'article pour vous. Si votre panier contient aussi des articles de notre stock, toute la commande vous est livrée en une fois.</li>
           <li><strong>Délai</strong> : indicatif, annoncé dans le devis. Vous suivez chaque étape (achat, photos de l'article reçu par notre agent, départ, arrivée).</li>
           <li><strong>Annulation</strong> : possible tant que l'article n'est pas acheté (remboursement intégral). Après l'achat, l'annulation n'est plus possible.</li>
           <li><strong>Retours</strong> : un article non conforme au devis ou abîmé pendant le transport est remplacé ou remboursé. ${T('conditions de retour pour un article conforme qui ne convient pas')}.</li>

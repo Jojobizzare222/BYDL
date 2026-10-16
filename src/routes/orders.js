@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const { newDeliveryCode } = require('../delivery');
+const { importSettings } = require('../imports');
 const router = require('express').Router();
 const { products, orders } = require('../store');
 const { normalizeLocal } = require('../utils/phone');
@@ -55,7 +56,7 @@ router.post('/', (req, res) => {
   if (!phone) return res.status(400).json({ error: 'Numéro de téléphone invalide (ex. 06 123 45 67)' });
 
   const lines = [];
-  for (const { productId, qty } of items) {
+  for (const { productId, qty, variant } of items) {
     const product = products.get(productId);
     const quantity = Math.floor(Number(qty));
     if (!product || product.active === false || product.pending) return res.status(400).json({ error: `Produit indisponible : ${productId}` });
@@ -63,8 +64,25 @@ router.post('/', (req, res) => {
     if (quantity > availableStock(product)) {
       return res.status(400).json({ error: `Stock insuffisant pour ${product.name}` });
     }
-    lines.push({ productId, name: product.name, unitPrice: product.price, qty: quantity, total: product.price * quantity });
+    // Choix du client (couleur, taille…) : chaque choix proposé doit être renseigné avec une valeur existante
+    let chosen = null;
+    if ((product.options || []).length) {
+      const sel = variant && typeof variant === 'object' ? variant : {};
+      const parts = [];
+      for (const o of product.options) {
+        if (!o.values.includes(sel[o.name])) return res.status(400).json({ error: `Choisissez : ${o.name} (${product.name})` });
+        parts.push(`${o.name} : ${sel[o.name]}`);
+      }
+      chosen = parts.join(' · ');
+    }
+    lines.push({ productId, name: product.name, unitPrice: product.price, qty: quantity, total: product.price * quantity, ...(chosen ? { variant: chosen } : {}) });
   }
+  // Produits venus de France : la commande suit le circuit d'achat en France (agent, envoi en avion, arrivée)
+  const fr = lines.filter((l) => products.get(l.productId)?.origin === 'FR');
+  const importInfo = fr.length ? {
+    requestId: null, stage: 'to_buy', delay: importSettings().delay,
+    items: fr.map((l) => { const p = products.get(l.productId); return { title: p.name, qty: l.qty, options: l.variant || '', url: p.sourceUrl || '', priceEur: p.priceEur || 0, shippingEur: 0 }; }),
+  } : null;
 
   const subtotal = lines.reduce((s, l) => s + l.total, 0);
   const order = orders.insert({
@@ -84,6 +102,7 @@ router.post('/', (req, res) => {
     },
     status: 'pending_payment', // pending_payment -> paid (ou confirmed si paiement à la réception) -> shipped -> delivered | cancelled
     deliveryCode: newDeliveryCode(), // à donner au livreur (ou à l'agence) seulement à la remise du colis
+    ...(importInfo ? { import: importInfo } : {}),
     createdAt: new Date().toISOString(),
   });
 

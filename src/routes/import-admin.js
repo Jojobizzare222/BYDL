@@ -29,7 +29,7 @@ function expense(req, { category, amount, method, label, note = '', ref }) {
 }
 
 // ---------- Réglages et calcul ----------
-router.get('/settings', requireRole('orders', 'agent'), (req, res) => res.json({ ...imp.importSettings(), rate: imp.EUR, stages: imp.STAGES }));
+router.get('/settings', requireRole('orders', 'agent', 'catalog'), (req, res) => res.json({ ...imp.importSettings(), rate: imp.EUR, stages: imp.STAGES }));
 router.put('/settings', requireRole(), (req, res) => {
   const { error, value } = imp.saveImportSettings(req.body || {});
   if (error) return res.status(400).json({ error });
