@@ -498,12 +498,17 @@
   // Bouton « → Kamwa » (favori) : copie les informations publiques de la page produit ouverte et ouvre une fiche pré-remplie.
   // Fonction AUTONOME (convertie en texte) : elle s'exécute sur la page du site vendeur, pas dans Kamwa.
   function KAMWA_BM(origin) {
+    // Outils « propres » pris dans une page vierge : certains sites modifient JSON, encodeURIComponent… et cassaient les données
+    var J = JSON, E = encodeURIComponent, frame = null;
+    try { frame = document.createElement('iframe'); frame.style.display = 'none'; document.documentElement.appendChild(frame); J = frame.contentWindow.JSON; E = frame.contentWindow.encodeURIComponent; } catch (e) { J = JSON; E = encodeURIComponent; }
+    // Texte coupé sans jamais casser un caractère (émojis…) et sans caractère invalide
+    var cut = function (x, n) { var t = String(x || '').slice(0, n); if (/[\uD800-\uDBFF]$/.test(t)) t = t.slice(0, -1); return t.toWellFormed ? t.toWellFormed() : t.replace(/[\uD800-\uDFFF]/g, ''); };
     var d = { u: location.href, n: '', b: '', de: '', im: [], p: null, c: null, co: [], si: [] };
     var A = function (x) { return x == null ? [] : Array.isArray(x) ? x : [x]; };
     var T = function (x) { return (new DOMParser().parseFromString(String(x || ''), 'text/html').body.textContent || '').replace(/\s+/g, ' ').trim(); }; // analyse inerte (aucun script exécuté)
     var N = [];
     document.querySelectorAll('script[type="application/ld+json"]').forEach(function (s) {
-      try { (function w(n) { A(n).forEach(function (x) { if (x && typeof x === 'object') { N.push(x); if (x['@graph']) w(x['@graph']); } }); })(JSON.parse(s.textContent)); } catch (e) { /* ignoré */ }
+      try { (function w(n) { A(n).forEach(function (x) { if (x && typeof x === 'object') { N.push(x); if (x['@graph']) w(x['@graph']); } }); })(J.parse(s.textContent)); } catch (e) { /* ignoré */ }
     });
     var isT = function (x, t) { return A(x['@type']).join(',').toLowerCase().indexOf(t.toLowerCase()) >= 0; }; // « product » en minuscules (ex. Cdiscount)
     var P = N.filter(function (x) { return isT(x, 'ProductGroup'); })[0] || N.filter(function (x) { return isT(x, 'Product'); })[0];
@@ -529,9 +534,12 @@
       .forEach(function (i) { var u = i.currentSrc || i.src; if (d.im.indexOf(u) < 0) d.im.push(u); });
     if (!d.p) { d.p = parseFloat(String(M('product:price:amount') || '').replace(',', '.')) || null; d.c = M('product:price:currency'); }
     d.im = d.im.filter(Boolean).map(function (u) { try { return new URL(u, location.href).href; } catch (e) { return null; } }).filter(Boolean).slice(0, 6);
-    d.de = d.de.slice(0, 1500); d.co = d.co.slice(0, 20); d.si = d.si.slice(0, 30);
-    var s = btoa(unescape(encodeURIComponent(JSON.stringify(d)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-    window.open(origin + '/admin/#/produit/nouveau?kamwa=' + s, '_blank');
+    d.u = cut(d.u, 600); d.n = cut(d.n, 160); d.b = cut(d.b, 60); d.de = cut(d.de, 1200);
+    d.im = d.im.map(function (u) { return cut(u, 500); });
+    d.co = d.co.slice(0, 20).map(function (x) { return cut(x, 40); }); d.si = d.si.slice(0, 30).map(function (x) { return cut(x, 30); });
+    var s = E(J.stringify(d));
+    if (frame) frame.remove();
+    window.open(origin + '/admin/#/produit/nouveau?kamwa2=' + s, '_blank');
   }
   const bookmarklet = () => 'javascript:' + encodeURIComponent(`(${KAMWA_BM.toString()})(${JSON.stringify(location.origin)})`);
 
@@ -1294,16 +1302,21 @@
       catch (err) { $('#scrapeMsg').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; }
       b.disabled = false; b.textContent = 'Remplir';
     });
-    const fromBookmark = new URLSearchParams(location.hash.split('?')[1] || '').get('kamwa');
+    const qs = new URLSearchParams(location.hash.split('?').slice(1).join('?'));
+    const fromBookmark = qs.get('kamwa2') || qs.get('kamwa');
     if (isNew && fromBookmark) {
       try {
-        const raw = JSON.parse(decodeURIComponent(escape(atob(fromBookmark.replace(/-/g, '+').replace(/_/g, '/')))));
+        // kamwa2 = texte JSON (nouveau favori) ; kamwa = ancien favori (base64)
+        const raw = qs.get('kamwa2') ? JSON.parse(fromBookmark) : JSON.parse(decodeURIComponent(escape(atob(fromBookmark.replace(/-/g, '+').replace(/_/g, '/')))));
         const d = { name: raw.n, brand: raw.b, description: raw.de, url: raw.u, priceEur: !raw.c || String(raw.c).toUpperCase() === 'EUR' ? raw.p : null, options: [raw.co?.length && { name: 'Couleur', values: raw.co }, raw.si?.length && { name: 'Taille', values: raw.si }].filter(Boolean) };
         $('#scrapeMsg').innerHTML = '<p class="muted">Récupération des photos…</p>';
         api('/products/import-images', { method: 'POST', body: { urls: raw.im || [], name: raw.n } }).then((r) => { applyImport({ ...d, ...r }); $('#scrapeMsg').innerHTML = importNotice({ ...d, ...r }); })
           .catch(() => { applyImport(d); $('#scrapeMsg').innerHTML = importNotice({ ...d, images: [] }); });
         history.replaceState(null, '', '#/produit/nouveau');
-      } catch { $('#scrapeMsg').innerHTML = '<div class="alert err">Données du favori illisibles. Réessayez depuis la page du produit.</div>'; }
+      } catch (err) {
+        console.error('[favori → Kamwa]', err, fromBookmark.slice(0, 200));
+        $('#scrapeMsg').innerHTML = `<div class="alert err">Données du favori illisibles (${esc(err.message)}, ${fromBookmark.length} caractères reçus). Remettez le bouton « → Kamwa » à jour (glissez-le de nouveau dans vos favoris) puis réessayez. Si cela continue, dites-nous sur quel site.</div>`;
+      }
     }
     $('#files')?.addEventListener('change', (e) => { addFiles(e.target.files); e.target.value = ''; });
 
