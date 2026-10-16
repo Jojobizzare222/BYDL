@@ -6,6 +6,8 @@ const { UPLOAD_DIR } = require('./routes/admin');
 
 const app = express();
 app.disable('x-powered-by');
+// Création de compte / envoi de la pièce d'identité : la photo est jointe (réduite par le navigateur), d'où une limite plus haute
+app.use(['/api/account/register', '/api/account/identity'], express.json({ limit: '6mb' }));
 app.use(express.json({ limit: '100kb' }));
 
 // Fichiers statiques :

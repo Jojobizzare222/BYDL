@@ -8,6 +8,7 @@ const { availableStock, isFreshPending } = require('../utils/stock');
 const { hasAccess } = require('./orders');
 const { notifyPaidOrder, notifyReservation } = require('../notify');
 const delivery = require('../delivery');
+const { salesSettings, methodAllowed } = require('../sales');
 const { staff } = require('../store');
 
 router.get('/operators', (req, res) => {
@@ -17,12 +18,16 @@ router.get('/operators', (req, res) => {
 // Moyens de paiement proposés sur la page commande (les espèces seulement s'il existe une agence active).
 router.get('/methods', (req, res) => {
   const active = agencies.all().filter((a) => a.active !== false);
+  const allowed = salesSettings().methods; // réglé dans Kamwa Pro → Réglages (par défaut : espèces en agence seulement)
+  const cod = delivery.codSettings();
   res.json({
     mode: config.paymentMode,
-    momo: true,
-    card: cardAvailable(),
-    cash: active.length > 0,
-    cod: (({ enabled, deposit, depositPercent }) => ({ enabled, deposit, depositPercent }))(delivery.codSettings()),
+    momo: allowed.momo,
+    card: allowed.card && cardAvailable(),
+    cash: allowed.cash && active.length > 0,
+    cashDelivery: true, // espèces : le client choisit retrait en agence OU livraison à domicile après paiement
+    cod: { enabled: allowed.cod && cod.enabled, deposit: cod.deposit, depositPercent: cod.depositPercent },
+    accountRequired: salesSettings().accountRequired,
     pickupHoldHours: config.pickupHoldHours,
     agencies: active.map(({ id, name, city, address, hours, phone }) => ({ id, name, city, address, hours, phone })),
   });
@@ -34,8 +39,11 @@ router.get('/methods', (req, res) => {
 //    - card : le client est redirigé vers la page sécurisée du prestataire ;
 //    - cash : l'article est réservé, le client paie en espèces à l'agence (l'admin confirme).
 router.post('/', async (req, res) => {
-  const { orderId, phone, operator, token, method = 'momo', agencyId } = req.body || {};
+  const { orderId, phone, operator, token, method = 'momo', agencyId, fulfillment } = req.body || {};
   if (!['momo', 'card', 'cash', 'cod'].includes(method)) return res.status(400).json({ error: 'Moyen de paiement inconnu' });
+  if (!methodAllowed(method)) return res.status(400).json({ error: "Ce moyen de paiement n'est pas proposé pour le moment" });
+  // Espèces en agence : retrait à l'agence (par défaut) ou livraison à domicile une fois payé
+  const cashMode = method === 'cash' && fulfillment === 'delivery' ? 'delivery' : 'pickup';
   const order = orders.get(orderId);
   if (!order || !hasAccess(order, token)) return res.status(404).json({ error: 'Commande introuvable' });
 
@@ -63,8 +71,11 @@ router.post('/', async (req, res) => {
   }
 
   // Achat en Europe : Kamwa achète pour le client, la commande se paie EN ENTIER à l'avance
-  if (order.import && !['momo', 'card'].includes(method)) {
-    return res.status(400).json({ error: 'Les achats en Europe se paient à la commande, en Mobile Money ou par carte' });
+  if (order.import && !['momo', 'card', 'cash'].includes(method)) {
+    return res.status(400).json({ error: 'Les achats en Europe se paient en entier avant leur achat (pas de paiement à la réception)' });
+  }
+  if (method === 'cash' && cashMode === 'delivery' && !(order.customer?.address && order.customer.address.trim())) {
+    return res.status(400).json({ error: "Indiquez votre adresse de livraison (quartier, repère)" });
   }
   // Paiement à la réception : acompte selon la fiabilité du client (règles réglables dans l'espace pro)
   let quote = null;
@@ -138,11 +149,11 @@ router.post('/', async (req, res) => {
     payment.expiresAt = new Date(now + config.pickupHoldHours * 3600 * 1000).toISOString();
     const { id, name, city, address, hours, phone: agencyPhone } = agency;
     orders.update(order.id, {
-      fulfillment: 'pickup',
+      fulfillment: cashMode, // 'pickup' : retiré à l'agence · 'delivery' : payé à l'agence puis livré
       agency: { id, name, city, address, hours, phone: agencyPhone },
-      pickupDeadline: payment.expiresAt,
+      pickupDeadline: payment.expiresAt, // date limite pour venir payer
     });
-  } else if (order.fulfillment === 'pickup') {
+  } else if (order.fulfillment === 'pickup' || order.agency) {
     orders.update(order.id, { fulfillment: 'delivery', agency: null, pickupDeadline: null });
   }
 

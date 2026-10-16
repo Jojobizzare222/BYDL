@@ -682,3 +682,22 @@ html.standalone input, html.standalone textarea, html.standalone .legal { -webki
 .opt { border: 1.5px solid var(--line); background: var(--paper); color: var(--ink); border-radius: 12px; padding: 8px 14px; font-weight: 600; cursor: pointer; min-width: 48px; }
 .opt:hover { border-color: var(--brand); }
 .opt.on { border-color: var(--brand); background: var(--violet-soft); color: var(--brand); box-shadow: 0 0 0 1px var(--brand); }
+
+/* ---------- Pièce d'identité (compte obligatoire pour commander) ---------- */
+.id-box { border: 1.5px dashed var(--line); border-radius: var(--radius-sm); padding: 6px 16px 14px; margin: 20px 0 0; background: var(--paper); }
+.id-box legend { font-weight: 700; color: var(--brand); padding: 0 6px; display: inline-flex; align-items: center; gap: 6px; }
+.id-box legend .ico { font-size: 1.3rem; }
+.id-box .req { font-size: .7rem; font-weight: 700; color: var(--accent-dark); background: var(--coral-soft); padding: 2px 8px; border-radius: 999px; }
+.id-pick { display: flex; gap: 8px; flex-wrap: wrap; }
+.id-pick .btn { margin: 0; display: inline-flex; align-items: center; gap: 6px; }
+.id-preview { margin-top: 10px; position: relative; }
+.id-preview img { display: block; max-width: 100%; max-height: 220px; border-radius: 10px; border: 1px solid var(--line-soft); }
+.id-preview .ok-tag { display: inline-flex; align-items: center; gap: 4px; margin-top: 6px; font-size: .82rem; font-weight: 700; color: var(--ok); }
+.alert.ok { background: #E1F5EC; color: var(--ok); }
+.alert.id-status { display: flex; gap: 10px; align-items: flex-start; }
+.alert.id-status .ico { font-size: 1.4rem; flex: none; }
+.methods.two { grid-template-columns: 1fr 1fr; }
+@media (max-width: 520px) { .methods.two { grid-template-columns: 1fr; } }
+p.lbl { font-weight: 600; font-size: .88rem; margin: 16px 0 0; }
+.gate .big-check { color: var(--brand-2); }
+.gate h1 { font-size: 1.5rem; }

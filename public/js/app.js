@@ -9,7 +9,7 @@
   // Univers et catégories affichés dans le menu : fournis par le serveur (src/catalog.js), même liste que l'admin
   let UNIVERSES = [];
   // Icônes Phosphor (fichier /icons.svg, récupérées via Iconify)
-  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=7#${name}"></use></svg>`;
+  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=8#${name}"></use></svg>`;
   const ICONS = { 'Téléphones': 'device-mobile-duotone', 'Tablettes': 'device-tablet-duotone', 'Ordinateurs': 'laptop-duotone', 'Montres': 'watch-duotone', 'Audio': 'headphones-duotone', 'TV & Maison': 'television-duotone', 'Jeux vidéo & consoles': 'game-controller-duotone', 'Composants': 'cpu-duotone', 'Accessoires': 'plug-duotone', 'Homme': 't-shirt-duotone', 'Femme': 'dress-duotone', 'Chaussures': 'sneaker-duotone' };
   const catIcon = (cat, cls = '') => icon(ICONS[cat] || 'shopping-bag-duotone', cls);
   // Vignettes sans photo : une des trois teintes de la charte, selon la catégorie
@@ -68,7 +68,7 @@
     </div>` : '');
   const isPickup = (o) => o.fulfillment === 'pickup';
   const statusLabel = (o) => {
-    if (isPickup(o) && o.status === 'pending_payment') return 'Réservée — à payer en agence';
+    if (o.agency && o.status === 'pending_payment') return 'Réservée — à payer en agence';
     if (isPickup(o) && o.status === 'delivered') return 'Retirée';
     return STATUS[o.status] || o.status;
   };
@@ -364,12 +364,12 @@
       if (p) slides.push(slide({ theme: 'mango', kicker: esc(u.name), title: u.name === 'Mode' ? 'Le style, sans se ruiner' : 'Le meilleur de la tech', text: esc(u.categories.slice(0, 4).join(' · ')), href: `#/c/${enc(u.name)}`, cta: 'Découvrir', p }));
     }
     slides.splice(1, 0, slide({
-      theme: 'violet', kicker: `${icon('airplane-tilt')} Nouveau`, title: 'Achetez en Europe, recevez au Congo', text: 'Des produits venus d’Europe à un prix tout compris en FCFA : transport en avion et douane inclus, payé en Mobile Money, livré chez vous.', href: '#/france', cta: 'Voir les produits',
+      theme: 'violet', kicker: `${icon('airplane-tilt')} Nouveau`, title: 'Achetez en Europe, recevez au Congo', text: 'Des produits venus d’Europe à un prix tout compris en FCFA : transport en avion et douane inclus, payé en agence, retiré ou livré chez vous.', href: '#/europe', cta: 'Voir les produits',
       extra: '<div class="pay-chips"><span>Avion</span><span>Prix tout compris</span><span>Suivi étape par étape</span></div>',
     }));
     slides.push(slide({
-      theme: 'light', kicker: `${icon('wallet')} Paiement`, title: 'Payez comme vous voulez', text: 'Vous validez le paiement sur votre téléphone, avec votre code secret.', href: '#/promos', cta: 'Commencer mes achats',
-      extra: '<div class="pay-chips"><span><i class="dot mtn"></i>MTN MoMo</span><span><i class="dot airtel"></i>Airtel Money</span><span>' + icon('credit-card') + 'Carte</span><span>' + icon('storefront') + 'Espèces en agence</span></div>',
+      theme: 'light', kicker: `${icon('wallet')} Paiement`, title: 'Réservez en ligne, payez en agence', text: 'Vous payez en espèces dans nos agences, puis vous repartez avec votre commande ou nous vous la livrons.', href: '#/promos', cta: 'Commencer mes achats',
+      extra: '<div class="pay-chips"><span>' + icon('storefront') + 'Espèces en agence</span><span>' + icon('truck') + 'Retrait ou livraison</span><span>' + icon('shield-check') + 'Clients vérifiés</span></div>',
     }));
 
     const [h, m, sec] = untilMidnight();
@@ -419,7 +419,7 @@
       <section class="shelf">
         <div class="shelf-head"><div><p class="kicker">${icon('seal-check-duotone')} Acheter en confiance</p><h2>Pourquoi choisir Kamwa</h2></div></div>
         <div class="reassure">
-          <div class="r-violet"><span class="ic">${icon('credit-card')}</span><b>Paiement simple</b><p>Mobile Money (MTN, Airtel), carte bancaire ou espèces en agence.</p></div>
+          <div class="r-violet"><span class="ic">${icon('credit-card')}</span><b>Paiement simple</b><p>En espèces dans nos agences, sans carte ni frais cachés. Retrait sur place ou livraison.</p></div>
           <div class="r-mango"><span class="ic">${icon('truck')}</span><b>Livraison rapide</b><p>24-48 h à Pointe-Noire et Brazzaville. Autres villes sur demande.</p></div>
           <div class="r-coral"><span class="ic">${icon('storefront')}</span><b>Retrait en agence</b><p>Réservez en ligne, payez et repartez avec votre commande.</p></div>
           <div class="r-green"><span class="ic">${icon('chat-circle')}</span><b>Service client</b><p>Nous vous appelons après chaque commande.</p></div>
@@ -533,8 +533,8 @@
             ${(p.options || []).map((o, i) => `<label class="opt-label" for="opt${i}">${esc(o.name)}</label><div class="opt-choices" id="opt${i}" data-opt="${esc(o.name)}">${o.values.map((v) => `<button type="button" class="opt" data-v="${esc(v)}">${esc(v)}</button>`).join('')}</div>`).join('')}
             ${p.origin === 'FR'
               ? `<span class="momo-note fr-note">${icon('airplane-tilt')} Venu d’Europe par avion · livré en ${esc(state.frDelay || '10 jours maximum')}</span>
-                 <span class="hint">${icon('check-circle-duotone')} Prix tout compris (transport et douane inclus) · payable à la commande en Mobile Money ou par carte</span>`
-              : `<span class="momo-note">${icon('check-circle-duotone')} Payable en Mobile Money, par carte ou en espèces</span>
+                 <span class="hint">${icon('check-circle-duotone')} Prix tout compris (transport et douane inclus) · payable en entier en agence avant l'achat</span>`
+              : `<span class="momo-note">${icon('check-circle-duotone')} Payable en espèces en agence · retrait ou livraison</span>
             <span class="hint">${icon('truck-duotone')} Livraison 24-48 h à Pointe-Noire et Brazzaville</span>`}
             ${p.stock === 0 ? '<span class="stock-low">Épuisé</span>' : p.stock <= 6 ? `<span class="stock-low">Plus que ${p.stock} en stock</span>` : '<span class="momo-note">En stock</span>'}
             <div id="optErr"></div>
@@ -595,6 +595,34 @@
     let methods = { momo: true, card: false, cash: false, agencies: [] };
     try { methods = await api('/payments/methods'); } catch {}
 
+    // Compte vérifié obligatoire pour commander (le panier reste gardé en attendant)
+    if (methods.accountRequired) {
+      await refreshCustomer(); // l'admin a peut-être validé la pièce depuis la dernière visite
+      const c = state.customer;
+      const st = c ? (c.idStatus || 'missing') : null;
+      if (st !== 'verified') {
+        app.innerHTML = `
+          <div class="panel gate" style="max-width:620px;margin:0 auto;text-align:center">
+            <div class="big-check">${icon(c ? 'clock-countdown-duotone' : 'identification-card-duotone')}</div>
+            ${!c ? `<h1>Un compte Kamwa est nécessaire pour commander</h1>
+              <p class="hint">Pour lutter contre les fausses commandes, chaque client crée son compte avec la photo de sa pièce d'identité (passeport, CNI ou NIU). Kamwa la vérifie, puis vous pouvez commander. Votre panier est gardé.</p>
+              <a class="btn cta block" href="#/compte/creer">Créer mon compte</a>
+              <a class="btn ghost block" href="#/compte" style="margin-top:10px">J'ai déjà un compte : me connecter</a>`
+            : st === 'pending' ? `<h1>Votre identité est en cours de vérification</h1>
+              <p class="hint">Kamwa vérifie votre pièce d'identité (en général sous 24 h). Vous pourrez commander dès qu'elle sera validée : votre panier vous attend.</p>
+              <a class="btn ghost block" href="#/compte">Voir mon compte</a>`
+            : `<h1>Pièce d'identité ${st === 'rejected' ? 'refusée' : 'manquante'}</h1>
+              <p class="hint">${st === 'rejected' && c.idRejectReason ? `Motif : ${esc(c.idRejectReason)}. ` : ''}Envoyez la photo de votre pièce d'identité depuis votre compte pour pouvoir commander.</p>
+              <a class="btn cta block" href="#/compte">Envoyer ma pièce</a>`}
+          </div>`;
+        return;
+      }
+    }
+    if (!methods.momo && !methods.card && !methods.cash && !methods.cod?.enabled) {
+      app.innerHTML = '<div class="panel empty">Aucune agence n\'est ouverte pour le moment : la commande n\'est pas possible. Revenez bientôt ou contactez-nous.</div>';
+      return;
+    }
+
     const saved = (() => { try { return JSON.parse(localStorage.getItem('kamwa-customer')) || {}; } catch { return {}; } })();
     if (state.customer) {
       saved.name = saved.name || state.customer.name;
@@ -605,7 +633,7 @@
 
     app.innerHTML = `
       <h1>Finaliser ma commande</h1>
-      ${state.config.paymentMode === 'simulation'
+      ${state.config.paymentMode === 'simulation' && (methods.momo || methods.card)
         ? '<div class="sim">Mode test : aucun argent n\'est débité. Mobile Money : un numéro finissant par 000 simule un refus. Carte : une page de test vous laisse accepter ou refuser.</div>' : ''}
       <div class="checkout">
         <form class="panel" id="checkoutForm" novalidate>
@@ -624,12 +652,12 @@
           </div>
 
           <h2 style="margin-top:24px">2. Paiement</h2>
-          ${hasFr ? `<div class="alert warn">${icon('airplane-tilt')} Votre panier contient des articles venus d’Europe : nous les achetons pour vous, la commande se paie donc à la commande (Mobile Money ou carte). Livraison de toute la commande en ${esc(state.frDelay || '10 jours maximum')}.</div>` : ''}
+          ${hasFr ? `<div class="alert warn">${icon('airplane-tilt')} Votre panier contient des articles venus d’Europe : nous les achetons pour vous, la commande se paie donc <strong>en entier avant l'achat</strong>. Disponible en ${esc(state.frDelay || '10 jours maximum')}.</div>` : ''}
           <div class="methods">
-            <label class="op"><input type="radio" name="method" value="momo" checked><span>${icon('device-mobile-duotone')}<span class="txt">Mobile Money<small>MTN MoMo · Airtel Money</small></span></span></label>
+            ${methods.momo ? `<label class="op"><input type="radio" name="method" value="momo"><span>${icon('device-mobile-duotone')}<span class="txt">Mobile Money<small>MTN MoMo · Airtel Money</small></span></span></label>` : ''}
             ${methods.card ? `<label class="op"><input type="radio" name="method" value="card"><span>${icon('credit-card-duotone')}<span class="txt">Carte bancaire<small>Visa · Mastercard</small></span></span></label>` : ''}
             ${methods.cod?.enabled && !hasFr ? `<label class="op"><input type="radio" name="method" value="cod"><span>${icon('hand-coins-duotone')}<span class="txt">Payer à la réception<small>Espèces ou Mobile Money au livreur${methods.cod.deposit ? ` · acompte de ${fcfa(methods.cod.deposit)} pour confirmer` : ''}</small></span></span></label>` : ''}
-            ${methods.cash && !hasFr ? `<label class="op"><input type="radio" name="method" value="cash"><span>${icon('storefront-duotone')}<span class="txt">Espèces en agence<small>Retrait en agence</small></span></span></label>` : ''}
+            ${methods.cash ? `<label class="op"><input type="radio" name="method" value="cash"><span>${icon('storefront-duotone')}<span class="txt">Espèces en agence<small>Vous payez à l'agence, puis retrait sur place ou livraison</small></span></span></label>` : ''}
           </div>
 
           <div id="momoFields">
@@ -649,12 +677,17 @@
             <p class="hint">${icon('lock-key-bold')} Vous allez être redirigé vers la page de paiement sécurisée de notre partenaire bancaire. Kamwa ne voit jamais votre numéro de carte.</p>
           </div>
           <div id="cashFields" hidden>
-            <label for="agency">Agence de retrait</label>
+            <label for="agency">Agence où payer</label>
             <select id="agency" name="agency">
               ${methods.agencies.map((a) => `<option value="${esc(a.id)}">${esc(a.city)} — ${esc(a.name)}</option>`).join('')}
             </select>
             <p class="hint" id="agencyInfo"></p>
-            <p class="hint">Vos articles sont réservés <strong>${methods.pickupHoldHours} h</strong>. Vous payez <strong>${total}</strong> en espèces à l'agence et repartez avec votre commande.</p>
+            <p class="lbl">Comment recevoir votre commande ?</p>
+            <div class="methods two">
+              <label class="op"><input type="radio" name="receive" value="pickup" checked><span>${icon('storefront-duotone')}<span class="txt">Retrait à l'agence<small>Vous payez et repartez avec</small></span></span></label>
+              <label class="op"><input type="radio" name="receive" value="delivery"><span>${icon('truck-duotone')}<span class="txt">Livraison à domicile<small>Après votre paiement à l'agence</small></span></span></label>
+            </div>
+            <p class="hint" id="cashHint"></p>
           </div>
           <div id="formError"></div>
           <button class="btn cta block" style="margin-top:16px;min-height:48px;font-size:1rem" id="payBtn">Payer ${total}</button>
@@ -670,7 +703,10 @@
 
     const form = $('#checkoutForm');
     const BUTTON = { momo: `Payer ${total}`, card: `Payer ${total} par carte`, cash: 'Réserver et payer en agence', cod: 'Confirmer ma commande' };
-    const method = () => form.method.value || 'momo';
+    const method = () => form.method.value || 'cash';
+    const receive = () => (form.receive?.value === 'delivery' ? 'delivery' : 'pickup');
+    // Premier moyen proposé coché par défaut
+    if (!form.querySelector('input[name="method"]:checked')) { const first = form.querySelector('input[name="method"]'); if (first) first.checked = true; }
     // Affiche les champs du moyen de paiement choisi (pas d'adresse de livraison pour un retrait en agence)
     const syncMethod = () => {
       const m = method();
@@ -680,22 +716,28 @@
       if (momoLbl) momoLbl.textContent = m === 'cod' ? "Numéro Mobile Money pour l'acompte" : 'Numéro Mobile Money à débiter';
       $('#cardFields').hidden = m !== 'card';
       $('#cashFields').hidden = m !== 'cash';
-      $('#deliveryFields').hidden = m === 'cash';
+      $('#deliveryFields').hidden = m === 'cash' && receive() === 'pickup';
+      if (m === 'cash') $('#cashHint').innerHTML = hasFr
+        ? `Venez payer <strong>${total}</strong> en espèces à l'agence sous <strong>${methods.pickupHoldHours} h</strong> : nous achetons ensuite vos articles en Europe. ${receive() === 'pickup' ? 'Vous les retirez à l\'agence dès leur arrivée.' : 'Nous vous les livrons dès leur arrivée.'}`
+        : receive() === 'pickup'
+          ? `Vos articles sont réservés <strong>${methods.pickupHoldHours} h</strong>. Vous payez <strong>${total}</strong> en espèces à l'agence et repartez avec votre commande.`
+          : `Vos articles sont réservés <strong>${methods.pickupHoldHours} h</strong>. Vous payez <strong>${total}</strong> en espèces à l'agence, puis nous vous livrons à l'adresse indiquée (code de livraison à donner au livreur).`;
       $('#payBtn').textContent = BUTTON[m];
       const a = methods.agencies.find((x) => x.id === form.agency?.value);
       if (a) $('#agencyInfo').innerHTML = `${icon('map-pin-bold')} ${esc(a.address || 'Adresse communiquée par téléphone')}${a.hours ? `<br>${icon('clock-bold')} ` + esc(a.hours) : ''}${a.phone ? `<br>${icon('phone-bold')} ` + esc(a.phone) : ''}`;
     };
     form.querySelectorAll('input[name="method"]').forEach((r) => r.addEventListener('change', syncMethod));
     form.agency?.addEventListener('change', syncMethod);
+    form.querySelectorAll('input[name="receive"]').forEach((r) => r.addEventListener('change', syncMethod));
     syncMethod();
 
     // Pré-sélection automatique de l'opérateur selon le préfixe du numéro
     const syncOperator = () => {
-      const d = form.momo.value.replace(/\D/g, '').replace(/^242/, '');
+      const d = (form.momo?.value || '').replace(/\D/g, '').replace(/^242/, '');
       if (d.startsWith('06')) form.operator.value = 'mtn';
       else if (d.startsWith('05') || d.startsWith('04')) form.operator.value = 'airtel';
     };
-    form.momo.addEventListener('input', syncOperator);
+    form.momo?.addEventListener('input', syncOperator);
     syncOperator();
 
     form.addEventListener('submit', async (e) => {
@@ -704,28 +746,30 @@
       const err = $('#formError'); err.innerHTML = '';
       const btn = $('#payBtn'); btn.disabled = true; btn.textContent = 'Envoi de la demande…';
       const agency = methods.agencies.find((x) => x.id === form.agency?.value);
-      const customer = m === 'cash'
+      const pickup = m === 'cash' && receive() === 'pickup';
+      const customer = pickup
         ? { name: form.name.value, phone: form.phone.value, city: agency?.city || '', address: `Retrait en agence : ${agency?.name || ''}` }
         : { name: form.name.value, phone: form.phone.value, city: form.city.value, address: form.address.value };
-      if (m !== 'cash') { try { localStorage.setItem('kamwa-customer', JSON.stringify(customer)); } catch {} }
+      if (!pickup) { try { localStorage.setItem('kamwa-customer', JSON.stringify(customer)); } catch {} }
       try {
         // Même panier qu'une tentative précédente non payée : on réutilise la commande.
         let checkout = loadCheckout();
         let order = null;
-        if (checkout?.cartKey === cartKey()) {
+        const sig = JSON.stringify(customer); // coordonnées changées (ex. retrait → livraison) : nouvelle commande
+        if (checkout?.cartKey === cartKey() && (!checkout.sig || checkout.sig === sig)) {
           try { order = await api('/orders/' + enc(checkout.orderId), { headers: orderHeaders(checkout.token) }); } catch {}
           if (['paid', 'confirmed'].includes(order?.status)) return finishPaid(checkout);
           if (order?.status !== 'pending_payment') order = null;
         }
         if (!order) {
           const created = await api('/orders', { method: 'POST', body: { customer, items: items.map(({ product, qty, variant }) => ({ productId: product.id, qty, variant: variant || undefined })) } });
-          checkout = { orderId: created.id, token: created.token, cartKey: cartKey() };
+          checkout = { orderId: created.id, token: created.token, cartKey: cartKey(), sig };
           rememberOrder(created.id, created.token);
           saveCheckout(checkout);
         }
         const body = { orderId: checkout.orderId, token: checkout.token, method: m };
         if (m === 'momo' || m === 'cod') Object.assign(body, { phone: form.momo.value, operator: form.operator.value });
-        if (m === 'cash') body.agencyId = form.agency.value;
+        if (m === 'cash') Object.assign(body, { agencyId: form.agency.value, fulfillment: receive() });
         let payment;
         try {
           payment = await api('/payments', { method: 'POST', body });
@@ -881,15 +925,31 @@
               <span class="hint">Identifiant : ${esc([c.phone, c.email].filter(Boolean).join(' · '))} · client depuis le ${shortDate(c.createdAt)}</span></div>
             <button class="btn ghost" id="logoutBtn">Se déconnecter</button>
           </div>
+          ${idStatusPanel(c).startsWith('<form') ? '' : idStatusPanel(c)}
           <div class="stats">
             <div><span class="hint">Commandes payées</span><b>${paid.length}</b></div>
             <div><span class="hint">Total de vos achats</span><b>${fcfa(paid.reduce((s, o) => s + o.total, 0))}</b></div>
           </div>
         </div>
+        ${idStatusPanel(c).startsWith('<form') ? idStatusPanel(c) : ''}
         <div class="panel">
           <h2>Mes commandes</h2>
           ${list.length ? list.map(orderCard).join('') : '<p class="empty">Pas encore de commande. <a href="#/">Découvrir la boutique</a></p>'}
         </div>`;
+      if ($('#idForm')) {
+        const readId = bindIdFields($('#idForm'));
+        $('#idForm').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const btn = e.target.querySelector('button.cta'); btn.disabled = true; btn.textContent = 'Envoi en cours…';
+          try {
+            const res = await api('/account/identity', { method: 'POST', body: readId() });
+            state.customer = res.customer; route();
+          } catch (err) {
+            $('#idError').innerHTML = `<div class="alert err">${esc(err.message)}</div>`;
+            btn.disabled = false; btn.textContent = 'Envoyer ma pièce';
+          }
+        });
+      }
       $('#logoutBtn').addEventListener('click', async () => {
         await api('/account/logout', { method: 'POST' }).catch(() => {});
         state.customer = null; renderAccountBtn(); route();
@@ -911,7 +971,7 @@
         </form>
         <div class="panel">
           <h2>Pas encore de compte ?</h2>
-          <p class="hint">Créez votre compte avec votre numéro ou votre e-mail. Kamwa vous attribue un code à 6 chiffres pour retrouver vos commandes sur n'importe quel téléphone.</p>
+          <p class="hint">Un compte est nécessaire pour commander. Créez-le avec votre numéro ou votre e-mail et la photo de votre pièce d'identité : Kamwa vous attribue un code à 6 chiffres pour vous connecter sur n'importe quel téléphone.</p>
           <a class="btn ghost block" href="#/compte/creer">Créer mon compte</a>
         </div>
       </div>
@@ -937,28 +997,103 @@
     });
   }
 
+  // ---------- Pièce d'identité (obligatoire pour commander) ----------
+  const ID_TYPES = { passeport: 'Passeport', cni: "Carte nationale d'identité (CNI)", niu: 'NIU' };
+  // Photo réduite dans le téléphone avant l'envoi (1600 px, JPEG) : rapide même avec une connexion lente
+  function shrinkPhoto(file) {
+    return new Promise((resolve, reject) => {
+      if (!file || !/^image\//.test(file.type)) return reject(new Error('Choisissez une photo'));
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        const k = Math.min(1, 1600 / Math.max(img.naturalWidth, img.naturalHeight));
+        const c = document.createElement('canvas');
+        c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(url);
+        resolve(c.toDataURL('image/jpeg', 0.85));
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Photo illisible, réessayez')); };
+      img.src = url;
+    });
+  }
+  const idFieldsHtml = () => `
+    <fieldset class="id-box">
+      <legend>${icon('identification-card')} Pièce d'identité <span class="req">obligatoire</span></legend>
+      <p class="hint">Pour lutter contre les fausses commandes, Kamwa vérifie l'identité de chaque client avant sa première commande. Votre photo reste confidentielle : seule l'équipe de vérification de Kamwa peut la voir.</p>
+      <label for="idType">Type de pièce</label>
+      <select id="idType" required><option value="">Choisissez…</option>${Object.entries(ID_TYPES).map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join('')}</select>
+      <label for="idNumber">Numéro de la pièce (facultatif)</label>
+      <input id="idNumber" maxlength="40" autocomplete="off" placeholder="Tel qu'il figure sur la pièce">
+      <label>Photo de la pièce</label>
+      <div class="id-pick">
+        <label class="btn ghost" for="idCamera">${icon('camera')} Prendre une photo</label>
+        <label class="btn ghost" for="idFile">${icon('image-square')} Choisir une photo</label>
+      </div>
+      <input id="idCamera" type="file" accept="image/*" capture="environment" hidden>
+      <input id="idFile" type="file" accept="image/jpeg,image/png,image/webp" hidden>
+      <div class="id-preview" id="idPreview" hidden></div>
+      <p class="hint">Pièce en entier, à plat, bien éclairée et lisible (pas de reflet).</p>
+    </fieldset>`;
+  // Branche les boutons photo ; renvoie une fonction qui donne { idType, idNumber, idPhoto } ou lève une erreur
+  function bindIdFields(root) {
+    let photo = null;
+    const onPick = async (input) => {
+      const f = input.files?.[0]; if (!f) return;
+      const box = root.querySelector('#idPreview');
+      box.hidden = false; box.innerHTML = '<span class="hint">Préparation de la photo…</span>';
+      try { photo = await shrinkPhoto(f); box.innerHTML = `<img src="${photo}" alt="Aperçu de la pièce"><span class="ok-tag">${icon('check')} Photo prête</span>`; }
+      catch (err) { photo = null; box.innerHTML = `<span class="alert err">${esc(err.message)}</span>`; }
+      input.value = '';
+    };
+    root.querySelector('#idCamera').addEventListener('change', (e) => onPick(e.target));
+    root.querySelector('#idFile').addEventListener('change', (e) => onPick(e.target));
+    return () => {
+      const idType = root.querySelector('#idType').value;
+      if (!idType) throw new Error("Choisissez le type de votre pièce d'identité");
+      if (!photo) throw new Error("Ajoutez la photo de votre pièce d'identité");
+      return { idType, idNumber: root.querySelector('#idNumber').value, idPhoto: photo };
+    };
+  }
+  // Encadré « état de ma pièce » sur la page compte (+ formulaire si elle manque ou a été refusée)
+  function idStatusPanel(c) {
+    const st = c.idStatus || 'missing';
+    if (st === 'verified') return `<div class="alert ok id-status">${icon('seal-check-duotone')} <span><strong>Identité vérifiée</strong> — vous pouvez commander.</span></div>`;
+    if (st === 'pending') return `<div class="alert warn id-status">${icon('clock-countdown-duotone')} <span><strong>Pièce d'identité en cours de vérification.</strong> Vous pourrez commander dès sa validation par Kamwa (en général sous 24 h). Votre panier vous attend.</span></div>`;
+    return `<form class="panel" id="idForm" novalidate>
+      ${st === 'rejected' ? `<div class="alert err"><strong>Votre pièce a été refusée</strong>${c.idRejectReason ? ` : ${esc(c.idRejectReason)}` : ''}. Envoyez une nouvelle photo.</div>`
+        : `<div class="alert warn">Pour commander, ajoutez la photo de votre pièce d'identité.</div>`}
+      ${idFieldsHtml()}
+      <div id="idError"></div>
+      <button class="btn cta block" style="margin-top:12px">Envoyer ma pièce</button>
+    </form>`;
+  }
+
   function viewRegister() {
     if (state.customer) { location.hash = '#/compte'; return; }
     const saved = loadJSON('kamwa-customer') || {};
     app.innerHTML = `
       <form class="panel" id="registerForm" novalidate style="max-width:520px;margin:0 auto">
         <h1>Créer mon compte Kamwa</h1>
-        <p class="hint">Indiquez votre numéro de téléphone <strong>ou</strong> votre e-mail (ou les deux). C'est votre identifiant.</p>
+        <p class="hint">Indiquez votre numéro de téléphone <strong>ou</strong> votre e-mail (ou les deux) : c'est votre identifiant. Un compte vérifié est nécessaire pour commander.</p>
         <label for="rName">Nom complet</label>
         <input id="rName" autocomplete="name" value="${esc(saved.name)}" required>
         <label for="rPhone">Numéro de téléphone</label>
         <input id="rPhone" type="tel" inputmode="tel" placeholder="06 123 45 67" value="${esc(saved.phone)}">
         <label for="rEmail">E-mail (facultatif)</label>
         <input id="rEmail" type="email" inputmode="email" autocomplete="email" placeholder="nom@exemple.com">
+        ${idFieldsHtml()}
         <div id="registerError"></div>
         <button class="btn cta block" style="margin-top:14px">Créer mon compte</button>
         <p class="hint">Déjà un compte ? <a href="#/compte">Se connecter</a></p>
       </form>`;
+    const readId = bindIdFields($('#registerForm'));
     $('#registerForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const btn = e.target.querySelector('button'); btn.disabled = true;
+      const btn = e.target.querySelector('button.cta'); btn.disabled = true; btn.textContent = 'Envoi en cours…';
       try {
-        const res = await api('/account/register', { method: 'POST', body: { name: $('#rName').value, phone: $('#rPhone').value, email: $('#rEmail').value, deviceOrders: deviceOrders() } });
+        const id = readId();
+        const res = await api('/account/register', { method: 'POST', body: { name: $('#rName').value, phone: $('#rPhone').value, email: $('#rEmail').value, ...id, deviceOrders: deviceOrders() } });
         state.customer = res.customer; renderAccountBtn();
         const who = res.customer.phone || res.customer.email;
         app.innerHTML = `
@@ -970,11 +1105,12 @@
             <div class="alert err" style="text-align:left"><strong>Notez-le bien</strong> (ou faites une capture d'écran) : il ne sera plus affiché.<br>
             Pour vous connecter : <strong>${esc(who)}</strong> + ce code.</div>
             ${res.claimed ? `<p class="hint">${res.claimed} commande(s) de ce téléphone ajoutée(s) à votre compte.</p>` : ''}
+            <div class="alert warn" style="text-align:left">${icon('clock-countdown-duotone')} Votre pièce d'identité est <strong>en cours de vérification</strong>. Vous pourrez commander dès sa validation par Kamwa (en général sous 24 h).</div>
             <a class="btn cta block" href="#/compte" style="margin-top:14px">J'ai noté mon code</a>
           </div>`;
       } catch (err) {
         $('#registerError').innerHTML = `<div class="alert err">${esc(err.message)}</div>`;
-        btn.disabled = false;
+        btn.disabled = false; btn.textContent = 'Créer mon compte';
       }
     });
   }
@@ -992,30 +1128,34 @@
     }
     const at = (status) => [...(o.history || [])].reverse().find((h) => h.status === status)?.at;
     const ag = o.agency || {};
-    const expired = isPickup(o) && o.status === 'pending_payment' && o.pickupDeadline && Date.now() > Date.parse(o.pickupDeadline);
+    const payAg = Boolean(o.agency); // espèces à payer à l'agence (retrait ou livraison ensuite)
+    const expired = payAg && o.status === 'pending_payment' && o.pickupDeadline && Date.now() > Date.parse(o.pickupDeadline);
+    const agencyStep = expired
+      ? 'Le délai de réservation est dépassé : vos articles ne sont plus réservés. Contactez-nous ou repassez commande.'
+      : `Rendez-vous à l'agence <strong>${esc(ag.name)}</strong> (${esc(ag.city)}) avant le <strong>${longDate(o.pickupDeadline)}</strong> et payez <strong>${fcfa(o.total)}</strong> en espèces.`;
     const im = o.import;
     const steps = im
       ? [
-          ['Commande passée', o.createdAt, 'Devis accepté. Le paiement confirme la commande.'],
+          ['Commande passée', o.createdAt, payAg ? agencyStep : 'Le paiement confirme la commande.'],
           ['Payée', o.paidAt, `Paiement reçu. Nous achetons votre article (délai total annoncé : ${esc(im.delay || '10 jours maximum')}).`],
           ['Achetée en Europe', im.boughtAt, 'Votre article est commandé auprès du vendeur en Europe.'],
           ['Article vérifié', im.receivedAt, "Votre article a été reçu et vérifié. Il part avec le prochain envoi vers le Congo."],
           ['Partie d’Europe', im.departedAt, `Votre colis est en route vers le Congo${im.eta ? ` — arrivée prévue vers le <strong>${shortDate(im.eta)}</strong>` : ''}.`],
-          ['Arrivée au Congo', im.arrivedAt, 'Votre colis est arrivé. Nous vous appelons pour la livraison.'],
+          ['Arrivée au Congo', im.arrivedAt, isPickup(o) ? `Votre colis est arrivé : venez le retirer à l'agence ${esc(ag.name || '')}.` : 'Votre colis est arrivé. Nous vous appelons pour la livraison.'],
           ['En livraison', at('shipped'), 'Le livreur arrive. Préparez votre code de livraison.'],
           ['Livrée', at('delivered'), 'Votre commande a été livrée. Merci pour votre confiance !'],
         ]
       : isPickup(o)
       ? [
-          ['Commande réservée', o.createdAt, expired
-            ? 'Le délai de réservation est dépassé : vos articles ne sont plus réservés. Contactez-nous ou repassez commande.'
-            : `Rendez-vous à l'agence <strong>${esc(ag.name)}</strong> (${esc(ag.city)}) avant le <strong>${longDate(o.pickupDeadline)}</strong> et payez <strong>${fcfa(o.total)}</strong> en espèces.`],
+          ['Commande réservée', o.createdAt, agencyStep],
           ['Payée en agence', o.paidAt || at('paid'), 'Paiement reçu. Votre commande vous est remise à l\'agence.'],
           ['Retirée', at('delivered'), 'Vous avez retiré votre commande. Merci pour votre confiance !'],
         ]
       : [
-          ['Commande passée', o.createdAt, 'Nous avons bien reçu votre commande.'],
-          o.paymentPlan === 'cod'
+          ['Commande passée', o.createdAt, payAg ? agencyStep : 'Nous avons bien reçu votre commande.'],
+          payAg
+            ? ['Payée en agence', o.paidAt || at('paid'), 'Paiement reçu. Nous préparons votre colis et vous appelons pour la livraison.']
+            : o.paymentPlan === 'cod'
             ? ['Commande confirmée', o.confirmedAt || at('confirmed'), `${o.deposit ? `Acompte de ${fcfa(o.deposit)} reçu. ` : ''}Vous paierez ${fcfa(o.balance ?? o.total)} à la livraison. Nous préparons votre colis et vous appelons.`]
             : ['Paiement confirmé', o.paidAt || at('paid'), 'Votre paiement est validé. Nous préparons votre colis et vous appelons.'],
           ['En livraison', at('shipped'), `Le livreur arrive à ${esc(o.customer.city || 'votre adresse')}. Gardez votre téléphone allumé et préparez votre code de livraison.`],
@@ -1040,11 +1180,11 @@
               </li>`).join('')}
           </ol>
           ${im && im.photos?.length ? `<div class="import-photos"><strong>${icon('camera')} Photos de votre article, prises à sa réception</strong><div>${im.photos.map((src) => `<a href="${esc(src)}" target="_blank" rel="noopener"><img src="${esc(src)}" alt="Votre article" loading="lazy"></a>`).join('')}</div></div>` : ''}
-          ${im && o.status === 'pending_payment' ? `<p><a class="btn cta" href="#/devis/${enc(im.requestId || '')}">Payer ma commande</a></p>` : ''}
+          ${im && im.requestId && !payAg && o.status === 'pending_payment' ? `<p><a class="btn cta" href="#/devis/${enc(im.requestId || '')}">Payer ma commande</a></p>` : ''}
           ${im && im.stage !== 'arrived' ? '' : codeCard(o)}
           ${(o.attempts || []).length && !['delivered', 'cancelled'].includes(o.status) ? `<div class="alert warn">${o.attempts.map((a) => `Tentative de livraison le ${longDate(a.at)} : ${esc(a.label)}.`).join('<br>')} Nous vous recontactons.</div>` : ''}
-          ${o.status === 'pending_payment' && !isPickup(o) ? '<div class="alert err">Paiement pas encore reçu. Si vous venez de valider sur votre téléphone, patientez quelques minutes.</div>' : ''}
-          ${isPickup(o) && o.status === 'pending_payment' && !expired ? `<div class="panel" style="background:#F0F7F4;margin:12px 0 0">
+          ${o.status === 'pending_payment' && !payAg ? '<div class="alert err">Paiement pas encore reçu. Si vous venez de valider sur votre téléphone, patientez quelques minutes.</div>' : ''}
+          ${payAg && o.status === 'pending_payment' && !expired ? `<div class="panel" style="background:#F0F7F4;margin:12px 0 0">
             <strong>${icon('map-pin-bold')} ${esc(ag.name)} — ${esc(ag.city)}</strong>
             <p class="hint" style="margin:4px 0 0">${esc(ag.address || 'Adresse communiquée par téléphone')}${ag.hours ? `<br>${icon('clock-bold')} ` + esc(ag.hours) : ''}${ag.phone ? `<br>${icon('phone-bold')} ` + esc(ag.phone) : ''}</p>
             <p class="hint">Présentez le numéro de commande <strong>${esc(o.id)}</strong> à l'agence.</p></div>` : ''}`}
@@ -1091,13 +1231,13 @@
         <div>
           <span class="pill">${icon('airplane-tilt')} Venu d’Europe</span>
           <h1>Achetez en Europe,<br>recevez au Congo.</h1>
-          <p>Des produits choisis en Europe, à un <strong>prix tout compris en FCFA</strong> (transport en avion et douane inclus). Vous payez en Mobile Money, nous nous occupons de tout jusqu'à votre porte. <strong>Vous achetez, vous recevez, point.</strong></p>
+          <p>Des produits choisis en Europe, à un <strong>prix tout compris en FCFA</strong> (transport en avion et douane inclus). Vous payez en agence, nous nous occupons de tout jusqu'à votre porte. <strong>Vous achetez, vous recevez, point.</strong></p>
         </div>
       </section>
       <div class="fr-steps">
         <div>${icon('shield-check')}<span><strong>Achat pris en charge</strong>Nous achetons et contrôlons chaque article pour vous.</span></div>
         <div>${icon('airplane-tilt')}<span><strong>Acheminement maîtrisé</strong>Transport et formalités de douane gérés par nos soins.</span></div>
-        <div>${icon('wallet')}<span><strong>Prix tout compris</strong>En FCFA, payé en Mobile Money, sans frais cachés.</span></div>
+        <div>${icon('wallet')}<span><strong>Prix tout compris</strong>En FCFA, payé en agence, sans frais cachés.</span></div>
         <div>${icon('truck')}<span><strong>Livré chez vous</strong>Suivi à chaque étape, livraison en ${esc(conf.delay)}.</span></div>
       </div>
       ${(() => { const list = state.products.filter((x) => x.origin === 'FR'); return list.length ? `<section class="shelf" style="margin-top:8px"><div class="shelf-head"><div><p class="kicker k-violet">${icon('airplane-tilt')} Venus d’Europe</p><h2>Nos produits</h2></div></div><div class="grid">${list.map(card).join('')}</div></section>` : '<div class="panel empty">Les premiers produits venus d’Europe arrivent très bientôt.</div>'; })()}

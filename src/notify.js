@@ -60,7 +60,9 @@ async function notifyReservation(order) {
   const deadline = new Date(order.pickupDeadline).toLocaleString('fr-FR', { dateStyle: 'full', timeStyle: 'short' });
   const subject = `Réservation en agence ${order.id} : ${formatXAF(order.total)} à encaisser`;
   const text = [
-    `Le client vient payer en espèces et retirer sa commande à l'agence ${order.agency?.name} (${order.agency?.city}).`,
+    order.fulfillment === 'pickup'
+      ? `Le client vient payer en espèces et retirer sa commande à l'agence ${order.agency?.name} (${order.agency?.city}).`
+      : `Le client vient payer en espèces à l'agence ${order.agency?.name} (${order.agency?.city}), puis la commande est LIVRÉE chez lui : ${c.city || ''} — ${c.address || ''}.`,
     `À encaisser : ${formatXAF(order.total)} — réservation valable jusqu'au ${deadline}.`,
     '',
     ...order.lines.map((l) => `- ${l.qty} × ${l.name} : ${formatXAF(l.total)}`),
@@ -86,4 +88,16 @@ async function notifyImportRequest(r) {
   await send(subject, text, r.id);
 }
 
-module.exports = { notifyPaidOrder, notifyReservation, notifyImportRequest };
+// Nouvelle pièce d'identité à vérifier (la photo n'est JAMAIS jointe à l'e-mail : elle reste dans Kamwa Pro)
+async function notifyIdentity(customer) {
+  const subject = `Pièce d'identité à vérifier : ${customer.name}`;
+  const text = [
+    `${customer.name} (${[customer.phone, customer.email].filter(Boolean).join(' · ')}) a envoyé sa pièce d'identité.`,
+    'Il ne pourra commander qu\'après votre vérification.',
+    '',
+    `Vérifier : ${config.publicUrl}/admin/#/clients`,
+  ].join('\n');
+  await send(subject, text, customer.id);
+}
+
+module.exports = { notifyPaidOrder, notifyReservation, notifyImportRequest, notifyIdentity };

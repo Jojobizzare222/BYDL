@@ -6,6 +6,8 @@ const { products, orders } = require('../store');
 const { normalizeLocal } = require('../utils/phone');
 const { availableStock } = require('../utils/stock');
 const { currentCustomer } = require('../customer/auth');
+const { idStatus } = require('../customer/identity');
+const { salesSettings } = require('../sales');
 
 const newOrderId = () =>
   'CMD-' + new Date().toISOString().slice(2, 10).replace(/-/g, '') + '-' + crypto.randomBytes(4).toString('hex').toUpperCase();
@@ -46,11 +48,27 @@ const isOwner = (req, order) => {
   return Boolean(customer && order.customerId === customer.id);
 };
 
+// Règle de vente : compte client avec pièce d'identité VÉRIFIÉE par Kamwa (réglable dans Kamwa Pro → Réglages).
+// Renvoie null si le client peut commander, sinon la réponse d'erreur à envoyer.
+function accountGate(account) {
+  if (!salesSettings().accountRequired) return null;
+  if (!account) return { status: 401, body: { error: 'Connectez-vous ou créez votre compte Kamwa pour commander', needAccount: true } };
+  const st = idStatus(account);
+  if (st === 'verified') return null;
+  const why = { missing: "Ajoutez la photo de votre pièce d'identité dans « Mon compte » pour pouvoir commander.",
+    pending: "Votre pièce d'identité est en cours de vérification par Kamwa. Vous pourrez commander dès qu'elle sera validée.",
+    rejected: "Votre pièce d'identité a été refusée. Envoyez une nouvelle photo depuis « Mon compte »." }[st];
+  return { status: 403, body: { error: why, idStatus: st } };
+}
+
 // Création de commande : le total est TOUJOURS recalculé côté serveur à partir du catalogue.
 router.post('/', (req, res) => {
   const { items, customer } = req.body || {};
   if (!Array.isArray(items) || items.length === 0) return res.status(400).json({ error: 'Panier vide' });
   if (!customer?.name?.trim()) return res.status(400).json({ error: 'Nom obligatoire' });
+  const account = currentCustomer(req);
+  const gate = accountGate(account);
+  if (gate) return res.status(gate.status).json(gate.body);
 
   const phone = normalizeLocal(customer.phone);
   if (!phone) return res.status(400).json({ error: 'Numéro de téléphone invalide (ex. 06 123 45 67)' });
@@ -88,7 +106,7 @@ router.post('/', (req, res) => {
   const order = orders.insert({
     id: newOrderId(),
     accessToken: crypto.randomBytes(16).toString('hex'),
-    customerId: currentCustomer(req)?.id || null, // commande rattachée au compte si le client est connecté
+    customerId: account?.id || null, // commande rattachée au compte si le client est connecté
     lines,
     subtotal,
     deliveryFee: 0, // à définir selon la zone (Pointe-Noire, Brazzaville…)
@@ -124,3 +142,4 @@ module.exports.hasAccess = hasAccess;
 module.exports.clientLines = clientLines;
 module.exports.clientOrder = clientOrder;
 module.exports.newOrderId = newOrderId;
+module.exports.accountGate = accountGate;

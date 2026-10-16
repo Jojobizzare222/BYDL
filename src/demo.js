@@ -2,7 +2,7 @@
 // Ces comptes sont PUBLICS (affichés sur la page de connexion de la démo) et n'existent jamais sur la vraie boutique.
 const crypto = require('crypto');
 const config = require('./config');
-const { settings, staff, products, orders, payments, ledger, imports } = require('./store');
+const { settings, staff, products, orders, payments, ledger, imports, agencies } = require('./store');
 const { hashPassword } = require('./admin/auth');
 
 const DEMO_PASSWORD = 'demo-kamwa';
@@ -24,6 +24,10 @@ function seed() {
 
   // Administrateur de la démo (mot de passe public, base temporaire)
   settings.set('admin_password', hashPassword(DEMO_PASSWORD));
+
+  // Agences d'exemple : le paiement en espèces en agence est le seul moyen proposé par défaut
+  agencies.insert({ id: 'AG-DEMO-PNR', name: 'Agence Kamwa Centre-ville (démo)', city: 'Pointe-Noire', address: 'Avenue Charles de Gaulle (exemple)', hours: 'Lun-Sam 8 h - 18 h', phone: '06 000 00 01', active: true, createdAt: now });
+  agencies.insert({ id: 'AG-DEMO-BZV', name: 'Agence Kamwa Poto-Poto (démo)', city: 'Brazzaville', address: 'Rue Mbochis (exemple)', hours: 'Lun-Sam 8 h - 18 h', phone: '05 000 00 02', active: true, createdAt: now });
 
   // Comptes équipe et fournisseur
   const users = {};

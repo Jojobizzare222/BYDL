@@ -11,3 +11,4 @@ public/images/products/
 .env.local
 .vercel/
 data/models/
+data/identity/

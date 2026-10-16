@@ -5,7 +5,7 @@ const router = require('express').Router();
 const { imports, orders } = require('../store');
 const { normalizeLocal } = require('../utils/phone');
 const { currentCustomer } = require('../customer/auth');
-const { newOrderId, clientOrder } = require('./orders');
+const { newOrderId, clientOrder, accountGate } = require('./orders');
 const imp = require('../imports');
 const { newDeliveryCode } = require('../delivery');
 const { notifyImportRequest } = require('../notify');
@@ -83,6 +83,8 @@ router.post('/:id/accept', (req, res) => {
     const o = orders.get(r.orderId);
     return res.json({ orderId: r.orderId, token: o.accessToken, order: clientOrder(o) });
   }
+  const gate = accountGate(currentCustomer(req)); // même règle que pour une commande du catalogue
+  if (gate) return res.status(gate.status).json(gate.body);
   if (imp.statusOf(r) !== 'quoted') return res.status(400).json({ error: imp.isExpired(r) ? 'Ce devis a expiré : demandez-en un nouveau (les prix ont pu changer).' : "Ce devis n'est pas disponible" });
   const q = r.quote;
   // Répartition du prix tout compris entre les articles (au prorata de leur prix en euros)

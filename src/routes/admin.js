@@ -19,6 +19,8 @@ const demo = require('../demo');
 const { normalizeLocal, detectOperator } = require('../utils/phone');
 const imp = require('../imports');
 const scrape = require('../scrape');
+const identity = require('../customer/identity');
+const sales = require('../sales');
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR || (process.env.VERCEL ? '/tmp/kamwa-uploads' : path.join(__dirname, '..', '..', 'data', 'uploads'));
 
@@ -358,7 +360,7 @@ router.get('/customers', requireRole(), (req, res) => {
   const all = orders.all();
   const list = customers
     .all()
-    .map((c) => ({ ...customerAuth.publicCustomer(c), orders: all.filter((o) => o.customerId === c.id).length }))
+    .map((c) => ({ ...customerAuth.publicCustomer(c), idCheckedBy: c.idCheckedBy || null, hasIdPhoto: Boolean(c.idPhoto), orders: all.filter((o) => o.customerId === c.id).length }))
     .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
   res.json(list);
 });
@@ -368,6 +370,43 @@ router.post('/customers/:id/new-code', requireRole(), (req, res) => {
   const customer = customers.get(req.params.id);
   if (!customer) return res.status(404).json({ error: 'Client introuvable' });
   res.json({ code: customerAuth.assignNewCode(customer.id) });
+});
+
+// ---------- Pièces d'identité des clients (admin seulement) ----------
+// La photo n'est jamais servie en accès libre : seulement ici, à l'admin connecté, sans mise en cache.
+router.get('/customers/:id/identity-photo', requireRole(), (req, res) => {
+  const customer = customers.get(req.params.id);
+  const file = customer && identity.photoPath(customer.idPhoto);
+  if (!file) return res.status(404).json({ error: 'Pas de pièce enregistrée' });
+  res.set({ 'Cache-Control': 'no-store, private', 'X-Content-Type-Options': 'nosniff', 'Content-Disposition': 'inline' });
+  res.sendFile(file, (err) => { if (err && !res.headersSent) res.sendStatus(404); });
+});
+// Décision : « verify » (le client peut commander) ou « reject » (motif montré au client, qui renvoie une photo)
+router.post('/customers/:id/identity', requireRole(), (req, res) => {
+  const customer = customers.get(req.params.id);
+  if (!customer) return res.status(404).json({ error: 'Client introuvable' });
+  if (!customer.idPhoto) return res.status(400).json({ error: "Ce client n'a pas encore envoyé de pièce" });
+  const decision = req.body?.decision;
+  const reason = String(req.body?.reason || '').trim().slice(0, 200);
+  if (!['verify', 'reject'].includes(decision)) return res.status(400).json({ error: 'Décision inconnue' });
+  if (decision === 'reject' && !reason) return res.status(400).json({ error: 'Indiquez le motif du refus (il sera montré au client)' });
+  const updated = customers.update(customer.id, {
+    idStatus: decision === 'verify' ? 'verified' : 'rejected',
+    idRejectReason: decision === 'reject' ? reason : null,
+    idCheckedAt: new Date().toISOString(),
+    idCheckedBy: req.user.name || req.user.login,
+  });
+  log(req, decision === 'verify' ? "Pièce d'identité vérifiée" : "Pièce d'identité refusée", { id: customer.id, name: customer.name }, decision === 'reject' ? reason : identity.ID_TYPES[customer.idType]);
+  res.json({ ...customerAuth.publicCustomer(updated), idCheckedBy: updated.idCheckedBy });
+});
+
+// ---------- Règles de vente : compte vérifié obligatoire, moyens de paiement (admin) ----------
+router.get('/settings/sales', requireRole(), (req, res) => res.json(sales.salesSettings()));
+router.put('/settings/sales', requireRole(), (req, res) => {
+  const r = sales.saveSalesSettings(req.body || {});
+  if (r.error) return res.status(400).json({ error: r.error });
+  log(req, 'Règles de vente modifiées', null, `compte obligatoire : ${r.value.accountRequired ? 'oui' : 'non'} · paiements : ${Object.keys(r.value.methods).filter((k) => r.value.methods[k]).join(', ')}`);
+  res.json(r.value);
 });
 
 // ---------- Produits ----------
@@ -741,13 +780,14 @@ router.get('/stats', (req, res) => {
   }
 
   // Admin et employé Commandes
-  const isCashToCollect = (o) => o.status === 'pending_payment' && o.fulfillment === 'pickup' && o.pickupDeadline && Date.parse(o.pickupDeadline) > Date.now();
+  const isCashToCollect = (o) => o.status === 'pending_payment' && (o.fulfillment === 'pickup' || o.agency) && o.pickupDeadline && Date.parse(o.pickupDeadline) > Date.now();
   const perDay = (fn) => labels.map((d) => soldInPeriod.filter((o) => dayKey(o.paidAt || o.createdAt) === d).reduce((s, o) => s + fn(o), 0));
   const todo = {
     toShip: allOrders.filter((o) => ['paid', 'confirmed'].includes(o.status)).length,
     toCollect: allOrders.filter(isCashToCollect).length,
     inTransit: allOrders.filter((o) => o.status === 'shipped').length,
     refunds: allOrders.filter((o) => o.paidAfterCancel).length,
+    ...(role === 'admin' ? { idToCheck: customers.all().filter((c) => c.idStatus === 'pending').length } : {}),
   };
   out.todo = todo;
   out.byStatus = countBy(allOrders.filter((o) => Date.parse(o.createdAt) >= since), (o) => STATUS_LABELS[o.status] || o.status);

@@ -11,3 +11,5 @@ data/uploads/
 .env*
 # Modèle de détourage (170 Mo, téléchargé automatiquement au premier usage)
 data/models/
+# Pièces d'identité des clients : données TRÈS sensibles, jamais sur GitHub
+data/identity/

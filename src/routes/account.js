@@ -4,6 +4,8 @@ const router = require('express').Router();
 const { customers, orders, payments } = require('../store');
 const { normalizeLocal } = require('../utils/phone');
 const auth = require('../customer/auth');
+const identity = require('../customer/identity');
+const { notifyIdentity } = require('../notify');
 const { hasAccess, clientOrder } = require('./orders');
 
 // Vue client d'une commande : jamais la clé secrète, jamais le détail interne (note admin).
@@ -31,8 +33,9 @@ router.get('/me', (req, res) => {
   res.json(customer ? { loggedIn: true, customer: auth.publicCustomer(customer) } : { loggedIn: false });
 });
 
-// Création de compte : nom + (téléphone et/ou e-mail). Le code à 6 chiffres est renvoyé UNE seule fois.
-router.post('/register', (req, res) => {
+// Création de compte : nom + (téléphone et/ou e-mail) + photo de la pièce d'identité (obligatoire).
+// Le code à 6 chiffres est renvoyé UNE seule fois. Le compte peut commander quand l'admin a vérifié la pièce.
+router.post('/register', async (req, res) => {
   const { name, phone, email, deviceOrders } = req.body || {};
   const cleanName = String(name || '').trim().slice(0, 120);
   if (!cleanName) return res.status(400).json({ error: 'Votre nom est obligatoire' });
@@ -43,6 +46,8 @@ router.post('/register', (req, res) => {
   if (!p && !e) return res.status(400).json({ error: 'Indiquez un numéro de téléphone ou une adresse e-mail' });
   if (p && customers.find((c) => c.phone === p)) return res.status(409).json({ error: 'Un compte existe déjà avec ce numéro. Connectez-vous avec votre code.' });
   if (e && customers.find((c) => c.email === e)) return res.status(409).json({ error: 'Un compte existe déjà avec cet e-mail. Connectez-vous avec votre code.' });
+  const id = await identity.readSubmission(req.body);
+  if (id.error) return res.status(400).json({ error: id.error });
 
   const code = auth.newCode();
   const customer = customers.insert({
@@ -51,8 +56,10 @@ router.post('/register', (req, res) => {
     phone: p || null,
     email: e || null,
     codeHash: auth.hashCode(code),
+    ...id.fields,
     createdAt: new Date().toISOString(),
   });
+  notifyIdentity(customer);
   auth.openSession(req, res, customer.id);
   const claimed = claimDeviceOrders(customer.id, deviceOrders);
   res.status(201).json({ customer: auth.publicCustomer(customer), code, claimed });
@@ -70,6 +77,19 @@ router.post('/login', (req, res) => {
 router.post('/logout', (req, res) => {
   auth.closeSession(req, res);
   res.json({ ok: true });
+});
+
+// Envoyer (ou renvoyer) sa pièce d'identité : compte créé avant cette règle, ou pièce refusée par l'admin
+router.post('/identity', async (req, res) => {
+  const customer = auth.currentCustomer(req);
+  if (!customer) return res.status(401).json({ error: 'Connectez-vous' });
+  if (['pending', 'verified'].includes(identity.idStatus(customer))) return res.status(409).json({ error: 'Votre pièce est déjà enregistrée' });
+  const id = await identity.readSubmission(req.body);
+  if (id.error) return res.status(400).json({ error: id.error });
+  identity.removePhoto(customer.idPhoto); // l'ancienne photo refusée n'est pas gardée
+  const updated = customers.update(customer.id, id.fields);
+  notifyIdentity(updated);
+  res.json({ customer: auth.publicCustomer(updated) });
 });
 
 // Historique des commandes du client connecté (les plus récentes d'abord)
