@@ -64,15 +64,8 @@ button { font: inherit; letter-spacing: inherit; }
 @keyframes drift { from { transform: translate(0, 0); } to { transform: translate(40px, -60px); } }
 @keyframes spin-drift { from { transform: translate(0, 0) rotate(0deg); } to { transform: translate(-50px, 40px) rotate(180deg); } }
 @media (max-width: 700px) { .r2, .b2, .tri, .square { display: none; } .r1 { width: 200px; height: 200px; border-width: 14px; } .b1 { width: 340px; height: 340px; } }
-@media (prefers-reduced-motion: reduce) { .shape, .ticker, .deco { animation: none !important; } }
+@media (prefers-reduced-motion: reduce) { .shape, .deco { animation: none !important; } }
 
-/* ---------- Bandeau défilant ---------- */
-.promo-strip { background: var(--mango-soft); color: var(--ink); font-weight: 600; font-size: .8rem; overflow: hidden; white-space: nowrap; }
-.ticker { display: inline-flex; animation: ticker 40s linear infinite; padding: 8px 0; }
-.ticker span { display: inline-flex; align-items: center; padding: 0 22px; }
-.ticker span::before { content: ''; width: 7px; height: 7px; margin-right: 22px; background: var(--mango); clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); transform: scale(1.4); background: var(--accent); }
-.promo-strip:hover .ticker { animation-play-state: paused; }
-@keyframes ticker { to { transform: translateX(-50%); } }
 .demo-strip { background: var(--ink); color: var(--mango); text-align: center; font-size: .78rem; font-weight: 600; padding: 8px 16px; }
 
 /* ---------- En-tête Kamwa : bande violette + bande des rayons, liseré violet→corail→mangue ---------- */
@@ -625,7 +618,6 @@ input:focus, select:focus, textarea:focus { outline: 4px solid rgba(82,54,201,.1
 }
 .offline-bar[hidden] { display: none; }
 /* Ouverte comme application (écran d'accueil) : on tient compte de l'encoche et on enlève le bandeau défilant */
-html.standalone .promo-strip { display: none; }
 html.standalone .header { padding-top: env(safe-area-inset-top); }
 html.standalone body { -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
 html.standalone input, html.standalone textarea, html.standalone .legal { -webkit-user-select: text; user-select: text; }
