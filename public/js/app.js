@@ -9,7 +9,7 @@
   // Univers et catégories affichés dans le menu : fournis par le serveur (src/catalog.js), même liste que l'admin
   let UNIVERSES = [];
   // Icônes Phosphor (fichier /icons.svg, récupérées via Iconify)
-  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=6#${name}"></use></svg>`;
+  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=7#${name}"></use></svg>`;
   const ICONS = { 'Téléphones': 'device-mobile-duotone', 'Tablettes': 'device-tablet-duotone', 'Ordinateurs': 'laptop-duotone', 'Montres': 'watch-duotone', 'Audio': 'headphones-duotone', 'TV & Maison': 'television-duotone', 'Jeux vidéo & consoles': 'game-controller-duotone', 'Composants': 'cpu-duotone', 'Accessoires': 'plug-duotone', 'Homme': 't-shirt-duotone', 'Femme': 'dress-duotone', 'Chaussures': 'sneaker-duotone' };
   const catIcon = (cat, cls = '') => icon(ICONS[cat] || 'shopping-bag-duotone', cls);
   // Vignettes sans photo : une des trois teintes de la charte, selon la catégorie
@@ -84,7 +84,10 @@
   const formatCode = (c) => `${c.slice(0, 3)} ${c.slice(3)}`;
 
   function renderAccountBtn() {
-    $('#accountLabel').textContent = state.customer ? state.customer.name.split(' ')[0] : 'Compte';
+    const first = state.customer ? state.customer.name.split(' ')[0] : '';
+    $('#accountHello').textContent = first ? 'Mbote ' + first + ' !' : 'Mon espace';
+    $('#accountLabel').textContent = first ? 'Mon compte' : 'Se connecter';
+    $('#menuHello').textContent = first ? 'Mbote ' + first + ' !' : 'Mon espace Kamwa';
   }
   async function refreshCustomer() {
     try { const me = await api('/account/me'); state.customer = me.loggedIn ? me.customer : null; } catch {}
@@ -169,11 +172,47 @@
     const key = { '': 'home', p: 'home', c: 'home', promos: 'promos', compte: 'compte', suivi: 'compte', recherche: 'recherche' }[page];
     document.querySelectorAll('#appTabs [data-tab]').forEach((t) => t.classList.toggle('on', t.dataset.tab === key));
   }
+  // Rayon choisi à gauche de la recherche : « u:Univers » ou « c:Catégorie »
+  const searchCat = () => $('#searchCat').value;
+  const catHash = (v) => (v.startsWith('u:') ? '#/c/' + enc(v.slice(2)) : '#/c/' + enc(UNIVERSES.find((u) => u.categories.includes(v.slice(2)))?.name || '') + '/' + enc(v.slice(2)));
   $('#searchForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const q = $('#searchInput').value.trim();
-    location.hash = q ? '#/recherche/' + enc(q) : '#/';
+    location.hash = q ? '#/recherche/' + enc(q) : searchCat() ? catHash(searchCat()) : '#/';
   });
+  $('#searchCat').addEventListener('change', () => {
+    const o = $('#searchCat').selectedOptions[0];
+    $('#searchCatLabel').textContent = o.value ? o.textContent.trim() : 'Rayons';
+  });
+
+  // Ville de livraison (en-tête) : retenue pour pré-remplir la commande
+  function renderDeliverCity() {
+    const city = loadJSON('kamwa-customer')?.city || 'Pointe-Noire';
+    $('#deliverCity').textContent = city;
+    $('#deliverSelect').value = city;
+  }
+  $('#deliverSelect').addEventListener('change', (e) => {
+    const c = loadJSON('kamwa-customer') || {};
+    c.city = e.target.value;
+    try { localStorage.setItem('kamwa-customer', JSON.stringify(c)); } catch {}
+    renderDeliverCity();
+    if (location.hash.startsWith('#/commande')) route();
+  });
+  renderDeliverCity();
+
+  // Menu « Toutes les catégories »
+  const menu = $('#menuPanel');
+  const openMenu = (open) => {
+    menu.classList.toggle('open', open);
+    menu.setAttribute('aria-hidden', String(!open));
+    ['#menuBtn', '#allBtn'].forEach((b) => $(b).setAttribute('aria-expanded', String(open)));
+    document.body.classList.toggle('no-scroll', open);
+  };
+  $('#menuBtn').addEventListener('click', () => openMenu(true));
+  $('#allBtn').addEventListener('click', () => openMenu(true));
+  $('#menuClose').addEventListener('click', () => openMenu(false));
+  menu.addEventListener('click', (e) => { if (e.target === menu || e.target.closest('a')) openMenu(false); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && menu.classList.contains('open')) openMenu(false); });
 
   // ---------- Menu catégories ----------
   function renderNav(active) {
@@ -185,6 +224,18 @@
     links.push(`<a href="#/promos" class="deals-link ${active === 'promos' ? 'active' : ''}">Bonnes affaires</a>`);
     links.splice(1, 0, `<a href="#/france" class="france-link ${active === 'france' ? 'active' : ''}">${icon('airplane-tilt')} Achat en France</a>`);
     $('#catnav').innerHTML = links.join('');
+    // Menu « Toutes » et liste des rayons de la recherche (une seule fois)
+    if (!$('#menuBody').innerHTML) {
+      $('#menuBody').innerHTML = `<h3>À la une</h3>
+        <a href="#/promos">${icon('seal-percent')} Bonnes affaires</a>
+        <a href="#/france">${icon('airplane-tilt')} Achat en France</a>` +
+        UNIVERSES.map((u) => `<h3>${esc(u.name)}</h3><a href="#/c/${enc(u.name)}">Tout ${esc(u.name.toLowerCase())}</a>` +
+          u.categories.map((c) => `<a href="#/c/${enc(u.name)}/${enc(c)}">${catIcon(c)} ${esc(c)}</a>`).join('')).join('') +
+        `<h3>Aide et compte</h3><a href="#/compte">${icon('user-circle')} Mon compte et mes commandes</a>
+        <a href="#/legal/vente">${icon('arrow-counter-clockwise')} Livraison et retours</a>`;
+      $('#searchCat').innerHTML = '<option value="">Tous les rayons</option>' +
+        UNIVERSES.map((u) => `<option value="u:${esc(u.name)}">${esc(u.name)}</option>` + u.categories.map((c) => `<option value="c:${esc(c)}">&nbsp;&nbsp;${esc(c)}</option>`).join('')).join('');
+    }
     $('#footerShop').innerHTML = UNIVERSES.map((u) => `<li><a href="#/c/${enc(u.name)}">${esc(u.name)}</a></li>`).join('') + '<li><a href="#/promos">Bonnes affaires</a></li>';
   }
 
@@ -421,6 +472,8 @@
     $('#searchInput').value = q;
     let list = [];
     try { list = await api('/products?q=' + enc(q)); } catch {}
+    const cat = searchCat();
+    if (cat) list = list.filter((p) => (cat.startsWith('u:') ? p.universe === cat.slice(2) : p.category === cat.slice(2)));
     viewList({ title: `Résultats pour « ${q} »`, crumbs: '<a href="#/">Accueil</a> › Recherche', list, active: null });
   }
 
@@ -1203,6 +1256,7 @@
     state.timers.forEach(clearInterval); state.timers = [];
     const parts = (location.hash || '#/').slice(2).split('#')[0].split('/').map(decodeURIComponent);
     if (parts[0] !== 'recherche') $('.header').classList.remove('search-open');
+    if (parts[0] !== 'recherche') $('#searchInput').value = '';
     markTab(parts[0]);
     window.scrollTo(0, 0);
     switch (parts[0]) {
