@@ -73,8 +73,8 @@
   $('#logoutBtn').addEventListener('click', async () => {
     await api('/logout', { method: 'POST' }).catch(() => {});
     location.hash = '';
-    state.user = null;
-    state.seenPaid = null;
+    // On vide tout : la personne suivante (autre rôle) recharge ses propres données
+    Object.assign(state, { user: null, seenPaid: null, orders: [], products: [], universes: [], suppliers: [], productFilter: 'all', productQuery: '' });
     document.title = 'Kamwa Admin';
     showLogin();
   });
@@ -482,7 +482,11 @@
         ${isAdmin() && margin != null ? `<p class="muted">Marge actuelle : <strong>${fcfa(margin)}</strong> par article.</p>` : ''}
         ${isSupplier() ? '<p class="muted">Kamwa fixe le prix de vente aux clients. Mettez le stock à 0 si le produit n\'est plus disponible.</p>' : ''}
         ${isAdmin() ? `<label for="supplierId">Fournisseur</label>
-          <select id="supplierId"><option value="">Aucun (stock Kamwa)</option>${(state.suppliers || []).map((s) => `<option value="${esc(s.id)}" ${s.id === p.supplierId ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}</select>` : ''}
+          <select id="supplierId"><option value="">Aucun (stock Kamwa)</option>${[
+            ...(state.suppliers || []),
+            // le fournisseur actuel reste toujours proposé (même s'il n'est plus dans la liste), pour ne jamais l'effacer par erreur
+            ...(p.supplierId && !(state.suppliers || []).some((s) => s.id === p.supplierId) ? [{ id: p.supplierId, name: p.supplierName || p.supplierId }] : []),
+          ].map((s) => `<option value="${esc(s.id)}" ${s.id === p.supplierId ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}</select>` : ''}
         ${!isSupplier() ? `
         <label class="check"><input id="active" type="checkbox" ${p.active !== false ? 'checked' : ''}> Visible sur la boutique</label>
         <label class="check"><input id="featured" type="checkbox" ${p.featured ? 'checked' : ''}> Mettre en avant sur l'accueil</label>` : ''}

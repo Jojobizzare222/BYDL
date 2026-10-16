@@ -271,10 +271,16 @@ const canSee = (user, p) => user.role !== 'supplier' || p.supplierId === user.id
 
 // Résumé lisible des changements, pour le journal
 const TRACKED = { name: 'nom', price: 'prix', oldPrice: 'prix barré', supplierPrice: 'prix fournisseur', stock: 'stock', category: 'catégorie', active: 'visible', featured: 'mis en avant', condition: 'état' };
+// Valeur comparable et lisible (« visible » est vrai par défaut, « mis en avant » faux par défaut)
+const shown = (k, v) => {
+  if (k === 'active') return v !== false ? 'oui' : 'non';
+  if (k === 'featured') return v ? 'oui' : 'non';
+  return v ?? '—';
+};
 function changes(before, after) {
   const out = Object.entries(TRACKED)
-    .filter(([k]) => JSON.stringify(before[k] ?? null) !== JSON.stringify(after[k] ?? null))
-    .map(([k, label]) => `${label} : ${before[k] ?? '—'} → ${after[k] ?? '—'}`);
+    .filter(([k]) => shown(k, before[k]) !== shown(k, after[k]))
+    .map(([k, label]) => `${label} : ${shown(k, before[k])} → ${shown(k, after[k])}`);
   if (JSON.stringify(before.images || [before.image].filter(Boolean)) !== JSON.stringify(after.images || [after.image].filter(Boolean))) out.push('photos modifiées');
   if ((before.description || '') !== (after.description || '')) out.push('description modifiée');
   if (JSON.stringify(before.specs || []) !== JSON.stringify(after.specs || [])) out.push('caractéristiques modifiées');
