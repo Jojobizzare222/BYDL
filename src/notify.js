@@ -114,4 +114,18 @@ async function notifyChat(conv) {
   await send(subject, text, conv.id);
 }
 
-module.exports = { notifyPaidOrder, notifyReservation, notifyImportRequest, notifyIdentity, notifyChat };
+// Le client a changé de point relais après sa commande
+async function notifyRelayChange(order) {
+  const last = (order.relayChanges || []).slice(-1)[0] || {};
+  const subject = `Point relais changé : ${order.id}`;
+  const text = [
+    `${order.customer.name} (${order.customer.phone}) a changé de point relais pour la commande ${order.id}.`,
+    `Avant : ${last.from || '-'}  →  Maintenant : ${last.to || order.agency?.name}`,
+    order.status === 'pending_payment' ? 'La commande n\'est pas encore payée : le client paiera au nouveau point relais.' : 'Commande déjà payée : pensez à acheminer le colis au nouveau point relais.',
+    '',
+    `Gérer la commande : ${config.publicUrl}/admin/#/commande/${encodeURIComponent(order.id)}`,
+  ].join('\n');
+  await send(subject, text, order.id);
+}
+
+module.exports = { notifyPaidOrder, notifyReservation, notifyImportRequest, notifyIdentity, notifyChat, notifyRelayChange };

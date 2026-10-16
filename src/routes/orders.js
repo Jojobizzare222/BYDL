@@ -48,6 +48,16 @@ const isOwner = (req, order) => {
   return Boolean(customer && order.customerId === customer.id);
 };
 
+const validPoint = (p) => {
+  const lat = Number(p?.lat), lng = Number(p?.lng);
+  return Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180 ? { lat: Math.round(lat * 1e6) / 1e6, lng: Math.round(lng * 1e6) / 1e6 } : null;
+};
+const distanceKm = (a, b) => {
+  const R = 6371, rad = (x) => (x * Math.PI) / 180;
+  const h = Math.sin(rad(b.lat - a.lat) / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(rad(b.lng - a.lng) / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+};
+
 // Règle de vente : compte client avec pièce d'identité VÉRIFIÉE par Kamwa (réglable dans Kamwa Pro → Réglages).
 // Renvoie null si le client peut commander, sinon la réponse d'erreur à envoyer.
 function accountGate(account) {
@@ -117,6 +127,8 @@ router.post('/', (req, res) => {
       phone,
       city: (customer.city || '').trim(),
       address: (customer.address || '').trim(),
+      // Adresse placée sur la carte par le client (facultatif) : aide le livreur et le suivi en direct
+      ...(validPoint(customer.location) ? { location: validPoint(customer.location) } : {}),
     },
     status: 'pending_payment', // pending_payment -> paid (ou confirmed si paiement à la réception) -> shipped -> delivered | cancelled
     deliveryCode: newDeliveryCode(), // à donner au livreur (ou à l'agence) seulement à la remise du colis
@@ -135,6 +147,55 @@ router.get('/:id', (req, res) => {
     return res.status(404).json({ error: 'Commande introuvable' });
   }
   res.json(publicOrder(order));
+});
+
+// Suivi EN DIRECT de la livraison (façon Grab) : position du livreur pendant SA livraison en cours seulement.
+// Position gardée 3 minutes au plus (au-delà : « suivi momentanément indisponible »), jamais d'historique.
+router.get('/:id/live', (req, res) => {
+  const { staff } = require('../store');
+  const order = orders.get(req.params.id);
+  if (!order || !(hasAccess(order, req.get('X-Order-Token')) || isOwner(req, order))) return res.status(404).json({ error: 'Commande introuvable' });
+  res.set('Cache-Control', 'no-store');
+  const dest = order.customer?.location || null;
+  if (order.status !== 'shipped' || !order.courierId) return res.json({ active: false, status: order.status, destination: dest });
+  const c = staff.get(order.courierId);
+  const pos = c?.livePos;
+  const fresh = pos && Date.now() - Date.parse(pos.at) < 3 * 60 * 1000;
+  if (!fresh) return res.json({ active: false, status: 'shipped', courierName: String(c?.name || 'Votre livreur').split(' ')[0], destination: dest, waiting: true });
+  const out = { active: true, status: 'shipped', courier: { name: String(c.name || 'Votre livreur').split(' ')[0], lat: pos.lat, lng: pos.lng, heading: pos.heading ?? null, at: pos.at }, destination: dest };
+  if (dest) {
+    const km = distanceKm(pos, dest);
+    out.distanceKm = Math.round(km * 10) / 10;
+    out.etaMin = Math.max(1, Math.round(((km * 1.35) / 18) * 60)); // détours en ville (×1,35), 18 km/h en moyenne
+    // Barre de progression : distance au départ du livreur (première position connue de cette livraison)
+    const start = order.liveStartKm || (orders.update(order.id, { liveStartKm: Math.max(km, 0.1) }), Math.max(km, 0.1));
+    out.progress = Math.max(0, Math.min(1, 1 - km / Math.max(start, km)));
+  }
+  res.json(out);
+});
+
+// Changer de point relais après la commande (client propriétaire ou navigateur qui a la clé) :
+//  - retrait au point relais : tant que le colis n'est pas remis ;
+//  - paiement au point relais puis livraison : tant que la commande n'est pas payée.
+// L'équipe est prévenue (le colis doit peut-être être déplacé) ; chaque changement est gardé dans la commande.
+router.post('/:id/relay', (req, res) => {
+  const { agencies } = require('../store');
+  const order = orders.get(req.params.id);
+  if (!order || !(hasAccess(order, req.get('X-Order-Token')) || isOwner(req, order))) return res.status(404).json({ error: 'Commande introuvable' });
+  if (!order.agency) return res.status(400).json({ error: "Cette commande n'utilise pas de point relais" });
+  const open = order.fulfillment === 'pickup' ? ['pending_payment', 'paid', 'confirmed'].includes(order.status) : order.status === 'pending_payment';
+  if (!open) return res.status(409).json({ error: order.fulfillment === 'pickup' ? 'Colis déjà remis : le point relais ne peut plus changer' : 'Commande déjà payée : le point relais ne peut plus changer' });
+  const a = agencies.get(String(req.body?.agencyId || ''));
+  if (!a || a.active === false) return res.status(400).json({ error: 'Choisissez un point relais ouvert' });
+  if (a.id === order.agency.id) return res.json(publicOrder(order));
+  const { id, name, city, address, hours, phone, kind, lat, lng } = a;
+  const updated = orders.update(order.id, {
+    agency: { id, name, city, address, hours, phone, kind: kind || 'agency', lat: lat ?? null, lng: lng ?? null },
+    relayChanges: [...(order.relayChanges || []), { from: order.agency.name, to: name, at: new Date().toISOString() }],
+    ...(order.fulfillment === 'pickup' ? { customer: { ...order.customer, city, address: `Retrait au point relais : ${name}` } } : {}),
+  });
+  require('../notify').notifyRelayChange(updated).catch(() => {});
+  res.json(publicOrder(updated));
 });
 
 module.exports = router;

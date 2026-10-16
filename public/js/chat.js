@@ -118,4 +118,6 @@
   setInterval(() => { tick++; if (document.hidden) return; if (open || (conv && tick % 7 === 0)) load(); }, 4000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) load(); });
   window.kamwaChat = { open: () => toggle(true) };
+  // Ouvert depuis une notification « réponse d'un conseiller »
+  if (/[?&]aide=1/.test(location.search)) { history.replaceState(null, '', location.pathname + location.hash); toggle(true); }
 })();

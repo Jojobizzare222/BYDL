@@ -26,8 +26,10 @@ function seed() {
   settings.set('admin_password', hashPassword(DEMO_PASSWORD));
 
   // Agences d'exemple : le paiement en espèces en agence est le seul moyen proposé par défaut
-  agencies.insert({ id: 'AG-DEMO-PNR', name: 'Agence Kamwa Centre-ville (démo)', city: 'Pointe-Noire', address: 'Avenue Charles de Gaulle (exemple)', hours: 'Lun-Sam 8 h - 18 h', phone: '06 000 00 01', active: true, createdAt: now });
-  agencies.insert({ id: 'AG-DEMO-BZV', name: 'Agence Kamwa Poto-Poto (démo)', city: 'Brazzaville', address: 'Rue Mbochis (exemple)', hours: 'Lun-Sam 8 h - 18 h', phone: '05 000 00 02', active: true, createdAt: now });
+  agencies.insert({ id: 'AG-DEMO-PNR', name: 'Agence Kamwa Centre-ville (démo)', city: 'Pointe-Noire', address: 'Avenue Charles de Gaulle (exemple)', hours: 'Lun-Sam 8 h - 18 h', phone: '06 000 00 01', kind: 'agency', lat: -4.7792, lng: 11.8638, active: true, createdAt: now });
+  agencies.insert({ id: 'AG-DEMO-BZV', name: 'Agence Kamwa Poto-Poto (démo)', city: 'Brazzaville', address: 'Rue Mbochis (exemple)', hours: 'Lun-Sam 8 h - 18 h', phone: '05 000 00 02', kind: 'agency', lat: -4.2615, lng: 15.2786, active: true, createdAt: now });
+  agencies.insert({ id: 'AG-DEMO-TIE', name: 'Relais Tié-Tié — Boutique Mavoungou (démo)', city: 'Pointe-Noire', address: 'Marché de Tié-Tié (exemple)', hours: 'Lun-Dim 7 h - 20 h', phone: '06 000 00 03', kind: 'partner', lat: -4.7905, lng: 11.8843, active: true, createdAt: now });
+  agencies.insert({ id: 'AG-DEMO-LOA', name: 'Relais Loandjili — Pharmacie partenaire (démo)', city: 'Pointe-Noire', address: 'Rond-point Loandjili (exemple)', hours: 'Lun-Sam 8 h - 19 h', phone: '06 000 00 04', kind: 'partner', lat: -4.7569, lng: 11.8857, active: true, createdAt: now });
 
   // Comptes équipe et fournisseur
   const users = {};

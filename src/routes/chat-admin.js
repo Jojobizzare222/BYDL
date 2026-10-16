@@ -60,6 +60,7 @@ router.post('/conversations/:id/messages', SUPPORT, (req, res) => {
   conversations.update(c.id, { status: 'open', assignedTo: c.assignedTo || staffName(req.user) });
   const r = chat.addMessage(conversations.get(c.id), { from: 'staff', staffName: staffName(req.user), userId: req.user.id, text, internal });
   if (internal) conversations.update(c.id, { unreadCustomer: Math.max(0, (r.conv.unreadCustomer || 1) - 1) });
+  else if (c.customerId) require('../push').notifyCustomer(c.customerId, `Kamwa : réponse de ${staffName(req.user).split(' ')[0]}`, text.slice(0, 140), '/?aide=1#/', 'kamwa-chat');
   res.status(201).json(r.message);
 });
 

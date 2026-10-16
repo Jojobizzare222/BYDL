@@ -779,3 +779,44 @@ p.lbl { font-weight: 600; font-size: .88rem; margin: 16px 0 0; }
 .cat-drop .drop-grid a { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 12px; font-size: .88rem; color: var(--ink); }
 .cat-drop .drop-grid a:hover { background: var(--soft); }
 .cat-drop .drop-grid .ico { font-size: 1.3rem; color: var(--brand-2); }
+
+/* ---------- Cartes (points relais, suivi du livreur) ---------- */
+.kmap { height: 320px; border-radius: 16px; overflow: hidden; border: 1px solid var(--line-soft); background: #E8EEF2; z-index: 0; }
+.kmap-pin { background: none; border: 0; }
+.kmap-pin span { position: relative; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); background: var(--brand); border: 3px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,.3); color: #fff; font-weight: 800; font-size: .8rem; }
+.kmap-pin span::after { content: ''; position: absolute; width: 10px; height: 10px; border-radius: 50%; background: var(--mango); transform: rotate(45deg); }
+.kmap-relay.on span, .kmap-relay.on span::after { background: var(--accent); }
+.kmap-relay.on span::after { background: #fff; }
+.kmap-home span { background: var(--ok); } .kmap-home span::after { background: #fff; }
+.kmap-me span { border-radius: 50%; transform: none; width: 18px; height: 18px; background: #2F7BFF; } .kmap-me span::after { display: none; }
+.kmap-courier span { border-radius: 50%; transform: none; background: var(--accent); width: 38px; height: 38px; animation: kpulse 1.6s infinite; } .kmap-courier span::after { display: none; }
+@keyframes kpulse { 0% { box-shadow: 0 0 0 0 rgba(255,90,60,.55); } 70% { box-shadow: 0 0 0 16px rgba(255,90,60,0); } 100% { box-shadow: 0 0 0 0 rgba(255,90,60,0); } }
+.leaflet-popup-content { font-family: var(--font); font-size: .88rem; margin: 10px 12px; }
+.leaflet-popup-content .btn { margin-top: 8px; }
+.relay-list { display: grid; gap: 8px; margin-top: 10px; max-height: 280px; overflow-y: auto; }
+.relay-card { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1.5px solid var(--line-soft); border-radius: 14px; background: var(--paper); cursor: pointer; text-align: left; font: inherit; color: inherit; width: 100%; }
+.relay-card:hover { border-color: var(--brand-2); }
+.relay-card.on { border-color: var(--accent); background: var(--coral-soft); }
+.relay-card .ico { font-size: 1.4rem; color: var(--brand-2); flex: none; margin-top: 2px; }
+.relay-card b { display: block; } .relay-card small { color: var(--muted); display: block; line-height: 1.35; }
+.relay-card .dist { margin-left: auto; font-size: .78rem; font-weight: 700; color: var(--brand); white-space: nowrap; }
+.relay-tools { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0 0; }
+.relay-tools .btn { margin: 0; display: inline-flex; align-items: center; gap: 6px; }
+
+/* Suivi en direct du livreur */
+.live-box { margin: 14px 0; padding: 14px; border-radius: 18px; background: linear-gradient(160deg, #F1EDFF, #FFF6EC); border: 1px solid var(--line-soft); }
+.live-head { display: flex; align-items: center; gap: 8px; font-size: 1.05rem; }
+.live-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); animation: kpulse 1.6s infinite; }
+.live-eta { margin: 6px 0 10px; font-size: .95rem; color: var(--ink); }
+.live-bar { position: relative; height: 8px; border-radius: 999px; background: #E2DCF5; margin: 0 14px 14px 0; }
+.live-bar span { position: absolute; inset: 0 auto 0 0; border-radius: 999px; background: linear-gradient(90deg, var(--brand-2), var(--accent)); transition: width 1s ease; }
+.live-bar .ico { position: absolute; right: -14px; top: 50%; transform: translateY(-50%); font-size: 1.3rem; color: var(--accent); }
+.relay-change { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.relay-change #relayChangeBox { flex-basis: 100%; }
+
+/* Notifications de suivi */
+.push-card { display: flex; align-items: center; gap: 10px; margin: 12px 0; padding: 12px 14px; border-radius: 16px; background: var(--violet-soft); color: var(--ink); font-size: .9rem; }
+.push-card > .ico { font-size: 1.5rem; color: var(--brand-2); flex: none; }
+.push-card span { flex: 1; line-height: 1.4; } .push-card strong { display: block; }
+.push-card .btn { margin: 0; flex: none; }
+.push-card.on { background: #E1F5EC; color: var(--ok); }

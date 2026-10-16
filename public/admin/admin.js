@@ -855,9 +855,51 @@
   }
 
   // ---------- Espace livreur : mes livraisons ----------
+  // ---------- Suivi en direct : le livreur partage sa position pendant ses livraisons (façon Grab) ----------
+  // Position envoyée toutes les 10 s au plus, seulement quand il a une livraison en cours ; écran gardé allumé
+  // (sinon le téléphone met la page en pause). Reprend tout seul à la réouverture de Kamwa Pro.
+  const share = { watch: null, last: 0, lastSent: null, lock: null, error: '' };
+  const shareWanted = () => { try { return localStorage.getItem('kamwa-share-pos') === '1'; } catch { return false; } };
+  async function keepAwake() { try { share.lock = await navigator.wakeLock?.request('screen'); } catch {} }
+  function startSharing() {
+    if (share.watch !== null || !navigator.geolocation) return;
+    try { localStorage.setItem('kamwa-share-pos', '1'); } catch {}
+    keepAwake();
+    share.watch = navigator.geolocation.watchPosition(async (p) => {
+      if (Date.now() - share.last < 10000) return;
+      share.last = Date.now();
+      try {
+        await api('/courier/position', { method: 'POST', body: { lat: p.coords.latitude, lng: p.coords.longitude, accuracy: p.coords.accuracy, heading: p.coords.heading } });
+        share.lastSent = new Date(); share.error = '';
+      } catch (err) { share.error = err.message; if (/arrêté/.test(err.message)) stopSharing(true); }
+      renderShare();
+    }, (e) => { share.error = e.code === 1 ? "Autorisez l'accès à votre position (réglages du navigateur)" : 'Position introuvable : vérifiez que la localisation est activée'; renderShare(); },
+    { enableHighAccuracy: true, maximumAge: 5000, timeout: 20000 });
+    renderShare();
+  }
+  function stopSharing(auto) {
+    if (share.watch !== null) navigator.geolocation.clearWatch(share.watch);
+    share.watch = null; share.lock?.release?.().catch(() => {}); share.lock = null;
+    if (!auto) { try { localStorage.setItem('kamwa-share-pos', '0'); } catch {} api('/courier/position', { method: 'DELETE' }).catch(() => {}); }
+    renderShare();
+  }
+  function renderShare() {
+    const el = $('#sharePanel'); if (!el) return;
+    const on = share.watch !== null;
+    el.className = `panel share-panel ${on ? 'on' : ''}`;
+    el.innerHTML = `<div class="row between" style="align-items:center">
+        <div><strong>${icon('map-pin-duotone')} Suivi en direct pour vos clients</strong><br>
+        <span class="muted">${on ? (share.error ? esc(share.error) : share.lastSent ? `Position partagée à ${share.lastSent.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}. Gardez Kamwa Pro ouvert pendant la tournée.` : 'Recherche de votre position…') : 'Vos clients vous voient arriver sur leur carte. Seulement pendant vos livraisons en cours.'}</span></div>
+        <button class="btn ${on ? 'ghost' : 'green'}" id="shareBtn">${on ? 'Arrêter' : 'Partager ma position'}</button></div>`;
+    $('#shareBtn').addEventListener('click', () => (share.watch !== null ? stopSharing() : startSharing()));
+  }
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && share.watch !== null) keepAwake(); });
+
   async function viewDeliveries() {
     let d;
     try { d = await api('/courier/deliveries'); } catch { return; }
+    if (d.current.length && shareWanted()) startSharing();
+    if (!d.current.length && share.watch !== null) stopSharing(true);
     const reasons = Object.entries(d.failReasons || {});
     const card = (x) => {
       const intl = '242' + String(x.customer.phone || ''); // au Congo, le 0 reste après +242 (ex. +242 06 123 45 67)
@@ -865,7 +907,7 @@
       <article class="deliv" data-id="${esc(x.id)}">
         <div class="row between"><strong class="mono">${esc(x.id)}</strong>${x.paymentPlan === 'cod' ? `<span class="collect-tag">À encaisser : ${fcfa(x.toCollect)}</span>` : '<span class="tag ok">Déjà payée</span>'}</div>
         <h3>${esc(x.customer.name)}</h3>
-        <p class="deliv-addr">${icon('map-pin-duotone')} ${esc(x.customer.city || '')} · ${esc(x.customer.address || '')}</p>
+        <p class="deliv-addr">${icon('map-pin-duotone')} ${esc(x.customer.city || '')} · ${esc(x.customer.address || '')}${x.customer.location ? `<br><a href="${kamwaMap.directions(x.customer.location)}" target="_blank" rel="noopener">${icon('arrow-square-out-bold')} Itinéraire jusqu'au point placé par le client</a>` : ''}</p>
         <p class="muted">${x.lines.map((l) => `${l.qty} × ${esc(l.name)}`).join('<br>')}</p>
         ${x.attempts ? `<p class="muted">${x.attempts} tentative(s) déjà ratée(s)</p>` : ''}
         <div class="row">
@@ -893,8 +935,10 @@
     };
     app.innerHTML = pageHead({ title: 'Mes livraisons', desc: 'Appelez le client avant de partir. Remettez le colis, puis demandez-lui son code de livraison à 4 chiffres : sans ce code, la livraison ne peut pas être validée.' })
       + (d.cashHeld ? `<div class="alert warn">${icon('wallet-duotone')} Vous avez <strong>${fcfa(d.cashHeld)}</strong> en espèces à remettre à Kamwa.</div>` : '')
+      + (d.current.length ? '<div id="sharePanel"></div>' : '')
       + (d.current.length ? `<div class="deliv-list">${d.current.map(card).join('')}</div>` : '<div class="panel empty">Aucune livraison en cours. Les commandes qu\'on vous confie apparaissent ici.</div>')
       + (d.done.length ? `<h2 style="margin-top:24px">Dernières livraisons</h2><ul class="mini-list">${d.done.map((x) => `<li><span>${esc(x.id)} · ${esc(x.customer.name)}<br><span class="muted">${date(x.deliveredAt)}</span></span><span>${x.collected ? `${fcfa(x.collected.amount)} ${x.collected.method === 'cash' ? 'espèces' : 'Mobile Money'}` : '<span class="tag ok">payée</span>'}</span></li>`).join('')}</ul>` : '');
+    renderShare();
     app.querySelectorAll('.deliv').forEach((el) => {
       const id = el.dataset.id;
       el.querySelectorAll('[data-open]').forEach((b) => b.addEventListener('click', () => {
@@ -1009,28 +1053,55 @@
   }
 
   // ---------- Agences ----------
+  // Points relais : agences Kamwa et commerces partenaires, placés sur la carte. Le client y paie en espèces et y retire
+  // son colis (ou se fait livrer après paiement). Toute modification est visible tout de suite sur la boutique.
+  const KIND = { agency: 'Agence Kamwa', partner: 'Point relais partenaire' };
   async function viewAgencies(editId) {
     let list = [];
     try { list = await api('/agencies'); } catch { return; }
-    const editing = editId === 'nouvelle' ? { active: true } : list.find((a) => a.id === editId);
+    const editing = editId === 'nouvelle' ? { active: true, kind: 'partner' } : list.find((a) => a.id === editId);
     if (editing) {
-      app.innerHTML = pageHead({ crumb: 'Agences', title: editing.id ? 'Modifier l\'agence' : 'Nouvelle agence' }) + `
-      <form class="panel" id="agencyForm" novalidate style="max-width:640px">
-        <label for="aName">Nom *</label><input id="aName" type="text" value="${esc(editing.name)}" placeholder="Ex. Kamwa Centre-ville">
-        <label for="aCity">Ville *</label><input id="aCity" type="text" value="${esc(editing.city)}" placeholder="Pointe-Noire">
+      app.innerHTML = pageHead({ crumb: 'Points relais', title: editing.id ? 'Modifier le point relais' : 'Nouveau point relais' }) + `
+      <form class="panel" id="agencyForm" novalidate style="max-width:820px">
+        <div class="grid2">
+          <div><label for="aKind">Type</label><select id="aKind">${Object.entries(KIND).map(([k, l]) => `<option value="${k}" ${(editing.kind || 'agency') === k ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
+          <div><label for="aName">Nom *</label><input id="aName" type="text" value="${esc(editing.name)}" placeholder="Ex. Relais Tié-Tié — Boutique Mavoungou"></div>
+          <div><label for="aCity">Ville *</label><input id="aCity" type="text" value="${esc(editing.city)}" placeholder="Pointe-Noire"></div>
+          <div><label for="aPhone">Téléphone</label><input id="aPhone" type="tel" value="${esc(editing.phone)}"></div>
+        </div>
         <label for="aAddress">Adresse / repère</label><input id="aAddress" type="text" value="${esc(editing.address)}" placeholder="Avenue…, face à…">
         <label for="aHours">Horaires</label><input id="aHours" type="text" value="${esc(editing.hours)}" placeholder="Lun-Sam 9h-18h">
-        <label for="aPhone">Téléphone</label><input id="aPhone" type="tel" value="${esc(editing.phone)}">
-        <label class="check"><input id="aActive" type="checkbox" ${editing.active !== false ? 'checked' : ''}> Active (proposée aux clients)</label>
+        <label>Position sur la carte</label>
+        <p class="muted" style="margin:0 0 6px">Touchez la carte à l'endroit exact du point relais (ou déplacez le repère). Sur place ? « Utiliser ma position ».</p>
+        <div class="kmap" id="aMap" style="height:340px"></div>
+        <div class="row" style="margin-top:8px;align-items:center"><button type="button" class="ghost" id="aLocate">${icon('map-pin-bold')} Utiliser ma position</button><span class="muted" id="aPos"></span><button type="button" class="ghost" id="aClear">Retirer la position</button></div>
+        <label class="check" style="margin-top:12px"><input id="aActive" type="checkbox" ${editing.active !== false ? 'checked' : ''}> Actif (proposé aux clients)</label>
         <div id="aError"></div>
         <div class="row" style="margin-top:14px"><button class="btn">Enregistrer</button><a class="ghost" href="#/agences">Annuler</a></div>
       </form>`;
+      let pos = kamwaMap.hasPos(editing) ? { lat: editing.lat, lng: editing.lng } : null;
+      const showPos = () => { $('#aPos').textContent = pos ? `${pos.lat.toFixed(5)}, ${pos.lng.toFixed(5)}` : 'Pas encore placé'; };
+      showPos();
+      kamwaMap.create($('#aMap'), { center: pos && [pos.lat, pos.lng], zoom: pos ? 16 : 13, city: editing.city }).then(({ L, map }) => {
+        let marker = null;
+        const place = (p, pan) => {
+          pos = { lat: Math.round(p.lat * 1e6) / 1e6, lng: Math.round(p.lng * 1e6) / 1e6 };
+          if (!marker) { marker = L.marker([pos.lat, pos.lng], { draggable: true, icon: kamwaMap.pin(L, 'relay on') }).addTo(map); marker.on('dragend', () => place(marker.getLatLng())); }
+          else marker.setLatLng([pos.lat, pos.lng]);
+          if (pan) map.setView([pos.lat, pos.lng], 17);
+          showPos();
+        };
+        if (pos) place(pos);
+        map.on('click', (e) => place(e.latlng));
+        $('#aLocate').addEventListener('click', async () => { try { place(await kamwaMap.locate(), true); } catch (err) { toast(err.message); } });
+        $('#aClear').addEventListener('click', () => { pos = null; if (marker) { marker.remove(); marker = null; } showPos(); });
+      }).catch((err) => { $('#aMap').innerHTML = `<p class="muted" style="padding:20px">${esc(err.message)}</p>`; });
       $('#agencyForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const body = { name: $('#aName').value, city: $('#aCity').value, address: $('#aAddress').value, hours: $('#aHours').value, phone: $('#aPhone').value, active: $('#aActive').checked };
+        const body = { kind: $('#aKind').value, name: $('#aName').value, city: $('#aCity').value, address: $('#aAddress').value, hours: $('#aHours').value, phone: $('#aPhone').value, active: $('#aActive').checked, lat: pos ? pos.lat : null, lng: pos ? pos.lng : null };
         try {
           await api(editing.id ? '/agencies/' + enc(editing.id) : '/agencies', { method: editing.id ? 'PATCH' : 'POST', body });
-          toast('Agence enregistrée ✓');
+          toast('Point relais enregistré ✓ (visible tout de suite sur la boutique)');
           location.hash = '#/agences';
         } catch (err) {
           $('#aError').innerHTML = `<div class="alert err">${esc(err.message)}</div>`;
@@ -1038,19 +1109,27 @@
       });
       return;
     }
-    app.innerHTML = pageHead({ title: 'Agences', desc: "Les agences actives permettent au client de choisir « Espèces en agence » : il réserve en ligne, paie en espèces et repart avec sa commande. Sans agence active, cette option n'apparaît pas sur le site.", actions: `<a class="btn" href="#/agences/nouvelle">${icon('plus-bold')} Ajouter</a>` }) + '<div id="tbl"></div>';
+    const placed = list.filter((a) => kamwaMap.hasPos(a));
+    app.innerHTML = pageHead({ title: 'Points relais', desc: "Agences Kamwa et commerces partenaires. Le client choisit son point relais sur une carte au moment de commander : il y paie en espèces, puis retire son colis sur place ou se fait livrer. Placez chaque point sur la carte pour qu'il apparaisse au bon endroit.", actions: `<a class="btn" href="#/agences/nouvelle">${icon('plus-bold')} Ajouter un point relais</a>` })
+      + `<div class="panel" style="padding:10px"><div class="kmap" id="allMap" style="height:360px"></div>${placed.length < list.length ? `<p class="muted" style="margin:8px 4px 0">${list.length - placed.length} point(s) pas encore placé(s) sur la carte : les clients les voient seulement dans la liste.</p>` : ''}</div>`
+      + '<div id="tbl"></div>';
     dataTable($('#tbl'), {
       id: 'agencies', rows: list, rowHref: (a) => '#/agences/' + enc(a.id), placeholder: 'Nom, ville ou adresse',
-      empty: 'Aucune agence pour le moment. Ajoutez-en une dès que vous en ouvrez une.',
+      empty: 'Aucun point relais pour le moment. Ajoutez votre première agence ou un commerce partenaire.',
       searchText: (a) => `${a.name} ${a.city} ${a.address}`,
       columns: [
-        { key: 'name', label: 'Agence', render: (a) => `<strong>${esc(a.name)}</strong>` },
+        { key: 'name', label: 'Point relais', render: (a) => `<strong>${esc(a.name)}</strong><br><span class="muted">${esc(KIND[a.kind || 'agency'])}</span>` },
         { key: 'city', label: 'Ville' },
         { key: 'address', label: 'Adresse', render: (a) => esc(a.address || 'à venir') },
-        { key: 'hours', label: 'Horaires', render: (a) => esc(a.hours || '—') },
-        { key: 'active', label: 'Statut', sortValue: (a) => a.active !== false, render: (a) => (a.active === false ? '<span class="tag">Inactive</span>' : '<span class="tag ok">Active</span>') },
+        { key: 'map', label: 'Carte', sortValue: (a) => kamwaMap.hasPos(a), render: (a) => (kamwaMap.hasPos(a) ? '<span class="tag ok">Placé</span>' : '<span class="tag warn">À placer</span>') },
+        { key: 'active', label: 'Statut', sortValue: (a) => a.active !== false, render: (a) => (a.active === false ? '<span class="tag">Inactif</span>' : '<span class="tag ok">Actif</span>') },
       ],
     });
+    kamwaMap.create($('#allMap'), {}).then(({ L, map }) => {
+      const ms = placed.map((a) => L.marker([a.lat, a.lng], { icon: kamwaMap.pin(L, a.active === false ? 'relay' : 'relay on') }).addTo(map)
+        .bindPopup(`<b>${esc(a.name)}</b><br>${esc(a.address || '')}<br><a href="#/agences/${enc(a.id)}">Modifier</a>`));
+      if (ms.length) map.fitBounds(L.featureGroup(ms).getBounds().pad(0.2), { maxZoom: 15 });
+    }).catch(() => {});
   }
 
   // ---------- Clients ----------

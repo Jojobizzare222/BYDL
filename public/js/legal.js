@@ -157,15 +157,15 @@
         Les éventuels frais de livraison sont affichés avant la validation de la commande. Le prix applicable est celui affiché au moment de la commande.</p>
 
         <h2>3. Commande</h2>
-        <p>Connecté à votre compte vérifié, vous choisissez vos produits, indiquez vos coordonnées, l'agence où vous paierez et votre mode de réception
-        (retrait à l'agence ou livraison). Vos articles sont alors réservés ; la commande est confirmée à votre paiement à l'agence. Un conseiller Kamwa peut vous appeler pour confirmer la livraison.</p>
+        <p>Connecté à votre compte vérifié, vous choisissez vos produits, indiquez vos coordonnées, le point relais où vous paierez et votre mode de réception
+        (retrait au point relais ou livraison). Vous pouvez changer de point relais tant que le colis ne vous a pas été remis. Vos articles sont alors réservés ; la commande est confirmée à votre paiement au point relais. Un conseiller Kamwa peut vous appeler pour confirmer la livraison.</p>
 
         <h2>4. Paiement</h2>
-        <p>Les moyens de paiement proposés sont ceux affichés au moment de la commande. ${T('aujourd\'hui : espèces en agence uniquement — à confirmer')}.</p>
+        <p>Les moyens de paiement proposés sont ceux affichés au moment de la commande. ${T('aujourd\'hui : espèces au point relais uniquement — à confirmer')}.</p>
         <ul>
           <li><strong>Mobile Money (MTN MoMo, Airtel Money)</strong> : vous recevez une demande sur votre téléphone et la validez avec votre code secret.</li>
           <li><strong>Carte bancaire</strong> : vous payez sur la page sécurisée de notre prestataire de paiement.</li>
-          <li><strong>Espèces en agence</strong> : les articles vous sont réservés pendant 48 heures. Vous payez en espèces à l'agence choisie, puis vous repartez avec votre commande ou nous vous la livrons, selon votre choix. Passé ce délai sans paiement, la réservation est annulée.</li>
+          <li><strong>Espèces au point relais</strong> : les articles vous sont réservés pendant 48 heures. Vous payez en espèces au point relais choisi sur la carte (agence Kamwa ou commerce partenaire), puis vous repartez avec votre commande ou nous vous la livrons, selon votre choix. Passé ce délai sans paiement, la réservation est annulée.</li>
           <li><strong>Paiement à la réception</strong> : vous payez à la livraison, en espèces ou en Mobile Money, après avoir vérifié votre colis. Pour une première commande, un acompte (montant indiqué au moment de commander) est demandé en Mobile Money pour la confirmer ; il est déduit du total. Il n'est plus demandé aux clients dont les livraisons précédentes se sont bien passées. <strong>Si vous refusez le colis sans motif valable</strong> (produit conforme et en bon état), l'acompte est conservé pour couvrir le déplacement du livreur. Après plusieurs colis refusés, le paiement à la réception n'est plus proposé pour votre numéro.</li>
         </ul>
         <p>Un seul paiement est demandé par commande : si vous réessayez, la demande en cours est reprise, sans double paiement.</p>
@@ -199,7 +199,7 @@
         <p>Les produits marqués « Venu d’Europe » sont achetés en Europe pour vous après votre commande, puis expédiés par avion et livrés au Congo.</p>
         <ul>
           <li><strong>Prix</strong> : <strong>tout compris</strong> (article, transport en avion, douane, service Kamwa, livraison) : aucun supplément ne vous sera demandé à l'arrivée.</li>
-          <li><strong>Paiement</strong> : la commande se paie en entier avant l'achat (en agence), car Kamwa achète l'article pour vous. Si votre panier contient aussi des articles de notre stock, toute la commande vous est livrée en une fois.</li>
+          <li><strong>Paiement</strong> : la commande se paie en entier avant l'achat (au point relais), car Kamwa achète l'article pour vous. Si votre panier contient aussi des articles de notre stock, toute la commande vous est livrée en une fois.</li>
           <li><strong>Délai</strong> : indicatif, annoncé dans le devis. Vous suivez chaque étape (achat, photos de l'article à sa réception, départ, arrivée).</li>
           <li><strong>Annulation</strong> : possible tant que l'article n'est pas acheté (remboursement intégral). Après l'achat, l'annulation n'est plus possible.</li>
           <li><strong>Retours</strong> : un article non conforme au devis ou abîmé pendant le transport est remplacé ou remboursé. ${T('conditions de retour pour un article conforme qui ne convient pas')}.</li>

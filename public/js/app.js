@@ -68,7 +68,7 @@
     </div>` : '');
   const isPickup = (o) => o.fulfillment === 'pickup';
   const statusLabel = (o) => {
-    if (o.agency && o.status === 'pending_payment') return 'Réservée — à payer en agence';
+    if (o.agency && o.status === 'pending_payment') return 'Réservée — à payer au point relais';
     if (isPickup(o) && o.status === 'delivered') return 'Retirée';
     return STATUS[o.status] || o.status;
   };
@@ -398,12 +398,12 @@
       if (p) slides.push(slide({ theme: 'mango', kicker: esc(u.name), title: u.name === 'Mode' ? 'Le style, sans se ruiner' : 'Le meilleur de la tech', text: esc(u.categories.slice(0, 4).join(' · ')), href: `#/c/${enc(u.name)}`, cta: 'Découvrir', p }));
     }
     slides.splice(1, 0, slide({
-      theme: 'violet', kicker: `${icon('airplane-tilt')} Nouveau`, title: 'Achetez en Europe, recevez au Congo', text: 'Des produits venus d’Europe à un prix tout compris en FCFA : transport en avion et douane inclus, payé en agence, retiré ou livré chez vous.', href: '#/europe', cta: 'Voir les produits',
+      theme: 'violet', kicker: `${icon('airplane-tilt')} Nouveau`, title: 'Achetez en Europe, recevez au Congo', text: 'Des produits venus d’Europe à un prix tout compris en FCFA : transport en avion et douane inclus, payé au point relais, retiré ou livré chez vous.', href: '#/europe', cta: 'Voir les produits',
       extra: '<div class="pay-chips"><span>Avion</span><span>Prix tout compris</span><span>Suivi étape par étape</span></div>',
     }));
     slides.push(slide({
-      theme: 'light', kicker: `${icon('wallet')} Paiement`, title: 'Réservez en ligne, payez en agence', text: 'Vous payez en espèces dans nos agences, puis vous repartez avec votre commande ou nous vous la livrons.', href: '#/promos', cta: 'Commencer mes achats',
-      extra: '<div class="pay-chips"><span>' + icon('storefront') + 'Espèces en agence</span><span>' + icon('truck') + 'Retrait ou livraison</span><span>' + icon('shield-check') + 'Clients vérifiés</span></div>',
+      theme: 'light', kicker: `${icon('wallet')} Paiement`, title: 'Réservez en ligne, payez au point relais', text: 'Choisissez un point relais près de chez vous sur la carte, payez-y en espèces, puis repartez avec votre commande ou faites-vous livrer.', href: '#/promos', cta: 'Commencer mes achats',
+      extra: '<div class="pay-chips"><span>' + icon('storefront') + 'Paiement au point relais</span><span>' + icon('truck') + 'Retrait ou livraison</span><span>' + icon('shield-check') + 'Clients vérifiés</span></div>',
     }));
 
     const [h, m, sec] = untilMidnight();
@@ -436,7 +436,7 @@
         </a>
         <a class="promo-card pc-mango" href="#/legal/vente">
           <span class="ic">${icon('truck')}</span>
-          <span><b>Livré en 24-48 h</b><small>À Pointe-Noire et Brazzaville, ou retrait en agence.</small></span>
+          <span><b>Livré en 24-48 h</b><small>À Pointe-Noire et Brazzaville, ou retrait en point relais.</small></span>
           <span class="go">${icon('arrow-right')}</span>
         </a>
       </section>
@@ -453,9 +453,9 @@
       <section class="shelf">
         <div class="shelf-head"><div><p class="kicker">${icon('seal-check-duotone')} Acheter en confiance</p><h2>Pourquoi choisir Kamwa</h2></div></div>
         <div class="reassure">
-          <div class="r-violet"><span class="ic">${icon('credit-card')}</span><b>Paiement simple</b><p>En espèces dans nos agences, sans carte ni frais cachés. Retrait sur place ou livraison.</p></div>
+          <div class="r-violet"><span class="ic">${icon('credit-card')}</span><b>Paiement simple</b><p>En espèces dans nos points relais, sans carte ni frais cachés. Retrait sur place ou livraison.</p></div>
           <div class="r-mango"><span class="ic">${icon('truck')}</span><b>Livraison rapide</b><p>24-48 h à Pointe-Noire et Brazzaville. Autres villes sur demande.</p></div>
-          <div class="r-coral"><span class="ic">${icon('storefront')}</span><b>Retrait en agence</b><p>Réservez en ligne, payez et repartez avec votre commande.</p></div>
+          <div class="r-coral"><span class="ic">${icon('storefront')}</span><b>Points relais</b><p>Choisissez le plus proche sur la carte, payez et repartez avec votre commande.</p></div>
           <div class="r-green"><span class="ic">${icon('chat-circle')}</span><b>Service client</b><p>Nous vous appelons après chaque commande.</p></div>
         </div>
       </section>`;
@@ -567,8 +567,8 @@
             ${(p.options || []).map((o, i) => `<label class="opt-label" for="opt${i}">${esc(o.name)}</label><div class="opt-choices" id="opt${i}" data-opt="${esc(o.name)}">${o.values.map((v) => `<button type="button" class="opt" data-v="${esc(v)}">${esc(v)}</button>`).join('')}</div>`).join('')}
             ${p.origin === 'FR'
               ? `<span class="momo-note fr-note">${icon('airplane-tilt')} Venu d’Europe par avion · livré en ${esc(state.frDelay || '10 jours maximum')}</span>
-                 <span class="hint">${icon('check-circle-duotone')} Prix tout compris (transport et douane inclus) · payable en entier en agence avant l'achat</span>`
-              : `<span class="momo-note">${icon('check-circle-duotone')} Payable en espèces en agence · retrait ou livraison</span>
+                 <span class="hint">${icon('check-circle-duotone')} Prix tout compris (transport et douane inclus) · payable en entier au point relais avant l'achat</span>`
+              : `<span class="momo-note">${icon('check-circle-duotone')} Payable en espèces au point relais · retrait ou livraison</span>
             <span class="hint">${icon('truck-duotone')} Livraison 24-48 h à Pointe-Noire et Brazzaville</span>`}
             ${p.stock === 0 ? '<span class="stock-low">Épuisé</span>' : p.stock <= 6 ? `<span class="stock-low">Plus que ${p.stock} en stock</span>` : '<span class="momo-note">En stock</span>'}
             <div id="optErr"></div>
@@ -609,6 +609,77 @@
       app.querySelectorAll('[data-img]').forEach((x) => x.classList.toggle('on', x === b));
     }));
   }
+
+  // Bouton « Changer de point relais » (page de suivi)
+  document.addEventListener('click', async (e) => {
+    if (!e.target.closest('#relayChange')) return;
+    const id = currentParts()[1];
+    const box = $('#relayChangeBox'); if (!box) return;
+    let methods; try { methods = await api('/payments/methods'); } catch { return; }
+    let o; try { o = await api('/orders/' + enc(id), { headers: orderHeaders(tokenOf(id) || '') }); } catch { return; }
+    box.innerHTML = '<div class="panel" style="margin-top:10px"><h3 style="margin-top:0">Choisissez votre nouveau point relais</h3><div id="relayPick2"></div><div id="relayMsg"></div></div>';
+    $('#relayChange').hidden = true;
+    relayPicker($('#relayPick2'), methods.agencies, o.agency?.id, async (agencyId) => {
+      if (agencyId === o.agency?.id) return;
+      try {
+        await api('/orders/' + enc(id) + '/relay', { method: 'POST', headers: orderHeaders(tokenOf(id) || ''), body: { agencyId } });
+        $('#relayMsg').innerHTML = `<div class="alert ok">${icon('check-circle-duotone')} Point relais changé. Kamwa est prévenu.</div>`;
+        setTimeout(() => route({ keep: true }), 1200);
+      } catch (err) { $('#relayMsg').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; }
+    }, o.agency?.city);
+  });
+
+  // ---------- Choix du point relais sur une carte (commande, et changement après commande) ----------
+  const RELAY_KIND = { agency: 'Agence Kamwa', partner: 'Point relais partenaire' };
+  const defaultRelay = (list, city) => list.find((a) => a.city === city) || list[0];
+  function relayPicker(host, list, selected, onPick, city) {
+    let me = null; let map = null; let L = null; const markers = {};
+    host.innerHTML = `<div class="kmap" id="relayMap"></div>
+      <div class="relay-tools"><button type="button" class="btn ghost small" id="relayNear">${icon('map-pin-bold')} Les plus proches de moi</button></div>
+      <div class="relay-list" id="relayList" role="listbox" aria-label="Points relais"></div>`;
+    const sorted = () => (me ? [...list].sort((a, b) => (kamwaMap.hasPos(a) ? kamwaMap.distanceKm(me, a) : 1e9) - (kamwaMap.hasPos(b) ? kamwaMap.distanceKm(me, b) : 1e9)) : list);
+    const renderList = () => {
+      host.querySelector('#relayList').innerHTML = sorted().map((a) => `
+        <button type="button" class="relay-card ${a.id === selected ? 'on' : ''}" data-relay="${esc(a.id)}" role="option" aria-selected="${a.id === selected}">
+          ${icon(a.kind === 'partner' ? 'storefront' : 'map-pin')}
+          <span><b>${esc(a.name)}</b><small>${esc(RELAY_KIND[a.kind || 'agency'])} · ${esc(a.city)}${a.address ? ' · ' + esc(a.address) : ''}${a.hours ? '<br>' + esc(a.hours) : ''}</small></span>
+          ${me && kamwaMap.hasPos(a) ? `<span class="dist">${kamwaMap.distanceKm(me, a).toFixed(1).replace('.', ',')} km</span>` : ''}
+        </button>`).join('');
+    };
+    const pick = (id, pan) => {
+      selected = id; renderList(); onPick(id);
+      if (map) {
+        Object.entries(markers).forEach(([k, m]) => m.setIcon(kamwaMap.pin(L, k === id ? 'relay on' : 'relay')));
+        const a = list.find((x) => x.id === id);
+        if (pan && kamwaMap.hasPos(a)) map.setView([a.lat, a.lng], Math.max(map.getZoom(), 15));
+      }
+    };
+    renderList();
+    host.querySelector('#relayList').addEventListener('click', (e) => { const b = e.target.closest('[data-relay]'); if (b) pick(b.dataset.relay, true); });
+    const placed = list.filter((a) => kamwaMap.hasPos(a));
+    if (!placed.length) { host.querySelector('#relayMap').remove(); }
+    else kamwaMap.create(host.querySelector('#relayMap'), { city }).then((r) => {
+      ({ L, map } = r);
+      for (const a of placed) {
+        markers[a.id] = L.marker([a.lat, a.lng], { icon: kamwaMap.pin(L, a.id === selected ? 'relay on' : 'relay'), title: a.name }).addTo(map)
+          .bindPopup(`<b>${esc(a.name)}</b><br><span style="color:#6B6585">${esc(RELAY_KIND[a.kind || 'agency'])}</span><br>${esc(a.address || '')}${a.hours ? '<br>' + esc(a.hours) : ''}<br><button type="button" class="btn cta small" data-relay-pop="${esc(a.id)}">Choisir ce point relais</button>`);
+      }
+      const inCity = placed.filter((a) => a.city === city);
+      map.fitBounds(L.featureGroup((inCity.length ? inCity : placed).map((a) => markers[a.id])).getBounds().pad(0.25), { maxZoom: 15 });
+      map.on('popupopen', (e) => e.popup.getElement().querySelector('[data-relay-pop]')?.addEventListener('click', (ev) => { pick(ev.target.dataset.relayPop); map.closePopup(); }));
+    }).catch(() => host.querySelector('#relayMap')?.remove());
+    host.querySelector('#relayNear').addEventListener('click', async (e) => {
+      e.target.disabled = true;
+      try {
+        me = await kamwaMap.locate();
+        const best = sorted().find((a) => kamwaMap.hasPos(a));
+        if (map) { L.marker([me.lat, me.lng], { icon: kamwaMap.pin(L, 'me') }).addTo(map); }
+        if (best) pick(best.id, true); else renderList();
+      } catch (err) { toastMsg(err.message); }
+      e.target.disabled = false;
+    });
+  }
+  const toastMsg = (m) => alert(m);
 
   async function viewCheckout() {
     renderNav(null);
@@ -653,7 +724,7 @@
       }
     }
     if (!methods.momo && !methods.card && !methods.cash && !methods.cod?.enabled) {
-      app.innerHTML = '<div class="panel empty">Aucune agence n\'est ouverte pour le moment : la commande n\'est pas possible. Revenez bientôt ou contactez-nous.</div>';
+      app.innerHTML = '<div class="panel empty">Aucun point relais n\'est ouvert pour le moment : la commande n\'est pas possible. Revenez bientôt ou contactez-nous.</div>';
       return;
     }
 
@@ -683,6 +754,10 @@
             </select>
             <label for="address">Quartier / adresse / repère</label>
             <textarea id="address" name="address" rows="2" placeholder="Ex. Quartier Tié-Tié, près de la pharmacie…">${esc(saved.address)}</textarea>
+            <label>Votre adresse sur la carte <span class="hint">(conseillé)</span></label>
+            <p class="hint" style="margin:0 0 6px">Touchez la carte à l'endroit exact de livraison : le livreur vous trouve plus vite et vous le suivez en direct.</p>
+            <div class="kmap" id="homeMap" style="height:240px"></div>
+            <div class="relay-tools"><button type="button" class="btn ghost small" id="homeLocate">${icon('map-pin-bold')} Je suis à l'adresse de livraison</button><span class="hint" id="homeTxt"></span></div>
           </div>
 
           <h2 style="margin-top:24px">2. Paiement</h2>
@@ -691,7 +766,7 @@
             ${methods.momo ? `<label class="op"><input type="radio" name="method" value="momo"><span>${icon('device-mobile-duotone')}<span class="txt">Mobile Money<small>MTN MoMo · Airtel Money</small></span></span></label>` : ''}
             ${methods.card ? `<label class="op"><input type="radio" name="method" value="card"><span>${icon('credit-card-duotone')}<span class="txt">Carte bancaire<small>Visa · Mastercard</small></span></span></label>` : ''}
             ${methods.cod?.enabled && !hasFr ? `<label class="op"><input type="radio" name="method" value="cod"><span>${icon('hand-coins-duotone')}<span class="txt">Payer à la réception<small>Espèces ou Mobile Money au livreur${methods.cod.deposit ? ` · acompte de ${fcfa(methods.cod.deposit)} pour confirmer` : ''}</small></span></span></label>` : ''}
-            ${methods.cash ? `<label class="op"><input type="radio" name="method" value="cash"><span>${icon('storefront-duotone')}<span class="txt">Espèces en agence<small>Vous payez à l'agence, puis retrait sur place ou livraison</small></span></span></label>` : ''}
+            ${methods.cash ? `<label class="op"><input type="radio" name="method" value="cash"><span>${icon('storefront-duotone')}<span class="txt">Espèces au point relais<small>Vous payez au point relais choisi sur la carte, puis retrait sur place ou livraison</small></span></span></label>` : ''}
           </div>
 
           <div id="momoFields">
@@ -711,14 +786,13 @@
             <p class="hint">${icon('lock-key-bold')} Vous allez être redirigé vers la page de paiement sécurisée de notre partenaire bancaire. Kamwa ne voit jamais votre numéro de carte.</p>
           </div>
           <div id="cashFields" hidden>
-            <label for="agency">Agence où payer</label>
-            <select id="agency" name="agency">
-              ${methods.agencies.map((a) => `<option value="${esc(a.id)}">${esc(a.city)} — ${esc(a.name)}</option>`).join('')}
-            </select>
+            <p class="lbl" style="margin-top:4px">Point relais : où payer${hasFr ? '' : ' (et retirer votre colis)'}</p>
+            <input type="hidden" name="agency" id="agency" value="${esc(defaultRelay(methods.agencies, saved.city)?.id || '')}">
+            <div id="relayPick"></div>
             <p class="hint" id="agencyInfo"></p>
             <p class="lbl">Comment recevoir votre commande ?</p>
             <div class="methods two">
-              <label class="op"><input type="radio" name="receive" value="pickup" checked><span>${icon('storefront-duotone')}<span class="txt">Retrait à l'agence<small>Vous payez et repartez avec</small></span></span></label>
+              <label class="op"><input type="radio" name="receive" value="pickup" checked><span>${icon('storefront-duotone')}<span class="txt">Retrait au point relais<small>Vous payez et repartez avec</small></span></span></label>
               <label class="op"><input type="radio" name="receive" value="delivery"><span>${icon('truck-duotone')}<span class="txt">Livraison à domicile<small>Après votre paiement à l'agence</small></span></span></label>
             </div>
             <p class="hint" id="cashHint"></p>
@@ -736,7 +810,31 @@
       </div>`;
 
     const form = $('#checkoutForm');
-    const BUTTON = { momo: `Payer ${total}`, card: `Payer ${total} par carte`, cash: 'Réserver et payer en agence', cod: 'Confirmer ma commande' };
+    const BUTTON = { momo: `Payer ${total}`, card: `Payer ${total} par carte`, cash: 'Réserver et payer au point relais', cod: 'Confirmer ma commande' };
+    // Point de livraison placé par le client (gardé sur ce téléphone pour la prochaine fois)
+    let homePos = saved.location && kamwaMap.hasPos(saved.location) ? saved.location : null;
+    let homeMap = null;
+    const showHome = () => { $('#homeTxt').textContent = homePos ? 'Adresse placée ✓' : 'Pas encore placée'; };
+    function initHomeMap() {
+      if (homeMap) { homeMap.map.invalidateSize(); return; }
+      homeMap = {};
+      kamwaMap.create($('#homeMap'), { center: homePos && [homePos.lat, homePos.lng], zoom: homePos ? 17 : 13, city: form.city?.value }).then(({ L, map }) => {
+        homeMap = { L, map };
+        let mk = null;
+        const place = (p, pan) => {
+          homePos = { lat: Math.round(p.lat * 1e6) / 1e6, lng: Math.round(p.lng * 1e6) / 1e6 };
+          if (!mk) { mk = L.marker([homePos.lat, homePos.lng], { draggable: true, icon: kamwaMap.pin(L, 'home') }).addTo(map); mk.on('dragend', () => place(mk.getLatLng())); }
+          else mk.setLatLng([homePos.lat, homePos.lng]);
+          if (pan) map.setView([homePos.lat, homePos.lng], 17);
+          showHome();
+        };
+        if (homePos) place(homePos);
+        map.on('click', (e) => place(e.latlng));
+        $('#homeLocate').addEventListener('click', async () => { try { place(await kamwaMap.locate(), true); } catch (err) { alert(err.message); } });
+        form.city?.addEventListener('change', () => { if (!homePos && kamwaMap.CITIES[form.city.value]) map.setView(kamwaMap.CITIES[form.city.value], 13); });
+      }).catch(() => { $('#homeMap')?.remove(); });
+      showHome();
+    }
     const method = () => form.method.value || 'cash';
     const receive = () => (form.receive?.value === 'delivery' ? 'delivery' : 'pickup');
     // Premier moyen proposé coché par défaut
@@ -751,17 +849,18 @@
       $('#cardFields').hidden = m !== 'card';
       $('#cashFields').hidden = m !== 'cash';
       $('#deliveryFields').hidden = m === 'cash' && receive() === 'pickup';
+      if (!$('#deliveryFields').hidden) initHomeMap();
       if (m === 'cash') $('#cashHint').innerHTML = hasFr
-        ? `Venez payer <strong>${total}</strong> en espèces à l'agence sous <strong>${methods.pickupHoldHours} h</strong> : nous achetons ensuite vos articles en Europe. ${receive() === 'pickup' ? 'Vous les retirez à l\'agence dès leur arrivée.' : 'Nous vous les livrons dès leur arrivée.'}`
+        ? `Venez payer <strong>${total}</strong> en espèces au point relais sous <strong>${methods.pickupHoldHours} h</strong> : nous achetons ensuite vos articles en Europe. ${receive() === 'pickup' ? 'Vous les retirez au point relais dès leur arrivée.' : 'Nous vous les livrons dès leur arrivée.'}`
         : receive() === 'pickup'
-          ? `Vos articles sont réservés <strong>${methods.pickupHoldHours} h</strong>. Vous payez <strong>${total}</strong> en espèces à l'agence et repartez avec votre commande.`
-          : `Vos articles sont réservés <strong>${methods.pickupHoldHours} h</strong>. Vous payez <strong>${total}</strong> en espèces à l'agence, puis nous vous livrons à l'adresse indiquée (code de livraison à donner au livreur).`;
+          ? `Vos articles sont réservés <strong>${methods.pickupHoldHours} h</strong>. Vous payez <strong>${total}</strong> en espèces au point relais et repartez avec votre commande.`
+          : `Vos articles sont réservés <strong>${methods.pickupHoldHours} h</strong>. Vous payez <strong>${total}</strong> en espèces au point relais, puis nous vous livrons à l'adresse indiquée (code de livraison à donner au livreur).`;
       $('#payBtn').textContent = BUTTON[m];
       const a = methods.agencies.find((x) => x.id === form.agency?.value);
-      if (a) $('#agencyInfo').innerHTML = `${icon('map-pin-bold')} ${esc(a.address || 'Adresse communiquée par téléphone')}${a.hours ? `<br>${icon('clock-bold')} ` + esc(a.hours) : ''}${a.phone ? `<br>${icon('phone-bold')} ` + esc(a.phone) : ''}`;
+      if (a) $('#agencyInfo').innerHTML = `<strong>${esc(a.name)}</strong><br>${icon('map-pin-bold')} ${esc(a.address || 'Adresse communiquée par téléphone')}${a.hours ? `<br>${icon('clock-bold')} ` + esc(a.hours) : ''}${a.phone ? `<br>${icon('phone-bold')} ` + esc(a.phone) : ''}${kamwaMap.hasPos(a) ? `<br><a href="${kamwaMap.directions(a)}" target="_blank" rel="noopener">${icon('arrow-square-out-bold')} Itinéraire (Google Maps)</a>` : ''}`;
     };
     form.querySelectorAll('input[name="method"]').forEach((r) => r.addEventListener('change', syncMethod));
-    form.agency?.addEventListener('change', syncMethod);
+    relayPicker($('#relayPick'), methods.agencies, form.agency.value, (id) => { form.agency.value = id; syncMethod(); }, saved.city);
     form.querySelectorAll('input[name="receive"]').forEach((r) => r.addEventListener('change', syncMethod));
     syncMethod();
 
@@ -782,8 +881,8 @@
       const agency = methods.agencies.find((x) => x.id === form.agency?.value);
       const pickup = m === 'cash' && receive() === 'pickup';
       const customer = pickup
-        ? { name: form.name.value, phone: form.phone.value, city: agency?.city || '', address: `Retrait en agence : ${agency?.name || ''}` }
-        : { name: form.name.value, phone: form.phone.value, city: form.city.value, address: form.address.value };
+        ? { name: form.name.value, phone: form.phone.value, city: agency?.city || '', address: `Retrait au point relais : ${agency?.name || ''}` }
+        : { name: form.name.value, phone: form.phone.value, city: form.city.value, address: form.address.value, ...(homePos ? { location: homePos } : {}) };
       if (!pickup) { try { localStorage.setItem('kamwa-customer', JSON.stringify(customer)); } catch {} }
       try {
         // Même panier qu'une tentative précédente non payée : on réutilise la commande.
@@ -960,6 +1059,7 @@
             <button class="btn ghost" id="logoutBtn">Se déconnecter</button>
           </div>
           ${idStatusPanel(c).startsWith('<form') ? '' : idStatusPanel(c)}
+          ${pushCard(null)}
           <div class="stats">
             <div><span class="hint">Commandes payées</span><b>${paid.length}</b></div>
             <div><span class="hint">Total de vos achats</span><b>${fcfa(paid.reduce((s, o) => s + o.total, 0))}</b></div>
@@ -1237,7 +1337,7 @@
     const expired = payAg && o.status === 'pending_payment' && o.pickupDeadline && Date.now() > Date.parse(o.pickupDeadline);
     const agencyStep = expired
       ? 'Le délai de réservation est dépassé : vos articles ne sont plus réservés. Contactez-nous ou repassez commande.'
-      : `Rendez-vous à l'agence <strong>${esc(ag.name)}</strong> (${esc(ag.city)}) avant le <strong>${longDate(o.pickupDeadline)}</strong> et payez <strong>${fcfa(o.total)}</strong> en espèces.`;
+      : `Rendez-vous au point relais <strong>${esc(ag.name)}</strong> (${esc(ag.city)}) avant le <strong>${longDate(o.pickupDeadline)}</strong> et payez <strong>${fcfa(o.total)}</strong> en espèces.`;
     const im = o.import;
     const steps = im
       ? [
@@ -1246,20 +1346,20 @@
           ['Achetée en Europe', im.boughtAt, 'Votre article est commandé auprès du vendeur en Europe.'],
           ['Article vérifié', im.receivedAt, "Votre article a été reçu et vérifié. Il part avec le prochain envoi vers le Congo."],
           ['Partie d’Europe', im.departedAt, `Votre colis est en route vers le Congo${im.eta ? ` — arrivée prévue vers le <strong>${shortDate(im.eta)}</strong>` : ''}.`],
-          ['Arrivée au Congo', im.arrivedAt, isPickup(o) ? `Votre colis est arrivé : venez le retirer à l'agence ${esc(ag.name || '')}.` : 'Votre colis est arrivé. Nous vous appelons pour la livraison.'],
+          ['Arrivée au Congo', im.arrivedAt, isPickup(o) ? `Votre colis est arrivé : venez le retirer au point relais ${esc(ag.name || '')}.` : 'Votre colis est arrivé. Nous vous appelons pour la livraison.'],
           ['En livraison', at('shipped'), 'Le livreur arrive. Préparez votre code de livraison.'],
           ['Livrée', at('delivered'), 'Votre commande a été livrée. Merci pour votre confiance !'],
         ]
       : isPickup(o)
       ? [
           ['Commande réservée', o.createdAt, agencyStep],
-          ['Payée en agence', o.paidAt || at('paid'), 'Paiement reçu. Votre commande vous est remise à l\'agence.'],
+          ['Payée au point relais', o.paidAt || at('paid'), 'Paiement reçu. Votre commande vous est remise au point relais.'],
           ['Retirée', at('delivered'), 'Vous avez retiré votre commande. Merci pour votre confiance !'],
         ]
       : [
           ['Commande passée', o.createdAt, payAg ? agencyStep : 'Nous avons bien reçu votre commande.'],
           payAg
-            ? ['Payée en agence', o.paidAt || at('paid'), 'Paiement reçu. Nous préparons votre colis et vous appelons pour la livraison.']
+            ? ['Payée au point relais', o.paidAt || at('paid'), 'Paiement reçu. Nous préparons votre colis et vous appelons pour la livraison.']
             : o.paymentPlan === 'cod'
             ? ['Commande confirmée', o.confirmedAt || at('confirmed'), `${o.deposit ? `Acompte de ${fcfa(o.deposit)} reçu. ` : ''}Vous paierez ${fcfa(o.balance ?? o.total)} à la livraison. Nous préparons votre colis et vous appelons.`]
             : ['Paiement confirmé', o.paidAt || at('paid'), 'Votre paiement est validé. Nous préparons votre colis et vous appelons.'],
@@ -1286,21 +1386,102 @@
           </ol>
           ${im && im.photos?.length ? `<div class="import-photos"><strong>${icon('camera')} Photos de votre article, prises à sa réception</strong><div>${im.photos.map((src) => `<a href="${esc(src)}" target="_blank" rel="noopener"><img src="${esc(src)}" alt="Votre article" loading="lazy"></a>`).join('')}</div></div>` : ''}
           ${im && im.requestId && !payAg && o.status === 'pending_payment' ? `<p><a class="btn cta" href="#/devis/${enc(im.requestId || '')}">Payer ma commande</a></p>` : ''}
+          ${!['delivered', 'cancelled'].includes(o.status) ? pushCard(o.id) : ''}
+          ${o.status === 'shipped' && !isPickup(o) ? '<div class="live-box" id="liveBox"></div>' : ''}
           ${im && im.stage !== 'arrived' ? '' : codeCard(o)}
           ${(o.attempts || []).length && !['delivered', 'cancelled'].includes(o.status) ? `<div class="alert warn">${o.attempts.map((a) => `Tentative de livraison le ${longDate(a.at)} : ${esc(a.label)}.`).join('<br>')} Nous vous recontactons.</div>` : ''}
           ${o.status === 'pending_payment' && !payAg ? '<div class="alert err">Paiement pas encore reçu. Si vous venez de valider sur votre téléphone, patientez quelques minutes.</div>' : ''}
+          ${payAg && (isPickup(o) ? ['pending_payment', 'paid', 'confirmed'].includes(o.status) : o.status === 'pending_payment') ? `<div class="relay-change">
+            ${kamwaMap.hasPos(ag) ? `<a class="btn ghost small" href="${kamwaMap.directions(ag)}" target="_blank" rel="noopener">${icon('map-pin-bold')} Itinéraire</a>` : ''}
+            <button type="button" class="btn ghost small" id="relayChange">${icon('storefront')} Changer de point relais</button>
+            <div id="relayChangeBox"></div></div>` : ''}
           ${payAg && o.status === 'pending_payment' && !expired ? `<div class="panel" style="background:#F0F7F4;margin:12px 0 0">
             <strong>${icon('map-pin-bold')} ${esc(ag.name)} — ${esc(ag.city)}</strong>
             <p class="hint" style="margin:4px 0 0">${esc(ag.address || 'Adresse communiquée par téléphone')}${ag.hours ? `<br>${icon('clock-bold')} ` + esc(ag.hours) : ''}${ag.phone ? `<br>${icon('phone-bold')} ` + esc(ag.phone) : ''}</p>
-            <p class="hint">Présentez le numéro de commande <strong>${esc(o.id)}</strong> à l'agence.</p></div>` : ''}`}
+            <p class="hint">Présentez le numéro de commande <strong>${esc(o.id)}</strong> au point relais.</p></div>` : ''}`}
         </div>
         <div class="panel">
           <h2>Récapitulatif</h2>
           ${o.lines.map((l) => `<div class="line"><span>${l.qty} × ${esc(l.name)}</span><strong>${fcfa(l.total)}</strong></div>`).join('')}
           <div class="row total" style="margin-top:10px"><span>Total</span><strong>${fcfa(o.total)}</strong></div>
-          <p class="hint" style="margin-top:12px">${isPickup(o) ? `Retrait en agence : ${esc(ag.name)} (${esc(ag.city)})` : `Livraison : ${esc(o.customer.city || '—')} · ${esc(o.customer.address || '')}`}<br>Contact : ${esc(o.customer.phone)}</p>
+          <p class="hint" style="margin-top:12px">${isPickup(o) ? `Retrait au point relais : ${esc(ag.name)} (${esc(ag.city)})` : `Livraison : ${esc(o.customer.city || '—')} · ${esc(o.customer.address || '')}`}<br>Contact : ${esc(o.customer.phone)}</p>
         </div>
       </div>`;
+    if ($('#liveBox')) startLive(id);
+  }
+
+  // ---------- Notifications de suivi sur le téléphone (Android et iPhone) ----------
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isStandalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  const pushSupported = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+  const pushOn = () => pushSupported() && Notification.permission === 'granted';
+  const b64ToBytes = (b) => { const p = '='.repeat((4 - (b.length % 4)) % 4); const r = atob((b + p).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from([...r].map((c) => c.charCodeAt(0))); };
+  async function enablePush(orderId) {
+    if (Notification.permission === 'denied') throw new Error('Notifications bloquées : autorisez-les dans les réglages du navigateur pour Kamwa.');
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted') throw new Error('Notifications non autorisées');
+    const reg = await navigator.serviceWorker.ready;
+    const { key } = await api('/push/key');
+    let sub = await reg.pushManager.getSubscription();
+    if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(key) });
+    await api('/push/subscribe', { method: 'POST', body: { subscription: sub.toJSON(), orderId, token: orderId ? tokenOf(orderId) : undefined } });
+  }
+  // Abonnement déjà accordé : on rattache aussi cette commande / ce compte, sans rien demander
+  async function linkPush(orderId) { if (pushOn()) { try { await enablePush(orderId); } catch {} } }
+  function pushCard(orderId) {
+    if (pushOn()) { linkPush(orderId); return `<div class="push-card on">${icon('bell-bold')} <span>Notifications de suivi activées sur ce téléphone.</span></div>`; }
+    if (isIOS && !isStandalone) return `<div class="push-card">${icon('bell-bold')} <span><strong>Suivez votre commande en direct sur votre iPhone</strong>Touchez ${icon('export')} <b>Partager</b>, puis <b>« Sur l'écran d'accueil »</b>. Ouvrez ensuite Kamwa depuis l'écran d'accueil et activez les notifications.</span></div>`;
+    if (!pushSupported()) return '';
+    return `<div class="push-card">${icon('bell-bold')} <span><strong>Être prévenu à chaque étape</strong>Paiement reçu, colis en route, livreur tout près, livré : recevez une notification sur ce téléphone.</span><button type="button" class="btn cta small" data-push="${esc(orderId || '')}">Activer</button></div>`;
+  }
+  document.addEventListener('click', async (e) => {
+    const b = e.target.closest('[data-push]'); if (!b) return;
+    b.disabled = true; b.textContent = '…';
+    try { await enablePush(b.dataset.push || null); b.closest('.push-card').outerHTML = `<div class="push-card on">${icon('bell-bold')} <span>Notifications activées ✓ Vous serez prévenu à chaque étape.</span></div>`; }
+    catch (err) { b.disabled = false; b.textContent = 'Activer'; alert(err.message); }
+  });
+
+  // ---------- Suivi EN DIRECT du livreur (façon Grab) ----------
+  // La carte montre le livreur qui avance vers l'adresse du client, la distance et le temps estimé ; mise à jour toutes les 5 s.
+  function startLive(id) {
+    const box = $('#liveBox');
+    let L = null, map = null, courier = null, home = null, line = null;
+    box.innerHTML = `<div class="live-head"><span class="live-dot"></span><strong id="liveTitle">Votre livreur est en route</strong></div>
+      <div class="live-eta" id="liveEta">Recherche de la position du livreur…</div>
+      <div class="live-bar"><span id="liveBar" style="width:8%"></span>${icon('truck')}</div>
+      <div class="kmap" id="liveMap" style="height:300px"></div>`;
+    const tick = async () => {
+      if (!document.body.contains(box) || document.hidden) return;
+      let d; try { d = await api('/orders/' + enc(id) + '/live', { headers: orderHeaders(tokenOf(id) || '') }); } catch { return; }
+      if (d.status !== 'shipped') { route({ keep: true }); return; }
+      if (!map) {
+        try { ({ L, map } = await kamwaMap.create($('#liveMap'), { center: d.courier ? [d.courier.lat, d.courier.lng] : d.destination ? [d.destination.lat, d.destination.lng] : null, zoom: 15 })); } catch { $('#liveMap').remove(); }
+      }
+      if (map && d.destination && !home) home = L.marker([d.destination.lat, d.destination.lng], { icon: kamwaMap.pin(L, 'home'), title: 'Votre adresse' }).addTo(map).bindPopup('Votre adresse');
+      if (!d.active) {
+        $('#liveEta').textContent = d.waiting ? `${d.courierName || 'Votre livreur'} n'a pas encore activé le suivi en direct. Gardez votre téléphone allumé, il vous appelle avant d'arriver.` : 'Suivi en direct disponible dès que le livreur part.';
+        return;
+      }
+      $('#liveTitle').textContent = `${d.courier.name} arrive`;
+      if (d.etaMin) {
+        const pct = Math.max(8, Math.min(96, Math.round((d.progress || 0) * 100)));
+        $('#liveBar').style.width = pct + '%';
+        $('#liveEta').innerHTML = d.distanceKm < 0.2 ? `<strong>Votre livreur est tout près !</strong> Préparez votre code de livraison.`
+          : `Arrivée estimée dans <strong>${d.etaMin} min</strong> · à ${String(d.distanceKm).replace('.', ',')} km`;
+      } else $('#liveEta').textContent = 'Votre livreur est en route. Placez votre adresse sur la carte lors de votre prochaine commande pour voir le temps d\'arrivée.';
+      if (map) {
+        const pos = [d.courier.lat, d.courier.lng];
+        if (!courier) courier = L.marker(pos, { icon: kamwaMap.pin(L, 'courier'), title: 'Livreur', zIndexOffset: 1000 }).addTo(map);
+        else courier.setLatLng(pos);
+        if (home) {
+          if (!line) line = L.polyline([pos, home.getLatLng()], { color: '#5236C9', weight: 4, dashArray: '6 8', opacity: 0.8 }).addTo(map);
+          else line.setLatLngs([pos, home.getLatLng()]);
+          if (!map._kamwaFit) { map.fitBounds(L.latLngBounds([pos, home.getLatLng()]).pad(0.3), { maxZoom: 16 }); map._kamwaFit = true; }
+        } else map.panTo(pos);
+      }
+    };
+    tick();
+    state.timers.push(setInterval(tick, 5000));
   }
 
   // ---------- Achat en Europe : demande de devis, devis, paiement ----------
@@ -1336,13 +1517,13 @@
         <div>
           <span class="pill">${icon('airplane-tilt')} Venu d’Europe</span>
           <h1>Achetez en Europe,<br>recevez au Congo.</h1>
-          <p>Des produits choisis en Europe, à un <strong>prix tout compris en FCFA</strong> (transport en avion et douane inclus). Vous payez en agence, nous nous occupons de tout jusqu'à votre porte. <strong>Vous achetez, vous recevez, point.</strong></p>
+          <p>Des produits choisis en Europe, à un <strong>prix tout compris en FCFA</strong> (transport en avion et douane inclus). Vous payez au point relais, nous nous occupons de tout jusqu'à votre porte. <strong>Vous achetez, vous recevez, point.</strong></p>
         </div>
       </section>
       <div class="fr-steps">
         <div>${icon('shield-check')}<span><strong>Achat pris en charge</strong>Nous achetons et contrôlons chaque article pour vous.</span></div>
         <div>${icon('airplane-tilt')}<span><strong>Acheminement maîtrisé</strong>Transport et formalités de douane gérés par nos soins.</span></div>
-        <div>${icon('wallet')}<span><strong>Prix tout compris</strong>En FCFA, payé en agence, sans frais cachés.</span></div>
+        <div>${icon('wallet')}<span><strong>Prix tout compris</strong>En FCFA, payé au point relais, sans frais cachés.</span></div>
         <div>${icon('truck')}<span><strong>Livré chez vous</strong>Suivi à chaque étape, livraison en ${esc(conf.delay)}.</span></div>
       </div>
       ${(() => { const list = state.products.filter((x) => x.origin === 'FR'); return list.length ? `<section class="shelf" style="margin-top:8px"><div class="shelf-head"><div><p class="kicker k-violet">${icon('airplane-tilt')} Venus d’Europe</p><h2>Nos produits</h2></div></div><div class="grid">${list.map(card).join('')}</div></section>` : '<div class="panel empty">Les premiers produits venus d’Europe arrivent très bientôt.</div>'; })()}

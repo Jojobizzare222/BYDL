@@ -33,7 +33,7 @@ app.get('/images/uploads/:name', (req, res) => {
 // Version du site : change à chaque mise à jour (déploiement Vercel, ou fichier modifié sur le serveur).
 // Le navigateur la compare en changeant de page et se recharge tout seul : pas besoin de relancer l'application.
 const fs = require('fs');
-const SITE_FILES = ['index.html', 'js/app.js', 'js/legal.js', 'js/cookies.js', 'js/pwa.js', 'js/chat.js', 'css/style.css', 'sw.js', 'admin/index.html', 'admin/admin.js', 'admin/admin.css']
+const SITE_FILES = ['index.html', 'js/app.js', 'js/legal.js', 'js/cookies.js', 'js/pwa.js', 'js/chat.js', 'js/map.js', 'css/style.css', 'sw.js', 'admin/index.html', 'admin/admin.js', 'admin/admin.css']
   .map((f) => path.join(__dirname, '..', 'public', f));
 let versionCache = { at: 0, v: null };
 function siteVersion() {
@@ -55,6 +55,23 @@ app.use('/api/payments', require('./routes/payments'));
 app.use('/api/account', require('./routes/account'));
 app.use('/api/imports', require('./routes/imports'));
 app.use('/api/chat', require('./routes/chat')); // messagerie (bulle « Aide » de la boutique)
+// Notifications de suivi sur le téléphone (Web Push)
+const push = require('./push');
+push.watchOrders();
+app.get('/api/push/key', (req, res) => res.json({ key: push.publicKey() }));
+app.post('/api/push/subscribe', (req, res) => {
+  const { orders } = require('./store');
+  const { hasAccess } = require('./routes/orders');
+  const { currentCustomer } = require('./customer/auth');
+  const customer = currentCustomer(req);
+  const orderId = String(req.body?.orderId || '');
+  const order = orderId && orders.get(orderId);
+  const okOrder = order && (hasAccess(order, req.body?.token) || (customer && order.customerId === customer.id));
+  if (!customer && !okOrder) return res.status(400).json({ error: 'Connectez-vous ou ouvrez une de vos commandes pour activer les notifications' });
+  const r = push.subscribe(req.body?.subscription, { customerId: customer?.id || null, orderId: okOrder ? order.id : null });
+  if (r.error) return res.status(400).json(r);
+  res.json({ ok: true });
+});
 app.use('/api/admin', require('./routes/admin'));
 // Vitrine de démo (Vercel) : comptes et données d'exemple, créés une fois par démarrage de la base temporaire
 require('./demo').seed();

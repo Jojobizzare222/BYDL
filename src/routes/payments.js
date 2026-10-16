@@ -29,7 +29,7 @@ router.get('/methods', (req, res) => {
     cod: { enabled: allowed.cod && cod.enabled, deposit: cod.deposit, depositPercent: cod.depositPercent },
     accountRequired: salesSettings().accountRequired,
     pickupHoldHours: config.pickupHoldHours,
-    agencies: active.map(({ id, name, city, address, hours, phone }) => ({ id, name, city, address, hours, phone })),
+    agencies: active.map(({ id, name, city, address, hours, phone, kind, lat, lng }) => ({ id, name, city, address, hours, phone, kind: kind || 'agency', lat: lat ?? null, lng: lng ?? null })),
   });
 });
 
@@ -147,10 +147,10 @@ router.post('/', async (req, res) => {
   // Mode de remise de la commande : retrait en agence (espèces) ou livraison (paiement en ligne)
   if (method === 'cash') {
     payment.expiresAt = new Date(now + config.pickupHoldHours * 3600 * 1000).toISOString();
-    const { id, name, city, address, hours, phone: agencyPhone } = agency;
+    const { id, name, city, address, hours, phone: agencyPhone, kind, lat, lng } = agency;
     orders.update(order.id, {
-      fulfillment: cashMode, // 'pickup' : retiré à l'agence · 'delivery' : payé à l'agence puis livré
-      agency: { id, name, city, address, hours, phone: agencyPhone },
+      fulfillment: cashMode, // 'pickup' : retiré au point relais · 'delivery' : payé au point relais puis livré
+      agency: { id, name, city, address, hours, phone: agencyPhone, kind: kind || 'agency', lat: lat ?? null, lng: lng ?? null },
       pickupDeadline: payment.expiresAt, // date limite pour venir payer
     });
   } else if (order.fulfillment === 'pickup' || order.agency) {

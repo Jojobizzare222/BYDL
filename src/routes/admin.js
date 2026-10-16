@@ -286,12 +286,34 @@ router.get('/orders/payments/:pid', requireRole('orders'), balanceStatus);
 // ---------- Espace livreur : ses livraisons du moment (coordonnées du client UNIQUEMENT pour les livraisons en cours) ----------
 const courierView = (o) => ({
   id: o.id, status: o.status, assignedAt: o.assignedAt || null, createdAt: o.createdAt,
-  customer: o.status === 'shipped' ? { name: o.customer.name, phone: o.customer.phone, city: o.customer.city, address: o.customer.address } : { name: o.customer.name, city: o.customer.city },
+  customer: o.status === 'shipped' ? { name: o.customer.name, phone: o.customer.phone, city: o.customer.city, address: o.customer.address, location: o.customer.location || null } : { name: o.customer.name, city: o.customer.city },
   lines: o.lines.map((l) => ({ name: l.name, qty: l.qty })),
   paymentPlan: o.paymentPlan === 'cod' ? 'cod' : 'prepaid', toCollect: delivery.amountToCollect(o),
   callConfirmed: Boolean(o.callConfirmedAt), attempts: (o.attempts || []).length, codeLocked: Boolean(o.codeLocked),
   deliveredAt: o.deliveredAt || null, collected: o.balancePaid ? { method: o.balancePaid.method, amount: o.balance } : null,
 });
+// Position du livreur pour le suivi en direct des clients : acceptée seulement s'il a une livraison EN COURS ;
+// une seule position gardée (la dernière), effacée quand il arrête le partage.
+router.post('/courier/position', requireRole('courier'), (req, res) => {
+  if (req.user.role !== 'courier') return res.status(403).json({ error: 'Réservé aux livreurs' });
+  if (!orders.all().some((o) => o.courierId === req.user.id && o.status === 'shipped')) {
+    staff.update(req.user.id, { livePos: null });
+    return res.status(409).json({ error: 'Aucune livraison en cours : partage arrêté', stop: true });
+  }
+  const lat = Number(req.body?.lat), lng = Number(req.body?.lng);
+  if (!(Math.abs(lat) <= 90 && Math.abs(lng) <= 180)) return res.status(400).json({ error: 'Position invalide' });
+  const num = (v) => (Number.isFinite(Number(v)) ? Math.round(Number(v)) : null);
+  staff.update(req.user.id, { livePos: { lat: Math.round(lat * 1e6) / 1e6, lng: Math.round(lng * 1e6) / 1e6, accuracy: num(req.body?.accuracy), heading: num(req.body?.heading), at: new Date().toISOString() } });
+  // « Votre livreur arrive » : une seule fois par commande, quand il est à moins de 500 m du point placé par le client
+  for (const o of orders.all().filter((x) => x.courierId === req.user.id && x.status === 'shipped' && x.customer?.location && !x.nearNotified)) {
+    const R = 6371, rad = (v) => (v * Math.PI) / 180, d = o.customer.location;
+    const km = 2 * R * Math.asin(Math.sqrt(Math.sin(rad(d.lat - lat) / 2) ** 2 + Math.cos(rad(lat)) * Math.cos(rad(d.lat)) * Math.sin(rad(d.lng - lng) / 2) ** 2));
+    if (km < 0.5) { orders.update(o.id, { nearNotified: new Date().toISOString() }); require('../push').orderStage(orders.get(o.id), 'near'); }
+  }
+  res.json({ ok: true });
+});
+router.delete('/courier/position', requireRole('courier'), (req, res) => { staff.update(req.user.id, { livePos: null }); res.json({ ok: true }); });
+
 router.get('/courier/deliveries', requireRole('courier'), (req, res) => {
   const mine = orders.all().filter((o) => o.courierId === req.user.id);
   const current = mine.filter((o) => o.status === 'shipped').sort((a, b) => (a.assignedAt < b.assignedAt ? -1 : 1));
@@ -335,7 +357,15 @@ function cleanAgency(input, current = {}) {
     if (key in input) a[key] = str(input[key], max);
   }
   if ('active' in input) a.active = Boolean(input.active);
-  if (!a.name) return { error: "Le nom de l'agence est obligatoire" };
+  // Point relais : agence Kamwa ou commerce partenaire ; position sur la carte (choisie dans Kamwa Pro)
+  if ('kind' in input) a.kind = input.kind === 'partner' ? 'partner' : 'agency';
+  if ('lat' in input || 'lng' in input) {
+    const lat = input.lat === '' || input.lat == null ? null : Number(input.lat), lng = input.lng === '' || input.lng == null ? null : Number(input.lng);
+    if (lat === null || lng === null) { a.lat = null; a.lng = null; }
+    else if (!(lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180)) return { error: 'Position sur la carte invalide' };
+    else { a.lat = Math.round(lat * 1e6) / 1e6; a.lng = Math.round(lng * 1e6) / 1e6; }
+  }
+  if (!a.name) return { error: "Le nom du point relais est obligatoire" };
   if (!a.city) return { error: 'La ville est obligatoire' };
   return { value: a };
 }
@@ -405,6 +435,7 @@ router.post('/customers/:id/identity', requireRole(), (req, res) => {
     idCheckedAt: new Date().toISOString(),
     idCheckedBy: req.user.name || req.user.login,
   });
+  require('../push').notifyCustomer(customer.id, decision === 'verify' ? 'Identité vérifiée ✓' : 'Pièce d\'identité refusée', decision === 'verify' ? 'Votre compte Kamwa est vérifié : vous pouvez commander.' : `Motif : ${reason}. Envoyez une nouvelle photo depuis votre compte.`);
   log(req, decision === 'verify' ? "Pièce d'identité vérifiée" : "Pièce d'identité refusée", { id: customer.id, name: customer.name }, decision === 'reject' ? reason : identity.ID_TYPES[customer.idType]);
   res.json({ ...customerAuth.publicCustomer(updated), idCheckedBy: updated.idCheckedBy });
 });

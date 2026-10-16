@@ -427,3 +427,20 @@ input[type=date] { width: 100%; padding: 10px 12px; border: 1px solid var(--line
   .msg-conv { height: calc(100dvh - 190px); min-height: 420px; }
   .msg-top .back { display: inline-flex; }
 }
+
+/* ---------- Cartes (points relais, suivi du livreur) ---------- */
+.kmap { height: 320px; border-radius: 16px; overflow: hidden; border: 1px solid #2C2640; background: #E8EEF2; z-index: 0; }
+.kmap-pin { background: none; border: 0; }
+.kmap-pin span { position: relative; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); background: #2D1B69; border: 3px solid #fff; box-shadow: 0 4px 10px rgba(0,0,0,.3); color: #fff; font-weight: 800; font-size: .8rem; }
+.kmap-pin span::after { content: ''; position: absolute; width: 10px; height: 10px; border-radius: 50%; background: #FFB300; transform: rotate(45deg); }
+.kmap-relay.on span, .kmap-relay.on span::after { background: #FF5A3C; }
+.kmap-relay.on span::after { background: #fff; }
+.kmap-home span { background: #0E8A66; } .kmap-home span::after { background: #fff; }
+.kmap-me span { border-radius: 50%; transform: none; width: 18px; height: 18px; background: #2F7BFF; } .kmap-me span::after { display: none; }
+.kmap-courier span { border-radius: 50%; transform: none; background: #FF5A3C; width: 38px; height: 38px; animation: kpulse 1.6s infinite; } .kmap-courier span::after { display: none; }
+@keyframes kpulse { 0% { box-shadow: 0 0 0 0 rgba(255,90,60,.55); } 70% { box-shadow: 0 0 0 16px rgba(255,90,60,0); } 100% { box-shadow: 0 0 0 0 rgba(255,90,60,0); } }
+.leaflet-popup-content { font-size: .88rem; color: #1B1530; } .leaflet-popup-content a { color: #5236C9; }
+
+/* Partage de position du livreur */
+.share-panel { border: 1px solid #2C2640; } .share-panel.on { border-color: rgba(52,199,140,.6); background: rgba(52,199,140,.08); }
+.share-panel strong { display: inline-flex; align-items: center; gap: 6px; }
