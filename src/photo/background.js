@@ -19,6 +19,10 @@ const MODEL = {
 const MODEL_DIR = process.env.MODEL_DIR || (process.env.VERCEL ? '/tmp/kamwa-models' : path.join(__dirname, '..', '..', 'data', 'models'));
 const MODEL_PATH = path.join(MODEL_DIR, MODEL.file);
 const MAX_SIDE = 1600; // taille maximale de la photo traitée (et de la photo finale)
+// Fichiers WebAssembly du moteur, désignés explicitement : sans cela, l'hébergeur (Vercel) ne les embarque pas
+const ORT_DIST = path.join(__dirname, '..', '..', 'node_modules', 'onnxruntime-web', 'dist');
+const ORT_MJS = path.join(__dirname, '..', '..', 'node_modules', 'onnxruntime-web', 'dist', 'ort-wasm-simd-threaded.mjs');
+const ORT_WASM = path.join(__dirname, '..', '..', 'node_modules', 'onnxruntime-web', 'dist', 'ort-wasm-simd-threaded.wasm');
 
 let sharp = null;
 let ort = null;
@@ -32,6 +36,12 @@ function libs() {
     ort = require('onnxruntime-web');
     ort.env.wasm.numThreads = Math.max(1, Math.min(4, (os.availableParallelism?.() || os.cpus().length) - 0));
     ort.env.logLevel = 'error';
+    if (fs.existsSync(ORT_MJS) && fs.existsSync(ORT_WASM)) {
+      const { pathToFileURL } = require('url');
+      ort.env.wasm.wasmPaths = { mjs: pathToFileURL(ORT_MJS).href, wasm: pathToFileURL(ORT_WASM).href };
+    } else {
+      console.warn('[détourage] moteur WebAssembly introuvable dans', ORT_DIST);
+    }
   }
 }
 
