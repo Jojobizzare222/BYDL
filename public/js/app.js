@@ -1020,6 +1020,7 @@
   const idFieldsHtml = () => `
     <fieldset class="id-box">
       <legend>${icon('identification-card')} Pièce d'identité <span class="req">obligatoire</span></legend>
+      ${state.config?.demo ? `<div class="alert err" style="margin-top:6px"><strong>Site de démonstration public :</strong> n'envoyez pas votre vraie pièce d'identité ni votre vrai numéro. Une photo quelconque (un papier, une carte de fidélité…) suffit pour essayer.</div>` : ''}
       <p class="hint">Pour lutter contre les fausses commandes, Kamwa vérifie l'identité de chaque client avant sa première commande. Votre photo reste confidentielle : seule l'équipe de vérification de Kamwa peut la voir.</p>
       <label for="idType">Type de pièce</label>
       <select id="idType" required><option value="">Choisissez…</option>${Object.entries(ID_TYPES).map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join('')}</select>
