@@ -303,3 +303,12 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--mango); bor
 .thumb.tint-1 { background: var(--mango-soft); }
 .thumb.tint-2 { background: #FFE1D9; color: var(--accent-dark); }
 .card .btn { font-size: .85rem; padding: 8px 10px; }
+
+/* Crédits des photos sous licence libre */
+.photo-credit { position: absolute; left: 0; right: 0; bottom: 0; margin: 0; padding: 4px 8px; font-size: .68rem; line-height: 1.3; color: #fff; background: rgba(36,26,69,.62); z-index: 2; }
+.photo-credit a { text-decoration: underline; }
+.copy a { color: var(--mango); text-decoration: underline; }
+.credits { display: grid; gap: 8px; margin-top: 12px; }
+.credit-row { display: flex; gap: 12px; align-items: center; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
+.credit-row img { width: 64px; height: 64px; object-fit: cover; border-radius: 10px; flex: none; background: var(--bg); }
+.credit-row a { color: var(--accent-dark); text-decoration: underline; }

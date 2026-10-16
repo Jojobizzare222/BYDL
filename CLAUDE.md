@@ -40,7 +40,8 @@ src/payments/providers/  mtn-momo.js (Collection API, requesttopay) · airtel-mo
 public/paiement-carte/   fausse page de paiement carte (mode simulation uniquement, aucun numéro de carte demandé)
 src/utils/phone.js       numéros +242 : 06 = MTN, 05/04 = Airtel
 public/index.html, public/css/style.css, public/js/app.js   SPA avec routes hash : #/, #/c/<univers>/<catégorie>, #/p/<id>, #/recherche/<q>, #/promos, #/commande, #/merci/<id>, #/compte, #/compte/creer, #/suivi/<id>
-public/images/products/  images produit (champ "image" ; repli sur l'icône Phosphor de la catégorie si absente)
+public/images/commons/   photos produits libres (Wikimedia Commons) + CREDITS.md ; champ "image" + "imageCredit" ; repli sur l'icône Phosphor si absente
+public/images/products/  anciennes illustrations générées, plus utilisées (à supprimer)
 public/brand/            logo Kamwa (logo-kamwa.svg, logo-kamwa-clair.svg, symbole, favicon, icône 512, image de partage)
 public/icons.svg         icônes Phosphor (Iconify) en sprite ; public/fonts/ : Baloo 2 + DM Sans (woff2)
 data/products.json       catalogue de départ (~107 produits : 90 Apple de SIMULATION + composants + mode), importé une seule fois
@@ -63,7 +64,7 @@ Lancer : `npm install` puis `npm start` → boutique http://localhost:3000 · ad
 - Alternative envisageable plus tard : agrégateur (CinetPay, pawaPay…) via un nouveau provider.
 
 ## État actuel et points d'attention
-- Les 90 produits Apple et leurs **70 images sont une simulation** : illustrations génériques générées (pas de photos officielles Apple, pas de logo Apple — droits d'image). Les **prix FCFA sont des estimations**, pas des prix marché. À remplacer par le vrai catalogue / photos fournisseur.
+- Les **prix FCFA des 90 produits Apple sont des estimations** (catalogue de SIMULATION). **Photos (16/10/2026)** : les illustrations générées ont été remplacées par de **vraies photos sous licence libre de Wikimedia Commons** (`public/images/commons/`, 43 photos, crédits dans `CREDITS.md`) : 74 produits ont une photo, 16 gardent l'icône de catégorie (iMac, AirPods 2/3, chargeurs, câbles, coques : pas de photo libre fiable). Chaque produit garde `imageCredit` {author, license, licenseUrl, source} → crédit affiché sur la fiche + page `#/credits` (obligation des licences CC BY / BY-SA). Photos d'illustration : couleur parfois différente. Une photo envoyée depuis l'admin efface le crédit. Les anciennes images générées (`public/images/products/`) ne sont plus utilisées : à supprimer (Joseph). **Photos officielles Apple : interdites sans autorisation** (citer la source ne suffit pas) → avant lancement, photos réelles de Joseph ou du fournisseur.
 - Statuts de commande : pending_payment → paid → shipped → delivered, ou cancelled (retour arrière possible : expédiée→payée, livrée→expédiée). Annuler une commande payée remet le stock ; le remboursement Mobile Money se fait à la main. Un paiement validé APRÈS annulation est signalé `paidAfterCancel` (+ e-mail « à rembourser »).
 - Sauvegardes : la base et les photos (data/) ne sont PAS sur GitHub → prévoir une sauvegarde à la mise en ligne.
 - Pas encore : frais de livraison par zone, alertes WhatsApp/SMS, hébergement en ligne, comptes marchands opérateurs, e-mail SMTP réel (à configurer avec Joseph).

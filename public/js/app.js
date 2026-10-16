@@ -311,6 +311,34 @@
     viewList({ title: 'Bonnes affaires', crumbs: '<a href="#/">Accueil</a> › Bonnes affaires', list: state.products.filter((p) => discount(p) > 0), active: 'promos' });
   }
 
+  // Crédit obligatoire des photos sous licence libre (Wikimedia Commons) : auteur, licence, source.
+  function photoCredit(p) {
+    const c = p.imageCredit;
+    if (!c) return '';
+    return `<p class="photo-credit">Photo d'illustration · <a href="${esc(c.source)}" target="_blank" rel="noopener">${esc(c.author)}</a>,
+      ${c.licenseUrl ? `<a href="${esc(c.licenseUrl)}" target="_blank" rel="noopener">${esc(c.license)}</a>` : esc(c.license)}, via Wikimedia Commons</p>`;
+  }
+
+  // Page « Crédits photos » : toutes les photos libres utilisées, avec leurs auteurs et licences
+  function viewCredits() {
+    renderNav(null);
+    const byImage = new Map();
+    for (const p of state.products) if (p.imageCredit && !byImage.has(p.image)) byImage.set(p.image, p);
+    app.innerHTML = `
+      <div class="panel">
+        <h1>Crédits photos</h1>
+        <p class="hint">Les photos de produits ci-dessous sont publiées sous licence libre sur Wikimedia Commons par leurs auteurs. Ce sont des photos d'illustration : le modèle est le même, la couleur ou les accessoires peuvent différer.</p>
+        <div class="credits">
+          ${[...byImage.values()].map((p) => `
+            <div class="credit-row">
+              <img src="${esc(p.image)}" alt="" loading="lazy" width="64" height="64">
+              <span><strong>${esc(p.name.replace(/^Apple /, ''))}</strong><br>
+              <span class="hint"><a href="${esc(p.imageCredit.source)}" target="_blank" rel="noopener">${esc(p.imageCredit.author)}</a> · ${p.imageCredit.licenseUrl ? `<a href="${esc(p.imageCredit.licenseUrl)}" target="_blank" rel="noopener">${esc(p.imageCredit.license)}</a>` : esc(p.imageCredit.license)}</span></span>
+            </div>`).join('') || '<p class="empty">Aucune photo sous licence libre pour le moment.</p>'}
+        </div>
+      </div>`;
+  }
+
   function viewProduct(id) {
     const p = byId(id);
     if (!p) return viewHome();
@@ -320,7 +348,7 @@
     app.innerHTML = `
       <div class="crumbs"><a href="#/">Accueil</a> › <a href="#/c/${enc(p.universe)}">${esc(p.universe)}</a> › <a href="#/c/${enc(p.universe)}/${enc(p.category)}">${esc(p.category)}</a></div>
       <div class="pdp">
-        ${visual(p)}${d ? `<span class="disc">-${d}%</span>` : ''}</div>
+        ${visual(p)}${d ? `<span class="disc">-${d}%</span>` : ''}${photoCredit(p)}</div>
         <div>
           <h1>${esc(p.name)}</h1>
           <p>${esc(p.description)}</p>
@@ -803,6 +831,7 @@
       case 'merci': return viewThanks(parts[1]);
       case 'compte': return viewAccount(parts[1]);
       case 'suivi': return viewTracking(parts[1]);
+      case 'credits': return viewCredits();
       default: return viewHome();
     }
   }

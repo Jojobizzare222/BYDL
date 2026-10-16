@@ -178,6 +178,7 @@ function cleanProduct(input, current = {}) {
   if ('image' in input) {
     const img = str(input.image, 200);
     if (img && !/^\/images\/(products|uploads)\/[\w.-]+$/.test(img)) return { error: 'Photo invalide' };
+    if (img !== current.image) p.imageCredit = undefined; // nouvelle photo : l'ancien crédit ne s'applique plus
     p.image = img || undefined;
   }
   if ('color' in input) {
