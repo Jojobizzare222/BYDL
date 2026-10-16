@@ -68,6 +68,7 @@ Lancer : `npm install` puis `npm start` → boutique http://localhost:3000 · ad
 - Sur Vercel (`process.env.VERCEL`) : disque en lecture seule sauf /tmp → base `/tmp/kamwa-demo.db` TEMPORAIRE (repart de `data/products.json` à chaque redémarrage), photos envoyées dans `/tmp/kamwa-uploads`, `config.demo = true` → bandeau « Site de démonstration » + paiements en simulation. `express.static` y est ignoré : les fichiers de `public/` sont servis par Vercel, les photos envoyées par la route `/images/uploads/:name`.
 - Mot de passe admin de la démo : réglage Vercel `ADMIN_PASSWORD_HASH` = empreinte créée par `npm run admin:hash` (jamais le mot de passe en clair). Sans ce réglage, l'admin de la démo est inaccessible.
 - `data/products.json` (catalogue de départ) est aligné sur la boutique : produits non-Apple `active: false`.
+- Le Mac est connecté à Vercel en ligne de commande (projet `bydl`, équipe `admin-30e7`) : redéployer la démo sans GitHub avec `npx --yes vercel@latest deploy --prod --yes --scope admin-30e7`. `.vercelignore` empêche d'envoyer la base, les photos envoyées, les anciennes commandes et `.env`. Le jeton local (`.env.local`) est exclu de Git.
 
 ## Espace pro : équipe et fournisseurs (décisions Joseph 16/10/2026)
 - Rôles : **admin** (tout), **supplier** (fournisseur : ses produits, son stock, son prix fournisseur, les commandes de ses produits), **catalog** (employé Catalogue : ajout/modif de tous les produits, ne voit pas les prix fournisseur), **orders** (employé Commandes : commandes et statuts).

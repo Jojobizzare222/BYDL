@@ -1,0 +1,12 @@
+# Ne jamais envoyer chez Vercel les données privées de la boutique (la démo Vercel a sa propre base temporaire)
+data/baydel.db*
+data/uploads/
+data/orders.json
+data/payments.json
+data/*.tmp
+.env
+node_modules/
+.DS_Store
+public/images/products/
+.env.local
+.vercel/
