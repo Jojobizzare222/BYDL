@@ -120,7 +120,7 @@
         <div class="line">
           <div>
             <div>${esc(p.name)}</div>
-            ${variant ? `<div class="hint">${esc(variantText(variant))}</div>` : ''}${p.origin === 'FR' ? `<div class="hint fr-hint">${icon('airplane-tilt')} Venu de France · ${esc(state.frDelay || '10 à 21 jours')}</div>` : ''}
+            ${variant ? `<div class="hint">${esc(variantText(variant))}</div>` : ''}${p.origin === 'FR' ? `<div class="hint fr-hint">${icon('airplane-tilt')} Venu de France · ${esc(state.frDelay || '10 jours maximum')}</div>` : ''}
             <div class="qty">
               <button data-qty="${esc(key)}" data-d="-1" aria-label="Retirer un">−</button>
               <span>${qty}</span>
@@ -532,7 +532,7 @@
             <span class="price">${fcfa(p.price)}</span>
             ${(p.options || []).map((o, i) => `<label class="opt-label" for="opt${i}">${esc(o.name)}</label><div class="opt-choices" id="opt${i}" data-opt="${esc(o.name)}">${o.values.map((v) => `<button type="button" class="opt" data-v="${esc(v)}">${esc(v)}</button>`).join('')}</div>`).join('')}
             ${p.origin === 'FR'
-              ? `<span class="momo-note fr-note">${icon('airplane-tilt')} Venu de France par avion · livré en ${esc(state.frDelay || '10 à 21 jours')}</span>
+              ? `<span class="momo-note fr-note">${icon('airplane-tilt')} Venu de France par avion · livré en ${esc(state.frDelay || '10 jours maximum')}</span>
                  <span class="hint">${icon('check-circle-duotone')} Prix tout compris (transport et douane inclus) · payable à la commande en Mobile Money ou par carte</span>`
               : `<span class="momo-note">${icon('check-circle-duotone')} Payable en Mobile Money, par carte ou en espèces</span>
             <span class="hint">${icon('truck-duotone')} Livraison 24-48 h à Pointe-Noire et Brazzaville</span>`}
@@ -624,7 +624,7 @@
           </div>
 
           <h2 style="margin-top:24px">2. Paiement</h2>
-          ${hasFr ? `<div class="alert warn">${icon('airplane-tilt')} Votre panier contient des articles venus de France : nous les achetons pour vous, la commande se paie donc à la commande (Mobile Money ou carte). Livraison de toute la commande en ${esc(state.frDelay || '10 à 21 jours')}.</div>` : ''}
+          ${hasFr ? `<div class="alert warn">${icon('airplane-tilt')} Votre panier contient des articles venus de France : nous les achetons pour vous, la commande se paie donc à la commande (Mobile Money ou carte). Livraison de toute la commande en ${esc(state.frDelay || '10 jours maximum')}.</div>` : ''}
           <div class="methods">
             <label class="op"><input type="radio" name="method" value="momo" checked><span>${icon('device-mobile-duotone')}<span class="txt">Mobile Money<small>MTN MoMo · Airtel Money</small></span></span></label>
             ${methods.card ? `<label class="op"><input type="radio" name="method" value="card"><span>${icon('credit-card-duotone')}<span class="txt">Carte bancaire<small>Visa · Mastercard</small></span></span></label>` : ''}
@@ -826,7 +826,7 @@
         <div class="big-check">${icon('check-circle-duotone')}</div>
         <h1>${order?.paymentPlan === 'cod' ? 'Merci, commande confirmée&nbsp;!' : 'Merci, paiement reçu&nbsp;!'}</h1>
         ${order ? `<p>Commande <strong>${esc(order.id)}</strong> : ${fcfa(order.total)}</p>
-        ${order.import ? `<p>Nous nous occupons de l'achat de votre article. Vous suivez chaque étape (achat, photos, départ, arrivée) dans « Suivre ma commande ». Délai : ${esc(order.import.delay || '10 à 21 jours')}.</p>` : ''}
+        ${order.import ? `<p>Nous nous occupons de l'achat de votre article. Vous suivez chaque étape (achat, photos, départ, arrivée) dans « Suivre ma commande ». Délai : ${esc(order.import.delay || '10 jours maximum')}.</p>` : ''}
         ${order.paymentPlan === 'cod' ? `<p>${order.deposit ? `Acompte reçu : ${fcfa(order.deposit)}. ` : ''}Vous paierez <strong>${fcfa(order.balance ?? order.total)}</strong> à la livraison, en espèces ou en Mobile Money.</p>` : ''}
         <p>${order.import ? `Nous vous tenons informé au <strong>${esc(order.customer.phone)}</strong>, puis nous organisons la livraison à ${esc(order.customer.city)} dès l'arrivée au Congo.` : `Nous vous appelons au <strong>${esc(order.customer.phone)}</strong> pour organiser la livraison à ${esc(order.customer.city)}.`}</p>
         ${order.import ? '' : codeCard(order)}
@@ -997,7 +997,7 @@
     const steps = im
       ? [
           ['Commande passée', o.createdAt, 'Devis accepté. Le paiement confirme la commande.'],
-          ['Payée', o.paidAt, `Paiement reçu. Nous achetons votre article (délai total annoncé : ${esc(im.delay || '10 à 21 jours')}).`],
+          ['Payée', o.paidAt, `Paiement reçu. Nous achetons votre article (délai total annoncé : ${esc(im.delay || '10 jours maximum')}).`],
           ['Achetée en France', im.boughtAt, 'Votre article est commandé auprès du vendeur en France.'],
           ['Article vérifié', im.receivedAt, "Votre article a été reçu et vérifié. Il part avec le prochain envoi vers le Congo."],
           ['Partie de France', im.departedAt, `Votre colis est en route vers le Congo${im.eta ? ` — arrivée prévue vers le <strong>${shortDate(im.eta)}</strong>` : ''}.`],
@@ -1066,7 +1066,7 @@
 
   async function viewFrance() {
     renderNav('france');
-    let conf = { enabled: true, delay: '10 à 21 jours', validityHours: 48 };
+    let conf = { enabled: true, delay: '10 jours maximum', validityHours: 48 };
     try { conf = await api('/imports/settings'); } catch {}
     const saved = (() => { try { return JSON.parse(localStorage.getItem('kamwa-customer')) || {}; } catch { return {}; } })();
     if (state.customer) { saved.name = saved.name || state.customer.name; saved.phone = saved.phone || state.customer.phone || ''; }

@@ -3,6 +3,11 @@
 // de recherche (données « schema.org » JSON-LD, balises Open Graph, fiche Shopify). Aucune connexion, aucun
 // contournement : si un site bloque la lecture automatique, on le dit et l'équipe remplit à la main.
 // Sécurité : seules les adresses publiques http(s) sont lues (jamais le réseau interne du serveur), taille et durée limitées.
+// Respect des sites (pour ne jamais être pris pour un robot agressif ou du piratage) :
+//  - Kamwa se présente honnêtement (nom « KamwaApercu » + adresse du site), sans se faire passer pour un navigateur ;
+//  - on lit le fichier robots.txt du site et on s'abstient si le site interdit la lecture de la page ;
+//  - une page à la fois par site, au moins 3 s entre deux demandes au même site, 60 demandes par heure et par site au plus ;
+//  - aucune connexion à un compte, aucun contournement de vérification « êtes-vous un robot » ou de blocage.
 const dns = require('dns').promises;
 const net = require('net');
 
@@ -29,8 +34,84 @@ async function assertPublic(url) {
   if (ips.some((x) => privateIp(x.address))) throw new Error('Adresse non autorisée');
   return u;
 }
-// Téléchargement prudent : redirections vérifiées une à une, durée et taille limitées
-async function safeFetch(url, { accept, max }) {
+// Rythme poli : demandes au même site espacées (file d'attente par site) et plafonnées par heure
+const GAP_MS = Number(process.env.SCRAPE_GAP_MS ?? 3000);
+const PER_HOUR = 60;
+const hosts = new Map(); // site → { chain: Promise, last: date de la dernière demande, hits: [dates] }
+function politely(host, fn) {
+  const h = hosts.get(host) || { chain: Promise.resolve(), last: 0, hits: [] };
+  hosts.set(host, h);
+  const run = h.chain.then(async () => {
+    const now = Date.now();
+    h.hits = h.hits.filter((t) => now - t < 3600e3);
+    if (h.hits.length >= PER_HOUR) throw new Error('Beaucoup de demandes vers ce site en peu de temps : réessayez dans un moment (Kamwa limite son rythme pour respecter le site).');
+    const wait = h.last + GAP_MS - now;
+    if (wait > 0) await new Promise((r) => setTimeout(r, wait));
+    h.last = Date.now(); h.hits.push(h.last);
+    return fn();
+  });
+  h.chain = run.catch(() => {});
+  return run;
+}
+
+// robots.txt : règles du site pour les robots (« * » ou notre nom), gardées 6 h
+const robotsCache = new Map();
+function parseRobots(txt) {
+  const groups = []; let cur = null; let lastWasAgent = false;
+  for (const raw of String(txt).split(/\r?\n/)) {
+    const line = raw.replace(/#.*/, '').trim();
+    const m = line.match(/^([a-z-]+)\s*:\s*(.*)$/i);
+    if (!m) continue;
+    const key = m[1].toLowerCase(), val = m[2].trim();
+    if (key === 'user-agent') {
+      if (!lastWasAgent) { cur = { agents: [], rules: [] }; groups.push(cur); }
+      cur.agents.push(val.toLowerCase()); lastWasAgent = true;
+    } else {
+      lastWasAgent = false;
+      if (cur && (key === 'allow' || key === 'disallow')) cur.rules.push({ allow: key === 'allow', path: val });
+    }
+  }
+  const mine = groups.filter((g) => g.agents.some((a) => a.length > 2 && a !== '*' && 'kamwaapercu'.includes(a)));
+  return (mine.length ? mine : groups.filter((g) => g.agents.includes('*'))).flatMap((g) => g.rules);
+}
+function robotsAllows(rules, pathAndQuery) {
+  let best = null;
+  for (const r of rules) {
+    if (!r.path) continue; // « Disallow: » vide = tout est permis
+    const re = new RegExp('^' + r.path.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*').replace(/\\\$$/, '$'));
+    if (re.test(pathAndQuery) && (!best || r.path.length > best.path.length || (r.path.length === best.path.length && r.allow))) best = r;
+  }
+  return !best || best.allow;
+}
+async function checkRobots(u) {
+  const key = u.origin;
+  let entry = robotsCache.get(key);
+  if (!entry || Date.now() - entry.at > 6 * 3600e3) {
+    let rules = [];
+    try {
+      const res = await politely(u.host, () => rawFetch(key + '/robots.txt', { accept: 'text/plain', max: 512 * 1024 }));
+      rules = parseRobots(res.buffer.toString('utf8'));
+    } catch (err) {
+      // Pas de robots.txt (404) = pas de règle. Site qui refuse même robots.txt = on s'abstient.
+      if (err.status && err.status >= 400 && err.status < 500 && ![401, 403].includes(err.status)) rules = [];
+      else if ([401, 403].includes(err.status)) rules = [{ allow: false, path: '/' }];
+      else rules = [];
+    }
+    entry = { at: Date.now(), rules };
+    robotsCache.set(key, entry);
+  }
+  if (!robotsAllows(entry.rules, u.pathname + u.search)) {
+    throw new Error("Ce site demande aux robots de ne pas lire cette page : Kamwa respecte ce choix. Utilisez le bouton « → Kamwa » depuis la page du produit (il copie ce que vous avez vous-même à l'écran).");
+  }
+}
+
+// Téléchargement prudent : redirections vérifiées une à une, durée et taille limitées, rythme poli par site
+async function safeFetch(url, opts) {
+  let u;
+  try { u = new URL(url); } catch { throw new Error('Adresse invalide'); }
+  return politely(u.host, () => rawFetch(url, opts));
+}
+async function rawFetch(url, { accept, max }) {
   let current = url;
   for (let hop = 0; hop < 5; hop++) {
     await assertPublic(current);
@@ -82,6 +163,7 @@ const guessCategory = (name) => GUESS.find(([re]) => re.test(name || ''))?.[1] |
 /** Lit la page et renvoie { name, brand, description, images[], priceEur, currency, options[], specs[], category, weightKg, source } */
 async function readProduct(url) {
   let page;
+  await checkRobots(await assertPublic(url));
   try {
     page = await safeFetch(url, { accept: 'text/html,application/xhtml+xml', max: MAX_HTML });
   } catch (err) {
@@ -163,4 +245,4 @@ async function fetchImage(url) {
   return buffer;
 }
 
-module.exports = { readProduct, fetchImage, WEIGHT, guessCategory };
+module.exports = { readProduct, fetchImage, WEIGHT, guessCategory, parseRobots, robotsAllows };

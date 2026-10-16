@@ -864,7 +864,15 @@ async function importImages(urls) {
   }
   return { images: out, failedImages: failed };
 }
-router.post('/products/scrape', requireRole('catalog'), async (req, res) => {
+// Pas plus de 30 lectures de liens / imports de photos par personne et par 10 minutes (usage normal : une fiche à la fois)
+const linkUse = new Map();
+function linkQuota(req, res, next) {
+  const k = req.user?.id || req.user?.login || req.ip; const now = Date.now();
+  const list = (linkUse.get(k) || []).filter((t) => now - t < 10 * 60e3);
+  if (list.length >= 30) return res.status(429).json({ error: 'Trop de lectures de liens en peu de temps. Patientez quelques minutes.' });
+  list.push(now); linkUse.set(k, list); next();
+}
+router.post('/products/scrape', requireRole('catalog'), linkQuota, async (req, res) => {
   try {
     const data = await scrape.readProduct(String(req.body?.url || '').trim());
     const imgs = await importImages(data.images);
@@ -875,7 +883,7 @@ router.post('/products/scrape', requireRole('catalog'), async (req, res) => {
   }
 });
 // Données envoyées par le bouton « → Kamwa » (favori) : seules les photos sont récupérées ici
-router.post('/products/import-images', requireRole('catalog'), async (req, res) => {
+router.post('/products/import-images', requireRole('catalog'), linkQuota, async (req, res) => {
   const category = scrape.guessCategory(String(req.body?.name || ''));
   res.json({ ...(await importImages(req.body?.urls)), category, weightKg: scrape.WEIGHT[category] || 1 });
 });

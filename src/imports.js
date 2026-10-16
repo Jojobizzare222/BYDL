@@ -23,7 +23,7 @@ const DEFAULTS = {
   fixedFee: 3000,         // frais fixes par commande (FCFA)
   roundTo: 500,           // arrondi du prix final
   validityHours: 48,      // durée de validité d'un devis
-  delay: '10 à 21 jours', // délai annoncé au client après paiement
+  delay: '10 jours maximum', // délai annoncé au client après paiement
 };
 function importSettings() {
   try { return { ...DEFAULTS, ...JSON.parse(settings.get('import') || '{}') }; } catch { return { ...DEFAULTS }; }

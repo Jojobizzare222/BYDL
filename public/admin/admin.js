@@ -1128,6 +1128,10 @@
           <p><a class="btn small bookmarklet" href="${esc(bookmarklet())}" onclick="event.preventDefault(); alert('Ne cliquez pas ici : glissez ce bouton dans votre barre de favoris, puis utilisez-le sur la page du produit.')">→ Kamwa</a></p>
           <p class="muted">Ensuite, ouvrez la page du produit sur le site, cliquez sur le favori « → Kamwa » : une fiche Kamwa pré-remplie s'ouvre. C'est comme un copier-coller, mais en un clic.</p>
         </details>
+        <details class="deliver-box"><summary>Règles de bonne conduite (respect des sites)</summary>
+          <p class="muted">Kamwa se présente honnêtement aux sites, respecte leurs consignes aux robots (robots.txt), lit une page à la fois et espace ses demandes. Il ne se connecte jamais à un compte et ne contourne aucun blocage ni vérification « êtes-vous un robot ».</p>
+          <p class="muted">De votre côté : <strong>une fiche par produit que nous vendons vraiment</strong>, jamais de copie en masse d'un catalogue. Réécrivez la description avec vos mots si possible, et préférez nos propres photos : les photos du site vendeur lui appartiennent.</p>
+        </details>
       </div>`}
       <form class="panel" id="pform" novalidate>
         <h2>Photos</h2>

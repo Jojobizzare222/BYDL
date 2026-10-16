@@ -93,7 +93,7 @@ function seed() {
     id: 'pdemo-fr1', name: 'Baskets de running légères (exemple)', brand: 'Exemple', universe: 'Mode', category: 'Chaussures', condition: 'neuf',
     origin: 'FR', priceEur: 59.99, weightKg: 1.3, sourceUrl: 'https://www.exemple.fr/baskets', price: 69000, costPrice: 58921, stock: 5, active: true, images: [],
     options: [{ name: 'Couleur', values: ['Noir', 'Blanc'] }, { name: 'Pointure', values: ['40', '41', '42', '43', '44'] }],
-    description: "Produit de démonstration venu de France : acheté par notre agent après votre commande, expédié par avion, livré en 10 à 21 jours.",
+    description: "Produit de démonstration venu de France : acheté pour vous après votre commande, expédié par avion, livré en 10 jours maximum.",
     specs: [{ label: 'Origine', value: 'France' }], createdAt: now, createdBy: 'admin',
   });
 
@@ -109,7 +109,7 @@ function seed() {
     items: [{ url: 'https://www.fnac.com/', title: 'Liseuse électronique (exemple)', options: 'Noire', qty: 1, priceEur: 129 }],
     note: '', customer: { name: 'Clarisse (démo)', phone: '067777777', city: 'Pointe-Noire', address: 'Mpita (fictif)' },
     status: 'accepted', orderId: 'CMD-DEMO-0003', createdAt: now, history: [{ status: 'requested', at: now }, { status: 'quoted', at: now }, { status: 'accepted', at: now }],
-    quote: { items: [{ title: 'Liseuse électronique (exemple)', priceEur: 129, shippingEur: 0, qty: 1 }], weightKg: 0.6, total: 131000, delay: '10 à 21 jours', breakdown: { goods: 84618, freight: 5400, customs: 16924, cost: 106942, commission: 24058, total: 131000 }, validUntil: now, by: 'Administrateur', at: now },
+    quote: { items: [{ title: 'Liseuse électronique (exemple)', priceEur: 129, shippingEur: 0, qty: 1 }], weightKg: 0.6, total: 131000, delay: '10 jours maximum', breakdown: { goods: 84618, freight: 5400, customs: 16924, cost: 106942, commission: 24058, total: 131000 }, validUntil: now, by: 'Administrateur', at: now },
   });
   orders.insert({
     id: 'CMD-DEMO-0003', accessToken: crypto.randomBytes(16).toString('hex'), customerId: null,
@@ -117,7 +117,7 @@ function seed() {
     subtotal: 131000, deliveryFee: 0, total: 131000, currency: 'XAF',
     customer: { name: 'Clarisse (démo)', phone: '067777777', city: 'Pointe-Noire', address: 'Mpita (fictif)' },
     status: 'paid', createdAt: now, paidAt: now, paymentId: 'PAY-DEMO-0003', history: [{ status: 'paid', at: now }], fulfillment: 'delivery', deliveryCode: '8642',
-    import: { requestId: 'FR-DEMO-0002', stage: 'to_buy', delay: '10 à 21 jours', items: [{ title: 'Liseuse électronique (exemple)', priceEur: 129, shippingEur: 0, qty: 1, url: 'https://www.fnac.com/', options: 'Noire' }] },
+    import: { requestId: 'FR-DEMO-0002', stage: 'to_buy', delay: '10 jours maximum', items: [{ title: 'Liseuse électronique (exemple)', priceEur: 129, shippingEur: 0, qty: 1, url: 'https://www.fnac.com/', options: 'Noire' }] },
   });
   payments.insert({ id: 'PAY-DEMO-0003', orderId: 'CMD-DEMO-0003', operator: 'mtn', phone: '067777777', purpose: 'full', amount: 131000, currency: 'XAF', status: 'SUCCESSFUL', providerRef: 'DEMO', reason: null, createdAt: now });
 
