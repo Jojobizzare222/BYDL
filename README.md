@@ -60,6 +60,12 @@ Protections :
 
 L'opérateur est reconnu à partir du préfixe : 06 = MTN, 05/04 = Airtel.
 
+## Les trois moyens de paiement
+
+- **Mobile Money** (MTN MoMo, Airtel Money) : voir ci-dessus.
+- **Carte bancaire** : le client est envoyé sur la page sécurisée du prestataire, puis revient sur Kamwa. Kamwa ne voit jamais le numéro de carte. En mode simulation, une page de test (`/paiement-carte/`) permet d'accepter ou de refuser le paiement.
+- **Espèces en agence** : le client réserve en ligne (articles bloqués 48 h), vient payer à l'agence et repart avec sa commande. Dans l'admin : « Paiement reçu en agence », puis « Remise au client ». Cette option n'apparaît que s'il existe au moins une agence active (admin → onglet **Agences**).
+
 ## Passer aux vrais paiements
 
 1. **MTN MoMo** : créez un compte sur https://momodeveloper.mtn.com, abonnez-vous au produit *Collection*,

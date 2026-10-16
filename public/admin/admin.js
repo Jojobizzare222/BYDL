@@ -37,7 +37,7 @@
     $('#top').hidden = true;
     app.innerHTML = `
       <form class="panel login" id="loginForm">
-        <span class="logo">Kam<span>wa</span></span>
+        <span class="logo"><img src="/brand/logo-kamwa.svg" alt="Kamwa" width="183" height="44"></span>
         <h1>Espace admin</h1>
         ${message ? `<div class="alert err">${esc(message)}</div>` : ''}
         <label for="password">Mot de passe</label>
@@ -107,6 +107,7 @@
     state.orders = data.orders;
     state.labels = data.statusLabels;
     state.transitions = data.transitions;
+    state.pickupTransitions = data.pickupTransitions;
     // Nouvelle commande payée depuis la dernière vérification ?
     const paidIds = state.orders.filter((o) => o.paidAt).map((o) => o.id);
     if (state.seenPaid) {
@@ -139,8 +140,13 @@
   }, 20000);
 
   // ---------- Commandes ----------
+  const isPickup = (o) => o.fulfillment === 'pickup';
+  const toCollect = (o) => o.status === 'pending_payment' && o.payment?.operator === 'cash' && o.payment.status === 'PENDING' && !(o.payment.expiresAt && Date.now() > Date.parse(o.payment.expiresAt));
+  const PAY_LABELS = { mtn: 'MTN MoMo', airtel: 'Airtel Money', card: 'Carte bancaire', cash: 'Espèces en agence' };
+  const PAY_STATUS = { PENDING: 'en attente', SUCCESSFUL: 'réussi', FAILED: 'échoué', CANCELLED: 'remplacé' };
   const FILTERS = [
-    ['paid', 'À expédier'],
+    ['paid', 'À expédier / remettre'],
+    ['collect', 'À encaisser en agence'],
     ['shipped', 'Expédiées'],
     ['delivered', 'Livrées'],
     ['cancelled', 'Annulées'],
@@ -151,18 +157,20 @@
 
   function viewOrders() {
     const f = state.orderFilter;
-    const count = (s) => state.orders.filter((o) => s === 'all' || o.status === s).length;
-    const list = state.orders.filter((o) => f === 'all' || o.status === f || (f === 'paid' && o.paidAfterCancel));
+    const matches = (o, k) => k === 'all' || (k === 'collect' ? toCollect(o) : o.status === k) || (k === 'paid' && o.paidAfterCancel);
+    const count = (k) => state.orders.filter((o) => matches(o, k)).length;
+    const list = state.orders.filter((o) => matches(o, f));
     app.innerHTML = `
       <div class="chips">${FILTERS.map(([k, label]) => `<button class="chip ${f === k ? 'on' : ''}" data-filter="${k}">${label} (${count(k)})</button>`).join('')}</div>
-      ${f === 'pending_payment' ? '<p class="muted">Commandes commencées mais pas payées (paiement refusé, abandonné ou en cours). Rien à expédier.</p>' : ''}
+      ${f === 'pending_payment' ? '<p class="muted">Commandes commencées mais pas payées (paiement refusé, abandonné, en cours, ou réservation en agence). Rien à expédier.</p>' : ''}
+      ${f === 'collect' ? '<p class="muted">Réservations en cours : le client vient payer en espèces à l\'agence. Préparez les articles.</p>' : ''}
       <div class="list">
         ${list.length ? list.map((o) => `
           <a class="item ${o.paidAfterCancel ? 'flag' : ''}" href="#/commande/${enc(o.id)}">
             <strong>${esc(o.customer.name)}</strong>
             <span class="total">${fcfa(o.total)}</span>
             <span class="sub">${esc(o.customer.city || '—')} · ${o.lines.reduce((s, l) => s + l.qty, 0)} article(s) · ${date(o.createdAt)}</span>
-            <span>${badge(o.status)}</span>
+            <span>${badge(o.status)} ${isPickup(o) ? `<span class="tag">🏪 Retrait ${esc(o.agency?.name || '')}</span>` : ''}</span>
             ${o.paidAfterCancel ? '<span class="sub" style="color:var(--err);grid-column:1/-1">⚠️ Payée après annulation : à rembourser</span>' : ''}
           </a>`).join('') : '<p class="empty">Aucune commande ici.</p>'}
       </div>`;
@@ -172,6 +180,7 @@
   const ACTIONS = {
     shipped: ['Marquer expédiée 🚚', 'btn dark'],
     delivered: ['Marquer livrée ✓', 'btn green'],
+    handed: ['Remise au client ✓', 'btn green'],
     paid: ['Revenir à « Payée »', 'ghost'],
     cancelled: ['Annuler la commande', 'ghost'],
   };
@@ -216,12 +225,19 @@
 
       <div class="panel">
         <h2>Suivi</h2>
-        <div class="row">${(state.transitions[o.status] || []).map((s) => `<button class="${ACTIONS[s][1]}" data-status="${s}">${ACTIONS[s][0]}</button>`).join('') || '<span class="muted">Aucune action possible.</span>'}</div>
+        ${isPickup(o) ? `<p style="margin:0 0 10px"><span class="tag">🏪 Retrait en agence</span> <strong>${esc(o.agency?.name)}</strong> (${esc(o.agency?.city)})${o.status === 'pending_payment' && o.pickupDeadline ? `<br><span class="muted">Réservé jusqu'au ${date(o.pickupDeadline)}${Date.now() > Date.parse(o.pickupDeadline) ? ' — <strong style="color:var(--err)">délai dépassé</strong>' : ''}</span>` : ''}</p>` : ''}
+        <div class="row">
+          ${isPickup(o) && o.status === 'pending_payment' ? `<button class="btn green" id="cashBtn">💵 Paiement reçu en agence (${fcfa(o.total)})</button>` : ''}
+          ${(((isPickup(o) ? state.pickupTransitions : state.transitions) || {})[o.status] || []).map((s) => {
+            const [label, cls] = ACTIONS[isPickup(o) && s === 'delivered' ? 'handed' : s];
+            return `<button class="${cls}" data-status="${s}">${label}</button>`;
+          }).join('') || '<span class="muted">Aucune action possible.</span>'}
+        </div>
         <ul class="history" style="margin-top:12px">
           <li>Créée le ${date(o.createdAt)}</li>
           ${(o.history || []).map((h) => `<li>${esc(state.labels[h.status] || h.status)} le ${date(h.at)}</li>`).join('')}
         </ul>
-        ${pay ? `<p class="muted">Paiement : ${pay.operator === 'mtn' ? 'MTN MoMo' : 'Airtel Money'} · ${esc(pay.phone)} · ${esc(pay.status)}${pay.reason ? ' (' + esc(pay.reason) + ')' : ''}</p>` : ''}
+        ${pay ? `<p class="muted">Paiement : ${PAY_LABELS[pay.operator] || esc(pay.operator)}${pay.phone ? ' · ' + esc(pay.phone) : ''} · ${esc(PAY_STATUS[pay.status] || pay.status)}${pay.reason ? ' (' + esc(pay.reason) + ')' : ''}</p>` : ''}
         <label for="note">Note interne (le client ne la voit pas)</label>
         <textarea id="note" rows="2" placeholder="Ex. livré par Jean, client absent le matin…">${esc(o.note)}</textarea>
         <button class="ghost" id="saveNote" style="margin-top:8px">Enregistrer la note</button>
@@ -256,6 +272,18 @@
     });
     $('#saveNote').addEventListener('click', () => save({ note: $('#note').value }, 'Note enregistrée'));
     if (o.account) $('#newCodeBtn').addEventListener('click', () => newCode(o.account, $('#newCodeBox')));
+    $('#cashBtn')?.addEventListener('click', async () => {
+      if (!confirm(`Confirmer avoir reçu ${fcfa(o.total)} en espèces de ${c.name} ?\n\nLa commande passera en « Payée » et le stock sera décompté.`)) return;
+      try {
+        const updated = await api('/orders/' + enc(o.id) + '/cash-received', { method: 'POST' });
+        state.orders = state.orders.map((x) => (x.id === o.id ? updated : x));
+        await loadOrders().catch(() => {});
+        toast('Paiement en espèces enregistré ✓');
+        viewOrder(o.id);
+      } catch (err) {
+        toast('❌ ' + err.message);
+      }
+    });
   }
 
   // « Code oublié » : génère un nouveau code et l'affiche une seule fois, à transmettre au client.
@@ -272,6 +300,49 @@
     } catch (err) {
       toast('❌ ' + err.message);
     }
+  }
+
+  // ---------- Agences ----------
+  async function viewAgencies(editId) {
+    let list = [];
+    try { list = await api('/agencies'); } catch { return; }
+    const editing = editId === 'nouvelle' ? { active: true } : list.find((a) => a.id === editId);
+    app.innerHTML = `
+      <div class="row between" style="margin-bottom:10px">
+        <h1 style="margin:0">Agences</h1>
+        ${editing ? '' : '<a class="btn" href="#/agences/nouvelle">+ Ajouter</a>'}
+      </div>
+      <p class="muted">Les agences actives permettent au client de choisir « Espèces en agence » : il réserve en ligne, paie en espèces à l'agence et repart avec sa commande. Sans agence active, cette option n'apparaît pas sur le site.</p>
+      ${editing ? `
+      <form class="panel" id="agencyForm" novalidate>
+        <h2>${editing.id ? 'Modifier l\'agence' : 'Nouvelle agence'}</h2>
+        <label for="aName">Nom *</label><input id="aName" type="text" value="${esc(editing.name)}" placeholder="Ex. Kamwa Centre-ville">
+        <label for="aCity">Ville *</label><input id="aCity" type="text" value="${esc(editing.city)}" placeholder="Pointe-Noire">
+        <label for="aAddress">Adresse / repère</label><input id="aAddress" type="text" value="${esc(editing.address)}" placeholder="Avenue…, face à…">
+        <label for="aHours">Horaires</label><input id="aHours" type="text" value="${esc(editing.hours)}" placeholder="Lun-Sam 9h-18h">
+        <label for="aPhone">Téléphone</label><input id="aPhone" type="tel" value="${esc(editing.phone)}">
+        <label class="check"><input id="aActive" type="checkbox" ${editing.active !== false ? 'checked' : ''}> Active (proposée aux clients)</label>
+        <div id="aError"></div>
+        <div class="row" style="margin-top:14px"><button class="btn">Enregistrer</button><a class="ghost" href="#/agences">Annuler</a></div>
+      </form>` : `
+      <div class="list">
+        ${list.map((a) => `
+          <a class="item ${a.active === false ? 'prod off' : ''}" href="#/agences/${enc(a.id)}">
+            <span><strong>${esc(a.name)}</strong> — ${esc(a.city)}<br><span class="sub">${esc(a.address || 'adresse à venir')}${a.hours ? ' · ' + esc(a.hours) : ''}</span></span>
+            <span class="sub">${a.active === false ? 'inactive' : '✓ active'}</span>
+          </a>`).join('') || '<p class="empty">Aucune agence pour le moment. Ajoutez-en une dès que vous en ouvrez une.</p>'}
+      </div>`}`;
+    $('#agencyForm')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const body = { name: $('#aName').value, city: $('#aCity').value, address: $('#aAddress').value, hours: $('#aHours').value, phone: $('#aPhone').value, active: $('#aActive').checked };
+      try {
+        await api(editing.id ? '/agencies/' + enc(editing.id) : '/agencies', { method: editing.id ? 'PATCH' : 'POST', body });
+        toast('Agence enregistrée ✓');
+        location.hash = '#/agences';
+      } catch (err) {
+        $('#aError').innerHTML = `<div class="alert err">${esc(err.message)}</div>`;
+      }
+    });
   }
 
   // ---------- Clients ----------
@@ -446,9 +517,10 @@
   function route() {
     const [page, id] = (location.hash || '#/commandes').slice(2).split('/').map(decodeURIComponent);
     window.scrollTo(0, 0);
-    const tab = page.startsWith('produit') ? 'produits' : page === 'clients' ? 'clients' : 'commandes';
+    const tab = page.startsWith('produit') ? 'produits' : ['clients', 'agences'].includes(page) ? page : 'commandes';
     document.querySelectorAll('[data-tab]').forEach((a) => a.classList.toggle('on', a.dataset.tab === tab));
     if (page === 'clients') return viewCustomers();
+    if (page === 'agences') return viewAgencies(id);
     if (page === 'commande') return viewOrder(id);
     if (page === 'produits') return viewProducts();
     if (page === 'produit') return viewProduct(id);

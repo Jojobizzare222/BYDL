@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Paiement par carte — SIMULATION</title>
+  <style>
+    body { margin: 0; font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; background: #EEF1F5; color: #1B1D21; }
+    .bar { background: #7A4100; color: #fff; text-align: center; padding: 8px 12px; font-weight: 700; font-size: .85rem; }
+    .box { max-width: 420px; margin: 24px auto; background: #fff; border-radius: 10px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,.08); }
+    h1 { font-size: 1.2rem; margin: 0 0 4px; }
+    .amount { font-size: 1.8rem; font-weight: 900; margin: 12px 0; }
+    .muted { color: #6A6F78; font-size: .85rem; }
+    button { width: 100%; min-height: 48px; border: 0; border-radius: 8px; font: inherit; font-weight: 700; cursor: pointer; margin-top: 10px; color: #fff; }
+    .ok { background: #1E7A4C; }
+    .ko { background: #B3261E; }
+    button:disabled { opacity: .5; }
+  </style>
+</head>
+<body>
+  <div class="bar">SIMULATION — aucune carte n'est débitée. Ne saisissez jamais de vraie carte ici.</div>
+  <div class="box">
+    <h1>Paiement sécurisé par carte</h1>
+    <p class="muted">Cette page remplace, pendant les tests, la page de paiement du prestataire (CinetPay, Moneroo…). Le vrai client y tapera sa carte, jamais sur Kamwa.</p>
+    <div class="amount" id="amount">…</div>
+    <p class="muted" id="order"></p>
+    <button class="ok" id="approve">Simuler un paiement accepté</button>
+    <button class="ko" id="refuse">Simuler une carte refusée</button>
+    <p class="muted" id="msg"></p>
+  </div>
+  <script>
+    (async () => {
+      const id = new URLSearchParams(location.search).get('p') || '';
+      const $ = (s) => document.querySelector(s);
+      const back = () => { location.href = '/#/commande'; };
+      try {
+        const res = await fetch('/api/payments/' + encodeURIComponent(id));
+        const p = await res.json();
+        if (!res.ok || p.operator !== 'card') throw new Error();
+        $('#amount').textContent = new Intl.NumberFormat('fr-FR').format(p.amount) + ' FCFA';
+        $('#order').textContent = 'Commande ' + p.orderId;
+        if (p.status !== 'PENDING') { $('#msg').textContent = 'Ce paiement est déjà traité.'; setTimeout(back, 1500); }
+      } catch {
+        $('#amount').textContent = 'Paiement introuvable';
+        $('#approve').disabled = $('#refuse').disabled = true;
+        return;
+      }
+      const decide = async (approve) => {
+        $('#approve').disabled = $('#refuse').disabled = true;
+        $('#msg').textContent = 'Retour vers la boutique…';
+        await fetch('/api/payments/' + encodeURIComponent(id) + '/simulate-card', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ approve }),
+        }).catch(() => {});
+        back();
+      };
+      $('#approve').addEventListener('click', () => decide(true));
+      $('#refuse').addEventListener('click', () => decide(false));
+    })();
+  </script>
+</body>
+</html>

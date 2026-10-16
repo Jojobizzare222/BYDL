@@ -87,4 +87,5 @@ module.exports = {
   orders: createCollection('orders'),
   payments: createCollection('payments'),
   customers: createCollection('customers'),
+  agencies: createCollection('agencies'),
 };

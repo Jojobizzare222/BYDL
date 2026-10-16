@@ -10,8 +10,8 @@
 - Nom de domaine choisi : **kamwa.cg** (à réserver par Joseph auprès du registre .cg). Vision long terme : marketplace, marque assez forte pour du sponsoring.
 - Suivi du projet : page Notion « Projet BYDL — Baydel » (feuille de route + journal), privée chez Joseph.
 - Prix en **FCFA (XAF, entiers, pas de centimes)**, interface en français, pensée **mobile d'abord** et connexions lentes.
-- Paiement **Mobile Money uniquement : MTN MoMo et Airtel Money**.
-- Style visuel inspiré de **Cdiscount** (marchand, dense, bannières promo, prix barrés, badges de remise, « Bonnes affaires du jour »), mais avec une identité propre : vert `#0E3B2E` + orange `#FF7A00`, prix en rouge `#D7261E`. Ne pas copier la marque Cdiscount.
+- Paiement : **Mobile Money (MTN MoMo, Airtel Money)**, **carte bancaire** (via la page sécurisée d'un prestataire, SIMULÉE tant qu'aucun prestataire n'est branché) et **espèces en agence** (retrait en agence, décidé le 16/10/2026).
+- Style visuel : charte **« Wax festif »** (décidée le 16/10/2026, voir page Notion « Charte graphique Kamwa ») — reste un site marchand dense (bannières promo, prix barrés, badges de remise, « Bonnes affaires du jour »), mais coloré et chaleureux. Couleurs : **violet nuit `#2D1B69`** (en-tête, titres, boutons d'achat), **corail `#FF5A3C`** (promos ; texte/prix `#E8452C`), **mangue `#FFB300`** (badges, détails), **crème `#FFF6E9`** (fond), vert `#0E8A66` (validé/en stock seulement). Polices **Baloo 2** (titres, prix) + **DM Sans** (textes), hébergées dans `public/fonts/`. Boutons en pilule, coins 14 px, bannières en aplats + grands cercles. Logo **« L'éclat »** (fleur-étincelle, « kam » violet + « wa » corail) dans `public/brand/` (SVG vectorisés + PNG). Icônes **Phosphor via Iconify**, regroupées dans `public/icons.svg` (helper `icon(nom)` dans app.js) — pas d'émojis dans la boutique. Ne pas copier la marque Cdiscount.
 - Catalogue : **Électronique** (Téléphones, Tablettes, Ordinateurs, Montres, Audio, TV & Maison, Composants, Accessoires) et **Mode** (Homme, Femme, Chaussures — t-shirts, pantalons, joggings, chaussures ; surtout homme, un peu femme).
 - Livraison annoncée : 24-48 h à Pointe-Noire et Brazzaville.
 
@@ -35,11 +35,14 @@ src/routes/orders.js     POST /api/orders (total RECALCULÉ côté serveur ; ren
 src/routes/payments.js   POST /api/payments (body.token obligatoire) · GET /api/payments/:id (polling) · POST /api/payments/callback/:operator
 src/payments/http.js     appels opérateurs avec délai maximal (OPERATOR_TIMEOUT_MS, 15 s)
 src/utils/stock.js       stock disponible = stock - quantités réservées par les paiements en attente
-src/payments/index.js    choix simulation / live
-src/payments/providers/  mtn-momo.js (Collection API, requesttopay) · airtel-money.js (merchant/v1/payments) · simulation.js
+src/payments/index.js    choix simulation / live ; cardAvailable() (carte proposée en simulation, ou si CARD_PROVIDER est configuré en live)
+src/payments/providers/  mtn-momo.js (Collection API, requesttopay) · airtel-money.js (merchant/v1/payments) · simulation.js · cash.js (espèces, expire à l'échéance) · card-simulation.js (page de test /paiement-carte/) · card.js (vrai prestataire À BRANCHER : CinetPay/Moneroo…)
+public/paiement-carte/   fausse page de paiement carte (mode simulation uniquement, aucun numéro de carte demandé)
 src/utils/phone.js       numéros +242 : 06 = MTN, 05/04 = Airtel
 public/index.html, public/css/style.css, public/js/app.js   SPA avec routes hash : #/, #/c/<univers>/<catégorie>, #/p/<id>, #/recherche/<q>, #/promos, #/commande, #/merci/<id>, #/compte, #/compte/creer, #/suivi/<id>
-public/images/products/  images produit (champ "image" ; repli sur emoji si absente)
+public/images/products/  images produit (champ "image" ; repli sur l'icône Phosphor de la catégorie si absente)
+public/brand/            logo Kamwa (logo-kamwa.svg, logo-kamwa-clair.svg, symbole, favicon, icône 512, image de partage)
+public/icons.svg         icônes Phosphor (Iconify) en sprite ; public/fonts/ : Baloo 2 + DM Sans (woff2)
 data/products.json       catalogue de départ (~107 produits : 90 Apple de SIMULATION + composants + mode), importé une seule fois
 ```
 Lancer : `npm install` puis `npm start` → boutique http://localhost:3000 · admin http://localhost:3000/admin (mot de passe : `npm run admin:password`).
@@ -47,6 +50,9 @@ Lancer : `npm install` puis `npm start` → boutique http://localhost:3000 · ad
 **Dépôt GitHub PUBLIC** (Jojobizzare222/BYDL) : ne jamais y mettre de secret ni de donnée client. `.env`, `data/baydel.db*`, `data/uploads/`, anciens orders/payments.json sont exclus par .gitignore. Joseph envoie les sauvegardes avec GitHub Desktop (« Push origin »).
 
 ## Paiement — règles à respecter
+- `POST /api/payments` prend `method` = `momo` (défaut) | `card` | `cash`. `GET /api/payments/methods` dit ce qui est proposé (espèces seulement s'il existe une agence active, gérée dans l'admin → onglet Agences).
+- **Carte** : le client est redirigé vers la page du prestataire (`redirectUrl`) ; JAMAIS de numéro de carte sur le serveur Kamwa. Statut revérifié auprès du prestataire comme pour Mobile Money. Au Congo-Brazzaville, Stripe n'existe pas ; CinetPay / Moneroo à confirmer par Joseph.
+- **Espèces en agence** = retrait en agence (« click & collect ») : réservation `PICKUP_HOLD_HOURS` (48 h) qui bloque le stock (`payment.expiresAt`), commande `fulfillment: 'pickup'` + `agency` + `pickupDeadline`, e-mail de réservation à l'admin. L'admin confirme « Paiement reçu en agence » (`POST /api/admin/orders/:id/cash-received`, possible même après expiration), puis « Remise au client » (statut `delivered`, pas d'`shipped`). Une réservation en cours peut être remplacée par un paiement en ligne (elle passe `CANCELLED`).
 - Flux : commande créée → demande de paiement à l'opérateur → le client valide avec son code PIN → le navigateur interroge le statut toutes les 4 s → le serveur **revérifie toujours auprès de l'opérateur** (ne jamais faire confiance au navigateur ni au contenu d'un callback) → commande `paid` + décrément du stock.
 - `PAYMENT_MODE=simulation` par défaut : validé après ~8 s ; un numéro finissant par `000` simule un refus.
 - Mode `live` : MTN sandbox (momodeveloper.mtn.com, devise EUR en sandbox, `mtncongo`/XAF en prod) ; Airtel nécessite un compte marchand Airtel Congo (pas de vrai test possible avant). Joseph n'a qu'un numéro Airtel → vrai test téléphone reporté.

@@ -1,34 +1,38 @@
+/* Charte Kamwa « Wax festif » (mêmes couleurs et polices que la boutique) */
+@font-face { font-family: 'Baloo 2'; src: url('/fonts/baloo2.woff2') format('woff2'); font-weight: 400 800; font-display: swap; }
+@font-face { font-family: 'DM Sans'; src: url('/fonts/dmsans.woff2') format('woff2'); font-weight: 100 1000; font-display: swap; }
 :root {
-  --brand: #0E3B2E;
-  --accent: #FF7A00;
-  --price: #D7261E;
-  --bg: #F2F3F5;
+  --brand: #2D1B69;
+  --accent: #FF5A3C;
+  --mango: #FFB300;
+  --price: #E8452C;
+  --bg: #FFF6E9;
   --paper: #FFFFFF;
-  --ink: #1B1D21;
-  --muted: #6A6F78;
-  --line: #E1E3E8;
-  --ok: #1E7A4C;
-  --err: #B3261E;
+  --ink: #241A45;
+  --muted: #6E6589;
+  --line: #F0E4D2;
+  --ok: #0E8A66;
+  --err: #C62E1F;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; }
-body { font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; background: var(--bg); color: var(--ink); }
+body { font: 15px/1.45 'DM Sans', system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; background: var(--bg); color: var(--ink); }
 a { color: inherit; }
-h1 { font-size: 1.3rem; margin: 0 0 12px; }
-h2 { font-size: 1.05rem; margin: 0 0 10px; }
+h1 { font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 1.45rem; line-height: 1.15; margin: 0 0 12px; color: var(--brand); }
+h2 { font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 1.15rem; margin: 0 0 10px; color: var(--brand); }
 button, input, select, textarea { font: inherit; }
 [hidden] { display: none !important; }
 
 /* En-tête */
 .top { position: sticky; top: 0; z-index: 10; background: var(--brand); color: #fff; }
 .top-inner { max-width: 960px; margin: 0 auto; padding: 8px 12px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
-.logo { font-weight: 900; font-size: 1.3rem; text-decoration: none; }
-.logo span { color: var(--accent); }
+.logo { display: flex; align-items: center; gap: 6px; text-decoration: none; }
+.logo img { height: 30px; width: auto; display: block; }
 .logo small { font-weight: 400; font-size: .75rem; opacity: .8; }
 .tabs { display: flex; gap: 4px; order: 3; width: 100%; }
-.tabs a { flex: 1; text-align: center; text-decoration: none; padding: 8px; border-radius: 6px; background: rgba(255,255,255,.08); }
+.tabs a { flex: 1; text-align: center; text-decoration: none; padding: 8px 4px; border-radius: 6px; background: rgba(255,255,255,.08); font-size: .9rem; }
 .tabs a.on { background: #fff; color: var(--brand); font-weight: 700; }
-.count { background: var(--accent); color: #fff; border-radius: 999px; padding: 0 7px; font-size: .78rem; font-weight: 700; margin-left: 4px; }
+.count { background: var(--mango); color: var(--brand); border-radius: 999px; padding: 0 7px; font-size: .78rem; font-weight: 700; margin-left: 4px; }
 .top-actions { margin-left: auto; display: flex; gap: 6px; }
 .top .ghost { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,.4); }
 @media (min-width: 720px) { .tabs { order: 0; width: auto; } .tabs a { flex: none; padding: 8px 16px; } }
@@ -36,9 +40,10 @@ button, input, select, textarea { font: inherit; }
 main { max-width: 960px; margin: 0 auto; padding: 14px 12px 60px; }
 
 /* Éléments */
-.panel { background: var(--paper); border-radius: 8px; padding: 14px; margin-bottom: 12px; box-shadow: 0 1px 2px rgba(0,0,0,.05); }
-.btn, .ghost { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; padding: 8px 14px; border-radius: 6px; border: 0; cursor: pointer; text-decoration: none; font-weight: 600; }
-.btn { background: var(--accent); color: #fff; }
+.panel { background: var(--paper); border-radius: 14px; padding: 14px; margin-bottom: 12px; box-shadow: 0 1px 2px rgba(0,0,0,.05); }
+.btn, .ghost { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; padding: 8px 16px; border-radius: 999px; border: 0; cursor: pointer; text-decoration: none; font-weight: 600; }
+.btn { background: var(--brand); color: #fff; }
+.btn.promo { background: var(--accent); }
 .btn.green { background: var(--ok); }
 .btn.red { background: var(--err); }
 .btn.dark { background: var(--brand); }
@@ -64,7 +69,8 @@ textarea { resize: vertical; }
 
 /* Connexion */
 .login { max-width: 360px; margin: 12vh auto 0; }
-.login .logo { color: var(--brand); display: block; text-align: center; font-size: 2rem; margin-bottom: 16px; }
+.login .logo { justify-content: center; margin-bottom: 16px; }
+.login .logo img { height: 44px; }
 
 /* Filtres */
 .chips { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 8px; }
@@ -81,14 +87,14 @@ textarea { resize: vertical; }
 
 /* Listes */
 .list { display: grid; gap: 8px; }
-.item { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; background: var(--paper); border-radius: 8px; padding: 12px; text-decoration: none; box-shadow: 0 1px 2px rgba(0,0,0,.05); }
+.item { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; background: var(--paper); border-radius: 14px; padding: 12px; text-decoration: none; box-shadow: 0 1px 2px rgba(0,0,0,.05); }
 .item.flag { outline: 2px solid var(--err); }
 .item .total { font-weight: 800; text-align: right; }
 .item .sub { color: var(--muted); font-size: .82rem; }
 .prod { grid-template-columns: 56px 1fr auto; align-items: center; }
 .prod.off { opacity: .55; }
 .thumb { width: 56px; height: 56px; border-radius: 6px; object-fit: contain; background: #F4F5F7; display: grid; place-items: center; font-size: 1.6rem; }
-.price { color: var(--price); font-weight: 800; }
+.price { color: var(--price); font-family: 'Baloo 2', sans-serif; font-weight: 800; }
 
 /* Détail commande */
 .lines div { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; border-bottom: 1px dashed var(--line); }
@@ -102,3 +108,4 @@ textarea { resize: vertical; }
 
 .toast { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%) translateY(120%); background: var(--brand); color: #fff; padding: 12px 16px; border-radius: 8px; box-shadow: 0 6px 20px rgba(0,0,0,.25); transition: transform .25s, opacity .25s; opacity: 0; pointer-events: none; max-width: calc(100% - 24px); z-index: 20; }
 .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+.tag { display: inline-block; padding: 1px 7px; border-radius: 999px; font-size: .72rem; font-weight: 700; background: #EEE6FF; color: #4B2A99; }

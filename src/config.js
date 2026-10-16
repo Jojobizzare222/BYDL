@@ -11,6 +11,10 @@ module.exports = {
   paymentMode: env('PAYMENT_MODE', 'simulation'), // simulation | live
   // Durée pendant laquelle une demande de paiement en attente bloque une nouvelle demande et réserve le stock.
   paymentPendingMinutes: Number(env('PAYMENT_PENDING_MINUTES', 10)),
+  // Retrait en agence : durée de réservation de l'article avant paiement en espèces.
+  pickupHoldHours: Number(env('PICKUP_HOLD_HOURS', 48)),
+  // Paiement par carte : prestataire à brancher (CinetPay, Moneroo…). Vide = carte indisponible en mode live.
+  cardProvider: env('CARD_PROVIDER'),
   // Délai maximal d'attente d'une réponse de MTN / Airtel.
   operatorTimeoutMs: Number(env('OPERATOR_TIMEOUT_MS', 15000)),
 

@@ -4,8 +4,10 @@
 const config = require('../config');
 const { orders, payments } = require('../store');
 
+// Une réservation en agence a sa propre échéance (expiresAt, 48 h par défaut) ; les autres paiements : 10 min.
 const isFreshPending = (p) =>
-  p.status === 'PENDING' && Date.now() - Date.parse(p.createdAt) < config.paymentPendingMinutes * 60 * 1000;
+  p.status === 'PENDING' &&
+  (p.expiresAt ? Date.now() < Date.parse(p.expiresAt) : Date.now() - Date.parse(p.createdAt) < config.paymentPendingMinutes * 60 * 1000);
 
 function reservedQty(productId, excludeOrderId) {
   const orderIds = new Set(

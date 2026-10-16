@@ -4,7 +4,8 @@ const fs = require('fs');
 const path = require('path');
 const express = require('express');
 const router = express.Router();
-const { products, orders, payments, customers } = require('../store');
+const { products, orders, payments, customers, agencies } = require('../store');
+const { settleSuccessfulPayment } = require('./payments');
 const customerAuth = require('../customer/auth');
 const { login, logout, isLoggedIn, isPasswordSet, requireAdmin } = require('../admin/auth');
 const { UNIVERSES, universeOf } = require('../catalog');
@@ -30,6 +31,14 @@ const TRANSITIONS = {
   delivered: ['shipped'],
   cancelled: [],
 };
+// Retrait en agence : pas d'expédition, l'article est remis directement au client (« delivered » = remis).
+const PICKUP_TRANSITIONS = {
+  pending_payment: ['cancelled'],
+  paid: ['delivered', 'cancelled'],
+  delivered: ['paid'],
+  cancelled: [],
+};
+const transitionsFor = (order) => (order.fulfillment === 'pickup' ? PICKUP_TRANSITIONS : TRANSITIONS);
 
 function adminOrder({ accessToken, ...order }) {
   const payment =
@@ -38,14 +47,14 @@ function adminOrder({ accessToken, ...order }) {
   const account = order.customerId && customers.get(order.customerId);
   return {
     ...order,
-    payment: payment ? { operator: payment.operator, phone: payment.phone, status: payment.status, reason: payment.reason } : null,
+    payment: payment ? { operator: payment.operator, phone: payment.phone, status: payment.status, reason: payment.reason, expiresAt: payment.expiresAt || null } : null,
     account: account ? customerAuth.publicCustomer(account) : null,
   };
 }
 
 router.get('/orders', (req, res) => {
   const list = orders.all().sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
-  res.json({ orders: list.map(adminOrder), statusLabels: STATUS_LABELS, transitions: TRANSITIONS });
+  res.json({ orders: list.map(adminOrder), statusLabels: STATUS_LABELS, transitions: TRANSITIONS, pickupTransitions: PICKUP_TRANSITIONS });
 });
 
 router.patch('/orders/:id', (req, res) => {
@@ -55,14 +64,14 @@ router.patch('/orders/:id', (req, res) => {
   const patch = {};
 
   if (status && status !== order.status) {
-    if (!TRANSITIONS[order.status]?.includes(status)) {
+    if (!transitionsFor(order)[order.status]?.includes(status)) {
       return res.status(400).json({ error: `Impossible de passer de « ${STATUS_LABELS[order.status]} » à « ${STATUS_LABELS[status] || status} »` });
     }
     const now = new Date().toISOString();
     patch.status = status;
     patch.history = [...(order.history || []), { status, at: now }];
     // Annulation d'une commande déjà payée : on remet les articles en stock (le remboursement se fait à la main).
-    if (status === 'cancelled' && ['paid', 'shipped'].includes(order.status)) {
+    if (status === 'cancelled' && ['paid', 'shipped', 'delivered'].includes(order.status)) {
       for (const line of order.lines) {
         const p = products.get(line.productId);
         if (p && p.stock != null) products.update(p.id, { stock: p.stock + line.qty });
@@ -88,6 +97,48 @@ router.patch('/orders/:id', (req, res) => {
   if (note !== undefined) patch.note = String(note || '').trim().slice(0, 1000);
 
   res.json(adminOrder(orders.update(order.id, patch)));
+});
+
+// Espèces reçues en agence : le paiement est confirmé à la main par l'admin.
+router.post('/orders/:id/cash-received', (req, res) => {
+  const order = orders.get(req.params.id);
+  if (!order) return res.status(404).json({ error: 'Commande introuvable' });
+  if (order.status !== 'pending_payment') return res.status(400).json({ error: 'Cette commande est déjà payée ou annulée' });
+  // Dernière réservation en espèces (même expirée : si le client vient quand même et paie, on encaisse)
+  const cash = payments.all().filter((p) => p.orderId === order.id && p.operator === 'cash' && p.status !== 'CANCELLED').pop();
+  if (!cash) return res.status(400).json({ error: "Cette commande n'est pas une réservation en agence" });
+  payments.update(cash.id, { status: 'SUCCESSFUL', reason: null, confirmedAt: new Date().toISOString() });
+  settleSuccessfulPayment(payments.get(cash.id));
+  res.json(adminOrder(orders.get(order.id)));
+});
+
+// ---------- Agences (retrait et paiement en espèces) ----------
+function cleanAgency(input, current = {}) {
+  const a = { ...current };
+  const str = (v, max) => String(v ?? '').trim().slice(0, max);
+  for (const [key, max] of [['name', 80], ['city', 60], ['address', 200], ['hours', 120], ['phone', 30]]) {
+    if (key in input) a[key] = str(input[key], max);
+  }
+  if ('active' in input) a.active = Boolean(input.active);
+  if (!a.name) return { error: "Le nom de l'agence est obligatoire" };
+  if (!a.city) return { error: 'La ville est obligatoire' };
+  return { value: a };
+}
+
+router.get('/agencies', (req, res) => res.json(agencies.all()));
+
+router.post('/agencies', (req, res) => {
+  const { error, value } = cleanAgency({ active: true, ...(req.body || {}) });
+  if (error) return res.status(400).json({ error });
+  res.status(201).json(agencies.insert({ id: 'AG-' + crypto.randomBytes(3).toString('hex').toUpperCase(), ...value, createdAt: new Date().toISOString() }));
+});
+
+router.patch('/agencies/:id', (req, res) => {
+  const current = agencies.get(req.params.id);
+  if (!current) return res.status(404).json({ error: 'Agence introuvable' });
+  const { error, value } = cleanAgency(req.body || {}, current);
+  if (error) return res.status(400).json({ error });
+  res.json(agencies.update(current.id, value));
 });
 
 // ---------- Clients ----------
