@@ -41,7 +41,7 @@
   }
 
   // ---------- Outils d'affichage ----------
-  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=2#${name}"></use></svg>`;
+  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=3#${name}"></use></svg>`;
   // En-tête de page façon « Espace pro › Commandes » + titre + description + boutons d'action à droite
   const pageHead = ({ crumb, title, desc = '', actions = '' }) => `
     <div class="page-head">
@@ -661,8 +661,9 @@
         <div id="formError"></div>
         <button class="btn" style="width:100%;margin-top:16px;min-height:48px">${isNew ? (isAdmin() ? 'Ajouter le produit' : 'Envoyer pour validation') : 'Enregistrer'}</button>
         ${isAdmin() && p.pending ? '<button type="button" class="btn green" id="approveBtn" style="width:100%;margin-top:8px;min-height:48px">✓ Valider et publier</button>' : ''}
+        ${!isNew && (isAdmin() || (p.pending && p.createdBy === state.user.id)) ? `<button type="button" class="btn red" id="deleteBtn" style="width:100%;margin-top:8px;min-height:48px">${icon('trash-bold')} ${p.pending && !isAdmin() ? 'Retirer ma proposition' : 'Supprimer ce produit'}</button>` : ''}
       </form>
-      ${isNew || isSupplier() ? '' : `<p class="muted">Pour retirer un produit de la boutique, décochez « Visible » : il reste dans l'historique des commandes. ${p.pending ? '' : `<a href="/#/p/${enc(p.id)}" target="_blank">Voir sur la boutique ›</a>`}</p>`}`;
+      ${isNew || isSupplier() ? '' : `<p class="muted">Pour retirer un produit de la boutique sans le perdre, décochez « Visible » (vous pourrez le remettre plus tard).${isAdmin() ? ' « Supprimer » l\'efface définitivement ; les commandes passées restent intactes.' : ''} ${p.pending ? '' : `<a href="/#/p/${enc(p.id)}" target="_blank">Voir sur la boutique ›</a>`}</p>`}`;
 
     const renderGallery = () => {
       $('#gallery').innerHTML = images.length
@@ -725,6 +726,17 @@
       } catch (err) {
         $('#formError').innerHTML = `<div class="alert err">${esc(err.message)}</div>`;
         btn.disabled = false;
+      }
+    });
+    $('#deleteBtn')?.addEventListener('click', async () => {
+      if (!confirm(`Supprimer définitivement « ${p.name} » ?\n\nCette action est irréversible. Si vous voulez seulement le retirer de la boutique, annulez et décochez plutôt « Visible ».`)) return;
+      try {
+        await api('/products/' + enc(p.id), { method: 'DELETE' });
+        state.products = state.products.filter((x) => x.id !== p.id);
+        toast('Produit supprimé');
+        location.hash = '#/produits';
+      } catch (err) {
+        $('#formError').innerHTML = `<div class="alert err">${esc(err.message)}</div>`;
       }
     });
     $('#approveBtn')?.addEventListener('click', async () => {

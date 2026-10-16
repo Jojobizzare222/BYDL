@@ -43,6 +43,7 @@ function createCollection(name) {
     get: db.prepare(`SELECT data FROM ${name} WHERE id = ?`),
     insert: db.prepare(`INSERT INTO ${name} (id, data) VALUES (?, ?)`),
     update: db.prepare(`UPDATE ${name} SET data = ? WHERE id = ?`),
+    remove: db.prepare(`DELETE FROM ${name} WHERE id = ?`),
   };
 
   // Import unique des anciens fichiers JSON
@@ -80,6 +81,7 @@ function createCollection(name) {
       q.update.run(JSON.stringify(item), id);
       return item;
     },
+    remove: (id) => q.remove.run(String(id)).changes > 0,
   };
 }
 

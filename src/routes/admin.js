@@ -330,6 +330,32 @@ router.post('/products/:id/approve', requireRole(), (req, res) => {
   res.json(productFor(req.user, updated));
 });
 
+// Suppression définitive d'un produit.
+//  - admin : n'importe quel produit, sauf s'il est dans une commande en cours de paiement (le masquer plutôt) ;
+//    les commandes passées restent intactes (chaque ligne garde le nom et le prix au moment de l'achat) ;
+//  - fournisseur / employé : seulement un produit qu'il a proposé et qui n'est pas encore validé.
+router.delete('/products/:id', requireRole('catalog', 'supplier'), (req, res) => {
+  const p = products.get(req.params.id);
+  if (!p || !canSee(req.user, p)) return res.status(404).json({ error: 'Produit introuvable' });
+  if (req.user.role !== 'admin' && !(p.pending && p.createdBy === req.user.id)) {
+    return res.status(403).json({ error: "Seul l'administrateur peut supprimer un produit déjà publié. Demandez-lui, ou mettez le stock à 0." });
+  }
+  const inOrders = orders.all().filter((o) => o.lines.some((l) => l.productId === p.id));
+  const paying = new Set(inOrders.filter((o) => o.status === 'pending_payment').map((o) => o.id));
+  if (paying.size && payments.all().some((pay) => paying.has(pay.orderId) && pay.status === 'PENDING')) {
+    return res.status(409).json({ error: 'Un client est en train de payer ce produit. Décochez « Visible » pour le retirer de la boutique, puis réessayez plus tard.' });
+  }
+  products.remove(p.id);
+  // Photos envoyées depuis l'espace pro et plus utilisées par aucun autre produit : supprimées du disque
+  const still = new Set(products.all().flatMap((x) => x.images || [x.image]).filter(Boolean));
+  for (const url of new Set([...(p.images || []), p.image].filter(Boolean))) {
+    const m = /^\/images\/uploads\/([\w.-]+)$/.exec(url);
+    if (m && !still.has(url)) fs.rm(path.join(UPLOAD_DIR, m[1]), { force: true }, () => {});
+  }
+  log(req, 'Produit supprimé', p, inOrders.length ? `présent dans ${inOrders.length} commande(s), conservées` : '');
+  res.json({ ok: true });
+});
+
 // ---------- Espace fournisseur : commandes contenant ses produits ----------
 // Kamwa livre : le fournisseur voit les articles, quantités et statuts, JAMAIS les coordonnées des clients.
 router.get('/supplier/orders', requireRole('supplier'), (req, res) => {
