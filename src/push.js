@@ -53,13 +53,14 @@ async function sendTo(subs, payload) {
 const subsFor = ({ customerId, orderId }) => pushSubs.all().filter((s) => (customerId && s.customerId === customerId) || (orderId && s.orderIds.includes(orderId)));
 
 /** Notification au client d'une commande. tag = numéro de commande : la nouvelle étape REMPLACE la précédente. */
+const wants = (customerId, kind) => { if (!customerId) return true; const c = require('./store').customers.get(customerId); return c?.prefs?.notify?.[kind] !== false; };
 function notifyOrder(order, title, body, { urgent = false } = {}) {
-  if (!order) return Promise.resolve(0);
+  if (!order || !wants(order.customerId, 'orders')) return Promise.resolve(0);
   return sendTo(subsFor({ customerId: order.customerId, orderId: order.id }), { title, body, tag: order.id, url: `/#/suivi/${order.id}`, urgent })
     .catch((err) => { console.error('[notification]', err.message); return 0; });
 }
 function notifyCustomer(customerId, title, body, url = '/#/compte', tag = 'kamwa-compte') {
-  if (!customerId) return Promise.resolve(0);
+  if (!customerId || (tag === 'kamwa-chat' && !wants(customerId, 'chat'))) return Promise.resolve(0);
   return sendTo(subsFor({ customerId }), { title, body, tag, url }).catch(() => 0);
 }
 

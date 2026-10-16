@@ -9,7 +9,7 @@
   // Univers et catégories affichés dans le menu : fournis par le serveur (src/catalog.js), même liste que l'admin
   let UNIVERSES = [];
   // Icônes Phosphor (fichier /icons.svg, récupérées via Iconify)
-  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=11#${name}"></use></svg>`;
+  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=12#${name}"></use></svg>`;
   const ICONS = { 'Téléphones': 'device-mobile-duotone', 'Tablettes': 'device-tablet-duotone', 'Ordinateurs': 'laptop-duotone', 'Montres': 'watch-duotone', 'Audio': 'headphones-duotone', 'TV & Maison': 'television-duotone', 'Jeux vidéo & consoles': 'game-controller-duotone', 'Composants': 'cpu-duotone', 'Accessoires': 'plug-duotone', 'Homme': 't-shirt-duotone', 'Femme': 'dress-duotone', 'Chaussures': 'sneaker-duotone' };
   const catIcon = (cat, cls = '') => icon(ICONS[cat] || 'shopping-bag-duotone', cls);
   // Vignettes sans photo : une des trois teintes de la charte, selon la catégorie
@@ -90,7 +90,10 @@
     $('#menuHello').textContent = first ? 'Mbote ' + first + ' !' : 'Mon espace Kamwa';
   }
   async function refreshCustomer() {
-    try { const me = await api('/account/me'); state.customer = me.loggedIn ? me.customer : null; } catch {}
+    try {
+      const me = await api('/account/me'); state.customer = me.loggedIn ? me.customer : null;
+      if (state.customer?.prefs && JSON.stringify({ ...state.prefs, ...state.customer.prefs }) !== JSON.stringify(state.prefs)) savePrefs(state.customer.prefs, { remote: false });
+    } catch {}
     renderAccountBtn();
     if (typeof connectEvents === 'function') try { connectEvents(); } catch {}
   }
@@ -215,6 +218,31 @@
   menu.addEventListener('click', (e) => { if (e.target === menu || e.target.closest('a')) openMenu(false); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && menu.classList.contains('open')) openMenu(false); });
 
+  // ---------- Réglages personnels du client (ne changent l'affichage QUE pour lui) ----------
+  // Gardés sur ce téléphone (kamwa-prefs) et, s'il est connecté, sur son compte (ils le suivent d'un téléphone à l'autre).
+  const PREF_DEFAULTS = { theme: 'light', textSize: 'normal', density: 'comfort', motion: 'normal', splash: true, dataSaver: false, showFlash: true, homeUniverse: '', hiddenUniverses: [], city: '', relayId: '', notify: { orders: true, chat: true } };
+  state.prefs = { ...PREF_DEFAULTS, ...(loadJSON('kamwa-prefs') || {}) };
+  function applyPrefs() {
+    const h = document.documentElement, p = state.prefs;
+    h.setAttribute('data-text', p.textSize); h.setAttribute('data-density', p.density);
+    h.setAttribute('data-motion', p.motion); h.setAttribute('data-saver', p.dataSaver ? 'on' : 'off');
+    if (window.kamwaTheme && window.kamwaTheme.mode() !== p.theme) window.kamwaTheme.set(p.theme);
+  }
+  function savePrefs(patch, { remote = true } = {}) {
+    state.prefs = { ...state.prefs, ...patch };
+    saveJSON('kamwa-prefs', state.prefs);
+    applyPrefs();
+    if (remote && state.customer) api('/account/prefs', { method: 'PUT', body: patch }).catch(() => {});
+  }
+  // Rayons dans l'ordre du client (rayon préféré d'abord, rayons masqués retirés de l'accueil et de l'en-tête)
+  const myUniverses = () => {
+    const hidden = state.prefs.hiddenUniverses || [];
+    const list = UNIVERSES.filter((u) => !hidden.includes(u.name));
+    const fav = list.find((u) => u.name === state.prefs.homeUniverse);
+    return fav ? [fav, ...list.filter((u) => u !== fav)] : (list.length ? list : UNIVERSES);
+  };
+  applyPrefs();
+
   // ---------- Apparence : clair / sombre / automatique (comme le téléphone) ----------
   const themeSwitch = () => {
     const m = window.kamwaTheme?.mode() || 'light';
@@ -222,7 +250,7 @@
       .map(([k, ic, l]) => `<button type="button" data-theme-set="${k}" class="${m === k ? 'on' : ''}" aria-pressed="${m === k}">${icon(ic)} ${l}</button>`).join('')}</div>`;
   };
   const renderThemeSwitches = () => document.querySelectorAll('[data-theme-host]').forEach((h) => { h.innerHTML = themeSwitch(); });
-  document.addEventListener('click', (e) => { const b = e.target.closest('[data-theme-set]'); if (b) { window.kamwaTheme?.set(b.dataset.themeSet); renderThemeSwitches(); } });
+  document.addEventListener('click', (e) => { const b = e.target.closest('[data-theme-set]'); if (b) { savePrefs({ theme: b.dataset.themeSet }); renderThemeSwitches(); } });
 
   // ---------- Menu déroulant des grandes catégories (en-tête) ----------
   let dropTimer = null;
@@ -261,7 +289,7 @@
     // En-tête allégé : seulement les grandes catégories (Électronique, Mode…) ; leurs rayons s'ouvrent dans un menu déroulant
     const links = [`<a href="#/" class="${!active ? 'active' : ''}">Accueil</a>`,
       `<a href="#/europe" class="france-link ${active === 'france' ? 'active' : ''}">${icon('airplane-tilt')} Achat en Europe</a>`];
-    for (const u of UNIVERSES) {
+    for (const u of myUniverses()) {
       const on = active === u.name || u.categories.includes(active);
       links.push(`<button type="button" class="uni ${on ? 'active' : ''}" data-uni="${esc(u.name)}" aria-expanded="false">${esc(u.name)} ${icon('caret-down')}</button>`);
     }
@@ -355,7 +383,7 @@
     root.addEventListener('mouseleave', () => (paused = false));
     root.addEventListener('touchstart', () => { paused = true; setTimeout(() => (paused = false), 8000); }, { passive: true });
     if (n > 1 && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      state.timers.push(setInterval(() => { if (!paused && !document.hidden) go(cur() + 1); }, delay));
+      state.timers.push(setInterval(() => { if (!paused && !document.hidden && state.prefs.motion !== 'reduce') go(cur() + 1); }, delay)); // défilement auto coupé si « réduire les animations »
     }
     mark();
   }
@@ -405,7 +433,7 @@
     const slides = [];
     if (heroP) slides.push(slide({ theme: 'violet', kicker: `${icon('sparkle-fill')} Nouveauté`, title: esc(heroP.name.replace(/^Apple /, '')), text: `À partir de <strong>${fcfa(heroP.price)}</strong>, livré chez vous en 24-48 h.`, href: `#/p/${heroP.id}`, cta: 'Je le veux', p: heroP }));
     if (deals.length) slides.push(slide({ theme: 'coral', kicker: `${icon('lightning-fill')} Bonnes affaires`, title: `Jusqu'à -${discount(deals[0])} %`, text: 'Des prix cassés sur une sélection de produits, dans la limite des stocks.', href: '#/promos', cta: 'Voir les offres', p: pick(deals) }));
-    for (const u of UNIVERSES) {
+    for (const u of myUniverses()) {
       const p = pick(featured(u.name));
       if (p) slides.push(slide({ theme: 'mango', kicker: esc(u.name), title: u.name === 'Mode' ? 'Le style, sans se ruiner' : 'Le meilleur de la tech', text: esc(u.categories.slice(0, 4).join(' · ')), href: `#/c/${enc(u.name)}`, cta: 'Découvrir', p }));
     }
@@ -429,10 +457,10 @@
       </section>
 
       <nav class="bubbles" aria-label="Rayons">
-        ${UNIVERSES.flatMap((u) => u.categories).map((c, i) => `<a href="#/c/${enc(universeOf(c))}/${enc(c)}"><span class="ic tint-${tints[i % 3]}">${icon((ICONS[c] || 'shopping-bag-duotone').replace('-duotone', ''))}</span>${esc(c)}</a>`).join('')}
+        ${myUniverses().flatMap((u) => u.categories).map((c, i) => `<a href="#/c/${enc(universeOf(c))}/${enc(c)}"><span class="ic tint-${tints[i % 3]}">${icon((ICONS[c] || 'shopping-bag-duotone').replace('-duotone', ''))}</span>${esc(c)}</a>`).join('')}
       </nav>
 
-      ${deals.length ? `<section class="shelf flash">
+      ${deals.length && state.prefs.showFlash !== false ? `<section class="shelf flash">
         <div class="shelf-head">
           <div><p class="kicker">${icon('fire')} Ventes flash</p><h2>Les prix fondent aujourd'hui</h2></div>
           <div class="countdown" aria-label="Temps restant"><span>Fin dans</span><b id="cdH">${h}</b>:<b id="cdM">${m}</b>:<b id="cdS">${sec}</b></div>
@@ -453,7 +481,7 @@
         </a>
       </section>
 
-      ${UNIVERSES.map((u, i) => `
+      ${myUniverses().map((u, i) => `
         <section class="shelf">
           <div class="shelf-head">
             <div><p class="kicker k-${tints[(i + 1) % 3]}">${esc(u.name)}</p><h2>${i === 0 ? 'Nos coups de cœur' : 'À ne pas manquer'}</h2></div>
@@ -643,7 +671,7 @@
 
   // ---------- Choix du point relais sur une carte (commande, et changement après commande) ----------
   const RELAY_KIND = { agency: 'Agence Kamwa', partner: 'Point relais partenaire' };
-  const defaultRelay = (list, city) => list.find((a) => a.city === city) || list[0];
+  const defaultRelay = (list, city) => list.find((a) => a.id === state.prefs.relayId) || list.find((a) => a.city === city) || list[0];
   function relayPicker(host, list, selected, onPick, city) {
     let me = null; let map = null; let L = null; const markers = {};
     host.innerHTML = `<div class="kmap" id="relayMap"></div>
@@ -1061,48 +1089,7 @@
     const list = await loadMyOrders();
     const c = state.customer;
 
-    if (c) {
-      const paid = list.filter((o) => ['paid', 'shipped', 'delivered'].includes(o.status));
-      app.innerHTML = `
-        <div class="panel">
-          <div class="row" style="display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap">
-            <div><h1 style="margin:0">Bonjour ${esc(c.name.split(' ')[0])} ${icon('hand-waving-duotone')}</h1>
-              <span class="hint">Identifiant : ${esc([c.phone, c.email].filter(Boolean).join(' · '))} · client depuis le ${shortDate(c.createdAt)}</span></div>
-            <button class="btn ghost" id="logoutBtn">Se déconnecter</button>
-          </div>
-          ${idStatusPanel(c).startsWith('<form') ? '' : idStatusPanel(c)}
-          ${pushCard(null)}
-          <div class="row" style="display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap"><span class="hint">Apparence</span><span data-theme-host></span></div>
-          <div class="stats">
-            <div><span class="hint">Commandes payées</span><b>${paid.length}</b></div>
-            <div><span class="hint">Total de vos achats</span><b>${fcfa(paid.reduce((s, o) => s + o.total, 0))}</b></div>
-          </div>
-        </div>
-        ${idStatusPanel(c).startsWith('<form') ? idStatusPanel(c) : ''}
-        <div class="panel">
-          <h2>Mes commandes</h2>
-          ${list.length ? list.map(orderCard).join('') : '<p class="empty">Pas encore de commande. <a href="#/">Découvrir la boutique</a></p>'}
-        </div>`;
-      if ($('#idForm')) {
-        const readId = bindIdFields($('#idForm'));
-        $('#idForm').addEventListener('submit', async (e) => {
-          e.preventDefault();
-          const btn = e.target.querySelector('button.cta'); btn.disabled = true; btn.textContent = 'Envoi en cours…';
-          try {
-            const res = await api('/account/identity', { method: 'POST', body: readId() });
-            state.customer = res.customer; route();
-          } catch (err) {
-            $('#idError').innerHTML = `<div class="alert err">${esc(err.message)}</div>`;
-            btn.disabled = false; btn.textContent = 'Envoyer ma pièce';
-          }
-        });
-      }
-      $('#logoutBtn').addEventListener('click', async () => {
-        await api('/account/logout', { method: 'POST' }).catch(() => {});
-        state.customer = null; renderAccountBtn(); route();
-      });
-      return;
-    }
+    if (c) return accountSpace(c, list, sub);
 
     app.innerHTML = `
       <div class="account-grid">
@@ -1285,6 +1272,145 @@
       <div id="idError"></div>
       <button class="btn cta block" style="margin-top:12px">Envoyer ma pièce</button>
     </form>`;
+  }
+
+  // ---------- Espace client : vue d'ensemble, commandes, réglages personnels ----------
+  const ACC_TABS = [['', 'Vue d\'ensemble', 'squares-four'], ['commandes', 'Mes commandes', 'receipt'], ['reglages', 'Réglages', 'gear-six']];
+  function accountSpace(c, list, sub) {
+    const tab = ACC_TABS.some(([k]) => k === (sub || '')) ? (sub || '') : '';
+    const nav = `<nav class="acc-tabs" aria-label="Mon compte">${ACC_TABS.map(([k, l, ic]) => `<a href="#/compte${k ? '/' + k : ''}" class="${tab === k ? 'on' : ''}">${icon(ic)} ${l}</a>`).join('')}</nav>`;
+    const head = `<div class="acc-head">
+        <div class="acc-avatar">${esc(c.name.trim()[0] || 'K').toUpperCase()}</div>
+        <div><h1>Bonjour ${esc(c.name.split(' ')[0])}</h1>
+          <span class="hint">${esc([c.phone, c.email].filter(Boolean).join(' · '))} · client depuis le ${shortDate(c.createdAt)}</span></div>
+        <span class="acc-id ${c.idStatus === 'verified' ? 'ok' : 'warn'}">${icon(c.idStatus === 'verified' ? 'seal-check-duotone' : 'clock-countdown-duotone')} ${c.idStatus === 'verified' ? 'Identité vérifiée' : c.idStatus === 'pending' ? 'Vérification en cours' : 'Pièce à fournir'}</span>
+      </div>`;
+    if (tab === 'commandes') {
+      app.innerHTML = `<div class="acc">${head}${nav}<div class="panel"><h2>Mes commandes</h2>${list.length ? list.map(orderCard).join('') : '<p class="empty">Pas encore de commande. <a href="#/">Découvrir la boutique</a></p>'}</div></div>`;
+      return;
+    }
+    if (tab === 'reglages') return accountSettings(c, head, nav);
+    // Vue d'ensemble
+    const paid = list.filter((o) => ['paid', 'confirmed', 'shipped', 'delivered'].includes(o.status));
+    const ongoing = list.filter((o) => !['delivered', 'cancelled'].includes(o.status));
+    const relay = state.prefs.relayId && (state.relays || []).find((a) => a.id === state.prefs.relayId);
+    app.innerHTML = `<div class="acc">${head}${nav}
+      ${idStatusPanel(c).startsWith('<form') ? idStatusPanel(c) : idStatusPanel(c).replace('alert ok id-status', 'alert ok id-status slim')}
+      <div class="acc-stats">
+        <a href="#/compte/commandes"><span>${icon('package')}</span><b>${ongoing.length}</b><small>en cours</small></a>
+        <a href="#/compte/commandes"><span>${icon('receipt')}</span><b>${paid.length}</b><small>commande(s) payée(s)</small></a>
+        <a href="#/compte/commandes"><span>${icon('wallet')}</span><b>${fcfa(paid.reduce((n, o) => n + o.total, 0))}</b><small>total de vos achats</small></a>
+      </div>
+      ${ongoing.length ? `<div class="panel"><h2>En cours</h2>${ongoing.slice(0, 4).map((o) => `
+        <a class="acc-ongoing" href="#/suivi/${enc(o.id)}">
+          <span><strong class="mono">${esc(o.id)}</strong><small>${o.lines.map((l) => l.name).join(', ').slice(0, 70)}</small></span>
+          <span class="acc-prog"><i style="width:${Math.round(((Math.max(0, stepIndex(o)) + 1) / stepCount(o)) * 100)}%"></i></span>
+          ${statusBadge(o)}
+        </a>`).join('')}</div>` : ''}
+      <div class="acc-actions">
+        <a href="#/compte/commandes">${icon('package')}<span>Suivre mes commandes</span></a>
+        <button type="button" data-open-chat>${icon('chat-circle')}<span>Aide et messages</span></button>
+        <a href="#/compte/reglages">${icon('gear-six')}<span>Personnaliser Kamwa</span></a>
+        <a href="#/promos">${icon('tag')}<span>Bonnes affaires</span></a>
+        <a href="#/europe">${icon('airplane-tilt')}<span>Achat en Europe</span></a>
+        ${relay ? `<a href="${kamwaMap.hasPos(relay) ? kamwaMap.directions(relay) : '#/compte/reglages'}" ${kamwaMap.hasPos(relay) ? 'target="_blank" rel="noopener"' : ''}>${icon('map-pin')}<span>Mon point relais<br><small>${esc(relay.name)}</small></span></a>` : `<a href="#/compte/reglages">${icon('map-pin')}<span>Choisir mon point relais</span></a>`}
+      </div>
+      ${pushCard(null)}
+      ${list.length ? `<div class="panel"><div class="row" style="display:flex;justify-content:space-between;align-items:center"><h2 style="margin:0">Dernières commandes</h2><a href="#/compte/commandes">Tout voir</a></div>${list.slice(0, 3).map(orderCard).join('')}</div>` : '<div class="panel empty">Pas encore de commande. <a href="#/">Découvrir la boutique</a></div>'}
+    </div>`;
+    if ($('#idForm')) {
+      const readId = bindIdFields($('#idForm'));
+      $('#idForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = e.target.querySelector('button.cta'); btn.disabled = true; btn.textContent = 'Envoi en cours…';
+        try {
+          const res = await api('/account/identity', { method: 'POST', body: readId() });
+          state.customer = res.customer; route();
+        } catch (err) {
+          $('#idError').innerHTML = `<div class="alert err">${esc(err.message)}</div>`;
+          btn.disabled = false; btn.textContent = 'Envoyer ma pièce';
+        }
+      });
+    }
+    if (!state.relays) api('/payments/methods').then((m) => { state.relays = m.agencies || []; if (state.prefs.relayId && location.hash === '#/compte') route({ keep: true }); }).catch(() => {});
+  }
+  document.addEventListener('click', (e) => { if (e.target.closest('[data-open-chat]')) window.kamwaChat?.open(); });
+
+  // Réglages personnels : ne modifient QUE l'affichage pour ce client
+  async function accountSettings(c, head, nav) {
+    const p = state.prefs;
+    if (!state.relays) { try { state.relays = (await api('/payments/methods')).agencies || []; } catch { state.relays = []; } }
+    const seg = (key, opts) => `<div class="seg" role="group">${opts.map(([v, l]) => `<button type="button" data-pref="${key}" data-val="${esc(String(v))}" class="${String(p[key]) === String(v) ? 'on' : ''}" aria-pressed="${String(p[key]) === String(v)}">${l}</button>`).join('')}</div>`;
+    const toggle = (key, label, hint, on) => `<label class="pref-row"><span><b>${label}</b><small>${hint}</small></span><span class="switch"><input type="checkbox" data-pref-bool="${key}" ${on ? 'checked' : ''}><span></span></span></label>`;
+    app.innerHTML = `<div class="acc">${head}${nav}
+      <p class="hint" style="margin:0 0 12px">Ces réglages ne changent Kamwa <strong>que pour vous</strong> (sur vos téléphones). Ils n'affectent ni le site des autres clients, ni les produits.</p>
+      <div class="panel prefs">
+        <h2>${icon('palette')} Apparence</h2>
+        <div class="pref-row"><span><b>Thème</b><small>« Auto » suit le réglage de votre téléphone</small></span><span data-theme-host></span></div>
+        <div class="pref-row"><span><b>Taille du texte</b><small>Pour lire plus confortablement</small></span>${seg('textSize', [['normal', 'A'], ['large', '<span style="font-size:1.15em">A</span>'], ['xlarge', '<span style="font-size:1.35em">A</span>']])}</div>
+        <div class="pref-row"><span><b>Affichage des produits</b><small>« Compact » montre plus de produits à la fois</small></span>${seg('density', [['comfort', 'Confort'], ['compact', 'Compact']])}</div>
+        ${toggle('motionReduce', 'Réduire les animations', 'Moins de mouvements (formes, carrousel automatique)', p.motion === 'reduce')}
+        ${toggle('splash', "Animation d'ouverture", 'Le logo animé au lancement de Kamwa', p.splash !== false)}
+        ${toggle('dataSaver', 'Économie de données', 'Les cartes ne se chargent que si vous les demandez', p.dataSaver)}
+      </div>
+      <div class="panel prefs">
+        <h2>${icon('storefront')} Ma boutique</h2>
+        <div class="pref-row"><span><b>Rayon préféré</b><small>Affiché en premier sur l'accueil et dans le menu</small></span>${seg('homeUniverse', [['', 'Aucun'], ...UNIVERSES.map((u) => [u.name, esc(u.name)])])}</div>
+        <div class="pref-row"><span><b>Rayons affichés</b><small>Masquez un rayon qui ne vous intéresse pas (il reste accessible par la recherche)</small></span>
+          <span class="chips">${UNIVERSES.map((u) => `<label class="chip-check"><input type="checkbox" data-uni-show="${esc(u.name)}" ${(p.hiddenUniverses || []).includes(u.name) ? '' : 'checked'}> ${esc(u.name)}</label>`).join('')}</span></div>
+        ${toggle('showFlash', 'Ventes flash sur l\'accueil', 'Afficher le bloc des prix qui fondent', p.showFlash !== false)}
+        <div class="pref-row"><span><b>Ville de livraison</b><small>Pré-remplie à chaque commande</small></span>
+          <select data-pref-select="city"><option value="">—</option>${['Pointe-Noire', 'Brazzaville', 'Dolisie', 'Autre'].map((v) => `<option ${p.city === v ? 'selected' : ''}>${v}</option>`).join('')}</select></div>
+        <div class="pref-row"><span><b>Point relais favori</b><small>Proposé en premier à chaque commande</small></span>
+          <select data-pref-select="relayId"><option value="">—</option>${state.relays.map((a) => `<option value="${esc(a.id)}" ${p.relayId === a.id ? 'selected' : ''}>${esc(a.city)} — ${esc(a.name)}</option>`).join('')}</select></div>
+      </div>
+      <div class="panel prefs">
+        <h2>${icon('bell')} Notifications</h2>
+        ${pushCard(null)}
+        ${toggle('notifyOrders', 'Suivi de mes commandes', 'Payée, en route, livreur tout près, livrée', p.notify?.orders !== false)}
+        ${toggle('notifyChat', 'Réponses de Kamwa', 'Quand un conseiller vous répond dans la messagerie', p.notify?.chat !== false)}
+      </div>
+      <div class="panel prefs">
+        <h2>${icon('user-circle')} Mon profil</h2>
+        <div class="pref-row"><span><b>Nom</b><small>Celui de votre pièce d'identité</small></span><span>${esc(c.name)}</span></div>
+        <div class="pref-row"><span><b>Identifiant</b><small>Pour le changer, écrivez-nous dans « Aide »</small></span><span>${esc([c.phone, c.email].filter(Boolean).join(' · '))}</span></div>
+        <form class="pref-row" id="codeForm"><span><b>Changer mon code Kamwa</b><small>Code actuel obligatoire ; vos autres appareils seront déconnectés</small></span>
+          <span class="code-change"><input id="curCode" inputmode="numeric" maxlength="7" placeholder="Code actuel" autocomplete="current-password"><button class="btn ghost small">Changer</button></span></form>
+        <div id="codeMsg"></div>
+      </div>
+      <div class="row" style="display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 30px">
+        <button class="btn ghost" id="prefsReset">${icon('arrow-counter-clockwise')} Remettre l'affichage par défaut</button>
+        <button class="btn ghost" id="logoutBtn">${icon('sign-out-bold')} Se déconnecter</button>
+      </div>
+    </div>`;
+    renderThemeSwitches();
+    const rerender = () => route({ keep: true });
+    app.querySelectorAll('[data-pref]').forEach((b) => b.addEventListener('click', () => { savePrefs({ [b.dataset.pref]: b.dataset.val }); rerender(); }));
+    app.querySelectorAll('[data-pref-bool]').forEach((i) => i.addEventListener('change', () => {
+      const k = i.dataset.prefBool;
+      if (k === 'motionReduce') savePrefs({ motion: i.checked ? 'reduce' : 'normal' });
+      else if (k === 'notifyOrders' || k === 'notifyChat') savePrefs({ notify: { ...state.prefs.notify, [k === 'notifyOrders' ? 'orders' : 'chat']: i.checked } });
+      else savePrefs({ [k]: i.checked });
+    }));
+    app.querySelectorAll('[data-uni-show]').forEach((i) => i.addEventListener('change', () => {
+      const hidden = UNIVERSES.map((u) => u.name).filter((n) => !app.querySelector(`[data-uni-show="${CSS.escape(n)}"]`).checked);
+      if (hidden.length >= UNIVERSES.length) { i.checked = true; alert('Gardez au moins un rayon affiché.'); return; }
+      savePrefs({ hiddenUniverses: hidden }); renderNav(null);
+    }));
+    app.querySelectorAll('[data-pref-select]').forEach((sel) => sel.addEventListener('change', () => {
+      savePrefs({ [sel.dataset.prefSelect]: sel.value });
+      if (sel.dataset.prefSelect === 'city' && sel.value) { const k = loadJSON('kamwa-customer') || {}; k.city = sel.value; saveJSON('kamwa-customer', k); renderDeliverCity(); }
+    }));
+    $('#prefsReset').addEventListener('click', () => { if (confirm("Remettre l'affichage par défaut ?")) { savePrefs({ ...PREF_DEFAULTS }); rerender(); } });
+    $('#logoutBtn').addEventListener('click', async () => { await api('/account/logout', { method: 'POST' }).catch(() => {}); state.customer = null; renderAccountBtn(); location.hash = '#/compte'; });
+    $('#codeForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        const r = await api('/account/code', { method: 'POST', body: { code: $('#curCode').value.replace(/\D/g, '') } });
+        $('#codeMsg').innerHTML = `<div class="alert ok">Votre nouveau code Kamwa : <strong class="code-box" style="display:inline-block;margin:6px 0">${formatCode(r.code)}</strong><br>Notez-le bien, il ne sera plus affiché.</div>`;
+        $('#curCode').value = '';
+      } catch (err) { $('#codeMsg').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; }
+    });
   }
 
   function viewRegister() {

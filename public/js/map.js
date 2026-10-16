@@ -22,6 +22,14 @@
     html: `<span>${label}</span>`,
   });
   async function create(el, { center, zoom = 13, city } = {}) {
+    // « Économie de données » (réglage du client) : la carte ne se charge que s'il la demande
+    if (document.documentElement.getAttribute('data-saver') === 'on' && !el.dataset.allowed) {
+      await new Promise((resolve) => {
+        el.classList.add('kmap-lazy');
+        el.innerHTML = '<button type="button" class="btn ghost small">Afficher la carte</button><small>Économie de données activée</small>';
+        el.querySelector('button').addEventListener('click', () => { el.dataset.allowed = '1'; el.classList.remove('kmap-lazy'); el.innerHTML = ''; resolve(); }, { once: true });
+      });
+    }
     const L = await load();
     const map = L.map(el, { zoomControl: true, attributionControl: true, scrollWheelZoom: false, tap: true });
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
