@@ -147,8 +147,24 @@
     if (d.lowStock) cards.push(card('Stock faible (3 ou moins)', 'warning-duotone', stockList(d.lowStock)));
     if (d.noPhoto) cards.push(card('Produits sans photo', 'image-broken-duotone', stockList(d.noPhoto)));
 
-    app.innerHTML = pageHead({ crumb: 'Tableau de bord', title: `Bonjour ${who}`, desc: d.role === 'catalog' ? 'Où en est le catalogue.' : `Activité des ${days} derniers jours.`, actions: period })
-      + `<div class="kpis">${d.kpis.map((k) => `<div class="kpi"><span class="kpi-ico">${icon(k.icon)}</span><span class="kpi-label">${esc(k.label)}</span><span class="kpi-value">${k.format === 'fcfa' ? fcfa(k.value) : new Intl.NumberFormat('fr-FR').format(k.value)}</span>${k.hint ? `<span class="kpi-hint">${esc(k.hint)}</span>` : ''}</div>`).join('')}</div>`
+    // Raccourcis du bandeau d'accueil, selon le rôle
+    const quick = [];
+    if (CAN.products()) quick.push(`<a class="btn light" href="#/produit/nouveau">${icon('plus-bold')} Ajouter un produit</a>`);
+    if (CAN.orders()) quick.push(`<a class="btn glass" href="#/commandes">${icon('receipt-duotone')} Voir les commandes</a>`);
+    if (CAN.supplier()) quick.push(`<a class="btn glass" href="#/fournisseur">${icon('receipt-duotone')} Mes commandes</a>`);
+    const today = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+    app.innerHTML = `
+      <section class="dash-hero">
+        <span class="deco o1"></span><span class="deco o2"></span><span class="deco o3"></span><span class="hero-spark"></span>
+        <div class="hero-text">
+          <p class="hero-date">${esc(today.charAt(0).toUpperCase() + today.slice(1))}</p>
+          <h1>Bonjour ${esc(who)}</h1>
+          <p>${d.role === 'catalog' ? 'Voici où en est le catalogue.' : `Voici l'activité des ${days} derniers jours.`}</p>
+          <div class="hero-actions">${quick.join('')}</div>
+        </div>
+        ${period ? `<div class="hero-side">${period}</div>` : ''}
+      </section>`
+      + `<div class="kpis">${d.kpis.map((k, i) => `<div class="kpi kc${i % 4}"><span class="kpi-ico">${icon(k.icon)}</span><span class="kpi-label">${esc(k.label)}</span><span class="kpi-value">${k.format === 'fcfa' ? fcfa(k.value) : new Intl.NumberFormat('fr-FR').format(k.value)}</span>${k.hint ? `<span class="kpi-hint">${esc(k.hint)}</span>` : ''}</div>`).join('')}</div>`
       + (todo.length ? `<div class="todo">${todo.join('')}</div>` : '')
       + `<div class="dash-grid">${cards.join('')}</div>`;
 
@@ -199,7 +215,7 @@
         <input id="login" type="text" autocomplete="username" autocapitalize="off" required autofocus placeholder="Ex. admin, paul.mabiala…">
         <label for="password">Mot de passe</label>
         <input id="password" type="password" autocomplete="current-password" required>
-        <button class="btn dark" style="width:100%;margin-top:16px">Se connecter</button>
+        <button class="btn" style="width:100%;margin-top:16px">Se connecter</button>
         <p class="muted">Mot de passe oublié ? Demandez-en un nouveau à l'administrateur. (Administrateur : <code>npm run admin:password</code> dans le Terminal.)</p>
         ${state.demoAccounts?.length ? `
         <div class="demo-box">
