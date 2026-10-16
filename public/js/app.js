@@ -263,10 +263,10 @@
           ${d ? `<span class="disc">-${d} %</span>` : ''}
         </a>
         <div class="card-body">
-          ${tag}
+          <div class="card-tag">${tag}</div>
           <a href="#/p/${p.id}"><h3>${esc(p.name)}</h3></a>
-          <div class="prices"><span class="price">${fcfa(p.price)}</span>${d ? `<span class="old">${fcfa(p.oldPrice)}</span>` : ''}</div>
-          ${p.stock > 0 && p.stock <= 6 ? `<span class="stock-low">${icon('fire')} Plus que ${p.stock} en stock</span>` : ''}
+          <div class="prices"><span class="price">${fcfa(p.price)}</span><span class="old">${d ? fcfa(p.oldPrice) : ''}</span></div>
+          <span class="stock-low">${p.stock > 0 && p.stock <= 6 ? `${icon('fire')} Plus que ${p.stock} en stock` : ''}</span>
           <button class="btn cta small" data-add="${p.id}" ${p.stock === 0 ? 'disabled' : ''}>${p.stock === 0 ? 'Épuisé' : (p.options || []).length ? 'Choisir' : `${icon('plus')} Ajouter`}</button>
         </div>
       </article>`;

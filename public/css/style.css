@@ -352,7 +352,14 @@ main { max-width: 1180px; margin: 0 auto; padding: 20px 20px 40px; min-height: 6
 .stock-low { font-size: .78rem; color: var(--accent-dark); font-weight: 600; }
 .brand { font-size: .75rem; font-weight: 600; color: var(--accent-dark); }
 .card .card-body > .btn { margin-top: auto; }
-.card .stock-low + .btn, .card .prices + .btn { margin-top: 10px; }
+/* Disposition identique pour toutes les cartes : chaque zone garde sa place, même vide, et le bouton est toujours en bas */
+.card-body .card-tag { height: 20px; display: flex; }
+.card .prices { flex-direction: column; align-items: flex-start; gap: 0; flex-wrap: nowrap; }
+.card .prices .old { min-height: 1.25em; line-height: 1.25; }
+.card .stock-low { height: 20px; line-height: 20px; display: flex; align-items: center; gap: 4px; overflow: hidden; }
+.card .stock-low .ico { font-size: 1em; }
+.card .card-body > .btn { margin-top: auto; }
+.card .card-body > .stock-low { margin-bottom: 8px; }
 
 /* ---------- Boutons ---------- */
 .btn {
