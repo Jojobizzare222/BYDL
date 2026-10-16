@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const { newDeliveryCode } = require('../delivery');
 const router = require('express').Router();
 const { products, orders } = require('../store');
 const { normalizeLocal } = require('../utils/phone');
@@ -19,7 +20,16 @@ function hasAccess(order, token) {
 // Version renvoyée au client : sans la clé secrète ni les informations internes de l'admin.
 // Lignes vues par le client : sans le coût d'achat ni le fournisseur (données internes du volet Finances)
 const clientLines = (lines) => (lines || []).map(({ unitCost, supplierId, ...l }) => l);
-const publicOrder = ({ accessToken, note, paidAfterCancel, ...order }) => ({ ...order, lines: clientLines(order.lines) });
+// Données internes de livraison et de caisse : jamais montrées au client
+const INTERNAL = ['courierId', 'cashHeldBy', 'cashRemittedAt', 'cashRemittedTo', 'codeFails', 'codeLocked', 'codeVerifiedAt', 'callConfirmedBy',
+  'callAttempts', 'deliveredBy', 'deliveredWithoutCode', 'depositPaymentId', 'refused', 'depositRetained', 'refundedAt'];
+function clientOrder({ accessToken, note, paidAfterCancel, ...order }) {
+  for (const k of INTERNAL) delete order[k];
+  if (order.attempts) order.attempts = order.attempts.map(({ at, label }) => ({ at, label }));
+  if (order.balancePaid) order.balancePaid = { method: order.balancePaid.method, at: order.balancePaid.at };
+  return { ...order, lines: clientLines(order.lines) };
+}
+const publicOrder = clientOrder;
 
 // Client connecté propriétaire de la commande ?
 const isOwner = (req, order) => {
@@ -64,7 +74,8 @@ router.post('/', (req, res) => {
       city: (customer.city || '').trim(),
       address: (customer.address || '').trim(),
     },
-    status: 'pending_payment', // pending_payment -> paid -> shipped -> delivered | cancelled
+    status: 'pending_payment', // pending_payment -> paid (ou confirmed si paiement à la réception) -> shipped -> delivered | cancelled
+    deliveryCode: newDeliveryCode(), // à donner au livreur (ou à l'agence) seulement à la remise du colis
     createdAt: new Date().toISOString(),
   });
 
@@ -84,3 +95,4 @@ router.get('/:id', (req, res) => {
 module.exports = router;
 module.exports.hasAccess = hasAccess;
 module.exports.clientLines = clientLines;
+module.exports.clientOrder = clientOrder;

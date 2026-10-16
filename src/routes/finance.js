@@ -45,6 +45,8 @@ const isDay = (s) => /^\d{4}-\d{2}-\d{2}$/.test(String(s || '')) && !Number.isNa
 const inRange = (d, from, to) => (!from || d >= from) && (!to || d <= to);
 const sum = (list, fn) => list.reduce((s, x) => s + (fn(x) || 0), 0);
 const SOLD = ['paid', 'shipped', 'delivered'];
+// Vente réalisée : payée en ligne / en agence, ou LIVRÉE si paiement à la réception
+const isSold = (o) => (o.paymentPlan === 'cod' ? o.status === 'delivered' : SOLD.includes(o.status));
 
 function log(req, action, target, details = '') {
   activity.insert({
@@ -64,15 +66,47 @@ function lineCost(l) {
 const lineSupplier = (l) => (l.supplierId !== undefined ? l.supplierId : products.get(l.productId)?.supplierId || null);
 const methodOf = (o) => OPERATOR_METHOD[(o.paymentId && payments.get(o.paymentId)?.operator) || ''] || 'momo';
 
-// Date à laquelle l'argent d'une commande est entré (paiement validé, ou paiement arrivé après une annulation)
+// Date à laquelle l'argent d'une commande payée en ligne est entré (ou paiement arrivé après une annulation)
 const cashedAt = (o) => o.paidAt || (o.paidAfterCancel ? (payments.get(o.paymentId)?.updatedAt || o.updatedAt) : null);
-// Toutes les commandes encaissées (y compris annulées ensuite : l'argent est bien entré, le remboursement sort à part)
-const cashedOrders = () => orders.all().filter((o) => cashedAt(o));
-const toRefund = (o) => o.status === 'cancelled' && cashedAt(o) && !o.refundedAt;
+const paymentMethod = (id) => OPERATOR_METHOD[payments.get(id)?.operator || ''] || 'momo';
+
+// Argent réellement ENTRÉ pour une commande, avec sa date et sa caisse (y compris commandes annulées ensuite :
+// l'argent est bien entré, le remboursement sort à part). Paiement à la réception : acompte, puis reste
+// (Mobile Money à la livraison, ou espèces le jour où le livreur les REMET à Kamwa).
+function receipts(o) {
+  if (o.paymentPlan !== 'cod') {
+    const at = cashedAt(o);
+    return at ? [{ date: day(at), method: methodOf(o), amount: o.total, label: `Vente ${o.id}` }] : [];
+  }
+  const out = [];
+  if (o.depositPaidAt) out.push({ date: day(o.depositPaidAt), method: paymentMethod(o.depositPaymentId), amount: o.deposit, label: `Acompte ${o.id}` });
+  else if (o.paidAfterCancel) out.push({ date: day(cashedAt(o)), method: methodOf(o), amount: payments.get(o.paymentId)?.amount || 0, label: `Acompte ${o.id}` });
+  if (o.balancePaid?.method === 'momo') out.push({ date: day(o.balancePaid.at), method: 'momo', amount: o.balance, label: `Reste ${o.id} (Mobile Money à la livraison)` });
+  if (o.balancePaid?.method === 'cash' && o.cashRemittedAt) out.push({ date: day(o.cashRemittedAt), method: 'cash', amount: o.balance, label: `Reste ${o.id} (espèces remises par le livreur)` });
+  return out;
+}
+const allReceipts = () => orders.all().flatMap((o) => receipts(o).map((r) => ({ ...r, order: o })));
+// Montant à rendre au client pour une commande annulée (un acompte conservé après un refus ne se rend pas)
+function refundAmount(o) {
+  if (o.status !== 'cancelled' || o.refundedAt) return 0;
+  if (o.paymentPlan === 'cod') return o.depositRetained ? 0 : sum(receipts(o), (r) => r.amount);
+  return cashedAt(o) ? o.total : 0;
+}
+// Espèces encaissées à la livraison mais pas encore remises à Kamwa, par personne
+function cashHeld() {
+  const by = new Map();
+  for (const o of orders.all().filter((x) => x.balancePaid?.method === 'cash' && !x.cashRemittedAt)) {
+    const k = o.cashHeldBy || 'inconnu';
+    const cur = by.get(k) || { id: k, name: staff.get(k)?.name || 'Inconnu', amount: 0, orders: [] };
+    cur.amount += o.balance || 0; cur.orders.push(o.id);
+    by.set(k, cur);
+  }
+  return [...by.values()].sort((a, b) => b.amount - a.amount);
+}
 
 function supplierBalances() {
   const owed = new Map();
-  for (const o of orders.all().filter((x) => SOLD.includes(x.status))) {
+  for (const o of orders.all().filter(isSold)) {
     for (const l of o.lines) {
       const sid = lineSupplier(l);
       if (!sid) continue;
@@ -93,7 +127,7 @@ function supplierBalances() {
 
 function balancesUntil(to) {
   const bal = Object.fromEntries(Object.keys(METHODS).map((m) => [m, 0]));
-  for (const o of cashedOrders()) if (!to || day(cashedAt(o)) <= to) bal[methodOf(o)] += o.total;
+  for (const r of allReceipts()) if (!to || r.date <= to) bal[r.method] += r.amount;
   for (const e of ledger.all()) {
     if (to && e.date > to) continue;
     if (e.type === 'income') bal[e.method] += e.amount;
@@ -114,7 +148,7 @@ function lastMonths(n) {
 router.get('/', (req, res) => {
   const from = isDay(req.query.from) ? req.query.from : null;
   const to = isDay(req.query.to) ? req.query.to : null;
-  const sold = orders.all().filter((o) => SOLD.includes(o.status) && inRange(day(o.paidAt || o.createdAt), from, to));
+  const sold = orders.all().filter((o) => isSold(o) && inRange(day(o.paidAt || o.createdAt), from, to));
   const lines = sold.flatMap((o) => o.lines);
   const revenue = sum(sold, (o) => o.total);
   const costKnown = lines.filter((l) => lineCost(l) != null);
@@ -124,21 +158,26 @@ router.get('/', (req, res) => {
   const expenses = entries.filter((e) => e.type === 'expense');
   const charges = expenses.filter((e) => catOf('expense', e.category)?.accrual !== false);
   const otherIncome = entries.filter((e) => e.type === 'income' && catOf('income', e.category)?.accrual);
+  // Acomptes conservés après un colis refusé : ils couvrent le déplacement perdu (ils comptent dans le résultat)
+  const retained = orders.all().filter((o) => o.depositRetained && o.depositPaidAt && inRange(day(o.depositPaidAt), from, to));
+  const retainedDeposits = sum(retained, (o) => o.deposit);
+  const failedDeliveries = orders.all().flatMap((o) => o.attempts || []).filter((a) => inRange(day(a.at), from, to)).length;
   const grossMargin = revenue - cogs;
-  const result = grossMargin - sum(charges, (e) => e.amount) + sum(otherIncome, (e) => e.amount);
+  const result = grossMargin - sum(charges, (e) => e.amount) + sum(otherIncome, (e) => e.amount) + retainedDeposits;
 
-  const cashIn = sum(cashedOrders().filter((o) => inRange(day(cashedAt(o)), from, to)), (o) => o.total) + sum(entries.filter((e) => e.type === 'income'), (e) => e.amount);
+  const cashIn = sum(allReceipts().filter((r) => inRange(r.date, from, to)), (r) => r.amount) + sum(entries.filter((e) => e.type === 'income'), (e) => e.amount);
   const cashOut = sum(expenses, (e) => e.amount);
 
   // 12 derniers mois : ventes, charges (coût des produits + charges), résultat
   const months = lastMonths(12);
   const monthly = months.map((m) => {
-    const s = orders.all().filter((o) => SOLD.includes(o.status) && monthKey(day(o.paidAt || o.createdAt)) === m);
+    const s = orders.all().filter((o) => isSold(o) && monthKey(day(o.paidAt || o.createdAt)) === m);
     const rev = sum(s, (o) => o.total);
     const cost = sum(s.flatMap((o) => o.lines), (l) => (lineCost(l) || 0) * l.qty);
     const ch = sum(ledger.all().filter((e) => e.type === 'expense' && monthKey(e.date) === m && catOf('expense', e.category)?.accrual !== false), (e) => e.amount);
     const inc = sum(ledger.all().filter((e) => e.type === 'income' && monthKey(e.date) === m && catOf('income', e.category)?.accrual), (e) => e.amount);
-    return { month: m, revenue: rev, costs: cost + ch, result: rev - cost - ch + inc };
+    const kept = sum(orders.all().filter((o) => o.depositRetained && o.depositPaidAt && monthKey(day(o.depositPaidAt)) === m), (o) => o.deposit);
+    return { month: m, revenue: rev, costs: cost + ch, result: rev - cost - ch + inc + kept };
   });
 
   const byCategory = new Map();
@@ -148,11 +187,12 @@ router.get('/', (req, res) => {
   }
   const stockValue = sum(products.all().filter((p) => !p.supplierId && p.active !== false && Number.isInteger(p.costPrice)), (p) => p.costPrice * (p.stock || 0));
   const stockNoCost = products.all().filter((p) => !p.supplierId && p.active !== false && !p.pending && (p.stock || 0) > 0 && !Number.isInteger(p.costPrice)).length;
-  const refundsToDo = orders.all().filter(toRefund).map((o) => ({ id: o.id, total: o.total, customer: o.customer?.name, method: methodOf(o) }));
+  const refundsToDo = orders.all().filter((o) => refundAmount(o) > 0).map((o) => ({ id: o.id, total: refundAmount(o), customer: o.customer?.name, method: methodOf(o), deposit: o.paymentPlan === 'cod' }));
 
   res.json({
     from, to,
-    kpis: { revenue, orders: sold.length, cogs, grossMargin, charges: sum(charges, (e) => e.amount), result, cashIn, cashOut, cashFlow: cashIn - cashOut, stockValue },
+    kpis: { revenue, orders: sold.length, cogs, grossMargin, charges: sum(charges, (e) => e.amount), result, cashIn, cashOut, cashFlow: cashIn - cashOut, stockValue, retainedDeposits, failedDeliveries },
+    cashHeld: cashHeld(),
     unknownCostLines: unknownCost.length,
     stockNoCost,
     balances: balancesUntil(to),
@@ -167,9 +207,12 @@ router.get('/', (req, res) => {
 
 // ---------- Journal : ventes + écritures saisies ----------
 function journal(from, to) {
-  const rows = cashedOrders().filter((o) => inRange(day(cashedAt(o)), from, to)).map((o) => ({
-    id: o.id, kind: 'sale', date: day(cashedAt(o)), label: `Vente ${o.id}`, detail: o.lines.map((l) => `${l.qty} × ${l.name}`).join(', '),
-    category: o.status === 'cancelled' ? (o.refundedAt ? 'Vente annulée (remboursée)' : 'Vente annulée (à rembourser)') : 'Vente', method: methodOf(o), amount: o.total, editable: false,
+  const rows = allReceipts().filter((r) => inRange(r.date, from, to)).map(({ order: o, ...r }) => ({
+    id: o.id, kind: 'sale', date: r.date, label: r.label, detail: o.lines.map((l) => `${l.qty} × ${l.name}`).join(', '),
+    category: o.status === 'cancelled'
+      ? (o.depositRetained ? 'Acompte conservé (colis refusé)' : o.refundedAt ? 'Vente annulée (remboursée)' : 'Vente annulée (à rembourser)')
+      : o.paymentPlan === 'cod' ? 'Vente à la réception' : 'Vente',
+    method: r.method, amount: r.amount, editable: false,
   }));
   for (const e of ledger.all().filter((x) => inRange(x.date, from, to))) {
     const sign = e.type === 'expense' ? -1 : e.type === 'income' ? 1 : 0;
@@ -259,18 +302,30 @@ router.delete('/entries/:id', (req, res) => {
 // Remboursement d'un client (paiement reçu après annulation) : enregistre la sortie d'argent et marque la commande
 router.post('/refunds/:orderId', (req, res) => {
   const o = orders.get(req.params.orderId);
-  if (!o || o.status !== 'cancelled' || !cashedAt(o)) return res.status(404).json({ error: 'Aucun remboursement en attente pour cette commande' });
-  if (o.refundedAt) return res.status(400).json({ error: 'Déjà remboursée' });
+  if (o?.refundedAt) return res.status(400).json({ error: 'Déjà remboursée' });
+  const amount = o ? refundAmount(o) : 0;
+  if (!amount) return res.status(404).json({ error: 'Aucun remboursement en attente pour cette commande' });
   const method = METHODS[req.body?.method] ? req.body.method : methodOf(o);
   const date = new Date().toISOString().slice(0, 10);
   const e = ledger.insert({
-    id: 'FIN-' + crypto.randomBytes(5).toString('hex').toUpperCase(), type: 'expense', category: 'refund', amount: o.total, date, method,
+    id: 'FIN-' + crypto.randomBytes(5).toString('hex').toUpperCase(), type: 'expense', category: 'refund', amount, date, method,
     label: `Remboursement ${o.id}`, note: o.customer?.name || '', toMethod: null, supplierId: null, receipt: null, orderId: o.id,
     createdBy: req.user.id, createdAt: new Date().toISOString(),
   });
   orders.update(o.id, { refundedAt: new Date().toISOString() });
-  log(req, 'Remboursement enregistré', e, `${o.total} FCFA`);
+  log(req, 'Remboursement enregistré', e, `${amount} FCFA`);
   res.json(e);
+});
+
+// Espèces remises par un livreur (ou un employé) : elles entrent dans la caisse espèces à cette date
+router.post('/remit/:staffId', (req, res) => {
+  const list = orders.all().filter((o) => o.balancePaid?.method === 'cash' && !o.cashRemittedAt && (o.cashHeldBy || 'inconnu') === req.params.staffId);
+  if (!list.length) return res.status(404).json({ error: 'Aucune somme à recevoir de cette personne' });
+  const now = new Date().toISOString();
+  for (const o of list) orders.update(o.id, { cashRemittedAt: now, cashRemittedTo: req.user.id });
+  const total = sum(list, (o) => o.balance || 0);
+  log(req, 'Espèces reçues du livreur', { id: req.params.staffId, label: staff.get(req.params.staffId)?.name || req.params.staffId }, `${total} FCFA (${list.length} commande(s))`);
+  res.json({ ok: true, total, orders: list.map((o) => o.id) });
 });
 
 module.exports = router;

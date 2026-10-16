@@ -566,3 +566,13 @@ html.standalone input, html.standalone textarea, html.standalone .legal { -webki
 #app > * { animation: fade-in .25s ease-out; }
 @keyframes fade-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { #app > *, .install-card { animation: none; } }
+
+/* ---------- Paiement à la réception et code de livraison ---------- */
+.st-confirmed { background: var(--violet-soft); color: var(--brand); }
+.cod-hint { display: flex; gap: 8px; align-items: flex-start; background: var(--soft); border-radius: var(--radius-sm); padding: 12px 14px; color: var(--ink); }
+.cod-hint .ico { color: var(--ok); flex: none; margin-top: 2px; }
+.code-card { margin: 16px auto 4px; max-width: 420px; text-align: center; background: linear-gradient(135deg, #2D1B69, #4B2FB0); color: #fff; border-radius: 20px; padding: 18px 20px; box-shadow: 0 12px 30px rgba(45,27,105,.25); }
+.code-card span { font-size: .85rem; opacity: .85; }
+.code-card strong { display: block; font-size: 2.6rem; letter-spacing: .35em; margin: 4px 0 6px; padding-left: .35em; font-variant-numeric: tabular-nums; color: var(--mango); }
+.code-card p { margin: 0; font-size: .85rem; line-height: 1.45; opacity: .92; }
+.alert.warn { background: var(--mango-soft); color: var(--mango-dark); }

@@ -5,7 +5,10 @@ const path = require('path');
 const express = require('express');
 const router = express.Router();
 const { products, orders, payments, customers, agencies, staff, activity } = require('../store');
-const { settleSuccessfulPayment } = require('./payments');
+const { settleSuccessfulPayment, refreshStatus } = require('./payments');
+const delivery = require('../delivery');
+const { getProvider } = require('../payments');
+const config = require('../config');
 const customerAuth = require('../customer/auth');
 const {
   ROLES, ADMIN_LOGIN, login, logout, currentUser, isPasswordSet, requireStaff, requireRole,
@@ -13,7 +16,7 @@ const {
 } = require('../admin/auth');
 const { UNIVERSES, universeOf } = require('../catalog');
 const demo = require('../demo');
-const { normalizeLocal } = require('../utils/phone');
+const { normalizeLocal, detectOperator } = require('../utils/phone');
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR || (process.env.VERCEL ? '/tmp/kamwa-uploads' : path.join(__dirname, '..', '..', 'data', 'uploads'));
 
@@ -49,13 +52,23 @@ router.get('/meta', (req, res) => {
 });
 
 // ---------- Commandes ----------
-const STATUS_LABELS = { pending_payment: 'Non payée', paid: 'Payée', shipped: 'Expédiée', delivered: 'Livrée', cancelled: 'Annulée' };
+const STATUS_LABELS = { pending_payment: 'Non payée', paid: 'Payée', confirmed: 'Confirmée (à la réception)', shipped: 'En livraison', delivered: 'Livrée', cancelled: 'Annulée' };
 // Changements de statut autorisés (avec retour arrière possible en cas d'erreur de clic)
+// « Livrée » ne se choisit plus à la main pour une livraison : le livreur valide avec le CODE du client
+// (route /orders/:id/deliver ; l'admin peut forcer sans code, c'est alors noté).
 const TRANSITIONS = {
   pending_payment: ['cancelled'],
   paid: ['shipped', 'cancelled'],
-  shipped: ['delivered', 'paid', 'cancelled'],
+  shipped: ['paid', 'cancelled'],
   delivered: ['shipped'],
+  cancelled: [],
+};
+// Paiement à la réception : confirmée (acompte reçu) -> en livraison -> livrée (code + reste encaissé)
+const COD_TRANSITIONS = {
+  pending_payment: ['cancelled'],
+  confirmed: ['shipped', 'cancelled'],
+  shipped: ['confirmed', 'cancelled'],
+  delivered: [],
   cancelled: [],
 };
 // Retrait en agence : pas d'expédition, l'article est remis directement au client (« delivered » = remis).
@@ -65,9 +78,15 @@ const PICKUP_TRANSITIONS = {
   delivered: ['paid'],
   cancelled: [],
 };
-const transitionsFor = (order) => (order.fulfillment === 'pickup' ? PICKUP_TRANSITIONS : TRANSITIONS);
+const transitionsFor = (order) => (order.fulfillment === 'pickup' ? PICKUP_TRANSITIONS : order.paymentPlan === 'cod' ? COD_TRANSITIONS : TRANSITIONS);
 
-function adminOrder({ accessToken, ...order }) {
+// Commande vue par l'équipe. Le code de livraison n'est montré qu'à l'admin (jamais aux employés ni aux livreurs).
+function adminOrder({ accessToken, ...order }, user) {
+  if (user?.role !== 'admin') delete order.deliveryCode;
+  order.reliability = delivery.reliability(order.customer?.phone);
+  order.courierName = delivery.courierName(order.courierId);
+  order.toCollect = delivery.amountToCollect(order);
+  order.transitions = transitionsFor(order)[order.status] || [];
   const payment =
     (order.paymentId && payments.get(order.paymentId)) ||
     payments.all().filter((p) => p.orderId === order.id).pop();
@@ -81,7 +100,7 @@ function adminOrder({ accessToken, ...order }) {
 
 router.get('/orders', requireRole('orders'), (req, res) => {
   const list = orders.all().sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
-  res.json({ orders: list.map(adminOrder), statusLabels: STATUS_LABELS, transitions: TRANSITIONS, pickupTransitions: PICKUP_TRANSITIONS });
+  res.json({ orders: list.map((o) => adminOrder(o, req.user)), statusLabels: STATUS_LABELS, transitions: TRANSITIONS, pickupTransitions: PICKUP_TRANSITIONS, failReasons: delivery.FAIL_REASONS });
 });
 
 router.patch('/orders/:id', requireRole('orders'), (req, res) => {
@@ -98,12 +117,7 @@ router.patch('/orders/:id', requireRole('orders'), (req, res) => {
     patch.status = status;
     patch.history = [...(order.history || []), { status, at: now }];
     // Annulation d'une commande déjà payée : on remet les articles en stock (le remboursement se fait à la main).
-    if (status === 'cancelled' && ['paid', 'shipped', 'delivered'].includes(order.status)) {
-      for (const line of order.lines) {
-        const p = products.get(line.productId);
-        if (p && p.stock != null) products.update(p.id, { stock: p.stock + line.qty });
-      }
-    }
+    if (status === 'cancelled' && ['paid', 'confirmed', 'shipped', 'delivered'].includes(order.status)) delivery.restoreStock(order.lines);
   }
 
   if (customer) {
@@ -126,7 +140,7 @@ router.patch('/orders/:id', requireRole('orders'), (req, res) => {
   const updated = orders.update(order.id, patch);
   const what = [patch.status && `statut : ${STATUS_LABELS[order.status]} → ${STATUS_LABELS[patch.status]}`, patch.customer && 'coordonnées client modifiées', 'note' in patch && 'note modifiée'].filter(Boolean).join(' ; ');
   if (what) log(req, 'Commande modifiée', { id: order.id, name: order.id }, what);
-  res.json(adminOrder(updated));
+  res.json(adminOrder(updated, req.user));
 });
 
 // Espèces reçues en agence : le paiement est confirmé à la main par l'admin.
@@ -140,7 +154,169 @@ router.post('/orders/:id/cash-received', requireRole('orders'), (req, res) => {
   payments.update(cash.id, { status: 'SUCCESSFUL', reason: null, confirmedAt: new Date().toISOString() });
   settleSuccessfulPayment(payments.get(cash.id));
   log(req, 'Paiement en espèces encaissé', { id: order.id, name: order.id }, `${order.total} FCFA`);
-  res.json(adminOrder(orders.get(order.id)));
+  res.json(adminOrder(orders.get(order.id), req.user));
+});
+
+// ---------- Livraison sécurisée : appel de confirmation, livreur, code de livraison ----------
+const isDeliveryOrder = (o) => o.fulfillment !== 'pickup';
+const readyToDeliver = (o) => ['paid', 'confirmed', 'shipped'].includes(o.status);
+const actor = (req) => ({ id: req.user.id, role: req.user.role, name: req.user.name });
+
+router.get('/couriers', requireRole('orders'), (req, res) => {
+  res.json(staff.all().filter((u) => u.role === 'courier' && u.active !== false).map((u) => ({ id: u.id, name: u.name, phone: u.phone || null })));
+});
+
+// Appel au client avant d'envoyer le livreur (ou appel sans réponse)
+router.post('/orders/:id/call', requireRole('orders'), (req, res) => {
+  const o = orders.get(req.params.id);
+  if (!o) return res.status(404).json({ error: 'Commande introuvable' });
+  const ok = req.body?.result !== 'injoignable';
+  const now = new Date().toISOString();
+  const updated = orders.update(o.id, ok
+    ? { callConfirmedAt: now, callConfirmedBy: req.user.name }
+    : { callAttempts: [...(o.callAttempts || []), { at: now, by: req.user.name }] });
+  log(req, ok ? 'Commande confirmée par téléphone' : 'Client injoignable au téléphone', { id: o.id, name: o.id });
+  res.json(adminOrder(updated, req.user));
+});
+
+// Confier la commande à un livreur : elle passe « En livraison »
+router.post('/orders/:id/assign', requireRole('orders'), (req, res) => {
+  const o = orders.get(req.params.id);
+  if (!o) return res.status(404).json({ error: 'Commande introuvable' });
+  if (!isDeliveryOrder(o) || !readyToDeliver(o)) return res.status(400).json({ error: 'Cette commande ne peut pas partir en livraison' });
+  const courier = staff.get(req.body?.courierId);
+  if (!courier || courier.role !== 'courier' || courier.active === false) return res.status(400).json({ error: 'Choisissez un livreur' });
+  const now = new Date().toISOString();
+  const updated = orders.update(o.id, {
+    courierId: courier.id, assignedAt: now, status: 'shipped',
+    history: o.status === 'shipped' ? o.history : [...(o.history || []), { status: 'shipped', at: now }],
+  });
+  log(req, 'Commande confiée à un livreur', { id: o.id, name: o.id }, courier.name);
+  res.json(adminOrder(updated, req.user));
+});
+
+// Remise du colis : code du client obligatoire ; encaissement du reste (espèces ou Mobile Money) si paiement à la réception
+async function deliverHandler(req, res, order, { courierOnly = false } = {}) {
+  if (!isDeliveryOrder(order) || !readyToDeliver(order)) return res.status(400).json({ error: 'Cette commande ne peut pas être livrée (déjà livrée, annulée ou non payée)' });
+  if (courierOnly && order.status !== 'shipped') return res.status(400).json({ error: "Cette livraison n'est plus en cours" });
+  const { code, collect, phone, force } = req.body || {};
+  const forced = Boolean(force) && req.user.role === 'admin';
+  const recentlyVerified = order.codeVerifiedAt && Date.now() - Date.parse(order.codeVerifiedAt) < 30 * 60 * 1000;
+  if (!forced && !recentlyVerified) {
+    const check = delivery.checkCode(order, code);
+    if (check.error) {
+      log(req, 'Code de livraison faux', { id: order.id, name: order.id }, check.error);
+      return res.status(400).json({ error: check.error });
+    }
+  }
+  const fresh = orders.get(order.id);
+  const toCollect = delivery.amountToCollect(fresh);
+  if (toCollect > 0 && collect === 'cash') {
+    const done = delivery.finishDelivery(fresh, { by: actor(req), balance: { method: 'cash' }, forced });
+    log(req, 'Commande livrée', { id: order.id, name: order.id }, `${toCollect} FCFA encaissés en espèces${forced ? ' (sans code, forcé par l\'admin)' : ''}`);
+    return res.json({ delivered: true, order: done.id });
+  }
+  if (toCollect > 0 && collect === 'momo') {
+    const phoneLocal = normalizeLocal(phone || fresh.customer.phone);
+    const op = phoneLocal && detectOperator(phoneLocal);
+    if (!op) return res.status(400).json({ error: 'Numéro Mobile Money invalide (06 MTN, 05/04 Airtel)' });
+    const payment = {
+      id: 'PAY-' + crypto.randomUUID(), orderId: order.id, operator: op, phone: phoneLocal, purpose: 'balance', collectorId: req.user.id,
+      amount: toCollect, currency: fresh.currency, status: 'PENDING', providerRef: null, reason: null, createdAt: new Date().toISOString(),
+    };
+    try {
+      const { providerRef } = await getProvider(op).requestPayment({
+        paymentId: payment.id, reference: order.id, amount: toCollect, phoneLocal,
+        description: `${config.shopName} - reste commande ${order.id}`, callbackUrl: `${config.publicUrl}/api/payments/callback/${op}`,
+      });
+      payment.providerRef = providerRef;
+    } catch (err) {
+      if (!(err.uncertain && err.providerRef)) return res.status(502).json({ error: "La demande Mobile Money n'a pas pu partir. Réessayez ou encaissez en espèces." });
+      payment.providerRef = err.providerRef;
+    }
+    payments.insert(payment);
+    log(req, 'Reste demandé en Mobile Money à la livraison', { id: order.id, name: order.id }, `${toCollect} FCFA`);
+    return res.status(202).json({ pending: true, paymentId: payment.id, amount: toCollect });
+  }
+  if (toCollect > 0) return res.status(400).json({ error: `Encaissez d'abord ${toCollect} FCFA (espèces ou Mobile Money)`, toCollect });
+  delivery.finishDelivery(fresh, { by: actor(req), forced });
+  log(req, 'Commande livrée', { id: order.id, name: order.id }, forced ? 'sans code (forcé par l\'admin)' : 'code du client vérifié');
+  res.json({ delivered: true, order: order.id });
+}
+
+router.post('/orders/:id/deliver', requireRole('orders'), (req, res) => {
+  const o = orders.get(req.params.id);
+  if (!o) return res.status(404).json({ error: 'Commande introuvable' });
+  deliverHandler(req, res, o);
+});
+router.post('/orders/:id/fail', requireRole('orders'), (req, res) => {
+  const o = orders.get(req.params.id);
+  if (!o) return res.status(404).json({ error: 'Commande introuvable' });
+  if (!isDeliveryOrder(o) || !readyToDeliver(o)) return res.status(400).json({ error: 'Cette commande ne peut pas être modifiée' });
+  if (!delivery.FAIL_REASONS[req.body?.reason]) return res.status(400).json({ error: 'Choisissez la raison' });
+  const updated = delivery.failDelivery(o, { by: actor(req), reason: req.body.reason, note: req.body.note });
+  log(req, 'Livraison ratée', { id: o.id, name: o.id }, delivery.FAIL_REASONS[req.body.reason]);
+  res.json(adminOrder(updated, req.user));
+});
+router.post('/orders/:id/unlock', requireRole(), (req, res) => {
+  const o = orders.get(req.params.id);
+  if (!o) return res.status(404).json({ error: 'Commande introuvable' });
+  const updated = orders.update(o.id, { codeLocked: false, codeFails: 0 });
+  log(req, 'Code de livraison débloqué', { id: o.id, name: o.id });
+  res.json(adminOrder(updated, req.user));
+});
+// Suivi d'un paiement Mobile Money demandé à la livraison (le serveur revérifie toujours auprès de l'opérateur)
+async function balanceStatus(req, res) {
+  const p = payments.get(req.params.pid);
+  if (!p || p.purpose !== 'balance' || (req.user.role === 'courier' && p.collectorId !== req.user.id)) return res.status(404).json({ error: 'Paiement introuvable' });
+  try { await refreshStatus(p); } catch (err) { console.error('[livraison] vérification impossible :', err.message); }
+  const q = payments.get(p.id);
+  res.json({ status: q.status, reason: q.reason, orderStatus: orders.get(q.orderId)?.status });
+}
+router.get('/orders/payments/:pid', requireRole('orders'), balanceStatus);
+
+// ---------- Espace livreur : ses livraisons du moment (coordonnées du client UNIQUEMENT pour les livraisons en cours) ----------
+const courierView = (o) => ({
+  id: o.id, status: o.status, assignedAt: o.assignedAt || null, createdAt: o.createdAt,
+  customer: o.status === 'shipped' ? { name: o.customer.name, phone: o.customer.phone, city: o.customer.city, address: o.customer.address } : { name: o.customer.name, city: o.customer.city },
+  lines: o.lines.map((l) => ({ name: l.name, qty: l.qty })),
+  paymentPlan: o.paymentPlan === 'cod' ? 'cod' : 'prepaid', toCollect: delivery.amountToCollect(o),
+  callConfirmed: Boolean(o.callConfirmedAt), attempts: (o.attempts || []).length, codeLocked: Boolean(o.codeLocked),
+  deliveredAt: o.deliveredAt || null, collected: o.balancePaid ? { method: o.balancePaid.method, amount: o.balance } : null,
+});
+router.get('/courier/deliveries', requireRole('courier'), (req, res) => {
+  const mine = orders.all().filter((o) => o.courierId === req.user.id);
+  const current = mine.filter((o) => o.status === 'shipped').sort((a, b) => (a.assignedAt < b.assignedAt ? -1 : 1));
+  const done = mine.filter((o) => o.status === 'delivered' && o.deliveredBy === req.user.id).sort((a, b) => (a.deliveredAt < b.deliveredAt ? 1 : -1)).slice(0, 20);
+  const cashHeld = mine.filter((o) => o.cashHeldBy === req.user.id && !o.cashRemittedAt).reduce((n, o) => n + (o.balance || 0), 0);
+  res.json({ current: current.map(courierView), done: done.map(courierView), cashHeld, failReasons: delivery.FAIL_REASONS });
+});
+const myDelivery = (req, res) => {
+  const o = orders.get(req.params.id);
+  if (!o || (req.user.role === 'courier' && o.courierId !== req.user.id)) { res.status(404).json({ error: 'Livraison introuvable' }); return null; }
+  return o;
+};
+router.post('/courier/deliveries/:id/deliver', requireRole('courier'), (req, res) => {
+  const o = myDelivery(req, res); if (!o) return;
+  deliverHandler(req, res, o, { courierOnly: true });
+});
+router.post('/courier/deliveries/:id/fail', requireRole('courier'), (req, res) => {
+  const o = myDelivery(req, res); if (!o) return;
+  if (o.status !== 'shipped') return res.status(400).json({ error: "Cette livraison n'est plus en cours" });
+  if (!delivery.FAIL_REASONS[req.body?.reason]) return res.status(400).json({ error: 'Choisissez la raison' });
+  delivery.failDelivery(o, { by: actor(req), reason: req.body.reason, note: req.body.note });
+  log(req, 'Livraison ratée', { id: o.id, name: o.id }, delivery.FAIL_REASONS[req.body.reason]);
+  res.json({ ok: true });
+});
+router.get('/courier/payments/:pid', requireRole('courier'), balanceStatus);
+
+// ---------- Réglages du paiement à la réception (admin) ----------
+router.get('/settings/cod', requireRole(), (req, res) => res.json(delivery.codSettings()));
+router.put('/settings/cod', requireRole(), (req, res) => {
+  const { error, value } = delivery.saveCodSettings(req.body || {});
+  if (error) return res.status(400).json({ error });
+  log(req, 'Réglages du paiement à la réception modifiés', null, `acompte ${value.deposit} FCFA${value.depositPercent ? ` ou ${value.depositPercent} %` : ''}, fiable après ${value.trustedAfter} livraisons, bloqué après ${value.maxRefusals} refus${value.enabled ? '' : ' — DÉSACTIVÉ'}`);
+  res.json(value);
 });
 
 // ---------- Agences (retrait et paiement en espèces) ----------
@@ -403,7 +579,7 @@ router.post('/staff', requireRole(), (req, res) => {
   if (!cleanName) return res.status(400).json({ error: 'Le nom est obligatoire' });
   if (!/^[a-z0-9._@-]{3,40}$/.test(cleanLogin)) return res.status(400).json({ error: 'Identifiant : 3 à 40 caractères, lettres sans accent, chiffres, point, tiret' });
   if (cleanLogin === ADMIN_LOGIN || findStaff(cleanLogin)) return res.status(409).json({ error: 'Cet identifiant est déjà utilisé' });
-  if (!['catalog', 'orders', 'supplier'].includes(role)) return res.status(400).json({ error: 'Rôle inconnu' });
+  if (!['catalog', 'orders', 'supplier', 'courier'].includes(role)) return res.status(400).json({ error: 'Rôle inconnu' });
   if (role === 'supplier' && !String(company || '').trim()) return res.status(400).json({ error: "Indiquez le nom de l'entreprise du fournisseur" });
   const password = tempPassword();
   const user = staff.insert({
@@ -461,6 +637,7 @@ router.post('/me/password', (req, res) => {
 
 // ---------- Tableaux de bord (statistiques adaptées au rôle) ----------
 const SOLD = ['paid', 'shipped', 'delivered'];
+const isSold = (o) => (o.paymentPlan === 'cod' ? o.status === 'delivered' : SOLD.includes(o.status));
 const PAY_NAMES = { mtn: 'MTN MoMo', airtel: 'Airtel Money', card: 'Carte bancaire', cash: 'Espèces en agence' };
 const dayKey = (iso) => String(iso || '').slice(0, 10);
 const countBy = (items, keyFn, valFn = () => 1) => {
@@ -478,7 +655,7 @@ router.get('/stats', (req, res) => {
   const visible = (p) => p.active !== false && !p.pending;
   const lowStockOf = (list) => list.filter((p) => visible(p) && p.stock != null && p.stock <= 3).sort((a, b) => a.stock - b.stock).slice(0, 8).map((p) => ({ id: p.id, name: p.name, stock: p.stock }));
   const allOrders = orders.all();
-  const soldInPeriod = allOrders.filter((o) => SOLD.includes(o.status) && Date.parse(o.paidAt || o.createdAt) >= since);
+  const soldInPeriod = allOrders.filter((o) => isSold(o) && Date.parse(o.paidAt || o.createdAt) >= since);
   const out = { role, days, labels };
 
   if (role === 'supplier') {
@@ -499,6 +676,21 @@ router.get('/stats', (req, res) => {
     return res.json(out);
   }
 
+  if (role === 'courier') {
+    const mine = allOrders.filter((o) => o.courierId === req.user.id);
+    const doneIn = mine.filter((o) => o.status === 'delivered' && o.deliveredBy === req.user.id && Date.parse(o.deliveredAt) >= since);
+    const today = new Date().toISOString().slice(0, 10);
+    const cashHeld = mine.filter((o) => o.cashHeldBy === req.user.id && !o.cashRemittedAt).reduce((n, o) => n + (o.balance || 0), 0);
+    out.kpis = [
+      { label: 'À livrer maintenant', value: mine.filter((o) => o.status === 'shipped').length, icon: 'truck-duotone' },
+      { label: "Livrées aujourd'hui", value: doneIn.filter((o) => String(o.deliveredAt).startsWith(today)).length, icon: 'package-duotone' },
+      { label: `Livrées (${days} j)`, value: doneIn.length, icon: 'receipt-duotone' },
+      { label: 'Espèces à remettre à Kamwa', value: cashHeld, format: 'fcfa', icon: 'wallet-duotone' },
+    ];
+    out.series = [{ label: 'Livraisons', data: labels.map((d) => doneIn.filter((o) => String(o.deliveredAt).slice(0, 10) === d).length), type: 'bar' }];
+    return res.json(out);
+  }
+
   if (role === 'catalog') {
     out.kpis = [
       { label: 'Produits en ligne', value: allProducts.filter(visible).length, icon: 'package-duotone' },
@@ -516,7 +708,7 @@ router.get('/stats', (req, res) => {
   const isCashToCollect = (o) => o.status === 'pending_payment' && o.fulfillment === 'pickup' && o.pickupDeadline && Date.parse(o.pickupDeadline) > Date.now();
   const perDay = (fn) => labels.map((d) => soldInPeriod.filter((o) => dayKey(o.paidAt || o.createdAt) === d).reduce((s, o) => s + fn(o), 0));
   const todo = {
-    toShip: allOrders.filter((o) => o.status === 'paid').length,
+    toShip: allOrders.filter((o) => ['paid', 'confirmed'].includes(o.status)).length,
     toCollect: allOrders.filter(isCashToCollect).length,
     inTransit: allOrders.filter((o) => o.status === 'shipped').length,
     refunds: allOrders.filter((o) => o.paidAfterCancel).length,

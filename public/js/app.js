@@ -58,8 +58,15 @@
   const tokenOf = (id) => deviceOrders().find((o) => o.id === id)?.token;
 
   // Statuts et étapes de suivi d'une commande
-  const STATUS = { pending_payment: 'En attente de paiement', paid: 'Payée', shipped: 'Expédiée', delivered: 'Livrée', cancelled: 'Annulée' };
-  const STEP_INDEX = { pending_payment: 0, paid: 1, shipped: 2, delivered: 3 };
+  const STATUS = { pending_payment: 'En attente de paiement', paid: 'Payée', confirmed: 'Confirmée — à payer à la livraison', shipped: 'En livraison', delivered: 'Livrée', cancelled: 'Annulée' };
+  const STEP_INDEX = { pending_payment: 0, paid: 1, confirmed: 1, shipped: 2, delivered: 3 };
+  // Encadré du code de livraison : le client le donne au livreur seulement quand il a son colis en main
+  const codeCard = (o) => (o.deliveryCode && o.fulfillment !== 'pickup' && ['paid', 'confirmed', 'shipped'].includes(o.status) ? `
+    <div class="code-card">
+      <span>Votre code de livraison</span>
+      <strong>${esc(o.deliveryCode)}</strong>
+      <p>Donnez-le au livreur <b>seulement quand vous avez votre colis en main</b>${o.paymentPlan === 'cod' && o.balance ? ` et après avoir payé ${fcfa(o.balance)}` : ''}. Ne le communiquez à personne d'autre, même au téléphone.</p>
+    </div>` : '');
   const isPickup = (o) => o.fulfillment === 'pickup';
   const statusLabel = (o) => {
     if (isPickup(o) && o.status === 'pending_payment') return 'Réservée — à payer en agence';
@@ -527,6 +534,7 @@
           <div class="methods">
             <label class="op"><input type="radio" name="method" value="momo" checked><span>${icon('device-mobile-duotone')}<span class="txt">Mobile Money<small>MTN MoMo · Airtel Money</small></span></span></label>
             ${methods.card ? `<label class="op"><input type="radio" name="method" value="card"><span>${icon('credit-card-duotone')}<span class="txt">Carte bancaire<small>Visa · Mastercard</small></span></span></label>` : ''}
+            ${methods.cod?.enabled ? `<label class="op"><input type="radio" name="method" value="cod"><span>${icon('hand-coins-duotone')}<span class="txt">Payer à la réception<small>Espèces ou Mobile Money au livreur${methods.cod.deposit ? ` · acompte de ${fcfa(methods.cod.deposit)} pour confirmer` : ''}</small></span></span></label>` : ''}
             ${methods.cash ? `<label class="op"><input type="radio" name="method" value="cash"><span>${icon('storefront-duotone')}<span class="txt">Espèces en agence<small>Retrait en agence</small></span></span></label>` : ''}
           </div>
 
@@ -538,6 +546,10 @@
             <label for="momo">Numéro Mobile Money à débiter</label>
             <input id="momo" name="momo" type="tel" inputmode="tel" placeholder="06 123 45 67" value="${esc(saved.phone)}">
             <p class="hint">MTN : numéros en 06 · Airtel : numéros en 05 ou 04</p>
+          </div>
+          <div id="codFields" hidden>
+            <p class="hint cod-hint">${icon('check-circle-duotone')} <span>Vous payez <strong>à la livraison</strong>, en espèces ou en Mobile Money, après avoir vérifié votre colis.
+            ${methods.cod?.deposit ? `Pour confirmer une première commande, un <strong>acompte de ${fcfa(methods.cod.deposit)}</strong> est demandé en Mobile Money (déduit du total). Il est offert aux clients fidèles. En cas de refus du colis, il couvre le déplacement du livreur.` : ''}</span></p>
           </div>
           <div id="cardFields" hidden>
             <p class="hint">${icon('lock-key-bold')} Vous allez être redirigé vers la page de paiement sécurisée de notre partenaire bancaire. Kamwa ne voit jamais votre numéro de carte.</p>
@@ -563,12 +575,15 @@
       </div>`;
 
     const form = $('#checkoutForm');
-    const BUTTON = { momo: `Payer ${total}`, card: `Payer ${total} par carte`, cash: 'Réserver et payer en agence' };
+    const BUTTON = { momo: `Payer ${total}`, card: `Payer ${total} par carte`, cash: 'Réserver et payer en agence', cod: 'Confirmer ma commande' };
     const method = () => form.method.value || 'momo';
     // Affiche les champs du moyen de paiement choisi (pas d'adresse de livraison pour un retrait en agence)
     const syncMethod = () => {
       const m = method();
-      $('#momoFields').hidden = m !== 'momo';
+      $('#momoFields').hidden = !(m === 'momo' || (m === 'cod' && methods.cod?.deposit));
+      $('#codFields').hidden = m !== 'cod';
+      const momoLbl = form.querySelector('label[for="momo"]');
+      if (momoLbl) momoLbl.textContent = m === 'cod' ? "Numéro Mobile Money pour l'acompte" : 'Numéro Mobile Money à débiter';
       $('#cardFields').hidden = m !== 'card';
       $('#cashFields').hidden = m !== 'cash';
       $('#deliveryFields').hidden = m === 'cash';
@@ -605,7 +620,7 @@
         let order = null;
         if (checkout?.cartKey === cartKey()) {
           try { order = await api('/orders/' + enc(checkout.orderId), { headers: orderHeaders(checkout.token) }); } catch {}
-          if (order?.status === 'paid') return finishPaid(checkout);
+          if (['paid', 'confirmed'].includes(order?.status)) return finishPaid(checkout);
           if (order?.status !== 'pending_payment') order = null;
         }
         if (!order) {
@@ -615,16 +630,17 @@
           saveCheckout(checkout);
         }
         const body = { orderId: checkout.orderId, token: checkout.token, method: m };
-        if (m === 'momo') Object.assign(body, { phone: form.momo.value, operator: form.operator.value });
+        if (m === 'momo' || m === 'cod') Object.assign(body, { phone: form.momo.value, operator: form.operator.value });
         if (m === 'cash') body.agencyId = form.agency.value;
         let payment;
         try {
           payment = await api('/payments', { method: 'POST', body });
         } catch (ex) {
-          if (ex.data?.orderStatus === 'paid') return finishPaid(checkout);
+          if (['paid', 'confirmed'].includes(ex.data?.orderStatus)) return finishPaid(checkout);
           throw ex;
         }
         if (payment.operator === 'cash') return finishReservation(checkout);
+        if (payment.cod && payment.status === 'SUCCESSFUL') return finishPaid(checkout); // client fiable : confirmée sans acompte
         saveCheckout({ ...checkout, paymentId: payment.id });
         if (payment.redirectUrl) { location.href = payment.redirectUrl; return; } // page sécurisée de paiement par carte
         viewWaiting(checkout, payment, payment.resumed);
@@ -652,10 +668,10 @@
         ${isCard ? `
         <h1>Vérification de votre paiement par carte</h1>
         <p>Nous confirmons le paiement de <strong>${fcfa(payment.amount)}</strong> auprès de notre partenaire bancaire.</p>` : `
-        <h1>Validez le paiement sur votre téléphone</h1>
+        <h1>${payment.purpose === 'deposit' ? "Validez l'acompte sur votre téléphone" : 'Validez le paiement sur votre téléphone'}</h1>
         ${resumed ? '<div class="sim">Une demande de paiement est déjà en cours pour cette commande. Validez-la sur votre téléphone : nous n\'en envoyons pas une deuxième.</div>' : ''}
         <p>Une demande de <strong>${fcfa(payment.amount)}</strong> a été envoyée via <strong>${opName}</strong>.<br>
-        Saisissez votre <strong>code secret</strong> sur votre téléphone pour confirmer.</p>`}
+        Saisissez votre <strong>code secret</strong> sur votre téléphone pour confirmer.${payment.purpose === 'deposit' ? '<br>Le reste se paie à la livraison.' : ''}</p>`}
         <p class="hint" id="waitHint">Commande ${esc(checkout.orderId)}. Ne fermez pas cette page.</p>
       </div>`;
     const box = $('#waiting');
@@ -714,9 +730,11 @@
     app.innerHTML = `
       <div class="panel waiting">
         <div class="big-check">${icon('check-circle-duotone')}</div>
-        <h1>Merci, paiement reçu&nbsp;!</h1>
+        <h1>${order?.paymentPlan === 'cod' ? 'Merci, commande confirmée&nbsp;!' : 'Merci, paiement reçu&nbsp;!'}</h1>
         ${order ? `<p>Commande <strong>${esc(order.id)}</strong> : ${fcfa(order.total)}</p>
+        ${order.paymentPlan === 'cod' ? `<p>${order.deposit ? `Acompte reçu : ${fcfa(order.deposit)}. ` : ''}Vous paierez <strong>${fcfa(order.balance ?? order.total)}</strong> à la livraison, en espèces ou en Mobile Money.</p>` : ''}
         <p>Nous vous appelons au <strong>${esc(order.customer.phone)}</strong> pour organiser la livraison à ${esc(order.customer.city)}.</p>
+        ${codeCard(order)}
         <p><a class="btn ghost" href="#/suivi/${enc(order.id)}">Suivre ma commande</a></p>` : ''}
         <a class="btn cta" href="#/">Continuer mes achats</a>
       </div>
@@ -890,8 +908,10 @@
         ]
       : [
           ['Commande passée', o.createdAt, 'Nous avons bien reçu votre commande.'],
-          ['Paiement confirmé', o.paidAt || at('paid'), 'Votre paiement est validé. Nous préparons votre colis et vous appelons.'],
-          ['Expédiée', at('shipped'), `Votre colis est en route vers ${esc(o.customer.city || 'vous')}.`],
+          o.paymentPlan === 'cod'
+            ? ['Commande confirmée', o.confirmedAt || at('confirmed'), `${o.deposit ? `Acompte de ${fcfa(o.deposit)} reçu. ` : ''}Vous paierez ${fcfa(o.balance ?? o.total)} à la livraison. Nous préparons votre colis et vous appelons.`]
+            : ['Paiement confirmé', o.paidAt || at('paid'), 'Votre paiement est validé. Nous préparons votre colis et vous appelons.'],
+          ['En livraison', at('shipped'), `Le livreur arrive à ${esc(o.customer.city || 'votre adresse')}. Gardez votre téléphone allumé et préparez votre code de livraison.`],
           ['Livrée', at('delivered'), 'Votre commande a été livrée. Merci pour votre confiance !'],
         ];
     const current = Math.max(0, stepIndex(o));
@@ -912,6 +932,8 @@
                 ${i === current ? `<p class="hint" style="margin:4px 0 0">${text}</p>` : ''}
               </li>`).join('')}
           </ol>
+          ${codeCard(o)}
+          ${(o.attempts || []).length && !['delivered', 'cancelled'].includes(o.status) ? `<div class="alert warn">${o.attempts.map((a) => `Tentative de livraison le ${longDate(a.at)} : ${esc(a.label)}.`).join('<br>')} Nous vous recontactons.</div>` : ''}
           ${o.status === 'pending_payment' && !isPickup(o) ? '<div class="alert err">Paiement pas encore reçu. Si vous venez de valider sur votre téléphone, patientez quelques minutes.</div>' : ''}
           ${isPickup(o) && o.status === 'pending_payment' && !expired ? `<div class="panel" style="background:#F0F7F4;margin:12px 0 0">
             <strong>${icon('map-pin-bold')} ${esc(ag.name)} — ${esc(ag.city)}</strong>

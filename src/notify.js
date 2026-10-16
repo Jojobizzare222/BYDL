@@ -12,12 +12,17 @@ const transport = configured
 
 function paidOrderEmail(order, { afterCancel = false } = {}) {
   const c = order.customer;
+  const cod = order.paymentPlan === 'cod';
   const subject = afterCancel
     ? `⚠️ Paiement reçu sur une commande ANNULÉE ${order.id} : à rembourser`
-    : `Nouvelle commande payée ${order.id} : ${formatXAF(order.total)}`;
+    : cod
+      ? `Nouvelle commande À LA RÉCEPTION ${order.id} : ${formatXAF(order.total)} (acompte ${formatXAF(order.deposit || 0)})`
+      : `Nouvelle commande payée ${order.id} : ${formatXAF(order.total)}`;
   const text = [
     afterCancel ? 'ATTENTION : cette commande avait été annulée, mais le client a payé. Remboursez-le via Mobile Money.\n' : '',
-    `Commande ${order.id} payée : ${formatXAF(order.total)}`,
+    cod
+      ? `Commande ${order.id} à payer à la réception : ${formatXAF(order.total)}. Acompte reçu : ${formatXAF(order.deposit || 0)}. Reste à encaisser à la livraison : ${formatXAF(order.balance ?? order.total)}.\nAppelez le client pour confirmer avant d'envoyer le livreur.`
+      : `Commande ${order.id} payée : ${formatXAF(order.total)}`,
     '',
     ...order.lines.map((l) => `- ${l.qty} × ${l.name} : ${formatXAF(l.total)}`),
     '',

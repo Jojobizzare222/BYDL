@@ -335,3 +335,18 @@ input[type=date] { width: 100%; padding: 10px 12px; border: 1px solid var(--line
 .gal-item:has(.gal-main) .gal-detour { bottom: 26px; }
 .spin { width: 12px; height: 12px; border-radius: 50%; border: 2px solid rgba(255,179,0,.3); border-top-color: var(--mango); animation: spin .8s linear infinite; display: inline-block; }
 @keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---------- Livraison sécurisée ---------- */
+.cod-box { background: var(--bg); border: 1px dashed #6B4A12; border-radius: 12px; padding: 10px 12px; }
+.cod-box .lines div:last-child { font-weight: 700; }
+.code-inline { font-size: 1.15rem; letter-spacing: .2em; color: var(--mango); }
+.deliver-box { margin-top: 12px; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+.deliver-box summary { cursor: pointer; font-weight: 600; }
+.deliver-form { display: grid; gap: 8px; margin-top: 10px; }
+.deliver-form label { margin: 4px 0 0; }
+.deliv-list { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+.deliv { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; }
+.deliv h3 { margin: 8px 0 2px; font-size: 1.15rem; color: #fff; }
+.deliv-addr { margin: 0 0 8px; }
+.collect-tag { background: linear-gradient(135deg, #FFB300, #FF9F43); color: #241A45; font-weight: 800; border-radius: 999px; padding: 3px 10px; font-size: .85rem; }
+.code-input-pro { font-size: 1.6rem !important; letter-spacing: .5em; text-align: center; font-weight: 700; }

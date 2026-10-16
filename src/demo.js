@@ -11,6 +11,7 @@ const DEMO_ACCOUNTS = [
   { label: 'Fournisseur (Mode Congo)', login: 'demo-fournisseur', role: 'supplier', name: 'Grâce Ngoma', company: 'Mode Congo (démo)' },
   { label: 'Employé Catalogue', login: 'demo-catalogue', role: 'catalog', name: 'Clara (démo)' },
   { label: 'Employé Commandes', login: 'demo-commandes', role: 'orders', name: 'Oscar (démo)' },
+  { label: 'Livreur', login: 'demo-livreur', role: 'courier', name: 'Junior (démo)' },
 ];
 const isDemoLogin = (login) => config.demo && DEMO_ACCOUNTS.some((a) => a.login === login);
 
@@ -58,8 +59,20 @@ function seed() {
   orders.insert({
     id: orderId, accessToken: crypto.randomBytes(16).toString('hex'), customerId: null, lines, subtotal: total, deliveryFee: 0, total, currency: 'XAF',
     customer: { name: 'Client Démo', phone: '060000000', city: 'Brazzaville', address: 'Quartier fictif' },
-    status: 'paid', createdAt: now, paidAt: now, paymentId, history: [{ status: 'paid', at: now }], fulfillment: 'delivery',
+    status: 'paid', createdAt: now, paidAt: now, paymentId, history: [{ status: 'paid', at: now }], fulfillment: 'delivery', deliveryCode: '1357',
   });
+
+  // Une commande « à la réception » (acompte payé) confiée au livreur de démo : code client 2468, reste 12 500 à encaisser
+  orders.insert({
+    id: 'CMD-DEMO-0002', accessToken: crypto.randomBytes(16).toString('hex'), customerId: null,
+    lines: [{ productId: chemise.id, name: chemise.name, unitPrice: chemise.price, qty: 1, total: chemise.price }],
+    subtotal: chemise.price, deliveryFee: 0, total: chemise.price, currency: 'XAF',
+    customer: { name: 'Mireille (démo)', phone: '069999999', city: 'Pointe-Noire', address: 'Quartier Loandjili, près du marché (fictif)' },
+    status: 'shipped', paymentPlan: 'cod', deposit: 2000, balance: chemise.price - 2000, depositPaidAt: now, depositPaymentId: 'PAY-DEMO-0002',
+    confirmedAt: now, callConfirmedAt: now, callConfirmedBy: 'Oscar (démo)', courierId: users.courier.id, assignedAt: now, deliveryCode: '2468',
+    createdAt: now, history: [{ status: 'confirmed', at: now }, { status: 'shipped', at: now }], fulfillment: 'delivery',
+  });
+  payments.insert({ id: 'PAY-DEMO-0002', orderId: 'CMD-DEMO-0002', operator: 'mtn', phone: '069999999', purpose: 'deposit', amount: 2000, currency: 'XAF', status: 'SUCCESSFUL', providerRef: 'DEMO', reason: null, createdAt: now });
   payments.insert({ id: paymentId, orderId, operator: 'mtn', phone: '060000000', amount: total, currency: 'XAF', status: 'SUCCESSFUL', providerRef: 'DEMO', reason: null, createdAt: now });
 
   // Volet Finances : prix d'achat du produit Kamwa vendu + quelques écritures d'exemple

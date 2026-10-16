@@ -159,12 +159,14 @@
           <li><strong>Mobile Money (MTN MoMo, Airtel Money)</strong> : vous recevez une demande sur votre téléphone et la validez avec votre code secret.</li>
           <li><strong>Carte bancaire</strong> : vous payez sur la page sécurisée de notre prestataire de paiement.</li>
           <li><strong>Espèces en agence</strong> : les articles vous sont réservés pendant 48 heures. Vous payez et repartez avec votre commande à l'agence choisie. Passé ce délai, la réservation est annulée.</li>
+          <li><strong>Paiement à la réception</strong> : vous payez à la livraison, en espèces ou en Mobile Money, après avoir vérifié votre colis. Pour une première commande, un acompte (montant indiqué au moment de commander) est demandé en Mobile Money pour la confirmer ; il est déduit du total. Il n'est plus demandé aux clients dont les livraisons précédentes se sont bien passées. <strong>Si vous refusez le colis sans motif valable</strong> (produit conforme et en bon état), l'acompte est conservé pour couvrir le déplacement du livreur. Après plusieurs colis refusés, le paiement à la réception n'est plus proposé pour votre numéro.</li>
         </ul>
         <p>Un seul paiement est demandé par commande : si vous réessayez, la demande en cours est reprise, sans double paiement.</p>
 
         <h2>5. Livraison et retrait</h2>
         <p>Livraison en 24 à 48 heures ouvrées à Pointe-Noire et Brazzaville, à l'adresse ou au repère indiqué. Autres villes : sur demande, délai et frais
         communiqués avant l'envoi. Frais de livraison : ${T('montant par ville')}. Vous pouvez suivre votre commande dans « Mon compte ».</p>
+        <p><strong>Code de livraison</strong> : à la commande, vous recevez un code à 4 chiffres (visible dans « Mon compte » et sur la page de suivi). Donnez-le au livreur <strong>seulement quand vous avez votre colis en main</strong> : c'est votre preuve de réception. Ne le communiquez à personne d'autre, même au téléphone.</p>
         <p>À la réception, vérifiez l'état du colis devant le livreur et signalez tout problème (colis abîmé, article manquant) dans les ${T('délai, ex. 48 heures')}.</p>
 
         <h2 id="retours">6. Retours</h2>

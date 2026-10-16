@@ -15,6 +15,7 @@
     products: () => ['admin', 'catalog', 'supplier'].includes(state.user?.role),
     supplier: () => state.user?.role === 'supplier',
     admin: () => state.user?.role === 'admin',
+    courier: () => state.user?.role === 'courier',
   };
   const homeHash = () => '#/tableau';
 
@@ -152,6 +153,7 @@
     if (CAN.products()) quick.push(`<a class="btn light" href="#/produit/nouveau">${icon('plus-bold')} Ajouter un produit</a>`);
     if (CAN.orders()) quick.push(`<a class="btn glass" href="#/commandes">${icon('receipt-duotone')} Voir les commandes</a>`);
     if (CAN.supplier()) quick.push(`<a class="btn glass" href="#/fournisseur">${icon('receipt-duotone')} Mes commandes</a>`);
+    if (CAN.courier()) quick.push(`<a class="btn light" href="#/livraisons">${icon('truck-duotone')} Mes livraisons</a>`);
     const today = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
     app.innerHTML = `
       <section class="dash-hero">
@@ -298,17 +300,19 @@
     state.labels = data.statusLabels;
     state.transitions = data.transitions;
     state.pickupTransitions = data.pickupTransitions;
-    // Nouvelle commande payée depuis la dernière vérification ?
-    const paidIds = state.orders.filter((o) => o.paidAt).map((o) => o.id);
+    state.failReasons = data.failReasons || {};
+    // Nouvelle commande payée (ou confirmée à la réception) depuis la dernière vérification ?
+    const isNew = (o) => o.paidAt || o.confirmedAt;
+    const paidIds = state.orders.filter(isNew).map((o) => o.id);
     if (state.seenPaid) {
-      const fresh = state.orders.filter((o) => o.paidAt && !state.seenPaid.has(o.id));
+      const fresh = state.orders.filter((o) => isNew(o) && !state.seenPaid.has(o.id));
       if (fresh.length) {
         ring();
         toast(`🛒 Nouvelle commande payée : ${fresh[0].customer.name}, ${fcfa(fresh[0].total)}`);
       }
     }
     state.seenPaid = new Set(paidIds);
-    const todo = state.orders.filter((o) => o.status === 'paid' || o.paidAfterCancel).length;
+    const todo = state.orders.filter((o) => ['paid', 'confirmed'].includes(o.status) || o.paidAfterCancel).length;
     for (const el of [$('#todoCount'), $('#todoCountMobile')]) { el.hidden = !todo; el.textContent = todo; }
     document.title = todo ? `(${todo}) Kamwa Admin` : 'Kamwa Admin';
   }
@@ -334,9 +338,9 @@
   const PAY_LABELS = { mtn: 'MTN MoMo', airtel: 'Airtel Money', card: 'Carte bancaire', cash: 'Espèces en agence' };
   const PAY_STATUS = { PENDING: 'en attente', SUCCESSFUL: 'réussi', FAILED: 'échoué', CANCELLED: 'remplacé' };
   const FILTERS = [
-    ['paid', 'À expédier / remettre'],
+    ['paid', 'À livrer / remettre'],
     ['collect', 'À encaisser en agence'],
-    ['shipped', 'Expédiées'],
+    ['shipped', 'En livraison'],
     ['delivered', 'Livrées'],
     ['cancelled', 'Annulées'],
     ['pending_payment', 'Non payées'],
@@ -346,7 +350,7 @@
 
   function viewOrders() {
     const f = state.orderFilter;
-    const matches = (o, k) => k === 'all' || (k === 'collect' ? toCollect(o) : o.status === k) || (k === 'paid' && o.paidAfterCancel);
+    const matches = (o, k) => k === 'all' || (k === 'collect' ? toCollect(o) : o.status === k) || (k === 'paid' && (o.paidAfterCancel || o.status === 'confirmed'));
     const list = state.orders.filter((o) => matches(o, f));
     const qty = (o) => o.lines.reduce((s, l) => s + l.qty, 0);
     app.innerHTML = pageHead({ title: 'Commandes', desc: 'Suivez chaque commande, du paiement à la livraison. Cliquez sur une ligne pour la gérer.', actions: exportBtn('orders') })
@@ -359,7 +363,7 @@
       placeholder: 'N° de commande, client, téléphone ou ville', empty: 'Aucune commande ici.',
       searchText: (o) => `${o.id} ${o.customer.name} ${o.customer.phone} ${o.customer.city}`,
       columns: [
-        { key: 'id', label: 'Commande', render: (o) => `<strong class="mono">${esc(o.id)}</strong>${o.paidAfterCancel ? '<br><span class="tag danger">À rembourser</span>' : ''}${isPickup(o) ? `<br><span class="tag">Retrait ${esc(o.agency?.name || '')}</span>` : ''}` },
+        { key: 'id', label: 'Commande', render: (o) => `<strong class="mono">${esc(o.id)}</strong>${o.paidAfterCancel ? '<br><span class="tag danger">À rembourser</span>' : ''}${isPickup(o) ? `<br><span class="tag">Retrait ${esc(o.agency?.name || '')}</span>` : ''}${o.paymentPlan === 'cod' ? `<br><span class="tag warn">À la réception</span>` : ''}${!isPickup(o) && ['paid', 'confirmed'].includes(o.status) && !o.callConfirmedAt ? ' <span class="tag danger">À appeler</span>' : ''}${o.courierName && o.status === 'shipped' ? `<br><span class="muted">${icon('truck-duotone')} ${esc(o.courierName)}</span>` : ''}` },
         { key: 'client', label: 'Client', sortValue: (o) => norm(o.customer.name), render: (o) => `${esc(o.customer.name)}<br><span class="muted">${esc(o.customer.phone)}</span>` },
         { key: 'city', label: 'Ville', sortValue: (o) => o.customer.city || '', render: (o) => esc(o.customer.city || '—') },
         { key: 'qty', label: 'Articles', cls: 'num', sortValue: qty, render: qty },
@@ -373,7 +377,8 @@
   }
 
   const ACTIONS = {
-    shipped: ['Marquer expédiée 🚚', 'btn dark'],
+    shipped: ['Marquer « en livraison » 🚚', 'btn dark'],
+    confirmed: ['Revenir à « à livrer »', 'ghost'],
     delivered: ['Marquer livrée ✓', 'btn green'],
     handed: ['Remise au client ✓', 'btn green'],
     paid: ['Revenir à « Payée »', 'ghost'],
@@ -418,12 +423,14 @@
         </form>
       </div>
 
+      ${deliveryPanel(o)}
+
       <div class="panel">
         <h2>Suivi</h2>
         ${isPickup(o) ? `<p style="margin:0 0 10px"><span class="tag">🏪 Retrait en agence</span> <strong>${esc(o.agency?.name)}</strong> (${esc(o.agency?.city)})${o.status === 'pending_payment' && o.pickupDeadline ? `<br><span class="muted">Réservé jusqu'au ${date(o.pickupDeadline)}${Date.now() > Date.parse(o.pickupDeadline) ? ' — <strong style="color:var(--err)">délai dépassé</strong>' : ''}</span>` : ''}</p>` : ''}
         <div class="row">
           ${isPickup(o) && o.status === 'pending_payment' ? `<button class="btn green" id="cashBtn">💵 Paiement reçu en agence (${fcfa(o.total)})</button>` : ''}
-          ${(((isPickup(o) ? state.pickupTransitions : state.transitions) || {})[o.status] || []).map((s) => {
+          ${(o.transitions || []).map((s) => {
             const [label, cls] = ACTIONS[isPickup(o) && s === 'delivered' ? 'handed' : s];
             return `<button class="${cls}" data-status="${s}">${label}</button>`;
           }).join('') || '<span class="muted">Aucune action possible.</span>'}
@@ -467,6 +474,7 @@
     });
     $('#saveNote').addEventListener('click', () => save({ note: $('#note').value }, 'Note enregistrée'));
     if (o.account) $('#newCodeBtn').addEventListener('click', () => newCode(o.account, $('#newCodeBox')));
+    bindDeliveryPanel(o);
     $('#cashBtn')?.addEventListener('click', async () => {
       if (!confirm(`Confirmer avoir reçu ${fcfa(o.total)} en espèces de ${c.name} ?\n\nLa commande passera en « Payée » et le stock sera décompté.`)) return;
       try {
@@ -478,6 +486,215 @@
       } catch (err) {
         toast('❌ ' + err.message);
       }
+    });
+  }
+
+  // ---------- Livraison sécurisée (fiche commande) ----------
+  // Appel de confirmation, livreur, code de livraison du client, encaissement du reste (paiement à la réception).
+  function deliveryPanel(o) {
+    if (isPickup(o)) return '';
+    const r = o.reliability || {};
+    const rel = r.blocked ? `<span class="tag danger">${r.refused} colis refusé(s) : paiement à la réception bloqué</span>`
+      : r.trusted ? `<span class="tag ok">Client fiable : ${r.delivered} livraison(s) réussie(s)</span>`
+      : `<span class="tag">Nouveau client : ${r.delivered || 0} livraison(s), ${r.refused || 0} refus</span>`;
+    const active = ['paid', 'confirmed', 'shipped'].includes(o.status);
+    const reasons = Object.entries(state.failReasons || {});
+    return `
+      <div class="panel">
+        <h2>${icon('truck-duotone')} Livraison</h2>
+        ${o.paymentPlan === 'cod' ? `<div class="cod-box">
+          <span class="tag warn">Paiement à la réception</span>
+          <div class="lines"><div><span>Acompte ${o.depositPaidAt ? 'reçu' : o.deposit ? 'attendu' : '(client fiable : aucun)'}</span><span>${fcfa(o.deposit || 0)}</span></div>
+          <div><span>Reste ${o.balancePaid ? `encaissé (${o.balancePaid.method === 'cash' ? 'espèces' : 'Mobile Money'})` : 'à encaisser à la livraison'}</span><span>${fcfa(o.balance ?? o.total)}</span></div></div></div>` : ''}
+        <p style="margin:10px 0">${rel}</p>
+        ${o.deliveryCode ? `<p class="muted">Code de livraison du client : <strong class="mono code-inline">${esc(o.deliveryCode)}</strong> — visible par vous seul ; le livreur doit l'obtenir du client.</p>` : ''}
+        ${o.codeLocked ? `<div class="alert err">Livraison bloquée : 5 codes faux ont été saisis. Vérifiez avec le client avant de débloquer.${CAN.admin() ? ' <button class="btn small" id="unlockBtn">Débloquer</button>' : ''}</div>` : ''}
+        ${o.deliveredWithoutCode ? '<div class="alert warn">Livraison validée SANS le code du client (forcée par l\'administrateur).</div>' : ''}
+        ${active ? `
+          <div class="row" style="margin:8px 0 14px">${o.callConfirmedAt
+            ? `<span class="tag ok">✓ Confirmée par téléphone (${esc(o.callConfirmedBy || '')}, ${date(o.callConfirmedAt)})</span>`
+            : `<button class="btn" id="callOk">${icon('phone-bold')} Client joint : commande confirmée</button><button class="ghost" id="callKo">Injoignable</button>${(o.callAttempts || []).length ? `<span class="muted">${o.callAttempts.length} appel(s) sans réponse</span>` : ''}`}</div>
+          <label for="courierSel">Livreur</label>
+          <div class="row"><select id="courierSel" style="max-width:280px"><option value="">Chargement…</option></select><button class="btn dark" id="assignBtn">${o.status === 'shipped' ? 'Changer de livreur' : 'Confier au livreur'}</button></div>
+          ${o.courierName ? `<p class="muted">Actuellement : ${esc(o.courierName)}${o.assignedAt ? ' depuis le ' + date(o.assignedAt) : ''}</p>` : ''}
+          <details class="deliver-box"><summary>Remettre le colis moi-même (au bureau, en agence…)</summary>
+            <form id="deliverForm" class="deliver-form">
+              <label for="dCode">Code donné par le client</label><input id="dCode" inputmode="numeric" maxlength="4" placeholder="4 chiffres" autocomplete="off">
+              ${o.toCollect ? `<p><strong>À encaisser : ${fcfa(o.toCollect)}</strong></p><div class="row"><label class="check"><input type="radio" name="collect" value="cash" checked> Espèces</label><label class="check"><input type="radio" name="collect" value="momo"> Mobile Money</label></div>` : ''}
+              ${CAN.admin() ? '<label class="check"><input type="checkbox" id="dForce"> Forcer sans code (client sans son code, vérifié autrement)</label>' : ''}
+              <div id="dMsg"></div>
+              <button class="btn green">Valider la remise</button>
+            </form>
+          </details>
+          <details class="deliver-box"><summary>Livraison ratée</summary>
+            <form id="failForm" class="deliver-form">
+              <select id="fReason">${reasons.map(([k, l]) => `<option value="${k}">${esc(l)}</option>`).join('')}</select>
+              <input id="fNote" type="text" placeholder="Précision (facultatif)" maxlength="300">
+              <p class="muted">« Colis refusé » annule la commande (articles remis en stock${o.paymentPlan === 'cod' && o.depositPaidAt ? ', acompte conservé' : ''}).</p>
+              <button class="btn red">Enregistrer l'échec</button>
+            </form>
+          </details>` : ''}
+        ${(o.attempts || []).length ? `<h3 style="margin-top:14px">Tentatives ratées</h3><ul class="history">${o.attempts.map((a) => `<li>${date(a.at)} — ${esc(a.label)}${a.byName ? ' (' + esc(a.byName) + ')' : ''}${a.note ? ' : ' + esc(a.note) : ''}</li>`).join('')}</ul>` : ''}
+      </div>`;
+  }
+
+  async function refreshOrder(id, msg) {
+    await loadOrders().catch(() => {});
+    if (msg) toast(msg);
+    viewOrder(id);
+  }
+
+  function bindDeliveryPanel(o) {
+    const post = async (path, body, msg) => {
+      try { await api('/orders/' + enc(o.id) + path, { method: 'POST', body: body || {} }); await refreshOrder(o.id, msg); } catch (err) { toast('❌ ' + err.message); }
+    };
+    $('#callOk')?.addEventListener('click', () => post('/call', { result: 'ok' }, 'Commande confirmée par téléphone ✓'));
+    $('#callKo')?.addEventListener('click', () => post('/call', { result: 'injoignable' }, 'Appel sans réponse noté'));
+    $('#unlockBtn')?.addEventListener('click', () => post('/unlock', {}, 'Commande débloquée'));
+    if ($('#courierSel')) {
+      api('/couriers').then((list) => {
+        $('#courierSel').innerHTML = list.length
+          ? list.map((u) => `<option value="${esc(u.id)}" ${u.id === o.courierId ? 'selected' : ''}>${esc(u.name)}</option>`).join('')
+          : '<option value="">Aucun livreur : créez-en un dans Équipe</option>';
+      }).catch(() => {});
+      $('#assignBtn').addEventListener('click', () => {
+        const id = $('#courierSel').value;
+        if (!id) return toast('Choisissez un livreur (Équipe → Ajouter → Livreur)');
+        if (!o.callConfirmedAt && !confirm("Le client n'a pas encore été joint par téléphone. Envoyer quand même le livreur ?")) return;
+        post('/assign', { courierId: id }, 'Commande confiée au livreur 🚚');
+      });
+    }
+    $('#deliverForm')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const body = { code: $('#dCode').value, collect: app.querySelector('input[name=collect]:checked')?.value, force: $('#dForce')?.checked };
+      try {
+        const res = await api('/orders/' + enc(o.id) + '/deliver', { method: 'POST', body });
+        if (res.pending) return waitBalance(res, '/orders/payments/', $('#dMsg'), () => refreshOrder(o.id, 'Payé en Mobile Money : commande livrée ✓'));
+        await refreshOrder(o.id, 'Commande livrée ✓');
+      } catch (err) { $('#dMsg').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; }
+    });
+    $('#failForm')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const reason = $('#fReason').value;
+      if (reason === 'refus' && !confirm('Colis refusé : la commande sera annulée. Continuer ?')) return;
+      post('/fail', { reason, note: $('#fNote').value }, 'Échec de livraison enregistré');
+    });
+  }
+
+  // Paiement Mobile Money demandé devant le client : on vérifie toutes les 4 s jusqu'à la réponse de l'opérateur
+  function waitBalance(res, base, box, onDone) {
+    box.innerHTML = `<div class="alert warn"><span class="spin"></span> Demande de ${fcfa(res.amount)} envoyée sur le téléphone du client. Il valide avec son code secret…</div>`;
+    const started = Date.now();
+    const poll = async () => {
+      if (!box.isConnected) return;
+      try {
+        const st = await api(base + enc(res.paymentId));
+        if (st.status === 'SUCCESSFUL') return onDone();
+        if (st.status === 'FAILED') { box.innerHTML = `<div class="alert err">Paiement refusé ou annulé${st.reason ? ' : ' + esc(st.reason) : ''}. Réessayez ou encaissez en espèces.</div>`; return; }
+      } catch {}
+      if (Date.now() - started > 15 * 60 * 1000) { box.innerHTML = '<div class="alert err">Pas de réponse de l\'opérateur. Ne redemandez pas : vérifiez plus tard dans la commande.</div>'; return; }
+      setTimeout(poll, 4000);
+    };
+    setTimeout(poll, 4000);
+  }
+
+  // ---------- Espace livreur : mes livraisons ----------
+  async function viewDeliveries() {
+    let d;
+    try { d = await api('/courier/deliveries'); } catch { return; }
+    const reasons = Object.entries(d.failReasons || {});
+    const card = (x) => {
+      const intl = '242' + String(x.customer.phone || ''); // au Congo, le 0 reste après +242 (ex. +242 06 123 45 67)
+      return `
+      <article class="deliv" data-id="${esc(x.id)}">
+        <div class="row between"><strong class="mono">${esc(x.id)}</strong>${x.paymentPlan === 'cod' ? `<span class="collect-tag">À encaisser : ${fcfa(x.toCollect)}</span>` : '<span class="tag ok">Déjà payée</span>'}</div>
+        <h3>${esc(x.customer.name)}</h3>
+        <p class="deliv-addr">${icon('map-pin-duotone')} ${esc(x.customer.city || '')} · ${esc(x.customer.address || '')}</p>
+        <p class="muted">${x.lines.map((l) => `${l.qty} × ${esc(l.name)}`).join('<br>')}</p>
+        ${x.attempts ? `<p class="muted">${x.attempts} tentative(s) déjà ratée(s)</p>` : ''}
+        <div class="row">
+          <a class="btn dark" href="tel:${esc(x.customer.phone)}">${icon('phone-bold')} Appeler</a>
+          <a class="btn green" href="https://wa.me/${esc(intl)}" target="_blank" rel="noopener">WhatsApp</a>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <button class="btn" data-open="ok">${icon('check-bold')} Colis remis</button>
+          <button class="ghost" data-open="ko">Problème</button>
+        </div>
+        <form class="deliver-form" data-form="ok" hidden>
+          <label>Code de livraison donné par le client</label>
+          <input class="code-input-pro" inputmode="numeric" maxlength="4" placeholder="• • • •" autocomplete="off" name="code">
+          ${x.toCollect ? `<p><strong>Encaisser ${fcfa(x.toCollect)}</strong></p><div class="row"><label class="check"><input type="radio" name="collect" value="cash" checked> Espèces</label><label class="check"><input type="radio" name="collect" value="momo"> Mobile Money du client</label></div>
+          <input type="tel" name="phone" placeholder="Autre numéro Mobile Money (facultatif)">` : ''}
+          <div class="msg"></div>
+          <button class="btn green">Valider</button>
+        </form>
+        <form class="deliver-form" data-form="ko" hidden>
+          <select name="reason">${reasons.map(([k, l]) => `<option value="${k}">${esc(l)}</option>`).join('')}</select>
+          <input type="text" name="note" placeholder="Précision (facultatif)" maxlength="300">
+          <button class="btn red">Enregistrer</button>
+        </form>
+      </article>`;
+    };
+    app.innerHTML = pageHead({ title: 'Mes livraisons', desc: 'Appelez le client avant de partir. Remettez le colis, puis demandez-lui son code de livraison à 4 chiffres : sans ce code, la livraison ne peut pas être validée.' })
+      + (d.cashHeld ? `<div class="alert warn">${icon('wallet-duotone')} Vous avez <strong>${fcfa(d.cashHeld)}</strong> en espèces à remettre à Kamwa.</div>` : '')
+      + (d.current.length ? `<div class="deliv-list">${d.current.map(card).join('')}</div>` : '<div class="panel empty">Aucune livraison en cours. Les commandes qu\'on vous confie apparaissent ici.</div>')
+      + (d.done.length ? `<h2 style="margin-top:24px">Dernières livraisons</h2><ul class="mini-list">${d.done.map((x) => `<li><span>${esc(x.id)} · ${esc(x.customer.name)}<br><span class="muted">${date(x.deliveredAt)}</span></span><span>${x.collected ? `${fcfa(x.collected.amount)} ${x.collected.method === 'cash' ? 'espèces' : 'Mobile Money'}` : '<span class="tag ok">payée</span>'}</span></li>`).join('')}</ul>` : '');
+    app.querySelectorAll('.deliv').forEach((el) => {
+      const id = el.dataset.id;
+      el.querySelectorAll('[data-open]').forEach((b) => b.addEventListener('click', () => {
+        el.querySelectorAll('[data-form]').forEach((f) => { f.hidden = f.dataset.form !== b.dataset.open; });
+        el.querySelector(`[data-form="${b.dataset.open}"] input, [data-form="${b.dataset.open}"] select`)?.focus();
+      }));
+      const ok = el.querySelector('[data-form="ok"]');
+      ok.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const f = new FormData(ok);
+        const msg = ok.querySelector('.msg');
+        try {
+          const res = await api('/courier/deliveries/' + enc(id) + '/deliver', { method: 'POST', body: { code: f.get('code'), collect: f.get('collect'), phone: f.get('phone') || undefined } });
+          if (res.pending) return waitBalance(res, '/courier/payments/', msg, () => { toast('Payé en Mobile Money : livraison validée ✓'); viewDeliveries(); });
+          toast('Livraison validée ✓'); viewDeliveries();
+        } catch (err) { msg.innerHTML = `<div class="alert err">${esc(err.message)}</div>`; }
+      });
+      const ko = el.querySelector('[data-form="ko"]');
+      ko.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const f = new FormData(ko);
+        if (f.get('reason') === 'refus' && !confirm('Le client refuse le colis : la commande sera annulée. Confirmer ?')) return;
+        try { await api('/courier/deliveries/' + enc(id) + '/fail', { method: 'POST', body: { reason: f.get('reason'), note: f.get('note') } }); toast('Problème enregistré'); viewDeliveries(); } catch (err) { toast('❌ ' + err.message); }
+      });
+    });
+  }
+
+  // ---------- Réglages du paiement à la réception (admin) ----------
+  async function viewSettings() {
+    let c;
+    try { c = await api('/settings/cod'); } catch { return; }
+    app.innerHTML = pageHead({ crumb: 'Gestion', title: 'Réglages', desc: 'Règles du paiement à la réception, contre les fausses commandes et les colis refusés.' }) + `
+      <form class="panel" id="codForm" style="max-width:640px">
+        <h2>${icon('hand-coins-duotone')} Paiement à la réception</h2>
+        <label class="check"><input type="checkbox" id="sEnabled" ${c.enabled ? 'checked' : ''}> Proposer « Payer à la réception » aux clients</label>
+        <div class="grid2">
+          <div><label for="sDeposit">Acompte des nouveaux clients (FCFA)</label><input id="sDeposit" type="number" min="0" step="500" value="${c.deposit}"></div>
+          <div><label for="sPct">ou % du montant (si plus élevé)</label><input id="sPct" type="number" min="0" max="100" value="${c.depositPercent}"></div>
+          <div><label for="sTrusted">Client fiable après … livraisons</label><input id="sTrusted" type="number" min="0" value="${c.trustedAfter}"></div>
+          <div><label for="sRefusals">Bloqué après … colis refusés</label><input id="sRefusals" type="number" min="1" value="${c.maxRefusals}"></div>
+        </div>
+        <ul class="help-list" style="margin-top:14px">
+          <li>Le <b>nouveau client</b> paie l'acompte en Mobile Money pour confirmer ; le reste se paie à la livraison (espèces ou Mobile Money).</li>
+          <li>Un <b>client fiable</b> (livraisons réussies, aucun refus) n'a plus d'acompte à payer.</li>
+          <li>Un numéro qui a <b>refusé trop de colis</b> ne peut plus payer à la réception : il doit payer en ligne.</li>
+          <li>Si le client refuse le colis, <b>l'acompte est conservé</b> : il couvre le déplacement du livreur.</li>
+        </ul>
+        <div id="sMsg"></div>
+        <button class="btn" style="margin-top:14px">Enregistrer</button>
+      </form>`;
+    $('#codForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        await api('/settings/cod', { method: 'PUT', body: { enabled: $('#sEnabled').checked, deposit: Number($('#sDeposit').value), depositPercent: Number($('#sPct').value), trustedAfter: Number($('#sTrusted').value), maxRefusals: Number($('#sRefusals').value) } });
+        toast('Réglages enregistrés ✓');
+      } catch (err) { $('#sMsg').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; }
     });
   }
 
@@ -834,6 +1051,7 @@
             <option value="supplier">Fournisseur — ses produits, son stock, les commandes de ses produits</option>
             <option value="catalog">Employé Catalogue — ajout et modification des produits</option>
             <option value="orders">Employé Commandes — suivi et statut des commandes</option>
+            <option value="courier">Livreur — ses livraisons, validées avec le code du client</option>
           </select>
           <div id="companyField"><label for="sCompany">Entreprise du fournisseur *</label><input id="sCompany" type="text" placeholder="Ex. Tech Import Pointe-Noire"></div>
           <label for="sName">Nom de la personne *</label><input id="sName" type="text">
@@ -1015,7 +1233,7 @@
         <div class="kpi kc0"><span class="kpi-ico">${icon('currency-circle-dollar-duotone')}</span><span class="kpi-label">Chiffre d'affaires</span><span class="kpi-value">${fcfa(k.revenue)}</span><span class="kpi-hint">${k.orders} commande(s) payée(s)</span></div>
         <div class="kpi kc1"><span class="kpi-ico">${icon('chart-line-up-duotone')}</span><span class="kpi-label">Marge brute</span><span class="kpi-value">${money(k.grossMargin)}</span><span class="kpi-hint">${pct} % des ventes · coût des produits ${fcfa(k.cogs)}</span></div>
         <div class="kpi kc2"><span class="kpi-ico">${icon('receipt-duotone')}</span><span class="kpi-label">Charges</span><span class="kpi-value">${fcfa(k.charges)}</span><span class="kpi-hint">loyer, livraison, salaires, pub…</span></div>
-        <div class="kpi kc3 ${k.result < 0 ? 'bad' : ''}"><span class="kpi-ico">${icon('trophy-duotone')}</span><span class="kpi-label">Résultat (bénéfice)</span><span class="kpi-value">${money(k.result)}</span><span class="kpi-hint">marge brute − charges</span></div>
+        <div class="kpi kc3 ${k.result < 0 ? 'bad' : ''}"><span class="kpi-ico">${icon('trophy-duotone')}</span><span class="kpi-label">Résultat (bénéfice)</span><span class="kpi-value">${money(k.result)}</span><span class="kpi-hint">marge brute − charges${k.retainedDeposits ? ` + ${fcfa(k.retainedDeposits)} d'acomptes conservés` : ''}</span></div>
       </div>
       <div class="dash-grid">
         <section class="card third"><h2>${icon('wallet-duotone')} Caisses</h2>
@@ -1026,9 +1244,12 @@
           <ul class="mini-list"><li><span>Argent entré</span><strong class="pos">${fcfa(k.cashIn)}</strong></li><li><span>Argent sorti</span><strong class="neg">−${fcfa(k.cashOut)}</strong></li><li class="total-line"><span>Différence</span><strong>${money(k.cashFlow)}</strong></li></ul>
           <p class="muted">Inclut les achats de stock, les paiements fournisseurs et les remboursements.</p></section>
         <section class="card third"><h2>${icon('package-duotone')} Stock et fournisseurs</h2>
-          <ul class="mini-list"><li><span>Valeur du stock Kamwa</span><strong>${fcfa(k.stockValue)}</strong></li><li><span>À payer aux fournisseurs</span><strong class="${owed ? 'neg' : ''}">${fcfa(owed)}</strong></li></ul>
+          <ul class="mini-list"><li><span>Valeur du stock Kamwa</span><strong>${fcfa(k.stockValue)}</strong></li><li><span>À payer aux fournisseurs</span><strong class="${owed ? 'neg' : ''}">${fcfa(owed)}</strong></li><li><span>Livraisons ratées (période)</span><strong class="${k.failedDeliveries ? 'neg' : ''}">${k.failedDeliveries}</strong></li><li><span>Acomptes conservés (colis refusés)</span><strong>${fcfa(k.retainedDeposits)}</strong></li></ul>
           <p class="muted"><a href="#/finances/fournisseurs">Détail par fournisseur ›</a></p></section>
         ${refunds}
+        ${d.cashHeld.length ? `<section class="card wide"><h2>${icon('wallet-duotone')} Espèces encaissées à la livraison, pas encore remises</h2>
+          <ul class="mini-list">${d.cashHeld.map((h) => `<li><span><strong>${esc(h.name)}</strong><br><span class="muted">${h.orders.length} commande(s) : ${esc(h.orders.slice(0, 4).join(', '))}${h.orders.length > 4 ? '…' : ''}</span></span><span class="row"><strong>${fcfa(h.amount)}</strong><button class="btn small green" data-remit="${esc(h.id)}" data-amount="${h.amount}">Remise reçue</button></span></li>`).join('')}</ul>
+          <p class="muted">Quand le livreur vous remet l'argent, cliquez « Remise reçue » : la somme entre dans la caisse espèces.</p></section>` : ''}
         <section class="card wide"><h2>${icon('chart-line-up-duotone')} 12 derniers mois</h2><div class="chart-box"><canvas id="cMonths"></canvas></div></section>
         <section class="card"><h2>${icon('receipt-duotone')} Dépenses par catégorie</h2>${d.byCategory.length ? '<div class="chart-box"><canvas id="cCats"></canvas></div>' : '<p class="nodata">Aucune dépense sur la période</p>'}</section>
         <section class="card"><h2>${icon('list-bullets-duotone')} Comment lire ces chiffres</h2>
@@ -1040,6 +1261,10 @@
           </ul></section>
       </div>`;
     bindPeriod();
+    app.querySelectorAll('[data-remit]').forEach((b) => b.addEventListener('click', async () => {
+      if (!confirm(`Confirmez-vous avoir reçu ${fcfa(Number(b.dataset.amount))} en espèces ?`)) return;
+      try { await api('/finance/remit/' + enc(b.dataset.remit), { method: 'POST', body: {} }); toast('Espèces reçues ✓'); route(); } catch (err) { toast('❌ ' + err.message); }
+    }));
     app.querySelectorAll('[data-refund]').forEach((b) => b.addEventListener('click', async () => {
       if (!confirm('Confirmez-vous avoir remboursé ce client ? La sortie d\'argent sera enregistrée.')) return;
       try { await api('/finance/refunds/' + enc(b.dataset.refund), { method: 'POST', body: {} }); toast('Remboursement enregistré ✓'); route(); } catch (err) { toast('❌ ' + err.message); }
@@ -1172,7 +1397,7 @@
     const allowed = {
       tableau: () => Boolean(state.user),
       commandes: CAN.orders, commande: CAN.orders, produits: CAN.products, produit: CAN.products,
-      fournisseur: CAN.supplier, clients: CAN.admin, agences: CAN.admin, equipe: CAN.admin, journal: CAN.admin, finances: CAN.admin, 'mot-de-passe': () => !CAN.admin(),
+      fournisseur: CAN.supplier, clients: CAN.admin, agences: CAN.admin, equipe: CAN.admin, journal: CAN.admin, finances: CAN.admin, reglages: CAN.admin, livraisons: CAN.courier, 'mot-de-passe': () => !CAN.admin(),
     };
     if (!allowed[page]?.()) [page, id] = homeHash().slice(2).split('/');
     const tab = page.startsWith('produit') ? 'produits' : page === 'commande' ? 'commandes' : page;
@@ -1182,6 +1407,8 @@
     if (page === 'equipe') return viewStaff(id);
     if (page === 'journal') return viewActivity();
     if (page === 'finances') return viewFinances(id);
+    if (page === 'livraisons') return viewDeliveries();
+    if (page === 'reglages') return viewSettings();
     if (page === 'fournisseur') return viewSupplierOrders();
     if (page === 'mot-de-passe') return viewPassword();
     if (page === 'commande') return viewOrder(id);
