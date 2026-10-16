@@ -9,7 +9,7 @@
   // Univers et catégories affichés dans le menu : fournis par le serveur (src/catalog.js), même liste que l'admin
   let UNIVERSES = [];
   // Icônes Phosphor (fichier /icons.svg, récupérées via Iconify)
-  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=4#${name}"></use></svg>`;
+  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=5#${name}"></use></svg>`;
   const ICONS = { 'Téléphones': 'device-mobile-duotone', 'Tablettes': 'device-tablet-duotone', 'Ordinateurs': 'laptop-duotone', 'Montres': 'watch-duotone', 'Audio': 'headphones-duotone', 'TV & Maison': 'television-duotone', 'Composants': 'cpu-duotone', 'Accessoires': 'plug-duotone', 'Homme': 't-shirt-duotone', 'Femme': 'dress-duotone', 'Chaussures': 'sneaker-duotone' };
   const catIcon = (cat, cls = '') => icon(ICONS[cat] || 'shopping-bag-duotone', cls);
   // Vignettes sans photo : une des trois teintes de la charte, selon la catégorie
@@ -42,8 +42,7 @@
   const orderHeaders = (token) => ({ 'X-Order-Token': token });
 
   function finishPaid(checkout) {
-    state.cart = {}; saveCart();
-    saveCheckout(null);
+    if (!checkout.import) { state.cart = {}; saveCart(); saveCheckout(null); } // un achat en France ne vide pas le panier
     saveJSON('kamwa-last-order', { id: checkout.orderId, token: checkout.token });
     location.hash = '#/merci/' + checkout.orderId;
   }
@@ -75,8 +74,11 @@
   };
   const statusBadge = (o) => `<span class="st st-${o.status}">${esc(statusLabel(o))}</span>`;
   // Étapes de suivi : livraison (4 étapes) ou retrait en agence (3 étapes)
-  const stepIndex = (o) => (isPickup(o) ? { pending_payment: 0, paid: 1, delivered: 2 } : STEP_INDEX)[o.status] ?? -1;
-  const stepCount = (o) => (isPickup(o) ? 3 : 4);
+  // Achat en France : payée → achetée → reçue par l'agent → partie de France → arrivée au Congo → en livraison → livrée
+  const IMPORT_STAGE = { to_buy: 1, bought: 2, received: 3, shipped_fr: 4, arrived: 5 };
+  const importStep = (o) => (o.status === 'pending_payment' ? 0 : o.status === 'delivered' ? 7 : o.status === 'shipped' ? 6 : IMPORT_STAGE[o.import.stage] ?? 1);
+  const stepIndex = (o) => (o.import ? importStep(o) : (isPickup(o) ? { pending_payment: 0, paid: 1, delivered: 2 } : STEP_INDEX)[o.status] ?? -1);
+  const stepCount = (o) => (o.import ? 8 : isPickup(o) ? 3 : 4);
   const shortDate = (iso) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '');
   const longDate = (iso) => (iso ? new Date(iso).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }) : '');
   const formatCode = (c) => `${c.slice(0, 3)} ${c.slice(3)}`;
@@ -176,6 +178,7 @@
       for (const c of u.categories) links.push(`<a href="#/c/${enc(u.name)}/${enc(c)}" class="${active === c ? 'active' : ''}">${esc(c)}</a>`);
     }
     links.push(`<a href="#/promos" class="deals-link ${active === 'promos' ? 'active' : ''}">Bonnes affaires</a>`);
+    links.splice(1, 0, `<a href="#/france" class="france-link ${active === 'france' ? 'active' : ''}">${icon('airplane-tilt')} Achat en France</a>`);
     $('#catnav').innerHTML = links.join('');
     $('#footerShop').innerHTML = UNIVERSES.map((u) => `<li><a href="#/c/${enc(u.name)}">${esc(u.name)}</a></li>`).join('') + '<li><a href="#/promos">Bonnes affaires</a></li>';
   }
@@ -303,6 +306,10 @@
       const p = pick(featured(u.name));
       if (p) slides.push(slide({ theme: 'mango', kicker: esc(u.name), title: u.name === 'Mode' ? 'Le style, sans se ruiner' : 'Le meilleur de la tech', text: esc(u.categories.slice(0, 4).join(' · ')), href: `#/c/${enc(u.name)}`, cta: 'Découvrir', p }));
     }
+    slides.splice(1, 0, slide({
+      theme: 'violet', kicker: `${icon('airplane-tilt')} Nouveau`, title: 'Achetez en France, recevez au Congo', text: "Envoyez-nous le lien d'un produit vendu en France : prix tout compris en FCFA, payé en Mobile Money, livré chez vous.", href: '#/france', cta: 'Demander un devis',
+      extra: '<div class="pay-chips"><span>Amazon.fr</span><span>Fnac</span><span>Decathlon</span><span>Zara</span><span>et les autres</span></div>',
+    }));
     slides.push(slide({
       theme: 'light', kicker: `${icon('wallet')} Paiement`, title: 'Payez comme vous voulez', text: 'Vous validez le paiement sur votre téléphone, avec votre code secret.', href: '#/promos', cta: 'Commencer mes achats',
       extra: '<div class="pay-chips"><span><i class="dot mtn"></i>MTN MoMo</span><span><i class="dot airtel"></i>Airtel Money</span><span>' + icon('credit-card') + 'Carte</span><span>' + icon('storefront') + 'Espèces en agence</span></div>',
@@ -682,7 +689,7 @@
       try {
         const p = await api('/payments/' + enc(payment.id));
         if (p.status === 'SUCCESSFUL') return finishPaid(checkout);
-        if (p.status === 'FAILED') { saveCheckout({ ...checkout, paymentId: null }); return viewFailed(p); }
+        if (p.status === 'FAILED') { if (!checkout.import) saveCheckout({ ...checkout, paymentId: null }); return viewFailed(p); }
       } catch {}
       // Pas de confirmation après 3 min : on ne dit PAS « échec » (le client a peut-être validé), on continue de vérifier.
       if (elapsed > 3 * 60 * 1000) {
@@ -732,9 +739,10 @@
         <div class="big-check">${icon('check-circle-duotone')}</div>
         <h1>${order?.paymentPlan === 'cod' ? 'Merci, commande confirmée&nbsp;!' : 'Merci, paiement reçu&nbsp;!'}</h1>
         ${order ? `<p>Commande <strong>${esc(order.id)}</strong> : ${fcfa(order.total)}</p>
+        ${order.import ? `<p>Notre agent en France achète votre article. Vous suivez chaque étape (achat, photos, départ, arrivée) dans « Suivre ma commande ». Délai : ${esc(order.import.delay || '10 à 21 jours')}.</p>` : ''}
         ${order.paymentPlan === 'cod' ? `<p>${order.deposit ? `Acompte reçu : ${fcfa(order.deposit)}. ` : ''}Vous paierez <strong>${fcfa(order.balance ?? order.total)}</strong> à la livraison, en espèces ou en Mobile Money.</p>` : ''}
-        <p>Nous vous appelons au <strong>${esc(order.customer.phone)}</strong> pour organiser la livraison à ${esc(order.customer.city)}.</p>
-        ${codeCard(order)}
+        <p>${order.import ? `Nous vous tenons informé au <strong>${esc(order.customer.phone)}</strong>, puis nous organisons la livraison à ${esc(order.customer.city)} dès l'arrivée au Congo.` : `Nous vous appelons au <strong>${esc(order.customer.phone)}</strong> pour organiser la livraison à ${esc(order.customer.city)}.`}</p>
+        ${order.import ? '' : codeCard(order)}
         <p><a class="btn ghost" href="#/suivi/${enc(order.id)}">Suivre ma commande</a></p>` : ''}
         <a class="btn cta" href="#/">Continuer mes achats</a>
       </div>
@@ -898,7 +906,19 @@
     const at = (status) => [...(o.history || [])].reverse().find((h) => h.status === status)?.at;
     const ag = o.agency || {};
     const expired = isPickup(o) && o.status === 'pending_payment' && o.pickupDeadline && Date.now() > Date.parse(o.pickupDeadline);
-    const steps = isPickup(o)
+    const im = o.import;
+    const steps = im
+      ? [
+          ['Commande passée', o.createdAt, 'Devis accepté. Le paiement confirme la commande.'],
+          ['Payée', o.paidAt, `Paiement reçu. Notre agent en France achète votre article (délai total annoncé : ${esc(im.delay || '10 à 21 jours')}).`],
+          ['Achetée en France', im.boughtAt, 'Votre article est commandé auprès du vendeur en France.'],
+          ['Reçue par notre agent', im.receivedAt, "Notre agent a reçu et vérifié votre article. Il part avec le prochain envoi vers le Congo."],
+          ['Partie de France', im.departedAt, `Votre colis est en route vers le Congo${im.eta ? ` — arrivée prévue vers le <strong>${shortDate(im.eta)}</strong>` : ''}.`],
+          ['Arrivée au Congo', im.arrivedAt, 'Votre colis est arrivé. Nous vous appelons pour la livraison.'],
+          ['En livraison', at('shipped'), 'Le livreur arrive. Préparez votre code de livraison.'],
+          ['Livrée', at('delivered'), 'Votre commande a été livrée. Merci pour votre confiance !'],
+        ]
+      : isPickup(o)
       ? [
           ['Commande réservée', o.createdAt, expired
             ? 'Le délai de réservation est dépassé : vos articles ne sont plus réservés. Contactez-nous ou repassez commande.'
@@ -932,7 +952,9 @@
                 ${i === current ? `<p class="hint" style="margin:4px 0 0">${text}</p>` : ''}
               </li>`).join('')}
           </ol>
-          ${codeCard(o)}
+          ${im && im.photos?.length ? `<div class="import-photos"><strong>${icon('camera')} Photos de votre article, prises par notre agent</strong><div>${im.photos.map((src) => `<a href="${esc(src)}" target="_blank" rel="noopener"><img src="${esc(src)}" alt="Votre article" loading="lazy"></a>`).join('')}</div></div>` : ''}
+          ${im && o.status === 'pending_payment' ? `<p><a class="btn cta" href="#/devis/${enc(im.requestId || '')}">Payer ma commande</a></p>` : ''}
+          ${im && im.stage !== 'arrived' ? '' : codeCard(o)}
           ${(o.attempts || []).length && !['delivered', 'cancelled'].includes(o.status) ? `<div class="alert warn">${o.attempts.map((a) => `Tentative de livraison le ${longDate(a.at)} : ${esc(a.label)}.`).join('<br>')} Nous vous recontactons.</div>` : ''}
           ${o.status === 'pending_payment' && !isPickup(o) ? '<div class="alert err">Paiement pas encore reçu. Si vous venez de valider sur votre téléphone, patientez quelques minutes.</div>' : ''}
           ${isPickup(o) && o.status === 'pending_payment' && !expired ? `<div class="panel" style="background:#F0F7F4;margin:12px 0 0">
@@ -947,6 +969,181 @@
           <p class="hint" style="margin-top:12px">${isPickup(o) ? `Retrait en agence : ${esc(ag.name)} (${esc(ag.city)})` : `Livraison : ${esc(o.customer.city || '—')} · ${esc(o.customer.address || '')}`}<br>Contact : ${esc(o.customer.phone)}</p>
         </div>
       </div>`;
+  }
+
+  // ---------- Achat en France : demande de devis, devis, paiement ----------
+  const deviceDevis = () => loadJSON('kamwa-devis') || [];
+  const rememberDevis = (id, token) => saveJSON('kamwa-devis', [{ id, token }, ...deviceDevis().filter((d) => d.id !== id)].slice(0, 30));
+  const DEVIS_STATUS = { requested: ['Devis en préparation', 'st-pending_payment'], quoted: ['Devis prêt', 'st-confirmed'], accepted: ['Accepté', 'st-paid'], expired: ['Devis expiré', 'st-cancelled'], declined: ['Non disponible', 'st-cancelled'], cancelled: ['Annulé', 'st-cancelled'] };
+  const devisBadge = (st) => `<span class="st ${DEVIS_STATUS[st]?.[1] || ''}">${esc(DEVIS_STATUS[st]?.[0] || st)}</span>`;
+
+  async function viewFrance() {
+    renderNav('france');
+    let conf = { enabled: true, delay: '10 à 21 jours', validityHours: 48 };
+    try { conf = await api('/imports/settings'); } catch {}
+    const saved = (() => { try { return JSON.parse(localStorage.getItem('kamwa-customer')) || {}; } catch { return {}; } })();
+    if (state.customer) { saved.name = saved.name || state.customer.name; saved.phone = saved.phone || state.customer.phone || ''; }
+    const mine = (await Promise.all(deviceDevis().slice(0, 10).map((d) => api('/imports/' + enc(d.id), { headers: { 'X-Import-Token': d.token } }).then((r) => ({ ...r, token: d.token })).catch(() => null)))).filter(Boolean);
+    const itemRow = (i) => `
+      <fieldset class="fr-item" data-i="${i}">
+        <legend>Article ${i + 1}</legend>
+        <label>Lien du produit (copiez l'adresse de la page)</label>
+        <input name="url" type="url" inputmode="url" placeholder="https://www.amazon.fr/… ou https://www.decathlon.fr/…" ${i === 0 ? 'required' : ''}>
+        <div class="fr-row">
+          <div><label>Nom de l'article</label><input name="title" type="text" maxlength="140" placeholder="Ex. Chaussures de running"></div>
+          <div><label>Quantité</label><input name="qty" type="number" min="1" max="20" value="1"></div>
+        </div>
+        <div class="fr-row">
+          <div><label>Taille, couleur, modèle…</label><input name="options" type="text" maxlength="200" placeholder="Ex. Pointure 43, noir"></div>
+          <div><label>Prix affiché (€, facultatif)</label><input name="priceEur" type="text" inputmode="decimal" placeholder="Ex. 59,99"></div>
+        </div>
+      </fieldset>`;
+    app.innerHTML = `
+      <section class="fr-hero">
+        <span class="deco o1"></span><span class="deco o2"></span>
+        <div>
+          <span class="pill">${icon('airplane-tilt')} Nouveau</span>
+          <h1>Achetez en France,<br>recevez au Congo.</h1>
+          <p>Vous trouvez un article sur un site français&nbsp;? Envoyez-nous le lien. Nous vous donnons un <strong>prix tout compris en FCFA</strong>, vous payez en Mobile Money, et nous vous le livrons. <strong>Vous achetez, vous recevez, point.</strong></p>
+        </div>
+      </section>
+      <div class="fr-steps">
+        <div><b>1</b><span>Vous collez le lien du produit</span></div>
+        <div><b>2</b><span>Devis tout compris sous 24 h</span></div>
+        <div><b>3</b><span>Vous payez en Mobile Money</span></div>
+        <div><b>4</b><span>Notre agent l'achète en France</span></div>
+        <div><b>5</b><span>Livré chez vous en ${esc(conf.delay)}</span></div>
+      </div>
+      ${mine.length ? `<section class="panel"><h2>Mes demandes</h2>${mine.map((d) => `<a class="order-card" href="#/devis/${enc(d.id)}/${enc(d.token)}"><div class="top"><strong>${esc(d.id)}</strong>${devisBadge(d.status)}</div><div class="hint">${esc(d.items.map((it) => it.title || it.url).join(', ').slice(0, 100))}${d.quote ? ` · <strong style="color:var(--ink)">${fcfa(d.quote.total)}</strong>` : ''}</div></a>`).join('')}</section>` : ''}
+      ${conf.enabled ? `
+      <form class="panel" id="frForm" novalidate>
+        <h2>Ma demande de devis</h2>
+        <div id="frItems">${itemRow(0)}</div>
+        <button type="button" class="btn ghost" id="frAdd">${icon('plus')} Ajouter un autre article</button>
+        <h2 style="margin-top:22px">Mes coordonnées</h2>
+        <div class="fr-row">
+          <div><label for="frName">Nom complet</label><input id="frName" required value="${esc(saved.name)}"></div>
+          <div><label for="frPhone">Téléphone (WhatsApp de préférence)</label><input id="frPhone" type="tel" inputmode="tel" placeholder="06 123 45 67" value="${esc(saved.phone)}"></div>
+        </div>
+        <div class="fr-row">
+          <div><label for="frCity">Ville de livraison</label><select id="frCity">${['Pointe-Noire', 'Brazzaville', 'Dolisie', 'Autre'].map((c) => `<option ${saved.city === c ? 'selected' : ''}>${c}</option>`).join('')}</select></div>
+          <div><label for="frAddress">Quartier / repère</label><input id="frAddress" value="${esc(saved.address)}" placeholder="Ex. Tié-Tié, près de la pharmacie"></div>
+        </div>
+        <label for="frNote">Précisions (facultatif)</label><textarea id="frNote" rows="2" maxlength="500" placeholder="Ex. je veux la version 128 Go, couleur bleue si possible"></textarea>
+        <div id="frError"></div>
+        <button class="btn cta block" style="margin-top:16px">Recevoir mon devis gratuit</button>
+        <p class="hint">Gratuit et sans engagement. Le devis est valable ${conf.validityHours} h. Certains articles ne peuvent pas voyager (produits dangereux, liquides inflammables…) : nous vous le dirons.</p>
+      </form>` : '<div class="panel empty">L\'achat en France ouvre très bientôt.</div>'}`;
+    if (!conf.enabled) return;
+    let n = 1;
+    $('#frAdd').addEventListener('click', () => {
+      if (n >= 5) return;
+      $('#frItems').insertAdjacentHTML('beforeend', itemRow(n++));
+      if (n >= 5) $('#frAdd').hidden = true;
+    });
+    $('#frForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const v = (f, name) => f.querySelector(`[name="${name}"]`).value; // (un <fieldset> n'expose pas ses champs par leur nom)
+      const items = [...app.querySelectorAll('.fr-item')].map((f) => ({ url: v(f, 'url').trim(), title: v(f, 'title'), qty: v(f, 'qty'), options: v(f, 'options'), priceEur: v(f, 'priceEur') })).filter((it) => it.url);
+      const customer = { name: $('#frName').value, phone: $('#frPhone').value, city: $('#frCity').value, address: $('#frAddress').value };
+      const btn = e.target.querySelector('button.cta'); btn.disabled = true;
+      try {
+        const r = await api('/imports', { method: 'POST', body: { items, customer, note: $('#frNote').value } });
+        rememberDevis(r.id, r.token);
+        try { localStorage.setItem('kamwa-customer', JSON.stringify(customer)); } catch {}
+        location.hash = `#/devis/${enc(r.id)}/${enc(r.token)}`;
+      } catch (err) {
+        $('#frError').innerHTML = `<div class="alert err">${esc(err.message)}</div>`;
+        btn.disabled = false;
+      }
+    });
+  }
+
+  async function viewDevis(id, token) {
+    renderNav('france');
+    if (token) rememberDevis(id, token); // ouvert depuis le lien WhatsApp : on garde la clé sur ce téléphone
+    token = token || deviceDevis().find((d) => d.id === id)?.token;
+    let r = null;
+    try { r = await api('/imports/' + enc(id), { headers: { 'X-Import-Token': token || '' } }); } catch {}
+    if (!r) { app.innerHTML = '<div class="panel waiting"><h1>Devis introuvable</h1><p class="hint">Ouvrez le lien reçu par WhatsApp sur ce téléphone.</p><a class="btn cta" href="#/france">Achat en France</a></div>'; return; }
+    const q = r.quote;
+    let order = null;
+    if (r.orderId) {
+      const ot = tokenOf(r.orderId);
+      if (ot) { try { order = await api('/orders/' + enc(r.orderId), { headers: orderHeaders(ot) }); } catch {} }
+    }
+    const items = (q?.items || r.items).map((it, i) => `<div class="line"><span>${it.qty} × ${esc(it.title || r.items[i]?.title || 'Article')}${(r.items[i]?.options) ? `<br><span class="hint">${esc(r.items[i].options)}</span>` : ''}<br><a class="hint" href="${esc(r.items[i]?.url || it.url)}" target="_blank" rel="noopener">${icon('link')} voir le produit</a></span>${it.priceEur ? `<span class="hint">${Number(it.priceEur).toFixed(2).replace('.', ',')} €</span>` : ''}</div>`).join('');
+    const body = {
+      requested: `<div class="alert warn">Nous préparons votre devis tout compris : vous recevez une réponse sous 24 h, ici et par WhatsApp au <strong>${esc(r.customer.phone)}</strong>.</div>`,
+      quoted: q ? `
+        <div class="quote-box">
+          <div class="row"><span>Articles (prix en France + port, convertis en FCFA)</span><span>${fcfa(q.breakdown.goods)}</span></div>
+          <div class="row"><span>Transport France → Congo</span><span>${fcfa(q.breakdown.freight)}</span></div>
+          <div class="row"><span>Douane et taxes</span><span>${fcfa(q.breakdown.customs)}</span></div>
+          <div class="row"><span>Service Kamwa (achat, suivi, livraison)</span><span>${fcfa(q.breakdown.commission)}</span></div>
+          <div class="row total"><span>Prix tout compris</span><strong>${fcfa(q.total)}</strong></div>
+          <p class="hint">Livraison à ${esc(r.customer.city)} incluse · délai ${esc(q.delay)} après paiement · devis valable jusqu'au ${longDate(q.validUntil)}.</p>
+          ${q.message ? `<p class="quote-msg">${esc(q.message)}</p>` : ''}
+        </div>
+        <button class="btn cta block" id="acceptBtn">Accepter et payer ${fcfa(q.total)}</button>
+        <button class="btn ghost block" id="cancelBtn" style="margin-top:8px">Non merci</button>` : '',
+      expired: '<div class="alert err">Ce devis a expiré (les prix en France changent vite). Refaites une demande : c\'est gratuit.</div><a class="btn cta" href="#/france">Nouvelle demande</a>',
+      declined: `<div class="alert err">${esc(r.declineReason || "Nous ne pouvons pas faire venir cet article.")}</div><a class="btn cta" href="#/france">Faire une autre demande</a>`,
+      cancelled: '<div class="alert err">Vous avez annulé cette demande.</div><a class="btn cta" href="#/france">Nouvelle demande</a>',
+      accepted: order && order.status !== 'pending_payment' ? `<p>Commande <strong>${esc(order.id)}</strong> payée.</p><a class="btn cta" href="#/suivi/${enc(order.id)}">Suivre ma commande</a>` : '',
+    }[r.status] || '';
+    app.innerHTML = `
+      <div class="crumbs"><a href="#/france">Achat en France</a> › Devis</div>
+      <div class="checkout">
+        <div class="panel">
+          <div class="row" style="gap:10px;align-items:center"><h1 style="margin:0">Devis ${esc(r.id)}</h1>${devisBadge(r.status)}</div>
+          <p class="hint">Demandé le ${longDate(r.createdAt)}</p>
+          ${body}
+          <div id="payBox"></div>
+        </div>
+        <div class="panel"><h2>Votre demande</h2>${items}${r.note ? `<p class="hint">${esc(r.note)}</p>` : ''}</div>
+      </div>`;
+    const showPay = (o, oToken) => {
+      const checkout = { orderId: o.id, token: oToken, import: true };
+      $('#payBox').innerHTML = `
+        <form id="frPay" novalidate>
+          <h2 style="margin-top:18px">Paiement de ${fcfa(o.total)}</h2>
+          <p class="hint">Nous achetons votre article pour vous : la commande se paie en entier à l'avance.</p>
+          <div class="operators">
+            <label class="op mtn"><input type="radio" name="operator" value="mtn" checked><span class="dot"></span>MTN MoMo</label>
+            <label class="op airtel"><input type="radio" name="operator" value="airtel"><span class="dot"></span>Airtel Money</label>
+          </div>
+          <label for="frMomo">Numéro Mobile Money</label>
+          <input id="frMomo" type="tel" inputmode="tel" value="${esc(r.customer.phone)}">
+          <div id="frPayErr"></div>
+          <button class="btn cta block" style="margin-top:12px">Payer ${fcfa(o.total)}</button>
+        </form>`;
+      const f = $('#frPay');
+      f.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try {
+          const payment = await api('/payments', { method: 'POST', body: { orderId: o.id, token: oToken, method: 'momo', phone: $('#frMomo').value, operator: f.operator.value } });
+          viewWaiting(checkout, payment, payment.resumed);
+        } catch (err) {
+          if (['paid'].includes(err.data?.orderStatus)) return finishPaid(checkout);
+          $('#frPayErr').innerHTML = `<div class="alert err">${esc(err.message)}</div>`;
+        }
+      });
+    };
+    if (r.status === 'accepted' && order?.status === 'pending_payment') showPay(order, tokenOf(order.id));
+    $('#acceptBtn')?.addEventListener('click', async () => {
+      try {
+        const a = await api('/imports/' + enc(r.id) + '/accept', { method: 'POST', body: { token } });
+        rememberOrder(a.orderId, a.token);
+        $('#acceptBtn').hidden = true; $('#cancelBtn').hidden = true;
+        showPay(a.order, a.token);
+        $('#payBox').scrollIntoView({ behavior: 'smooth' });
+      } catch (err) { $('#payBox').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; }
+    });
+    $('#cancelBtn')?.addEventListener('click', async () => {
+      if (!confirm('Annuler cette demande ?')) return;
+      try { await api('/imports/' + enc(r.id) + '/cancel', { method: 'POST', body: { token } }); route(); } catch (err) { alert(err.message); }
+    });
   }
 
   // ---------- Pages légales (textes dans /js/legal.js) ----------
@@ -984,6 +1181,8 @@
       case 'suivi': return viewTracking(parts[1]);
       case 'credits': return viewCredits();
       case 'legal': return viewLegal(parts[1]);
+      case 'france': return viewFrance();
+      case 'devis': return viewDevis(parts[1], parts[2]);
       case 'cookies': renderNav(null); return window.kamwaConsent?.renderSettings(app);
       default: return viewHome();
     }

@@ -350,3 +350,12 @@ input[type=date] { width: 100%; padding: 10px 12px; border: 1px solid var(--line
 .deliv-addr { margin: 0 0 8px; }
 .collect-tag { background: linear-gradient(135deg, #FFB300, #FF9F43); color: #241A45; font-weight: 800; border-radius: 999px; padding: 3px 10px; font-size: .85rem; }
 .code-input-pro { font-size: 1.6rem !important; letter-spacing: .5em; text-align: center; font-weight: 700; }
+
+/* ---------- Achat en France ---------- */
+.tag.fr { background: rgba(90,180,255,.15); color: #8CC8FF; }
+.q-item { border: 1px solid var(--line); border-radius: 12px; padding: 4px 14px 12px; margin: 0 0 12px; }
+.q-item legend { font-weight: 700; padding: 0 6px; }
+.calc { margin: 12px 0; padding: 12px 14px; background: var(--bg); border: 1px dashed var(--line); border-radius: 12px; }
+.calc .lines div:last-child { font-size: 1.1rem; }
+.fr-list { margin: 6px 0 10px; padding-left: 18px; }
+.alert.ok a { color: inherit; text-decoration: underline; }

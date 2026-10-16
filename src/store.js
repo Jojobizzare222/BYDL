@@ -96,5 +96,7 @@ module.exports = {
   agencies: createCollection('agencies'),
   staff: createCollection('staff'), // équipe et fournisseurs (comptes de l'espace d'administration)
   activity: createCollection('activity'), // journal : qui a fait quoi
+  imports: createCollection('imports'), // achats en France : demandes de devis
+  shipments: createCollection('shipments'), // envois groupés France → Congo
   ledger: createCollection('ledger'), // finances : dépenses, autres entrées, transferts entre caisses (les ventes viennent des commandes)
 };

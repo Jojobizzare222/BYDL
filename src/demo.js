@@ -2,7 +2,7 @@
 // Ces comptes sont PUBLICS (affichés sur la page de connexion de la démo) et n'existent jamais sur la vraie boutique.
 const crypto = require('crypto');
 const config = require('./config');
-const { settings, staff, products, orders, payments, ledger } = require('./store');
+const { settings, staff, products, orders, payments, ledger, imports } = require('./store');
 const { hashPassword } = require('./admin/auth');
 
 const DEMO_PASSWORD = 'demo-kamwa';
@@ -12,6 +12,7 @@ const DEMO_ACCOUNTS = [
   { label: 'Employé Catalogue', login: 'demo-catalogue', role: 'catalog', name: 'Clara (démo)' },
   { label: 'Employé Commandes', login: 'demo-commandes', role: 'orders', name: 'Oscar (démo)' },
   { label: 'Livreur', login: 'demo-livreur', role: 'courier', name: 'Junior (démo)' },
+  { label: 'Agent France', login: 'demo-agent', role: 'agent', name: 'Agent Paris (démo)' },
 ];
 const isDemoLogin = (login) => config.demo && DEMO_ACCOUNTS.some((a) => a.login === login);
 
@@ -86,6 +87,30 @@ function seed() {
   entry(9, 'expense', 'delivery', 12000, 'cash', 'Carburant livreur');
   entry(6, 'transfer', 'transfer', 200000, 'bank', 'Retrait pour la caisse', { toMethod: 'cash' });
   entry(3, 'expense', 'supplier', 15000, 'momo', 'Acompte Mode Congo', { supplierId: sup });
+
+  // Achat en France : une demande à chiffrer et une commande payée à acheter
+  imports.insert({
+    id: 'FR-DEMO-0001', accessToken: 'demo-fr-0001-' + crypto.randomBytes(8).toString('hex'), customerId: null,
+    items: [{ url: 'https://www.decathlon.fr/', title: 'Chaussures de running (exemple)', options: 'Pointure 43, noir', qty: 1, priceEur: 59.99 }],
+    note: 'Exemple de démonstration', customer: { name: 'Paul (démo)', phone: '068888888', city: 'Brazzaville', address: 'Bacongo (fictif)' },
+    status: 'requested', createdAt: now, history: [{ status: 'requested', at: now }],
+  });
+  imports.insert({
+    id: 'FR-DEMO-0002', accessToken: 'demo-fr-0002-' + crypto.randomBytes(8).toString('hex'), customerId: null,
+    items: [{ url: 'https://www.fnac.com/', title: 'Liseuse électronique (exemple)', options: 'Noire', qty: 1, priceEur: 129 }],
+    note: '', customer: { name: 'Clarisse (démo)', phone: '067777777', city: 'Pointe-Noire', address: 'Mpita (fictif)' },
+    status: 'accepted', orderId: 'CMD-DEMO-0003', createdAt: now, history: [{ status: 'requested', at: now }, { status: 'quoted', at: now }, { status: 'accepted', at: now }],
+    quote: { items: [{ title: 'Liseuse électronique (exemple)', priceEur: 129, shippingEur: 0, qty: 1 }], weightKg: 0.6, total: 131000, delay: '10 à 21 jours', breakdown: { goods: 84618, freight: 5400, customs: 16924, cost: 106942, commission: 24058, total: 131000 }, validUntil: now, by: 'Administrateur', at: now },
+  });
+  orders.insert({
+    id: 'CMD-DEMO-0003', accessToken: crypto.randomBytes(16).toString('hex'), customerId: null,
+    lines: [{ productId: null, name: 'Liseuse électronique (exemple) (achat en France)', unitPrice: 131000, qty: 1, total: 131000, unitCost: 106942, supplierId: null }],
+    subtotal: 131000, deliveryFee: 0, total: 131000, currency: 'XAF',
+    customer: { name: 'Clarisse (démo)', phone: '067777777', city: 'Pointe-Noire', address: 'Mpita (fictif)' },
+    status: 'paid', createdAt: now, paidAt: now, paymentId: 'PAY-DEMO-0003', history: [{ status: 'paid', at: now }], fulfillment: 'delivery', deliveryCode: '8642',
+    import: { requestId: 'FR-DEMO-0002', stage: 'to_buy', delay: '10 à 21 jours', items: [{ title: 'Liseuse électronique (exemple)', priceEur: 129, shippingEur: 0, qty: 1, url: 'https://www.fnac.com/', options: 'Noire' }] },
+  });
+  payments.insert({ id: 'PAY-DEMO-0003', orderId: 'CMD-DEMO-0003', operator: 'mtn', phone: '067777777', purpose: 'full', amount: 131000, currency: 'XAF', status: 'SUCCESSFUL', providerRef: 'DEMO', reason: null, createdAt: now });
 
   settings.set('demo_seeded', now);
   console.log('[démo] comptes et données d\'exemple créés');

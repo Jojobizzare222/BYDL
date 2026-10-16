@@ -30,6 +30,8 @@ router.get('/me', (req, res) => {
 router.use(requireStaff);
 // Volet Finances (administrateur uniquement)
 router.use('/finance', requireRole(), require('./finance'));
+// Achat en France (devis, agent France, envois)
+router.use('/france', require('./import-admin'));
 
 // Journal : qui a fait quoi (gardé dans la base, consultable par l'admin)
 function log(req, action, target, details = '') {
@@ -78,7 +80,8 @@ const PICKUP_TRANSITIONS = {
   delivered: ['paid'],
   cancelled: [],
 };
-const transitionsFor = (order) => (order.fulfillment === 'pickup' ? PICKUP_TRANSITIONS : order.paymentPlan === 'cod' ? COD_TRANSITIONS : TRANSITIONS);
+const IMPORT_WAITING = { pending_payment: ['cancelled'], paid: ['cancelled'], cancelled: [] }; // achat en France pas encore arrivé au Congo
+const transitionsFor = (order) => (order.import && order.import.stage !== 'arrived' ? IMPORT_WAITING : order.fulfillment === 'pickup' ? PICKUP_TRANSITIONS : order.paymentPlan === 'cod' ? COD_TRANSITIONS : TRANSITIONS);
 
 // Commande vue par l'équipe. Le code de livraison n'est montré qu'à l'admin (jamais aux employés ni aux livreurs).
 function adminOrder({ accessToken, ...order }, user) {
@@ -159,7 +162,7 @@ router.post('/orders/:id/cash-received', requireRole('orders'), (req, res) => {
 
 // ---------- Livraison sécurisée : appel de confirmation, livreur, code de livraison ----------
 const isDeliveryOrder = (o) => o.fulfillment !== 'pickup';
-const readyToDeliver = (o) => ['paid', 'confirmed', 'shipped'].includes(o.status);
+const readyToDeliver = (o) => ['paid', 'confirmed', 'shipped'].includes(o.status) && (!o.import || o.import.stage === 'arrived');
 const actor = (req) => ({ id: req.user.id, role: req.user.role, name: req.user.name });
 
 router.get('/couriers', requireRole('orders'), (req, res) => {
@@ -579,7 +582,7 @@ router.post('/staff', requireRole(), (req, res) => {
   if (!cleanName) return res.status(400).json({ error: 'Le nom est obligatoire' });
   if (!/^[a-z0-9._@-]{3,40}$/.test(cleanLogin)) return res.status(400).json({ error: 'Identifiant : 3 à 40 caractères, lettres sans accent, chiffres, point, tiret' });
   if (cleanLogin === ADMIN_LOGIN || findStaff(cleanLogin)) return res.status(409).json({ error: 'Cet identifiant est déjà utilisé' });
-  if (!['catalog', 'orders', 'supplier', 'courier'].includes(role)) return res.status(400).json({ error: 'Rôle inconnu' });
+  if (!['catalog', 'orders', 'supplier', 'courier', 'agent'].includes(role)) return res.status(400).json({ error: 'Rôle inconnu' });
   if (role === 'supplier' && !String(company || '').trim()) return res.status(400).json({ error: "Indiquez le nom de l'entreprise du fournisseur" });
   const password = tempPassword();
   const user = staff.insert({
@@ -673,6 +676,19 @@ router.get('/stats', (req, res) => {
     out.series = [{ label: 'Articles vendus', data: perDay((l) => l.qty), type: 'bar' }, { label: 'Montant (FCFA)', data: perDay((l) => l.qty * priceOf(l.productId)), type: 'line', axis: 'y2' }];
     out.top = countBy(lines, (l) => l.name, (l) => l.qty).slice(0, 6);
     out.lowStock = lowStockOf(mine);
+    return res.json(out);
+  }
+
+  if (role === 'agent') {
+    const imp = allOrders.filter((o) => o.import && o.paidAt && o.status !== 'cancelled');
+    const count = (st) => imp.filter((o) => o.import.stage === st).length;
+    out.kpis = [
+      { label: 'À acheter', value: count('to_buy'), icon: 'shopping-cart-duotone' },
+      { label: 'Achetés, en attente de réception', value: count('bought'), icon: 'package-duotone' },
+      { label: 'Reçus, à envoyer', value: count('received'), icon: 'truck-duotone' },
+      { label: 'En route vers le Congo', value: count('shipped_fr'), icon: 'map-pin-duotone' },
+    ];
+    out.series = [{ label: 'Commandes payées', data: labels.map((d) => imp.filter((o) => String(o.paidAt).slice(0, 10) === d).length), type: 'bar' }];
     return res.json(out);
   }
 
@@ -801,7 +817,7 @@ const SIGNATURES = [
   { ext: 'webp', test: (b) => b.slice(0, 4).toString() === 'RIFF' && b.slice(8, 12).toString() === 'WEBP' },
 ];
 
-router.post('/uploads', requireRole('catalog', 'supplier'), express.raw({ type: ['image/jpeg', 'image/png', 'image/webp'], limit: '5mb' }), (req, res) => {
+router.post('/uploads', requireRole('catalog', 'supplier', 'agent'), express.raw({ type: ['image/jpeg', 'image/png', 'image/webp'], limit: '5mb' }), (req, res) => {
   const buf = req.body;
   const type = Buffer.isBuffer(buf) && buf.length > 12 && SIGNATURES.find((s) => s.test(buf));
   if (!type) return res.status(400).json({ error: 'Photo non reconnue (formats acceptés : JPG, PNG, WebP, 5 Mo max)' });

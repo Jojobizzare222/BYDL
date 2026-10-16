@@ -107,7 +107,7 @@ function finishDelivery(order, { by, balance = null, forced = false }) {
   };
   if (order.paymentPlan === 'cod') {
     patch.paidAt = now; // la vente est réalisée à la livraison
-    patch.lines = order.lines.map((l) => ({ ...l, ...costSnapshot(products.get(l.productId)) }));
+    patch.lines = order.lines.map((l) => (l.productId ? { ...l, ...costSnapshot(products.get(l.productId)) } : l));
     if (balance) {
       patch.balancePaid = { method: balance.method, at: now, paymentId: balance.paymentId || null, by: by?.id || null };
       if (balance.method === 'cash') {

@@ -188,7 +188,18 @@
         <p>Les produits neufs bénéficient de la garantie légale contre les défauts cachés et, le cas échéant, de la garantie du fabricant.
         Produits reconditionnés et d'occasion : garantie Kamwa de ${T('durée, ex. 3 mois')}. La garantie ne couvre pas la casse, l'oxydation ou une mauvaise utilisation.</p>
 
-        <h2>9. Service client</h2>
+        <h2 id="france">9. Achats en France</h2>
+        <p>Avec « Achat en France », Kamwa achète pour vous un article vendu par un site français et vous le livre au Congo.</p>
+        <ul>
+          <li><strong>Devis</strong> : gratuit et sans engagement, valable pendant la durée indiquée. Le prix est <strong>tout compris</strong> (article, port, transport, douane, service Kamwa, livraison) : aucun supplément ne vous sera demandé à l'arrivée.</li>
+          <li><strong>Paiement</strong> : la commande se paie en entier à l'acceptation du devis (Mobile Money ou carte), car Kamwa achète l'article en votre nom.</li>
+          <li><strong>Délai</strong> : indicatif, annoncé dans le devis. Vous suivez chaque étape (achat, photos de l'article reçu par notre agent, départ, arrivée).</li>
+          <li><strong>Annulation</strong> : possible tant que l'article n'est pas acheté (remboursement intégral). Après l'achat, l'annulation n'est plus possible.</li>
+          <li><strong>Retours</strong> : un article non conforme au devis ou abîmé pendant le transport est remplacé ou remboursé. ${T('conditions de retour pour un article conforme qui ne convient pas')}.</li>
+          <li><strong>Articles exclus</strong> : produits interdits au transport (dangereux, inflammables, certaines batteries seules…), contrefaçons, produits réglementés. Nous vous le signalons dans le devis.</li>
+        </ul>
+
+        <h2>10. Service client</h2>
         <p>Pour toute question ou réclamation : ${CONTACT}. Nous cherchons toujours d'abord une solution amiable. Voir aussi les
         <a href="#/legal/conditions">conditions d'utilisation</a> (droit applicable).</p>`,
     },

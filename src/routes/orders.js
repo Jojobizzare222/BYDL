@@ -27,6 +27,14 @@ function clientOrder({ accessToken, note, paidAfterCancel, ...order }) {
   for (const k of INTERNAL) delete order[k];
   if (order.attempts) order.attempts = order.attempts.map(({ at, label }) => ({ at, label }));
   if (order.balancePaid) order.balancePaid = { method: order.balancePaid.method, at: order.balancePaid.at };
+  if (order.import) {
+    const i = order.import;
+    order.import = {
+      requestId: i.requestId, stage: i.stage, delay: i.delay, items: (i.items || []).map(({ title, qty, options, url }) => ({ title, qty, options, url })),
+      boughtAt: i.bought?.at || null, receivedAt: i.received?.at || null, photos: i.received?.photos || [],
+      departedAt: i.departedAt || null, eta: i.eta || null, arrivedAt: i.arrivedAt || null,
+    };
+  }
   return { ...order, lines: clientLines(order.lines) };
 }
 const publicOrder = clientOrder;
@@ -96,3 +104,4 @@ module.exports = router;
 module.exports.hasAccess = hasAccess;
 module.exports.clientLines = clientLines;
 module.exports.clientOrder = clientOrder;
+module.exports.newOrderId = newOrderId;
