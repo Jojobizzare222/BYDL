@@ -16,6 +16,8 @@
   "dependencies": {
     "dotenv": "^16.4.5",
     "express": "^4.21.2",
-    "nodemailer": "^10.1.1"
+    "nodemailer": "^10.1.1",
+    "onnxruntime-web": "^1.30.0",
+    "sharp": "^0.35.5"
   }
 }

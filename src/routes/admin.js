@@ -25,6 +25,8 @@ router.get('/me', (req, res) => {
 });
 
 router.use(requireStaff);
+// Volet Finances (administrateur uniquement)
+router.use('/finance', requireRole(), require('./finance'));
 
 // Journal : qui a fait quoi (gardé dans la base, consultable par l'admin)
 function log(req, action, target, details = '') {
@@ -223,6 +225,10 @@ function cleanProduct(input, current, { role }) {
   }
   if ('price' in input && role !== 'supplier') p.price = input.price === '' || input.price === null ? null : toInt(input.price);
   if ('oldPrice' in input && role !== 'supplier') p.oldPrice = input.oldPrice === '' || input.oldPrice === null ? null : toInt(input.oldPrice);
+  if ('costPrice' in input && role === 'admin') {
+    p.costPrice = input.costPrice === '' || input.costPrice === null ? null : toInt(input.costPrice);
+    if (p.costPrice != null && (!Number.isInteger(p.costPrice) || p.costPrice < 0 || p.costPrice > 100000000)) return { error: "Prix d'achat invalide (nombre entier en FCFA)" };
+  }
   if ('supplierPrice' in input && role !== 'catalog') {
     p.supplierPrice = input.supplierPrice === '' || input.supplierPrice === null ? null : toInt(input.supplierPrice);
   }
@@ -266,12 +272,13 @@ function cleanProduct(input, current, { role }) {
 function productFor(user, p) {
   const out = { ...p, supplierName: p.supplierId ? staff.get(p.supplierId)?.company || staff.get(p.supplierId)?.name || null : null };
   if (user.role === 'catalog') delete out.supplierPrice;
+  if (user.role !== 'admin') delete out.costPrice; // prix d'achat Kamwa : admin seulement
   return out;
 }
 const canSee = (user, p) => user.role !== 'supplier' || p.supplierId === user.id;
 
 // Résumé lisible des changements, pour le journal
-const TRACKED = { name: 'nom', price: 'prix', oldPrice: 'prix barré', supplierPrice: 'prix fournisseur', stock: 'stock', category: 'catégorie', active: 'visible', featured: 'mis en avant', condition: 'état' };
+const TRACKED = { name: 'nom', price: 'prix', oldPrice: 'prix barré', supplierPrice: 'prix fournisseur', costPrice: 'prix d\'achat', stock: 'stock', category: 'catégorie', active: 'visible', featured: 'mis en avant', condition: 'état' };
 // Valeur comparable et lisible (« visible » est vrai par défaut, « mis en avant » faux par défaut)
 const shown = (k, v) => {
   if (k === 'active') return v !== false ? 'oui' : 'non';
@@ -610,6 +617,37 @@ router.post('/uploads', requireRole('catalog', 'supplier'), express.raw({ type: 
   const name = `${Date.now().toString(36)}-${crypto.randomBytes(4).toString('hex')}.${type.ext}`;
   fs.writeFileSync(path.join(UPLOAD_DIR, name), buf);
   res.status(201).json({ url: `/images/uploads/${name}` });
+});
+
+// ---------- Détourage automatique (retrait de l'arrière-plan) ----------
+const detourage = require('../photo/background');
+router.get('/detourage', requireRole('catalog', 'supplier'), (req, res) => res.json(detourage.status()));
+
+async function saveDetoured(req, res, input) {
+  try {
+    const { buffer, found } = await detourage.removeBackground(input);
+    fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+    const name = `${Date.now().toString(36)}-${crypto.randomBytes(4).toString('hex')}-d.jpg`;
+    fs.writeFileSync(path.join(UPLOAD_DIR, name), buffer);
+    res.status(201).json({ url: `/images/uploads/${name}`, found });
+  } catch (err) {
+    console.error('[détourage]', err.message);
+    res.status(503).json({ error: 'Détourage impossible pour le moment. La photo peut être ajoutée telle quelle.' });
+  }
+}
+// Nouvelle photo (prise avec le téléphone) : détourée puis enregistrée
+router.post('/uploads/detoure', requireRole('catalog', 'supplier'), express.raw({ type: ['image/jpeg', 'image/png', 'image/webp'], limit: '8mb' }), (req, res) => {
+  const buf = req.body;
+  if (!(Buffer.isBuffer(buf) && buf.length > 12 && SIGNATURES.find((x) => x.test(buf)))) return res.status(400).json({ error: 'Photo non reconnue (formats acceptés : JPG, PNG, WebP)' });
+  saveDetoured(req, res, buf);
+});
+// Photo déjà envoyée sur Kamwa : on en crée une version détourée (l'originale est gardée)
+router.post('/uploads/detoure-existante', requireRole('catalog', 'supplier'), (req, res) => {
+  const m = /^\/images\/uploads\/([\w.-]+\.(jpg|png|webp))$/.exec(String(req.body?.src || ''));
+  if (!m) return res.status(400).json({ error: 'Seules les photos envoyées depuis l\'espace pro peuvent être détourées' });
+  const file = path.join(UPLOAD_DIR, m[1]);
+  if (!fs.existsSync(file)) return res.status(404).json({ error: 'Photo introuvable' });
+  saveDetoured(req, res, fs.readFileSync(file));
 });
 
 module.exports = router;

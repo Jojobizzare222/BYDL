@@ -119,3 +119,10 @@ data/products.json       catalogue électronique + mode (produits d'exemple à r
 - Frais de livraison par ville ou par quartier
 - Notification au client par SMS ou WhatsApp après le paiement
 - Base de données (PostgreSQL) et hébergement
+
+## Composants libres utilisés
+- **Chart.js 4.4.6** (MIT) — graphiques de l'espace pro (`public/admin/vendor/`).
+- **Inter** (SIL Open Font License) — police (`public/fonts/inter.woff2`).
+- **Phosphor Icons** (MIT, via Iconify) — icônes (`public/icons.svg`).
+- **ISNet « general use »** (DIS, Xuebin Qin et al., Apache 2.0 ; fichier diffusé par le projet rembg, MIT) — détourage automatique des photos ; téléchargé au premier usage dans `data/models/`.
+- **onnxruntime-web** (MIT) et **sharp** (Apache 2.0) — exécution du détourage sur le serveur.

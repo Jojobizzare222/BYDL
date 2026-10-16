@@ -1,0 +1,16 @@
+{
+  "id": "/admin/",
+  "name": "Kamwa Pro — espace équipe et fournisseurs",
+  "short_name": "Kamwa Pro",
+  "description": "Commandes, produits, finances et tableau de bord de Kamwa.",
+  "lang": "fr",
+  "start_url": "/admin/#/tableau",
+  "scope": "/admin/",
+  "display": "standalone",
+  "background_color": "#15121C",
+  "theme_color": "#1B1724",
+  "icons": [
+    { "src": "/brand/pro-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "/brand/pro-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

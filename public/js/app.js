@@ -96,6 +96,7 @@
     const items = cartItems();
     const count = items.reduce((s, l) => s + l.qty, 0);
     $('#cartCount').textContent = count || '';
+    $('#cartCount2').textContent = count || '';
     $('#cartTotal').textContent = fcfa(cartTotal());
     const saving = cartSaving();
     $('#cartSaving').innerHTML = saving > 0 ? `<span>Vous économisez</span><span>${fcfa(saving)}</span>` : '';
@@ -145,6 +146,15 @@
     if (open) $('#searchInput').focus();
   };
   $('#searchToggle').addEventListener('click', () => toggleSearch(!header.classList.contains('search-open')));
+
+  // ---------- Barre d'onglets (téléphone) et installation de l'application ----------
+  $('#tabSearch').addEventListener('click', () => { window.scrollTo({ top: 0, behavior: 'smooth' }); toggleSearch(true); });
+  $('#tabCart').addEventListener('click', openDrawer);
+  $('#installLink').addEventListener('click', (e) => { e.preventDefault(); window.kamwaApp?.install(); });
+  function markTab(page) {
+    const key = { '': 'home', p: 'home', c: 'home', promos: 'promos', compte: 'compte', suivi: 'compte', recherche: 'recherche' }[page];
+    document.querySelectorAll('#appTabs [data-tab]').forEach((t) => t.classList.toggle('on', t.dataset.tab === key));
+  }
   $('#searchForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const q = $('#searchInput').value.trim();
@@ -939,6 +949,7 @@
     state.timers.forEach(clearInterval); state.timers = [];
     const parts = (location.hash || '#/').slice(2).split('#')[0].split('/').map(decodeURIComponent);
     if (parts[0] !== 'recherche') $('.header').classList.remove('search-open');
+    markTab(parts[0]);
     window.scrollTo(0, 0);
     switch (parts[0]) {
       case 'c': return viewCategory(parts[1], parts[2]);

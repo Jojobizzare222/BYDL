@@ -292,3 +292,46 @@ textarea { resize: vertical; }
 .card { transition: border-color .2s; }
 .card:hover { border-color: #4A4163; }
 .card h2 .ico { color: var(--mango); }
+
+/* ---------- Application « Kamwa Pro » : proposition d'installation, encoche ---------- */
+.install-card { position: fixed; z-index: 55; left: 12px; right: 12px; bottom: 16px; max-width: 520px; margin: 0 auto; display: flex; align-items: center; gap: 12px; padding: 14px 44px 14px 14px; background: var(--paper); border: 1px solid var(--line); border-radius: 20px; box-shadow: 0 16px 44px rgba(0,0,0,.5); }
+.install-card img { border-radius: 12px; flex: none; }
+.install-text { flex: 1; min-width: 0; }
+.install-text b { display: block; color: #fff; }
+.install-text span { display: block; font-size: .8rem; color: var(--muted); line-height: 1.35; }
+.install-how { margin: 6px 0 0; font-size: .82rem; }
+.install-card .btn.small { min-height: 36px; padding: 6px 14px; }
+.install-close { position: absolute; top: 8px; right: 8px; width: 30px; height: 30px; border-radius: 50%; border: 0; background: var(--paper-2); color: var(--muted); display: grid; place-items: center; cursor: pointer; }
+html.standalone .mobile-top { padding-top: calc(10px + env(safe-area-inset-top)); }
+html.standalone .side { padding-top: calc(16px + env(safe-area-inset-top)); }
+
+/* ---------- Finances ---------- */
+.neg { color: #FF8A8A; }
+.pos { color: #6EE0AE; }
+.kpi.bad .kpi-value { color: #FF8A8A; }
+a.tab { text-decoration: none; display: inline-block; }
+.fin-period { margin: 0 0 14px; }
+.mini-list .total-line { border-top: 1px solid var(--line); margin-top: 4px; padding-top: 10px; font-weight: 700; }
+.help-list { margin: 0; padding-left: 18px; display: grid; gap: 8px; color: var(--muted); font-size: .9rem; }
+.help-list b { color: var(--ink); }
+.btn.small { min-height: 32px; padding: 4px 12px; font-size: .82rem; }
+.alert .ico { margin-right: 4px; }
+.fin-form { max-width: 720px; }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; background: var(--bg); border: 1px solid var(--line); border-radius: 999px; padding: 4px; }
+.seg-opt { margin: 0; position: relative; }
+.seg-opt input { position: absolute; opacity: 0; }
+.seg-opt span { display: block; text-align: center; padding: 9px 6px; border-radius: 999px; cursor: pointer; font-weight: 600; color: var(--muted); font-size: .9rem; }
+.seg-opt input:checked + span { color: #fff; background: var(--grad); }
+.seg-opt.expense input:checked + span { background: linear-gradient(135deg, #D63D45, #FF6B4F); }
+.seg-opt.income input:checked + span { background: linear-gradient(135deg, #17A372, #2BC48A); }
+.seg-opt input:focus-visible + span { outline: 2px solid var(--brand); }
+input[type=date] { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink); min-height: 42px; color-scheme: dark; }
+
+/* ---------- Détourage des photos ---------- */
+.detour-opt { margin: 12px 0 0; padding: 10px 12px; border: 1px dashed #4A4163; border-radius: 12px; align-items: flex-start; font-size: .88rem; }
+.detour-opt .ico { color: var(--mango); margin-top: 2px; }
+.detour-opt b { color: #fff; }
+.gal-detour { position: absolute; left: 4px; right: 4px; bottom: 4px; border: 0; border-radius: 999px; background: rgba(0,0,0,.72); color: var(--mango); font-size: .72rem; font-weight: 700; padding: 4px 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; }
+.gal-item:has(.gal-main) .gal-detour { bottom: 26px; }
+.spin { width: 12px; height: 12px; border-radius: 50%; border: 2px solid rgba(255,179,0,.3); border-top-color: var(--mango); animation: spin .8s linear infinite; display: inline-block; }
+@keyframes spin { to { transform: rotate(360deg); } }

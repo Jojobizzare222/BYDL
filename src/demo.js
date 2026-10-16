@@ -2,7 +2,7 @@
 // Ces comptes sont PUBLICS (affichés sur la page de connexion de la démo) et n'existent jamais sur la vraie boutique.
 const crypto = require('crypto');
 const config = require('./config');
-const { settings, staff, products, orders, payments } = require('./store');
+const { settings, staff, products, orders, payments, ledger } = require('./store');
 const { hashPassword } = require('./admin/auth');
 
 const DEMO_PASSWORD = 'demo-kamwa';
@@ -61,6 +61,17 @@ function seed() {
     status: 'paid', createdAt: now, paidAt: now, paymentId, history: [{ status: 'paid', at: now }], fulfillment: 'delivery',
   });
   payments.insert({ id: paymentId, orderId, operator: 'mtn', phone: '060000000', amount: total, currency: 'XAF', status: 'SUCCESSFUL', providerRef: 'DEMO', reason: null, createdAt: now });
+
+  // Volet Finances : prix d'achat du produit Kamwa vendu + quelques écritures d'exemple
+  if (iphone) products.update(iphone.id, { costPrice: Math.round(iphone.price * 0.86) });
+  const d = (n) => new Date(Date.now() - n * 864e5).toISOString().slice(0, 10);
+  const entry = (n, type, category, amount, method, label, extra = {}) => ledger.insert({ id: id('FIN-DEMO-', 3), type, category, amount, method, date: d(n), label, note: 'Exemple de démonstration', toMethod: null, supplierId: null, receipt: null, createdBy: 'admin', createdAt: now, ...extra });
+  entry(20, 'income', 'capital', 1500000, 'bank', 'Apport de départ');
+  entry(18, 'expense', 'rent', 150000, 'bank', 'Loyer agence Pointe-Noire');
+  entry(12, 'expense', 'marketing', 35000, 'momo', 'Publicité Facebook');
+  entry(9, 'expense', 'delivery', 12000, 'cash', 'Carburant livreur');
+  entry(6, 'transfer', 'transfer', 200000, 'bank', 'Retrait pour la caisse', { toMethod: 'cash' });
+  entry(3, 'expense', 'supplier', 15000, 'momo', 'Acompte Mode Congo', { supplierId: sup });
 
   settings.set('demo_seeded', now);
   console.log('[démo] comptes et données d\'exemple créés');

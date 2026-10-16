@@ -9,3 +9,5 @@ data/baydel.db*
 data/uploads/
 .vercel
 .env*
+# Modèle de détourage (170 Mo, téléchargé automatiquement au premier usage)
+data/models/

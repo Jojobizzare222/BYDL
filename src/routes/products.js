@@ -4,7 +4,7 @@ const { products } = require('../store');
 const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 
 // Ce que voient les clients : jamais le prix fournisseur, le fournisseur ni les informations internes.
-const publicProduct = ({ supplierPrice, supplierId, createdBy, updatedBy, pending, approvedAt, ...p }) => p;
+const publicProduct = ({ supplierPrice, costPrice, supplierId, createdBy, updatedBy, pending, approvedAt, ...p }) => p;
 // Visible sur la boutique : actif et validé par l'admin
 const isPublic = (p) => p.active !== false && !p.pending;
 

@@ -512,3 +512,57 @@ input:focus, select:focus, textarea:focus { outline: 4px solid rgba(82,54,201,.1
 .switch input:disabled + span { opacity: .5; cursor: not-allowed; }
 .switch input:focus-visible + span { outline: 3px solid rgba(82,54,201,.4); outline-offset: 2px; }
 @media (max-width: 560px) { .cookie-settings th:nth-child(2), .cookie-settings td:nth-child(2) { display: none; } .legal table { font-size: .82rem; } }
+
+/* ---------- Application web : barre d'onglets, installation, hors ligne ---------- */
+.app-tabs { display: none; }
+@media (max-width: 760px) {
+  .app-tabs {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; display: grid; grid-template-columns: repeat(5, 1fr);
+    background: rgba(255,255,255,.94); backdrop-filter: saturate(180%) blur(18px); -webkit-backdrop-filter: saturate(180%) blur(18px);
+    border-top: 1px solid var(--line-soft); padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+  }
+  .app-tabs a, .app-tabs button {
+    position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 0;
+    background: none; border: 0; color: var(--muted); font-size: .68rem; font-weight: 600; cursor: pointer;
+  }
+  .app-tabs .ico { font-size: 1.45rem; }
+  .app-tabs .on { color: var(--brand); }
+  .app-tabs .on .ico { transform: translateY(-1px); }
+  .app-tabs .on::before { content: ''; position: absolute; top: -7px; width: 26px; height: 3px; border-radius: 0 0 3px 3px; background: var(--accent); }
+  .app-tabs .badge { top: 0; left: calc(50% + 6px); }
+  body { padding-bottom: calc(66px + env(safe-area-inset-bottom)); }
+  .cookie-banner { bottom: calc(74px + env(safe-area-inset-bottom)); }
+  .header-actions #cartBtn, .header-actions #accountBtn { display: none; }
+}
+.install-card {
+  position: fixed; z-index: 55; left: 12px; right: 12px; bottom: 16px; max-width: 520px; margin: 0 auto;
+  display: flex; align-items: center; gap: 12px; padding: 14px 44px 14px 14px;
+  background: #fff; border: 1px solid var(--line-soft); border-radius: 20px; box-shadow: 0 16px 44px rgba(45,27,105,.25);
+  animation: rise .35s ease-out;
+}
+.install-card[hidden] { display: none; }
+.install-card img { border-radius: 12px; flex: none; }
+.install-text { flex: 1; min-width: 0; }
+.install-text b { display: block; font-size: .95rem; }
+.install-text span { display: block; font-size: .8rem; color: var(--muted); line-height: 1.35; }
+.install-how { margin: 6px 0 0; font-size: .82rem; }
+.install-how .ico { color: var(--link); }
+.install-card .btn.small { width: auto; flex: none; }
+.install-close { position: absolute; top: 8px; right: 8px; width: 30px; height: 30px; border-radius: 50%; border: 0; background: var(--soft); color: var(--muted); display: grid; place-items: center; cursor: pointer; }
+@media (max-width: 760px) { .install-card { bottom: calc(76px + env(safe-area-inset-bottom)); } }
+@keyframes rise { from { transform: translateY(20px); opacity: 0; } to { transform: none; opacity: 1; } }
+.offline-bar {
+  position: fixed; z-index: 54; left: 50%; transform: translateX(-50%); top: 12px; max-width: calc(100% - 24px);
+  background: var(--ink); color: #fff; font-size: .82rem; padding: 10px 16px; border-radius: 999px; box-shadow: 0 8px 24px rgba(0,0,0,.25);
+  display: flex; gap: 8px; align-items: center;
+}
+.offline-bar[hidden] { display: none; }
+/* Ouverte comme application (écran d'accueil) : on tient compte de l'encoche et on enlève le bandeau défilant */
+html.standalone .promo-strip { display: none; }
+html.standalone .header { padding-top: env(safe-area-inset-top); }
+html.standalone body { -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
+html.standalone input, html.standalone textarea, html.standalone .legal { -webkit-user-select: text; user-select: text; }
+/* Transition douce entre les écrans, comme dans une application */
+#app > * { animation: fade-in .25s ease-out; }
+@keyframes fade-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { #app > *, .install-card { animation: none; } }

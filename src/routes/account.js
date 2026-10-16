@@ -4,12 +4,12 @@ const router = require('express').Router();
 const { customers, orders, payments } = require('../store');
 const { normalizeLocal } = require('../utils/phone');
 const auth = require('../customer/auth');
-const { hasAccess } = require('./orders');
+const { hasAccess, clientLines } = require('./orders');
 
 // Vue client d'une commande : jamais la clé secrète, jamais le détail interne (note admin).
 function customerOrder({ accessToken, note, paidAfterCancel, ...order }) {
   const payment = order.paymentId && payments.get(order.paymentId);
-  return { ...order, payment: payment ? { operator: payment.operator, phone: payment.phone } : null };
+  return { ...order, lines: clientLines(order.lines), payment: payment ? { operator: payment.operator, phone: payment.phone } : null };
 }
 
 // Rattache au compte les commandes passées depuis ce téléphone (preuve : leur clé secrète gardée par le navigateur).

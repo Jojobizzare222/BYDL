@@ -193,6 +193,14 @@ async function refreshStatus(payment) {
   return payment;
 }
 
+// Coût d'achat figé au moment de la vente (volet Finances) : prix fournisseur pour un produit de fournisseur,
+// sinon prix d'achat saisi par l'admin. Ne sort JAMAIS vers le client (voir clientLines dans routes/orders.js).
+function costSnapshot(p) {
+  if (!p) return { unitCost: null, supplierId: null };
+  const cost = p.supplierId ? p.supplierPrice : p.costPrice;
+  return { unitCost: Number.isInteger(cost) ? cost : null, supplierId: p.supplierId || null };
+}
+
 // Paiement confirmé (opérateur, prestataire carte, ou espèces reçues en agence) : commande payée + stock décompté.
 function settleSuccessfulPayment(payment) {
   const order = orders.get(payment.orderId);
@@ -201,6 +209,7 @@ function settleSuccessfulPayment(payment) {
     const paid = orders.update(order.id, {
       status: 'paid',
       paidAt: now,
+      lines: order.lines.map((l) => ({ ...l, ...costSnapshot(products.get(l.productId)) })),
       paymentId: payment.id,
       history: [...(order.history || []), { status: 'paid', at: now }],
     });

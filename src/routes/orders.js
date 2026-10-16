@@ -17,7 +17,9 @@ function hasAccess(order, token) {
 }
 
 // Version renvoyée au client : sans la clé secrète ni les informations internes de l'admin.
-const publicOrder = ({ accessToken, note, paidAfterCancel, ...order }) => order;
+// Lignes vues par le client : sans le coût d'achat ni le fournisseur (données internes du volet Finances)
+const clientLines = (lines) => (lines || []).map(({ unitCost, supplierId, ...l }) => l);
+const publicOrder = ({ accessToken, note, paidAfterCancel, ...order }) => ({ ...order, lines: clientLines(order.lines) });
 
 // Client connecté propriétaire de la commande ?
 const isOwner = (req, order) => {
@@ -81,3 +83,4 @@ router.get('/:id', (req, res) => {
 
 module.exports = router;
 module.exports.hasAccess = hasAccess;
+module.exports.clientLines = clientLines;

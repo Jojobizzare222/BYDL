@@ -618,7 +618,8 @@
     const dis = limited ? 'disabled' : '';
     const showSale = !isSupplier();
     const showSupplierPrice = role() !== 'catalog';
-    const margin = p.price && p.supplierPrice != null ? p.price - p.supplierPrice : null;
+    const unitCost = p.supplierId ? p.supplierPrice : p.costPrice;
+    const margin = p.price && unitCost != null ? p.price - unitCost : null;
     app.innerHTML = `
       <p><a href="#/produits">‹ ${isSupplier() ? 'Mes produits' : 'Tous les produits'}</a></p>
       <h1>${isNew ? 'Nouveau produit' : esc(p.name)}</h1>
@@ -635,7 +636,8 @@
         </div>
         <input id="camera" type="file" accept="image/*" capture="environment" hidden>
         <input id="files" type="file" accept="image/*" multiple hidden>
-        <p class="muted" id="photoHint">Jusqu'à 8 photos, sur fond clair de préférence. La première est la photo principale. Elles sont allégées automatiquement.</p>`}
+        <label class="check detour-opt"><input id="detour" type="checkbox" ${detourOn() ? 'checked' : ''}> ${icon('magic-wand-duotone')} <span><b>Détourer automatiquement</b> : l'arrière-plan est retiré et le produit posé, centré, sur un fond blanc.</span></label>
+        <p class="muted" id="photoHint">Jusqu'à 8 photos. La première est la photo principale. Elles sont allégées automatiquement.</p>`}
 
         <h2 style="margin-top:18px">Description</h2>
         <label for="name">Nom du produit *</label>
@@ -661,8 +663,10 @@
           ${showSale ? `<div><label for="price">Prix de vente (FCFA)${p.pending || isNew ? '' : ' *'}</label><input id="price" type="number" inputmode="numeric" min="1" step="1" value="${esc(p.price ?? '')}"></div>
           <div><label for="oldPrice">Prix barré (facultatif)</label><input id="oldPrice" type="number" inputmode="numeric" min="1" step="1" value="${esc(p.oldPrice ?? '')}"></div>` : ''}
           ${showSupplierPrice ? `<div><label for="supplierPrice">${isSupplier() ? 'Votre prix (FCFA) *' : 'Prix fournisseur (FCFA)'}</label><input id="supplierPrice" type="number" inputmode="numeric" min="0" step="1" value="${esc(p.supplierPrice ?? '')}"></div>` : ''}
+          ${isAdmin() ? `<div><label for="costPrice">Prix d'achat Kamwa (FCFA)</label><input id="costPrice" type="number" inputmode="numeric" min="0" step="1" value="${esc(p.costPrice ?? '')}" placeholder="pour le stock Kamwa"></div>` : ''}
           <div><label for="stock">Stock disponible *</label><input id="stock" type="number" inputmode="numeric" min="0" step="1" value="${esc(p.stock)}"></div>
         </div>
+        ${isAdmin() ? '<p class="muted">Prix d\'achat : ce que Kamwa a payé ce produit (stock propre à Kamwa). Il sert au calcul de la marge dans Finances et reste invisible pour les clients et l\'équipe.</p>' : ''}
         ${isAdmin() && margin != null ? `<p class="muted">Marge actuelle : <strong>${fcfa(margin)}</strong> par article.</p>` : ''}
         ${isSupplier() ? '<p class="muted">Kamwa fixe le prix de vente aux clients. Mettez le stock à 0 si le produit n\'est plus disponible.</p>' : ''}
         ${isAdmin() ? `<label for="supplierId">Fournisseur</label>
@@ -688,25 +692,48 @@
             <img src="${esc(src)}" alt="">
             ${i === 0 ? '<span class="gal-main">Principale</span>' : limited ? '' : `<button type="button" class="gal-btn" data-main="${i}" title="Mettre en principale">★</button>`}
             ${limited ? '' : `<button type="button" class="gal-btn gal-del" data-del="${i}" title="Retirer">✕</button>`}
+            ${limited || !/^\/images\/uploads\/[\w.-]+$/.test(src) || /-d\.jpg$/.test(src) ? '' : `<button type="button" class="gal-detour" data-detour="${i}" title="Retirer l'arrière-plan">${icon('magic-wand-duotone')} Détourer</button>`}
           </div>`).join('')
         : `<div class="gal-empty">${ICONS[$('#category')?.value] || '🛍️'}<br><span class="muted">Pas encore de photo</span></div>`;
       $('#gallery').querySelectorAll('[data-del]').forEach((b) => b.addEventListener('click', () => { images.splice(Number(b.dataset.del), 1); renderGallery(); }));
       $('#gallery').querySelectorAll('[data-main]').forEach((b) => b.addEventListener('click', () => { const [x] = images.splice(Number(b.dataset.main), 1); images.unshift(x); renderGallery(); }));
+      // Détourer une photo déjà ajoutée : la version détourée remplace la photo dans la fiche
+      $('#gallery').querySelectorAll('[data-detour]').forEach((b) => b.addEventListener('click', async () => {
+        const i = Number(b.dataset.detour);
+        b.disabled = true; b.innerHTML = '<span class="spin"></span> Détourage…';
+        $('#photoHint').textContent = detourWait();
+        try {
+          const { url, found } = await api('/uploads/detoure-existante', { method: 'POST', body: { src: images[i] } });
+          images[i] = url; renderGallery();
+          $('#photoHint').textContent = found ? 'Arrière-plan retiré ✓ Pensez à enregistrer.' : 'Aucun produit net détecté : vérifiez le résultat (vous pouvez retirer la photo).';
+        } catch (err) { $('#photoHint').textContent = '❌ ' + err.message; renderGallery(); }
+      }));
     };
     renderGallery();
     $('#category').addEventListener('change', renderGallery);
 
-    // Envoi des photos (appareil photo ou galerie) : réduites dans le navigateur puis envoyées une par une
+    // Envoi des photos (appareil photo ou galerie) : réduites dans le navigateur puis envoyées une par une.
+    // Avec « Détourer automatiquement », le serveur retire l'arrière-plan ; en cas d'échec, la photo est gardée telle quelle.
+    $('#detour')?.addEventListener('change', (e) => { try { localStorage.setItem('kamwa-detour', e.target.checked ? '1' : '0'); } catch {} });
     const addFiles = async (files) => {
       const hint = $('#photoHint');
       for (const file of [...files].slice(0, 8 - images.length)) {
-        hint.textContent = 'Envoi de la photo…';
+        const detour = $('#detour')?.checked;
+        hint.textContent = detour ? detourWait() : 'Envoi de la photo…';
         try {
-          const blob = await shrinkImage(file);
-          const { url } = await api('/uploads', { method: 'POST', body: blob, headers: { 'Content-Type': blob.type } });
-          images.push(url);
+          const blob = await shrinkImage(file, detour ? 1600 : 1200);
+          let res;
+          if (detour) {
+            try { res = await api('/uploads/detoure', { method: 'POST', body: blob, headers: { 'Content-Type': blob.type } }); } catch (err) {
+              hint.textContent = '⚠️ ' + err.message;
+              res = await api('/uploads', { method: 'POST', body: blob, headers: { 'Content-Type': blob.type } });
+            }
+          } else {
+            res = await api('/uploads', { method: 'POST', body: blob, headers: { 'Content-Type': blob.type } });
+          }
+          images.push(res.url);
           renderGallery();
-          hint.textContent = `Photo ajoutée (${Math.round(blob.size / 1024)} Ko). Pensez à enregistrer.`;
+          hint.textContent = res.found === false ? 'Photo ajoutée, mais aucun produit net détecté : vérifiez le résultat.' : res.found ? 'Photo détourée et ajoutée ✓ Pensez à enregistrer.' : `Photo ajoutée (${Math.round(blob.size / 1024)} Ko). Pensez à enregistrer.`;
         } catch (err) {
           hint.textContent = '❌ ' + err.message;
         }
@@ -728,7 +755,7 @@
         };
         if (showSale) Object.assign(body, { price: val('#price'), oldPrice: val('#oldPrice') });
         if (showSupplierPrice) body.supplierPrice = val('#supplierPrice');
-        if (isAdmin()) body.supplierId = val('#supplierId');
+        if (isAdmin()) Object.assign(body, { supplierId: val('#supplierId'), costPrice: val('#costPrice') });
         if (!isSupplier()) Object.assign(body, { active: $('#active').checked, featured: $('#featured').checked });
       }
       const btn = e.target.querySelector('button.btn');
@@ -937,6 +964,204 @@
     });
   }
 
+  // Détourage : option mémorisée sur l'appareil (activée par défaut)
+  const detourOn = () => { try { return localStorage.getItem('kamwa-detour') !== '0'; } catch { return true; } };
+  const detourWait = () => 'Détourage en cours… (quelques secondes ; la toute première fois, le serveur prépare l\'outil : jusqu\'à une minute)';
+
+  // ---------- Finances (administrateur) ----------
+  // Les ventes viennent toutes seules des commandes payées ; on saisit ici les dépenses, autres entrées et transferts.
+  const today = () => new Date().toISOString().slice(0, 10);
+  const PERIODS = [['month', 'Ce mois'], ['prev', 'Mois dernier'], ['quarter', '3 mois'], ['year', 'Cette année'], ['all', 'Tout']];
+  function periodRange(key) {
+    const d = new Date(); const y = d.getFullYear(); const m = d.getMonth();
+    const iso = (x) => `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`;
+    if (key === 'month') return { from: iso(new Date(y, m, 1)), to: today() };
+    if (key === 'prev') return { from: iso(new Date(y, m - 1, 1)), to: iso(new Date(y, m, 0)) };
+    if (key === 'quarter') return { from: iso(new Date(y, m - 2, 1)), to: today() };
+    if (key === 'year') return { from: `${y}-01-01`, to: today() };
+    return { from: '', to: '' };
+  }
+  const finQuery = () => { const r = periodRange(state.finPeriod || 'month'); return `from=${r.from}&to=${r.to}`; };
+  const money = (n) => `<span class="${n < 0 ? 'neg' : ''}">${n < 0 ? '−' : ''}${fcfa(Math.abs(n))}</span>`;
+  const finTabs = (cur) => `<div class="tabbar">${[['', 'Vue d\'ensemble'], ['journal', 'Journal'], ['fournisseurs', 'Fournisseurs']].map(([k, l]) => `<a class="tab ${k === cur ? 'on' : ''}" href="#/finances${k ? '/' + k : ''}">${l}</a>`).join('')}</div>`;
+  const periodChips = () => `<div class="chips fin-period">${PERIODS.map(([k, l]) => `<button class="chip ${k === (state.finPeriod || 'month') ? 'on' : ''}" data-per="${k}">${l}</button>`).join('')}</div>`;
+  const bindPeriod = () => app.querySelectorAll('[data-per]').forEach((b) => b.addEventListener('click', () => { state.finPeriod = b.dataset.per; route(); }));
+
+  async function viewFinances(sub) {
+    sub = (sub || '').split('?')[0];
+    const parts = location.hash.slice(2).split('?')[0].split('/');
+    if (sub === 'nouvelle' || sub === 'e') return viewEntry(sub === 'e' ? decodeURIComponent(parts[2] || '') : null);
+    let d;
+    try { d = await api('/finance?' + finQuery()); } catch { return; }
+    state.finMeta = { methods: d.methods, categories: d.categories };
+    const actions = `<a class="btn ghost" href="/api/admin/finance/journal.csv?${finQuery()}">${icon('download-simple-bold')} Exporter</a><a class="btn" href="#/finances/nouvelle">${icon('plus-bold')} Nouvelle écriture</a>`;
+    const head = pageHead({ title: 'Finances', desc: 'Ventes, dépenses, marge et caisses de Kamwa. Les ventes s\'ajoutent toutes seules ; saisissez ici les dépenses et les autres mouvements d\'argent.', actions });
+    if (sub === 'journal') return viewFinJournal(head);
+    if (sub === 'fournisseurs') return viewFinSuppliers(head, d);
+
+    const k = d.kpis;
+    const pct = k.revenue ? Math.round((k.grossMargin / k.revenue) * 100) : 0;
+    const alerts = [];
+    if (d.unknownCostLines) alerts.push(`<div class="alert warn">${icon('warning-duotone')} ${d.unknownCostLines} article(s) vendu(s) sans prix d'achat connu : la marge est surestimée. Renseignez le « Prix d'achat » des produits Kamwa (fiche produit).</div>`);
+    if (d.stockNoCost) alerts.push(`<div class="alert warn">${icon('package-duotone')} ${d.stockNoCost} produit(s) Kamwa en stock sans prix d'achat : la valeur du stock est incomplète.</div>`);
+    const refunds = d.refundsToDo.length ? `<section class="card wide"><h2>${icon('warning-duotone')} Remboursements à faire</h2>
+      <ul class="mini-list">${d.refundsToDo.map((r) => `<li><a href="#/commande/${enc(r.id)}">${esc(r.id)} · ${esc(r.customer || '')}</a><span class="row"><strong>${fcfa(r.total)}</strong><button class="btn small red" data-refund="${esc(r.id)}">Marquer remboursé</button></span></li>`).join('')}</ul>
+      <p class="muted">Remboursez d'abord le client (Mobile Money, espèces…), puis cliquez : la sortie d'argent est enregistrée dans la caisse d'origine.</p></section>` : '';
+    const totalCash = Object.values(d.balances).reduce((a, b) => a + b, 0);
+    const owed = d.suppliers.reduce((a, s) => a + Math.max(0, s.due), 0);
+
+    app.innerHTML = head + finTabs('') + periodChips() + alerts.join('') + `
+      <div class="kpis">
+        <div class="kpi kc0"><span class="kpi-ico">${icon('currency-circle-dollar-duotone')}</span><span class="kpi-label">Chiffre d'affaires</span><span class="kpi-value">${fcfa(k.revenue)}</span><span class="kpi-hint">${k.orders} commande(s) payée(s)</span></div>
+        <div class="kpi kc1"><span class="kpi-ico">${icon('chart-line-up-duotone')}</span><span class="kpi-label">Marge brute</span><span class="kpi-value">${money(k.grossMargin)}</span><span class="kpi-hint">${pct} % des ventes · coût des produits ${fcfa(k.cogs)}</span></div>
+        <div class="kpi kc2"><span class="kpi-ico">${icon('receipt-duotone')}</span><span class="kpi-label">Charges</span><span class="kpi-value">${fcfa(k.charges)}</span><span class="kpi-hint">loyer, livraison, salaires, pub…</span></div>
+        <div class="kpi kc3 ${k.result < 0 ? 'bad' : ''}"><span class="kpi-ico">${icon('trophy-duotone')}</span><span class="kpi-label">Résultat (bénéfice)</span><span class="kpi-value">${money(k.result)}</span><span class="kpi-hint">marge brute − charges</span></div>
+      </div>
+      <div class="dash-grid">
+        <section class="card third"><h2>${icon('wallet-duotone')} Caisses</h2>
+          <ul class="mini-list">${Object.entries(d.methods).map(([m, l]) => `<li><span>${esc(l)}</span><strong>${money(d.balances[m])}</strong></li>`).join('')}
+          <li class="total-line"><span>Total disponible</span><strong>${money(totalCash)}</strong></li></ul>
+          <p class="muted">Argent entré − sorti depuis le début${d.to ? ` jusqu'au ${esc(d.to.split('-').reverse().join('/'))}` : ''}. Saisissez un « Apport / solde de départ » pour partir du bon montant.</p></section>
+        <section class="card third"><h2>${icon('chart-line-up-duotone')} Trésorerie de la période</h2>
+          <ul class="mini-list"><li><span>Argent entré</span><strong class="pos">${fcfa(k.cashIn)}</strong></li><li><span>Argent sorti</span><strong class="neg">−${fcfa(k.cashOut)}</strong></li><li class="total-line"><span>Différence</span><strong>${money(k.cashFlow)}</strong></li></ul>
+          <p class="muted">Inclut les achats de stock, les paiements fournisseurs et les remboursements.</p></section>
+        <section class="card third"><h2>${icon('package-duotone')} Stock et fournisseurs</h2>
+          <ul class="mini-list"><li><span>Valeur du stock Kamwa</span><strong>${fcfa(k.stockValue)}</strong></li><li><span>À payer aux fournisseurs</span><strong class="${owed ? 'neg' : ''}">${fcfa(owed)}</strong></li></ul>
+          <p class="muted"><a href="#/finances/fournisseurs">Détail par fournisseur ›</a></p></section>
+        ${refunds}
+        <section class="card wide"><h2>${icon('chart-line-up-duotone')} 12 derniers mois</h2><div class="chart-box"><canvas id="cMonths"></canvas></div></section>
+        <section class="card"><h2>${icon('receipt-duotone')} Dépenses par catégorie</h2>${d.byCategory.length ? '<div class="chart-box"><canvas id="cCats"></canvas></div>' : '<p class="nodata">Aucune dépense sur la période</p>'}</section>
+        <section class="card"><h2>${icon('list-bullets-duotone')} Comment lire ces chiffres</h2>
+          <ul class="help-list">
+            <li><b>Chiffre d'affaires</b> : total des commandes payées (hors annulées).</li>
+            <li><b>Marge brute</b> : ventes − prix d'achat des produits vendus (prix fournisseur ou prix d'achat Kamwa).</li>
+            <li><b>Résultat</b> : marge brute − charges. C'est le bénéfice réel de la période.</li>
+            <li><b>Caisses</b> : l'argent disponible dans chaque caisse. Un retrait Mobile Money en espèces = « Transfert entre caisses ».</li>
+          </ul></section>
+      </div>`;
+    bindPeriod();
+    app.querySelectorAll('[data-refund]').forEach((b) => b.addEventListener('click', async () => {
+      if (!confirm('Confirmez-vous avoir remboursé ce client ? La sortie d\'argent sera enregistrée.')) return;
+      try { await api('/finance/refunds/' + enc(b.dataset.refund), { method: 'POST', body: {} }); toast('Remboursement enregistré ✓'); route(); } catch (err) { toast('❌ ' + err.message); }
+    }));
+    makeChart('cMonths', {
+      data: {
+        labels: d.monthly.map((x) => x.month.slice(5) + '/' + x.month.slice(2, 4)),
+        datasets: [
+          { type: 'bar', label: 'Ventes', data: d.monthly.map((x) => x.revenue), backgroundColor: 'rgba(157,140,255,.6)', borderRadius: 6, maxBarThickness: 28, order: 2 },
+          { type: 'bar', label: 'Coûts et charges', data: d.monthly.map((x) => x.costs), backgroundColor: 'rgba(255,107,79,.55)', borderRadius: 6, maxBarThickness: 28, order: 2 },
+          { type: 'line', label: 'Résultat', data: d.monthly.map((x) => x.result), borderColor: PALETTE[0], backgroundColor: PALETTE[0], tension: 0.35, pointRadius: 3, order: 1 },
+        ],
+      },
+      options: { interaction: { mode: 'index', intersect: false }, plugins: { tooltip: { callbacks: { label: (c) => `${c.dataset.label} : ${fcfa(c.raw)}` } } }, scales: { x: { grid: { display: false } }, y: { ticks: { callback: (v) => shortNum(v) } } } },
+    });
+    if (d.byCategory.length) doughnut('cCats', d.byCategory);
+  }
+
+  async function viewFinJournal(head) {
+    let rows = [];
+    try { rows = await api('/finance/journal?' + finQuery()); } catch { return; }
+    const M = state.finMeta?.methods || {};
+    const KIND = { sale: ['Vente', 'ok'], expense: ['Dépense', 'danger'], income: ['Entrée', ''], transfer: ['Transfert', 'warn'] };
+    app.innerHTML = head + finTabs('journal') + periodChips() + '<div id="tbl"></div>';
+    bindPeriod();
+    dataTable($('#tbl'), {
+      id: 'fin-journal', rows, defaultSort: 'date', placeholder: 'Libellé, catégorie, commande…', empty: 'Aucun mouvement sur cette période.',
+      rowHref: (r) => (r.kind === 'sale' ? '#/commande/' + enc(r.id) : '#/finances/e/' + enc(r.id)),
+      searchText: (r) => `${r.label} ${r.category} ${r.detail} ${M[r.method] || ''}`,
+      columns: [
+        { key: 'date', label: 'Date', render: (r) => r.date.split('-').reverse().join('/') },
+        { key: 'kind', label: 'Type', render: (r) => `<span class="tag ${KIND[r.kind][1]}">${KIND[r.kind][0]}</span>` },
+        { key: 'category', label: 'Catégorie' },
+        { key: 'label', label: 'Libellé', render: (r) => `<strong>${esc(r.label)}</strong>${r.receipt ? ` ${icon('image-broken-duotone')}` : ''}${r.detail ? `<br><span class="muted">${esc(r.detail.slice(0, 90))}</span>` : ''}` },
+        { key: 'method', label: 'Caisse', sortValue: (r) => M[r.method] || r.method, render: (r) => esc(M[r.method] || r.method) + (r.toMethod ? ` → ${esc(M[r.toMethod])}` : '') },
+        { key: 'amount', label: 'Montant', cls: 'num', render: (r) => (r.kind === 'transfer' ? fcfa(r.amount) : `<strong class="${r.amount < 0 ? 'neg' : 'pos'}">${r.amount < 0 ? '−' : '+'}${fcfa(Math.abs(r.amount))}</strong>`) },
+      ],
+    });
+  }
+
+  function viewFinSuppliers(head, d) {
+    app.innerHTML = head + finTabs('fournisseurs') + `<p class="muted">Ce que Kamwa doit à chaque fournisseur : ses produits vendus (au prix fournisseur, toutes périodes) moins les paiements enregistrés (« Paiement fournisseur »).</p><div id="tbl"></div>`;
+    dataTable($('#tbl'), {
+      id: 'fin-suppliers', rows: d.suppliers, defaultSort: 'due', placeholder: 'Fournisseur', empty: 'Aucun produit de fournisseur vendu pour le moment.',
+      searchText: (s) => s.name,
+      columns: [
+        { key: 'name', label: 'Fournisseur', render: (s) => `<strong>${esc(s.name)}</strong>` },
+        { key: 'sold', label: 'Vendu (prix fournisseur)', cls: 'num', render: (s) => fcfa(s.sold) },
+        { key: 'paid', label: 'Déjà payé', cls: 'num', render: (s) => fcfa(s.paid) },
+        { key: 'due', label: 'Reste à payer', cls: 'num', render: (s) => `<strong class="${s.due > 0 ? 'neg' : 'pos'}">${fcfa(s.due)}</strong>` },
+        { key: 'act', label: '', sortable: false, render: (s) => (s.due > 0 ? `<div class="cell-actions"><a class="btn small" href="#/finances/nouvelle?fournisseur=${enc(s.id)}&montant=${s.due}">Enregistrer un paiement</a></div>` : '') },
+      ],
+    });
+  }
+
+  async function viewEntry(id) {
+    let meta = state.finMeta;
+    if (!meta) { try { const d = await api('/finance?from=&to='); meta = state.finMeta = { methods: d.methods, categories: d.categories }; } catch { return; } }
+    let e = { type: 'expense', date: today(), method: 'cash', category: '' };
+    if (id) { try { e = await api('/finance/entries/' + enc(id)); } catch { return; } }
+    const qs = new URLSearchParams(location.hash.split('?')[1] || '');
+    if (!id && qs.get('fournisseur')) Object.assign(e, { category: 'supplier', supplierId: qs.get('fournisseur'), amount: Number(qs.get('montant')) || '', method: 'momo' });
+    let suppliers = [];
+    try { suppliers = (await api('/staff')).staff.filter((u) => u.role === 'supplier'); } catch {}
+    const opts = (obj, cur) => Object.entries(obj).map(([k, l]) => `<option value="${k}" ${k === cur ? 'selected' : ''}>${esc(l)}</option>`).join('');
+    app.innerHTML = pageHead({ crumb: 'Finances', title: id ? 'Modifier l\'écriture' : 'Nouvelle écriture', desc: 'Une dépense (loyer, livraison, achat de stock…), une entrée d\'argent hors boutique, ou un transfert entre deux caisses.' }) + `
+      <form class="panel fin-form" id="entryForm" novalidate>
+        <div class="seg" role="radiogroup" aria-label="Type">${[['expense', 'Dépense', 'arrow-up'], ['income', 'Entrée d\'argent', 'arrow-down'], ['transfer', 'Transfert', 'swap']].map(([k, l]) => `<label class="seg-opt ${k}"><input type="radio" name="type" value="${k}" ${e.type === k ? 'checked' : ''}><span>${l}</span></label>`).join('')}</div>
+        <div class="grid2">
+          <div><label for="fDate">Date</label><input id="fDate" type="date" value="${esc(e.date)}" max="${today()}"></div>
+          <div><label for="fAmount">Montant (FCFA)</label><input id="fAmount" type="number" inputmode="numeric" min="1" step="1" value="${esc(e.amount ?? '')}" placeholder="Ex. 25000"></div>
+        </div>
+        <div id="catWrap"><label for="fCat">Catégorie</label><select id="fCat"></select></div>
+        <div id="supWrap" hidden><label for="fSup">Fournisseur payé</label><select id="fSup"><option value="">Choisir…</option>${suppliers.map((u) => `<option value="${esc(u.id)}" ${u.id === e.supplierId ? 'selected' : ''}>${esc(u.company || u.name)}</option>`).join('')}</select></div>
+        <label for="fLabel">Libellé</label><input id="fLabel" type="text" maxlength="120" value="${esc(id ? e.label : '')}" placeholder="Ex. Loyer octobre, carburant livreur…">
+        <div class="grid2">
+          <div><label for="fMethod" id="fMethodLbl">Payé depuis</label><select id="fMethod">${opts(meta.methods, e.method)}</select></div>
+          <div id="toWrap" hidden><label for="fTo">Vers</label><select id="fTo">${opts(meta.methods, e.toMethod || 'bank')}</select></div>
+        </div>
+        <label for="fNote">Note (facultatif)</label><textarea id="fNote" rows="2" maxlength="500">${esc(e.note || '')}</textarea>
+        <label>Justificatif (photo du reçu, facultatif)</label>
+        <div class="row"><label class="btn ghost" style="margin:0">${icon('camera-bold')} Prendre / choisir une photo<input id="fReceipt" type="file" accept="image/*" capture="environment" hidden></label><span id="rcptHint" class="muted">${e.receipt ? `<a href="${esc(e.receipt)}" target="_blank">Voir le justificatif</a>` : ''}</span></div>
+        <div id="fError"></div>
+        <div class="row" style="margin-top:18px"><button class="btn">${id ? 'Enregistrer' : 'Ajouter'}</button><a class="ghost" href="#/finances/journal">Annuler</a>${id ? '<button type="button" class="btn red" id="fDelete" style="margin-left:auto">Supprimer</button>' : ''}</div>
+      </form>`;
+    let receipt = e.receipt || null;
+    const type = () => app.querySelector('input[name=type]:checked').value;
+    const sync = () => {
+      const t = type();
+      $('#fCat').innerHTML = meta.categories[t].map((c) => `<option value="${c.key}" ${c.key === e.category ? 'selected' : ''}>${esc(c.label)}</option>`).join('');
+      $('#catWrap').hidden = t === 'transfer';
+      $('#toWrap').hidden = t !== 'transfer';
+      $('#fMethodLbl').textContent = t === 'income' ? 'Arrivé dans' : t === 'transfer' ? 'De' : 'Payé depuis';
+      $('#supWrap').hidden = !(t === 'expense' && $('#fCat').value === 'supplier');
+    };
+    app.querySelectorAll('input[name=type]').forEach((r) => r.addEventListener('change', () => { e.category = ''; sync(); }));
+    $('#fCat').addEventListener('change', () => { e.category = $('#fCat').value; sync(); });
+    sync();
+    $('#fReceipt').addEventListener('change', async (ev) => {
+      const file = ev.target.files[0]; if (!file) return;
+      $('#rcptHint').textContent = 'Envoi…';
+      try {
+        const blob = await shrinkImage(file);
+        receipt = (await api('/uploads', { method: 'POST', body: blob, headers: { 'Content-Type': blob.type } })).url;
+        $('#rcptHint').innerHTML = `Justificatif ajouté ✓ <a href="${esc(receipt)}" target="_blank">voir</a>`;
+      } catch (err) { $('#rcptHint').textContent = '❌ ' + err.message; }
+    });
+    $('#entryForm').addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const body = { type: type(), date: $('#fDate').value, amount: $('#fAmount').value, category: $('#fCat').value, supplierId: $('#fSup').value || null, label: $('#fLabel').value, method: $('#fMethod').value, toMethod: $('#fTo').value, note: $('#fNote').value, receipt };
+      try {
+        await api(id ? '/finance/entries/' + enc(id) : '/finance/entries', { method: id ? 'PATCH' : 'POST', body });
+        toast('Écriture enregistrée ✓');
+        location.hash = '#/finances/journal';
+      } catch (err) { $('#fError').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; }
+    });
+    $('#fDelete')?.addEventListener('click', async () => {
+      if (!confirm('Supprimer définitivement cette écriture ?')) return;
+      try { await api('/finance/entries/' + enc(id), { method: 'DELETE' }); toast('Écriture supprimée'); location.hash = '#/finances/journal'; } catch (err) { toast('❌ ' + err.message); }
+    });
+  }
+
   // ---------- Routeur ----------
   function route() {
     let [page, id] = (location.hash || homeHash()).slice(2).split('/').map(decodeURIComponent);
@@ -947,7 +1172,7 @@
     const allowed = {
       tableau: () => Boolean(state.user),
       commandes: CAN.orders, commande: CAN.orders, produits: CAN.products, produit: CAN.products,
-      fournisseur: CAN.supplier, clients: CAN.admin, agences: CAN.admin, equipe: CAN.admin, journal: CAN.admin, 'mot-de-passe': () => !CAN.admin(),
+      fournisseur: CAN.supplier, clients: CAN.admin, agences: CAN.admin, equipe: CAN.admin, journal: CAN.admin, finances: CAN.admin, 'mot-de-passe': () => !CAN.admin(),
     };
     if (!allowed[page]?.()) [page, id] = homeHash().slice(2).split('/');
     const tab = page.startsWith('produit') ? 'produits' : page === 'commande' ? 'commandes' : page;
@@ -956,6 +1181,7 @@
     if (page === 'agences') return viewAgencies(id);
     if (page === 'equipe') return viewStaff(id);
     if (page === 'journal') return viewActivity();
+    if (page === 'finances') return viewFinances(id);
     if (page === 'fournisseur') return viewSupplierOrders();
     if (page === 'mot-de-passe') return viewPassword();
     if (page === 'commande') return viewOrder(id);
