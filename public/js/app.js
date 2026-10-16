@@ -9,7 +9,7 @@
   // Univers et catégories affichés dans le menu : fournis par le serveur (src/catalog.js), même liste que l'admin
   let UNIVERSES = [];
   // Icônes Phosphor (fichier /icons.svg, récupérées via Iconify)
-  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=8#${name}"></use></svg>`;
+  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=9#${name}"></use></svg>`;
   const ICONS = { 'Téléphones': 'device-mobile-duotone', 'Tablettes': 'device-tablet-duotone', 'Ordinateurs': 'laptop-duotone', 'Montres': 'watch-duotone', 'Audio': 'headphones-duotone', 'TV & Maison': 'television-duotone', 'Jeux vidéo & consoles': 'game-controller-duotone', 'Composants': 'cpu-duotone', 'Accessoires': 'plug-duotone', 'Homme': 't-shirt-duotone', 'Femme': 'dress-duotone', 'Chaussures': 'sneaker-duotone' };
   const catIcon = (cat, cls = '') => icon(ICONS[cat] || 'shopping-bag-duotone', cls);
   // Vignettes sans photo : une des trois teintes de la charte, selon la catégorie
@@ -1027,31 +1027,101 @@
       <input id="idNumber" maxlength="40" autocomplete="off" placeholder="Tel qu'il figure sur la pièce">
       <label>Photo de la pièce</label>
       <div class="id-pick">
-        <label class="btn ghost" for="idCamera">${icon('camera')} Prendre une photo</label>
+        <button type="button" class="btn ghost" id="idCamBtn">${icon('camera')} Prendre une photo</button>
         <label class="btn ghost" for="idFile">${icon('image-square')} Choisir une photo</label>
       </div>
       <input id="idCamera" type="file" accept="image/*" capture="environment" hidden>
-      <input id="idFile" type="file" accept="image/jpeg,image/png,image/webp" hidden>
+      <input id="idFile" type="file" accept="image/jpeg,image/png,image/webp,application/pdf,.pdf" hidden>
       <div class="id-preview" id="idPreview" hidden></div>
-      <p class="hint">Pièce en entier, à plat, bien éclairée et lisible (pas de reflet).</p>
+      <p class="hint">« Prendre une photo » ouvre l'appareil photo. « Choisir une photo » accepte aussi une version scannée (image ou PDF, 4 Mo max). Pièce en entier, à plat, bien éclairée et lisible (pas de reflet).</p>
     </fieldset>`;
+  // Lit un PDF (pièce scannée) tel quel, sans le modifier
+  const readPdf = (file) => new Promise((resolve, reject) => {
+    if (file.size > 4 * 1024 * 1024) return reject(new Error('PDF trop lourd (4 Mo maximum). Scannez en qualité normale ou envoyez une image.'));
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result).replace(/^data:[^;,]*;/, 'data:application/pdf;'));
+    r.onerror = () => reject(new Error('Fichier illisible, réessayez'));
+    r.readAsDataURL(file);
+  });
+  const isPdf = (f) => f && (f.type === 'application/pdf' || /\.pdf$/i.test(f.name || ''));
+
+  // Appareil photo DANS la page (téléphone : caméra arrière ; ordinateur : webcam).
+  // Si le navigateur ne le permet pas (ancien téléphone, site sans https), on ouvre l'appareil photo du système.
+  function openCamera(onShot, fallback) {
+    if (!navigator.mediaDevices?.getUserMedia || !window.isSecureContext) return fallback();
+    const ov = document.createElement('div');
+    ov.className = 'cam-overlay';
+    ov.innerHTML = `<div class="cam-box" role="dialog" aria-label="Appareil photo">
+        <div class="cam-view"><video playsinline autoplay muted></video><div class="cam-frame"></div></div>
+        <p class="cam-msg">Placez la pièce dans le cadre, bien à plat et lisible.</p>
+        <div class="cam-actions">
+          <button type="button" class="btn ghost" data-cam="cancel">Annuler</button>
+          <button type="button" class="btn ghost" data-cam="switch" hidden>${icon('arrow-counter-clockwise')} Changer de caméra</button>
+          <button type="button" class="btn cta" data-cam="shoot" disabled>${icon('camera')} Prendre la photo</button>
+        </div></div>`;
+    document.body.appendChild(ov);
+    document.body.classList.add('no-scroll');
+    const video = ov.querySelector('video');
+    let stream = null; let facing = 'environment';
+    const stop = () => { stream?.getTracks().forEach((t) => t.stop()); stream = null; };
+    const close = () => { stop(); ov.remove(); document.body.classList.remove('no-scroll'); };
+    const start = async () => {
+      stop();
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: facing }, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false });
+        video.srcObject = stream; await video.play().catch(() => {});
+        ov.querySelector('[data-cam="shoot"]').disabled = false;
+        const cams = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === 'videoinput');
+        ov.querySelector('[data-cam="switch"]').hidden = cams.length < 2;
+      } catch (err) {
+        ov.querySelector('.cam-msg').innerHTML = err?.name === 'NotAllowedError'
+          ? "L'accès à l'appareil photo est refusé. Autorisez-le dans les réglages du navigateur (icône à gauche de l'adresse), puis réessayez."
+          : "Aucun appareil photo n'est disponible sur cet appareil. Utilisez « Choisir une photo » avec une version scannée.";
+        ov.querySelector('[data-cam="shoot"]').disabled = true;
+        ov.querySelector('[data-cam="switch"]').hidden = true;
+      }
+    };
+    ov.addEventListener('click', (e) => {
+      const a = e.target.closest('[data-cam]')?.dataset.cam;
+      if (a === 'cancel') close();
+      if (a === 'switch') { facing = facing === 'environment' ? 'user' : 'environment'; start(); }
+      if (a === 'shoot' && video.videoWidth) {
+        const k = Math.min(1, 1600 / Math.max(video.videoWidth, video.videoHeight));
+        const c = document.createElement('canvas');
+        c.width = Math.round(video.videoWidth * k); c.height = Math.round(video.videoHeight * k);
+        c.getContext('2d').drawImage(video, 0, 0, c.width, c.height);
+        const shot = c.toDataURL('image/jpeg', 0.88);
+        close(); onShot(shot);
+      }
+    });
+    document.addEventListener('keydown', function esc(e) { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', esc); } });
+    start();
+  }
+
   // Branche les boutons photo ; renvoie une fonction qui donne { idType, idNumber, idPhoto } ou lève une erreur
   function bindIdFields(root) {
     let photo = null;
+    const box = root.querySelector('#idPreview');
+    const show = (data, name) => {
+      photo = data; box.hidden = false;
+      box.innerHTML = data.startsWith('data:application/pdf')
+        ? `<span class="pdf-tag">${icon('file-pdf')} ${esc(name || 'Document PDF')}</span><span class="ok-tag">${icon('check')} Document prêt</span>`
+        : `<img src="${data}" alt="Aperçu de la pièce"><span class="ok-tag">${icon('check')} Photo prête</span>`;
+    };
     const onPick = async (input) => {
       const f = input.files?.[0]; if (!f) return;
-      const box = root.querySelector('#idPreview');
-      box.hidden = false; box.innerHTML = '<span class="hint">Préparation de la photo…</span>';
-      try { photo = await shrinkPhoto(f); box.innerHTML = `<img src="${photo}" alt="Aperçu de la pièce"><span class="ok-tag">${icon('check')} Photo prête</span>`; }
+      box.hidden = false; box.innerHTML = '<span class="hint">Préparation…</span>';
+      try { show(isPdf(f) ? await readPdf(f) : await shrinkPhoto(f), f.name); }
       catch (err) { photo = null; box.innerHTML = `<span class="alert err">${esc(err.message)}</span>`; }
       input.value = '';
     };
+    root.querySelector('#idCamBtn').addEventListener('click', () => openCamera((shot) => show(shot), () => root.querySelector('#idCamera').click()));
     root.querySelector('#idCamera').addEventListener('change', (e) => onPick(e.target));
     root.querySelector('#idFile').addEventListener('change', (e) => onPick(e.target));
     return () => {
       const idType = root.querySelector('#idType').value;
       if (!idType) throw new Error("Choisissez le type de votre pièce d'identité");
-      if (!photo) throw new Error("Ajoutez la photo de votre pièce d'identité");
+      if (!photo) throw new Error("Ajoutez la photo (ou le scan) de votre pièce d'identité");
       return { idType, idNumber: root.querySelector('#idNumber').value, idPhoto: photo };
     };
   }

@@ -4,6 +4,7 @@
 //  - rangées HORS du dossier public (data/identity), jamais sur GitHub, jamais servies en accès libre :
 //    seul l'administrateur connecté peut voir une photo (route protégée, sans cache) ;
 //  - photo ré-enregistrée en JPEG (2000 px max) : les informations cachées du fichier (GPS, appareil…) sont supprimées ;
+//    une pièce SCANNÉE peut aussi être envoyée en PDF (vrai PDF vérifié, 4 Mo max, gardé tel quel) ;
 //  - vitrine de démonstration : la photo envoyée n'est PAS gardée, elle est remplacée par une image « SPÉCIMEN »
 //    (les comptes de la démo sont publics, n'importe qui pourrait la voir).
 const fs = require('fs');
@@ -16,14 +17,18 @@ const ID_TYPES = { passeport: 'Passeport', cni: "Carte nationale d'identité (CN
 const STATUS_LABELS = { missing: 'Pièce à fournir', pending: 'En cours de vérification', verified: 'Vérifiée', rejected: 'Refusée' };
 const MAX_BYTES = 8 * 1024 * 1024;
 
-/** Lit la photo envoyée par le navigateur (« data:image/jpeg;base64,… »). Renvoie un Buffer ou une erreur. */
+const MAX_PDF = 4.5 * 1024 * 1024;
+
+/** Lit le fichier envoyé par le navigateur : photo (« data:image/jpeg;base64,… ») ou pièce scannée en PDF. */
 function decodePhoto(dataUrl) {
-  const m = String(dataUrl || '').match(/^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+/=]+)$/);
-  if (!m) return { error: "Ajoutez une photo lisible de votre pièce d'identité (JPEG ou PNG)" };
+  const m = String(dataUrl || '').match(/^data:(image\/(?:jpeg|png|webp)|application\/pdf);base64,([A-Za-z0-9+/=]+)$/);
+  if (!m) return { error: "Ajoutez une photo lisible de votre pièce d'identité (photo ou scan : JPEG, PNG ou PDF)" };
   const buf = Buffer.from(m[2], 'base64');
-  if (buf.length < 2000) return { error: 'Photo trop petite ou illisible' };
-  if (buf.length > MAX_BYTES) return { error: 'Photo trop lourde (8 Mo maximum)' };
-  return { buf };
+  const pdf = m[1] === 'application/pdf';
+  if (buf.length < 2000) return { error: 'Fichier trop petit ou illisible' };
+  if (buf.length > (pdf ? MAX_PDF : MAX_BYTES)) return { error: pdf ? 'PDF trop lourd (4 Mo maximum)' : 'Photo trop lourde (8 Mo maximum)' };
+  if (pdf && buf.subarray(0, 5).toString('latin1') !== '%PDF-') return { error: "Ce fichier n'est pas un vrai PDF" };
+  return { buf, pdf };
 }
 
 async function specimen() {
@@ -36,12 +41,22 @@ async function specimen() {
   return sharp(Buffer.from(svg)).jpeg({ quality: 80 }).toBuffer();
 }
 
+/** Pièce scannée en PDF : gardée telle quelle (vérifiée : vrai PDF, taille limitée). Démo : remplacée par le spécimen. */
+function storePdf(buf) {
+  fs.mkdirSync(ID_DIR, { recursive: true, mode: 0o700 });
+  const name = `${crypto.randomBytes(16).toString('hex')}.pdf`;
+  fs.writeFileSync(path.join(ID_DIR, name), buf, { mode: 0o600 });
+  return name;
+}
+
 /** Vérifie que c'est bien une image, la nettoie et l'enregistre. Renvoie le nom du fichier. */
 async function storePhoto(buf) {
   const sharp = require('sharp');
-  let meta;
-  try { meta = await sharp(buf).metadata(); } catch { throw new Error("Ce fichier n'est pas une photo lisible"); }
-  if (!meta.width || meta.width < 300 || meta.height < 200) throw new Error('Photo trop petite : prenez la pièce en entier, bien nette');
+  if (buf) {
+    let meta;
+    try { meta = await sharp(buf).metadata(); } catch { throw new Error("Ce fichier n'est pas une photo lisible"); }
+    if (!meta.width || meta.width < 300 || meta.height < 200) throw new Error('Photo trop petite : prenez la pièce en entier, bien nette');
+  }
   const jpg = config.demo ? await specimen()
     : await sharp(buf).rotate().resize(2000, 2000, { fit: 'inside', withoutEnlargement: true }).jpeg({ quality: 85 }).toBuffer();
   fs.mkdirSync(ID_DIR, { recursive: true, mode: 0o700 });
@@ -51,7 +66,7 @@ async function storePhoto(buf) {
 }
 
 function photoPath(name) {
-  return /^[a-f0-9]{32}\.jpg$/.test(String(name || '')) ? path.join(ID_DIR, name) : null;
+  return /^[a-f0-9]{32}\.(jpg|pdf)$/.test(String(name || '')) ? path.join(ID_DIR, name) : null;
 }
 function removePhoto(name) {
   const p = photoPath(name);
@@ -66,7 +81,7 @@ async function readSubmission(body) {
   const photo = decodePhoto(body?.idPhoto);
   if (photo.error) return { error: photo.error };
   let file;
-  try { file = await storePhoto(photo.buf); } catch (err) { return { error: err.message }; }
+  try { file = photo.pdf && !config.demo ? storePdf(photo.buf) : await storePhoto(photo.pdf ? null : photo.buf); } catch (err) { return { error: err.message }; }
   return { fields: { idType: type, idNumber: number || null, idPhoto: file, idStatus: 'pending', idSubmittedAt: new Date().toISOString(), idRejectReason: null, idCheckedAt: null, idCheckedBy: null } };
 }
 

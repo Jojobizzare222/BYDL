@@ -360,7 +360,7 @@ router.get('/customers', requireRole(), (req, res) => {
   const all = orders.all();
   const list = customers
     .all()
-    .map((c) => ({ ...customerAuth.publicCustomer(c), idCheckedBy: c.idCheckedBy || null, hasIdPhoto: Boolean(c.idPhoto), orders: all.filter((o) => o.customerId === c.id).length }))
+    .map((c) => ({ ...customerAuth.publicCustomer(c), idCheckedBy: c.idCheckedBy || null, hasIdPhoto: Boolean(c.idPhoto), idIsPdf: /\.pdf$/.test(c.idPhoto || ''), orders: all.filter((o) => o.customerId === c.id).length }))
     .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
   res.json(list);
 });
@@ -378,6 +378,7 @@ router.get('/customers/:id/identity-photo', requireRole(), (req, res) => {
   const customer = customers.get(req.params.id);
   const file = customer && identity.photoPath(customer.idPhoto);
   if (!file) return res.status(404).json({ error: 'Pas de pièce enregistrée' });
+  // PDF : ouvert par la visionneuse intégrée du navigateur (isolée de Kamwa Pro)
   res.set({ 'Cache-Control': 'no-store, private', 'X-Content-Type-Options': 'nosniff', 'Content-Disposition': 'inline' });
   res.sendFile(file, (err) => { if (err && !res.headersSent) res.sendStatus(404); });
 });

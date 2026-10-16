@@ -43,7 +43,7 @@
   }
 
   // ---------- Outils d'affichage ----------
-  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=8#${name}"></use></svg>`;
+  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=9#${name}"></use></svg>`;
   // En-tête de page façon « Espace pro › Commandes » + titre + description + boutons d'action à droite
   const pageHead = ({ crumb, title, desc = '', actions = '' }) => `
     <div class="page-head">
@@ -1074,7 +1074,7 @@
         { key: 'name', label: 'Client', sortValue: (c) => norm(c.name), render: (c) => `<strong>${esc(c.name)}</strong>` },
         { key: 'phone', label: 'Téléphone', render: (c) => esc(c.phone || '—') },
         { key: 'email', label: 'E-mail', render: (c) => esc(c.email || '—') },
-        { key: 'idStatus', label: 'Identité', render: (c) => `<span class="tag ${ID_ST[c.idStatus]?.[1] || ''}">${esc(ID_ST[c.idStatus]?.[0] || c.idStatus)}</span>${c.idType ? `<br><span class="muted">${esc(ID_TYPES[c.idType] || '')}</span>` : ''}` },
+        { key: 'idStatus', label: 'Identité', render: (c) => `<span class="tag ${ID_ST[c.idStatus]?.[1] || ''}">${esc(ID_ST[c.idStatus]?.[0] || c.idStatus)}</span>${c.idType ? `<br><span class="muted">${esc(ID_TYPES[c.idType] || '')}${c.idIsPdf ? ' · PDF' : ''}</span>` : ''}` },
         { key: 'orders', label: 'Commandes', cls: 'num' },
         { key: 'createdAt', label: 'Inscrit le', render: (c) => date(c.createdAt).split(' ')[0] },
         { key: 'act', label: '', sortable: false, render: (c) => `<div class="cell-actions">${c.hasIdPhoto ? `<button class="${c.idStatus === 'pending' ? 'btn small' : 'ghost'}" data-idc="${esc(c.id)}">${icon('identification-card')} ${c.idStatus === 'pending' ? 'Vérifier' : 'Voir la pièce'}</button>` : ''}<button class="ghost" data-code="${esc(c.id)}">${icon('key-bold')} Nouveau code</button></div>` },
@@ -1095,7 +1095,9 @@
     const src = `/api/admin/customers/${enc(c.id)}/identity-photo?v=${enc(c.idSubmittedAt || '')}`;
     box.innerHTML = `
       <div class="panel id-review">
-        <div class="id-photo"><a href="${src}" target="_blank" rel="noopener" title="Agrandir"><img src="${src}" alt="Pièce d'identité de ${esc(c.name)}"></a></div>
+        <div class="id-photo">${c.idIsPdf
+          ? `<iframe src="${src}" title="Pièce d'identité scannée de ${esc(c.name)}"></iframe><a class="btn ghost" href="${src}" target="_blank" rel="noopener" style="margin-top:8px">${icon('file-pdf')} Ouvrir le PDF en grand</a>`
+          : `<a href="${src}" target="_blank" rel="noopener" title="Agrandir"><img src="${src}" alt="Pièce d'identité de ${esc(c.name)}"></a>`}</div>
         <div>
           <h2 style="margin-top:0">${icon('identification-card')} ${esc(c.name)}</h2>
           <p class="muted">${esc([c.phone, c.email].filter(Boolean).join(' · '))}<br>Inscrit le ${date(c.createdAt)}</p>
