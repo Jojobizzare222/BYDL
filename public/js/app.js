@@ -348,10 +348,15 @@
     app.innerHTML = `
       <div class="crumbs"><a href="#/">Accueil</a> › <a href="#/c/${enc(p.universe)}">${esc(p.universe)}</a> › <a href="#/c/${enc(p.universe)}/${enc(p.category)}">${esc(p.category)}</a></div>
       <div class="pdp">
-        ${visual(p)}${d ? `<span class="disc">-${d}%</span>` : ''}${photoCredit(p)}</div>
+        <div>
+          <div class="pdp-main">${visual(p)}${d ? `<span class="disc">-${d}%</span>` : ''}${photoCredit(p)}</div></div>
+          ${(p.images || []).length > 1 ? `<div class="pdp-thumbs">${p.images.map((src, i) => `<button type="button" class="${i === 0 ? 'on' : ''}" data-img="${esc(src)}" aria-label="Photo ${i + 1}"><img src="${esc(src)}" alt="" loading="lazy"></button>`).join('')}</div>` : ''}
+        </div>
         <div>
           <h1>${esc(p.name)}</h1>
+          ${p.condition && p.condition !== 'neuf' ? `<span class="cond-tag">${esc(p.condition === 'reconditionné' ? 'Reconditionné' : 'Occasion')}</span>` : ''}
           <p>${esc(p.description)}</p>
+          ${(p.specs || []).length ? `<table class="specs">${p.specs.map((x) => `<tr><th>${esc(x.label)}</th><td>${esc(x.value)}</td></tr>`).join('')}</table>` : ''}
           <div class="buybox">
             ${d ? `<div><span class="old">${fcfa(p.oldPrice)}</span> <span class="save-tag">Économisez ${fcfa(p.oldPrice - p.price)}</span></div>` : ''}
             <span class="price">${fcfa(p.price)}</span>
@@ -365,6 +370,14 @@
       </div>
       ${similar.length ? `<section class="section" style="margin-top:12px"><div class="section-head"><h2>Dans la même catégorie</h2></div><div class="rail">${similar.map(card).join('')}</div></section>` : ''}`;
     $('#buyNow').addEventListener('click', () => { if (!state.cart[p.id]) addToCart(p.id); });
+    // Galerie : cliquer sur une miniature change la photo principale (le crédit ne vaut que pour la photo d'origine)
+    app.querySelectorAll('[data-img]').forEach((b) => b.addEventListener('click', () => {
+      const img = app.querySelector('.pdp-main img');
+      if (img) img.src = b.dataset.img;
+      const credit = app.querySelector('.photo-credit');
+      if (credit) credit.hidden = b.dataset.img !== p.image;
+      app.querySelectorAll('[data-img]').forEach((x) => x.classList.toggle('on', x === b));
+    }));
   }
 
   async function viewCheckout() {

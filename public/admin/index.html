@@ -12,15 +12,20 @@
 <body>
   <header class="top" id="top" hidden>
     <div class="top-inner">
-      <a class="logo" href="#/commandes"><img src="/brand/logo-kamwa-clair.svg" alt="Kamwa" width="125" height="30"> <small>admin</small></a>
+      <a class="logo" href="#/commandes"><img src="/brand/logo-kamwa-clair.svg" alt="Kamwa" width="125" height="30"> <small>espace pro</small></a>
       <nav class="tabs">
-        <a href="#/commandes" data-tab="commandes">Commandes <span class="count" id="todoCount" hidden></span></a>
-        <a href="#/produits" data-tab="produits">Produits</a>
-        <a href="#/clients" data-tab="clients">Clients</a>
-        <a href="#/agences" data-tab="agences">Agences</a>
+        <a href="#/commandes" data-tab="commandes" data-roles="admin orders">Commandes <span class="count" id="todoCount" hidden></span></a>
+        <a href="#/produits" data-tab="produits" data-roles="admin catalog supplier">Produits </a>
+        <a href="#/fournisseur" data-tab="fournisseur" data-roles="supplier">Mes commandes</a>
+        <a href="#/clients" data-tab="clients" data-roles="admin">Clients</a>
+        <a href="#/agences" data-tab="agences" data-roles="admin">Agences</a>
+        <a href="#/equipe" data-tab="equipe" data-roles="admin">Équipe</a>
+        <a href="#/journal" data-tab="journal" data-roles="admin">Journal</a>
       </nav>
       <div class="top-actions">
-        <button class="ghost" id="soundBtn" title="Sonnerie des nouvelles commandes">🔕 Son</button>
+        <span class="whoami" id="whoami"></span>
+        <a class="ghost" href="#/mot-de-passe" data-roles="catalog orders supplier">Mot de passe</a>
+        <button class="ghost" id="soundBtn" data-roles="admin orders" title="Sonnerie des nouvelles commandes">🔕 Son</button>
         <button class="ghost" id="logoutBtn">Quitter</button>
       </div>
     </div>

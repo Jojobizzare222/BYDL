@@ -38,7 +38,7 @@ router.post('/', (req, res) => {
   for (const { productId, qty } of items) {
     const product = products.get(productId);
     const quantity = Math.floor(Number(qty));
-    if (!product || product.active === false) return res.status(400).json({ error: `Produit indisponible : ${productId}` });
+    if (!product || product.active === false || product.pending) return res.status(400).json({ error: `Produit indisponible : ${productId}` });
     if (!(quantity >= 1 && quantity <= 99)) return res.status(400).json({ error: 'Quantité invalide' });
     if (quantity > availableStock(product)) {
       return res.status(400).json({ error: `Stock insuffisant pour ${product.name}` });

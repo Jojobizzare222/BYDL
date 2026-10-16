@@ -88,4 +88,6 @@ module.exports = {
   payments: createCollection('payments'),
   customers: createCollection('customers'),
   agencies: createCollection('agencies'),
+  staff: createCollection('staff'), // équipe et fournisseurs (comptes de l'espace d'administration)
+  activity: createCollection('activity'), // journal : qui a fait quoi
 };
