@@ -30,9 +30,25 @@ app.get('/images/uploads/:name', (req, res) => {
   });
 });
 
-app.get('/api/config', (req, res) =>
-  res.json({ shopName: config.shopName, currency: config.currency, paymentMode: config.paymentMode, demo: config.demo, universes: UNIVERSES })
-);
+// Version du site : change à chaque mise à jour (déploiement Vercel, ou fichier modifié sur le serveur).
+// Le navigateur la compare en changeant de page et se recharge tout seul : pas besoin de relancer l'application.
+const fs = require('fs');
+const SITE_FILES = ['index.html', 'js/app.js', 'js/legal.js', 'js/cookies.js', 'js/pwa.js', 'css/style.css', 'sw.js', 'admin/index.html', 'admin/admin.js', 'admin/admin.css']
+  .map((f) => path.join(__dirname, '..', 'public', f));
+let versionCache = { at: 0, v: null };
+function siteVersion() {
+  const fixed = process.env.VERCEL_DEPLOYMENT_ID || process.env.VERCEL_GIT_COMMIT_SHA;
+  if (fixed) return fixed;
+  if (Date.now() - versionCache.at < 3000) return versionCache.v;
+  let latest = 0;
+  for (const f of SITE_FILES) { try { latest = Math.max(latest, fs.statSync(f).mtimeMs); } catch {} }
+  versionCache = { at: Date.now(), v: String(Math.round(latest)) };
+  return versionCache.v;
+}
+app.get('/api/config', (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  res.json({ shopName: config.shopName, currency: config.currency, paymentMode: config.paymentMode, demo: config.demo, universes: UNIVERSES, version: siteVersion() });
+});
 app.use('/api/products', require('./routes/products'));
 app.use('/api/orders', require('./routes/orders'));
 app.use('/api/payments', require('./routes/payments'));

@@ -14,6 +14,34 @@
     window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
   }
 
+  // Mise à jour automatique : quand une nouvelle version du site est en ligne, la page suivante la charge
+  // toute seule (au prochain changement de page, ou au retour sur l'application après une pause).
+  // Jamais au milieu d'une saisie : on attend que la personne change de page.
+  let siteVersion = null; let updateReady = false; let checkedAt = 0;
+  async function checkVersion(force) {
+    if (!force && Date.now() - checkedAt < 20000) return;
+    checkedAt = Date.now();
+    try {
+      const c = await fetch('/api/config', { cache: 'no-store' }).then((r) => r.json());
+      if (!c.version) return;
+      if (siteVersion && c.version !== siteVersion) {
+        updateReady = true;
+        navigator.serviceWorker?.getRegistration?.().then((r) => r && r.update()).catch(() => {});
+      }
+      siteVersion = siteVersion || c.version;
+    } catch {}
+  }
+  // Saisie en cours (champ modifié, photo choisie) : on ne recharge pas sous les doigts de la personne
+  const typing = () => [...document.querySelectorAll('input, textarea')].some((i) => !['hidden', 'radio', 'checkbox', 'file'].includes(i.type) && i.value && i.value !== i.defaultValue)
+    || Boolean(document.querySelector('#idPreview:not([hidden]), .cam-overlay'));
+  checkVersion(true);
+  window.addEventListener('hashchange', async () => { if (!updateReady) await checkVersion(); if (updateReady) location.reload(); });
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) return;
+    if (updateReady && !typing()) location.reload(); else checkVersion(true);
+  });
+  setInterval(() => { if (!document.hidden) checkVersion(); }, 60000);
+
   const later = () => { try { return Date.now() - Number(localStorage.getItem(DISMISS_KEY) || 0) < DISMISS_DAYS * 864e5; } catch { return false; } };
   const remindLater = () => { try { localStorage.setItem(DISMISS_KEY, String(Date.now())); } catch {} };
   // On attend que la personne ait répondu au bandeau cookies, pour ne pas empiler les fenêtres

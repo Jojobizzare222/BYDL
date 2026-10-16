@@ -1462,13 +1462,89 @@
   }
 
   // ---------- Routeur ----------
-  function route() {
+  // ---------- Site « vivant » : données toujours à jour, sans relancer l'application ----------
+  // 1) À chaque changement de page : compte client revérifié (pièce validée, déconnexion…) et catalogue
+  //    rechargé s'il date de plus de 30 s (prix, stock, nouveaux produits) ; la page se redessine si quelque chose a changé.
+  // 2) Sur les pages qui attendent une action de Kamwa (mon compte, suivi, merci, commande bloquée), on revérifie
+  //    toutes les 15 s tant que la page est affichée, et dès qu'on revient sur l'application.
+  //    On ne redessine jamais une page pendant que le client écrit ou a choisi une photo.
+  const currentParts = () => (location.hash || '#/').slice(2).split('#')[0].split('/').map(decodeURIComponent);
+  const custSig = (c) => JSON.stringify(c ? [c.id, c.name, c.idStatus, c.idRejectReason] : null);
+  const prodSig = (list) => JSON.stringify((list || []).map((p) => [p.id, p.price, p.oldPrice, p.stock, p.active, p.image, p.name]));
+  let productsAt = Date.now();
+  let liveBase = null; let liveBusy = false;
+  const userBusy = () => {
+    const a = document.activeElement;
+    if (a && app.contains(a) && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) && a.type !== 'radio' && a.type !== 'checkbox') return true;
+    if ($('#idPreview') && !$('#idPreview').hidden) return true; // photo de pièce choisie, pas encore envoyée
+    if ($('#checkoutForm') || $('.cam-overlay')) return true; // formulaire de commande en cours : on n'y touche pas
+    return [...app.querySelectorAll('input:not([type=radio]):not([type=checkbox]):not([type=hidden]), textarea')].some((i) => i.value && i.defaultValue !== i.value);
+  };
+  async function refreshProducts(force) {
+    if (!force && Date.now() - productsAt < 30000) return false;
+    productsAt = Date.now();
+    try {
+      const fresh = await api('/products');
+      if (prodSig(fresh) === prodSig(state.products)) return false;
+      state.products = fresh;
+      UNIVERSES = (state.config.universes || []).map((u) => ({ ...u, categories: u.categories.filter((c) => state.products.some((p) => p.category === c)) })).filter((u) => u.categories.length);
+      $('#menuBody').innerHTML = ''; // menu « Rayons » reconstruit avec les nouveaux rayons
+      return true;
+    } catch { return false; }
+  }
+  // Empreinte de ce qu'affiche la page (pour savoir s'il faut la redessiner)
+  async function pageSig(parts) {
+    try {
+      if (parts[0] === 'compte' || parts[0] === 'commande') {
+        const me = await api('/account/me');
+        let sig = custSig(me.loggedIn ? me.customer : null);
+        if (parts[0] === 'compte' && me.loggedIn) sig += JSON.stringify((await api('/account/orders')).map((o) => [o.id, o.status, o.import?.stage, o.paidAt, (o.attempts || []).length]));
+        return sig;
+      }
+      if (parts[0] === 'suivi' || parts[0] === 'merci') {
+        const o = await api('/orders/' + enc(parts[1]), { headers: orderHeaders(tokenOf(parts[1]) || '') });
+        return JSON.stringify([o.status, o.import, o.paidAt, o.attempts, o.fulfillment]);
+      }
+    } catch {}
+    return null;
+  }
+  const LIVE_PAGES = ['compte', 'commande', 'suivi', 'merci'];
+  async function armLive() {
+    const parts = currentParts();
+    liveBase = LIVE_PAGES.includes(parts[0]) ? { key: location.hash, sig: await pageSig(parts) } : null;
+  }
+  async function pulse() {
+    if (document.hidden || liveBusy) return;
+    liveBusy = true;
+    try {
+      const parts = currentParts();
+      // Compte client (bouton « Mon compte » de l'en-tête) toujours à jour
+      const before = custSig(state.customer);
+      await refreshCustomer();
+      const changedCustomer = before !== custSig(state.customer);
+      if (await refreshProducts(false) && ['', 'c', 'recherche', 'promos', 'p', 'europe', 'france'].includes(parts[0]) && !userBusy()) { route({ keep: true }); return; }
+      if (liveBase && liveBase.key === location.hash) {
+        const sig = await pageSig(parts);
+        if (sig !== null && sig !== liveBase.sig && !userBusy()) { liveBase.sig = sig; route({ keep: true }); return; }
+      } else if (changedCustomer && LIVE_PAGES.includes(parts[0]) && !userBusy()) route({ keep: true });
+    } finally { liveBusy = false; }
+  }
+  setInterval(pulse, 15000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) pulse(); });
+  window.addEventListener('online', () => pulse());
+
+  function route(opts = {}) {
     state.timers.forEach(clearInterval); state.timers = [];
-    const parts = (location.hash || '#/').slice(2).split('#')[0].split('/').map(decodeURIComponent);
+    const parts = currentParts();
     if (parts[0] !== 'recherche') $('.header').classList.remove('search-open');
     if (parts[0] !== 'recherche') $('#searchInput').value = '';
     markTab(parts[0]);
-    window.scrollTo(0, 0);
+    if (!opts.keep) {
+      window.scrollTo(0, 0);
+      // Changement de page : le compte et le catalogue sont revérifiés en arrière-plan
+      setTimeout(() => { pulse(); }, 50);
+    }
+    setTimeout(armLive, 400);
     switch (parts[0]) {
       case 'c': return viewCategory(parts[1], parts[2]);
       case 'p': return viewProduct(parts[1]);
