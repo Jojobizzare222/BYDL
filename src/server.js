@@ -58,6 +58,27 @@ app.use('/api/chat', require('./routes/chat')); // messagerie (bulle « Aide » 
 // Notifications de suivi sur le téléphone (Web Push)
 const push = require('./push');
 push.watchOrders();
+// Rafraîchissement instantané des écrans ouverts (boutique) : seulement ce qui concerne ce client
+const events = require('./events');
+events.watchStore();
+app.get('/api/events', (req, res) => {
+  const { currentCustomer } = require('./customer/auth');
+  const me = currentCustomer(req)?.id || null;
+  events.stream(req, res, ({ col, doc, before }) => {
+    if (col === 'products' || col === 'agencies') return { topic: 'catalog' };
+    if (!me) return null;
+    if (col === 'orders' && (doc.customerId === me || before?.customerId === me)) return { topic: 'order', id: doc.id };
+    if (col === 'customers' && doc.id === me) return { topic: 'account' };
+    if (col === 'conversations' && doc.customerId === me) return { topic: 'chat' };
+    // Position du livreur : signal « live » au client dont la commande est en cours de livraison par ce livreur
+    if (col === 'staff' && doc.role === 'courier' && doc.livePos !== before?.livePos) {
+      const { orders } = require('./store');
+      const o = orders.all().find((x) => x.courierId === doc.id && x.status === 'shipped' && x.customerId === me);
+      return o ? { topic: 'live', id: o.id } : null;
+    }
+    return null;
+  });
+});
 app.get('/api/push/key', (req, res) => res.json({ key: push.publicKey() }));
 app.post('/api/push/subscribe', (req, res) => {
   const { orders } = require('./store');

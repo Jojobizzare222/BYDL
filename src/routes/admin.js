@@ -38,6 +38,31 @@ router.use('/finance', requireRole(), require('./finance'));
 router.use('/france', require('./import-admin'));
 router.use('/chat', require('./chat-admin')); // messagerie : clients + salon de l'équipe
 
+// Rafraîchissement instantané de Kamwa Pro : signaux filtrés selon le rôle (jamais de données dans le signal)
+router.get('/events', (req, res) => {
+  const u = req.user; const role = u.role;
+  const ordersRole = ['admin', 'orders'].includes(role);
+  require('../events').stream(req, res, ({ col, doc, before }) => {
+    if (col === 'orders' || col === 'payments') {
+      const o = col === 'payments' ? orders.get(doc.orderId) : doc;
+      if (!o) return null;
+      if (ordersRole) return { topic: 'orders', id: o.id };
+      if (role === 'courier' && (o.courierId === u.id || before?.courierId === u.id)) return { topic: 'orders', id: o.id };
+      if (role === 'agent' && o.import) return { topic: 'orders', id: o.id };
+      if (role === 'supplier' && o.lines?.some((l) => l.supplierId === u.id || products.get(l.productId)?.supplierId === u.id)) return { topic: 'orders', id: o.id };
+      return null;
+    }
+    if (col === 'products') return ['admin', 'catalog'].includes(role) || (role === 'supplier' && (doc.supplierId === u.id)) ? { topic: 'products', id: doc.id } : null;
+    if (col === 'conversations') return doc.kind === 'team' ? (role !== 'supplier' ? { topic: 'team' } : null) : ordersRole ? { topic: 'chat', id: doc.id } : null;
+    if (col === 'customers') return role === 'admin' ? { topic: 'customers', id: doc.id } : null;
+    if (col === 'agencies') return role === 'admin' ? { topic: 'agencies' } : null;
+    if (col === 'imports' || col === 'shipments') return ordersRole || role === 'agent' ? { topic: 'imports' } : null;
+    if (col === 'ledger') return role === 'admin' ? { topic: 'finance' } : null;
+    if (col === 'staff') return role === 'admin' && doc.livePos === before?.livePos ? { topic: 'staff' } : null;
+    return null;
+  });
+});
+
 // Journal : qui a fait quoi (gardé dans la base, consultable par l'admin)
 function log(req, action, target, details = '') {
   activity.insert({

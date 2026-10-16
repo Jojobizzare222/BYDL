@@ -253,6 +253,7 @@
   $('#sideBackdrop').addEventListener('click', () => document.body.classList.remove('menu-open'));
 
   $('#logoutBtn').addEventListener('click', async () => {
+    proEs?.close(); proEs = null;
     await api('/logout', { method: 'POST' }).catch(() => {});
     location.hash = '';
     // On vide tout : la personne suivante (autre rôle) recharge ses propres données
@@ -2058,11 +2059,65 @@
   }
   setInterval(() => { if (!document.hidden) loadChatCounts(); }, 15000);
 
-  function route() {
+  // ---------- Rafraîchissement instantané (signal du serveur) ----------
+  // Le serveur signale chaque changement qui concerne ce rôle ; la page affichée se redessine tout de suite,
+  // à la même position, sauf pendant une saisie (elle se met alors à jour dès que la saisie est terminée).
+  const LIVE_TOPICS = {
+    tableau: ['orders', 'products', 'customers', 'chat', 'imports', 'finance'], commandes: ['orders'], commande: ['orders'], clients: ['customers'],
+    france: ['imports', 'orders'], envois: ['imports', 'orders'], agent: ['imports', 'orders'], livraisons: ['orders'], fournisseur: ['orders', 'products'],
+    produits: ['products'], agences: ['agencies'], journal: ['orders', 'products', 'customers', 'staff', 'finance'], finances: ['finance', 'orders'], equipe: ['staff'],
+  };
+  const NO_LIVE_WITH_ID = ['produit', 'agences', 'equipe', 'finances', 'reglages', 'mot-de-passe'];
+  const proBusy = () => {
+    const a = document.activeElement;
+    if (a && app.contains(a) && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) && !['checkbox', 'radio'].includes(a.type)) return true;
+    if ($('#idBox')?.innerHTML || $('#codeBox')?.innerHTML) return true; // fiche de vérification ou code affiché
+    if (app.querySelector('form:not(.msg-reply) [data-dirty]')) return true;
+    return [...app.querySelectorAll('form:not(.msg-reply) input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=hidden]), form:not(.msg-reply) textarea')].some((i) => i.value !== i.defaultValue);
+  };
+  let liveQueue = new Set(); let liveTimer = null; let liveWaiting = false;
+  async function applyLive() {
+    liveTimer = null;
+    const topics = liveQueue; liveQueue = new Set();
+    if (topics.has('orders') && CAN.orders()) { try { await loadOrders(); } catch {} }
+    if (topics.has('products') && CAN.products()) { try { await loadProducts(); } catch {} }
+    if (topics.has('chat') || topics.has('team')) loadChatCounts();
+    let [page, id] = (location.hash || homeHash()).slice(2).split('/').map(decodeURIComponent);
+    if (page === 'messagerie') { if (topics.has('chat') || topics.has('team')) refreshMessaging(id); return; }
+    const want = LIVE_TOPICS[page] || [];
+    if (!want.some((t) => topics.has(t))) return;
+    if (id && NO_LIVE_WITH_ID.includes(page)) return;
+    if (page === 'produit') return;
+    if (proBusy()) { liveWaiting = true; want.forEach((t) => topics.has(t) && liveQueue.add(t)); return; }
+    route({ keep: true });
+  }
+  document.addEventListener('focusout', () => { if (liveWaiting) setTimeout(() => { if (!proBusy()) { liveWaiting = false; route({ keep: true }); } }, 300); });
+  let proEs = null;
+  function connectProEvents() {
+    if (proEs || !('EventSource' in window) || !state.user) return;
+    proEs = new EventSource('/api/admin/events');
+    proEs.addEventListener('change', (e) => {
+      let t = {}; try { t = JSON.parse(e.data); } catch {}
+      if (!t.topic) return;
+      liveQueue.add(t.topic);
+      if (!liveTimer) liveTimer = setTimeout(applyLive, 150);
+    });
+    proEs.onerror = () => { if (proEs.readyState === EventSource.CLOSED) { proEs = null; setTimeout(connectProEvents, 3000); } };
+  }
+  function refreshMessaging(id) {
+    if (id === 'equipe') return openTeam(true);
+    if (id) openConv(id, true);
+    // liste des conversations à gauche
+    api('/chat/conversations').then(() => { if (!$('#msgText')?.value && !id) viewMessaging(id); }).catch(() => {});
+  }
+
+  function route(opts = {}) {
     clearInterval(state.msgTimer);
     let [page, id] = (location.hash || homeHash()).slice(2).split('/').map(decodeURIComponent);
     if (id && id.includes('?') && page !== 'finances') id = id.split('?')[0]; // ex. #/produit/nouveau?kamwa=… (bouton « → Kamwa »)
-    window.scrollTo(0, 0);
+    const keepY = opts.keep ? window.scrollY : 0;
+    if (opts.keep) [0, 150, 450].forEach((ms) => setTimeout(() => { if (Math.abs(window.scrollY - keepY) > 2) window.scrollTo(0, keepY); }, ms)); // les pages se chargent en un instant : on garde la position
+    else window.scrollTo(0, 0);
     // Pages autorisées selon le rôle ; sinon retour à l'accueil du rôle
     document.body.classList.remove('menu-open');
     charts.splice(0).forEach((c) => c.destroy());
@@ -2100,6 +2155,7 @@
     state.user = (await api('/me')).user;
     await Promise.all([CAN.orders() ? loadOrders() : null, CAN.products() ? loadProducts() : null]);
     loadChatCounts();
+    connectProEvents();
     // Onglets et boutons selon le rôle
     document.querySelectorAll('[data-roles]').forEach((el) => { el.hidden = !el.dataset.roles.split(' ').includes(state.user.role); });
     const prodLabel = document.querySelector('[data-tab="produits"] .lbl');

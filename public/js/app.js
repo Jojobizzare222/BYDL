@@ -92,6 +92,7 @@
   async function refreshCustomer() {
     try { const me = await api('/account/me'); state.customer = me.loggedIn ? me.customer : null; } catch {}
     renderAccountBtn();
+    if (typeof connectEvents === 'function') try { connectEvents(); } catch {}
   }
 
   // ---------- Panier (conservé dans le navigateur) ----------
@@ -1482,6 +1483,11 @@
     };
     tick();
     state.timers.push(setInterval(tick, 5000));
+    const onLive = () => tick();
+    window.addEventListener('kamwa-live', onLive);
+    state.timers.push(setTimeout(() => {}, 0)); // (le minuteur ci-dessus est arrêté au changement de page)
+    const stopLive = () => { if (!document.body.contains(box)) { window.removeEventListener('kamwa-live', onLive); window.removeEventListener('hashchange', stopLive); } };
+    window.addEventListener('hashchange', stopLive);
   }
 
   // ---------- Achat en Europe : demande de devis, devis, paiement ----------
@@ -1745,6 +1751,25 @@
     } finally { liveBusy = false; }
   }
   setInterval(pulse, 15000);
+
+  // Signal instantané du serveur (« quelque chose a changé pour vous ») : la page se met à jour tout de suite.
+  // Reconnexion automatique ; si le flux est coupé, les vérifications régulières ci-dessus prennent le relais.
+  let es = null; let esFor = undefined;
+  function connectEvents() {
+    const who = state.customer?.id || null;
+    if (es && esFor === who) return;
+    es?.close(); esFor = who;
+    if (!('EventSource' in window)) return;
+    es = new EventSource('/api/events');
+    es.addEventListener('change', (e) => {
+      let t = {}; try { t = JSON.parse(e.data); } catch {}
+      if (t.topic === 'catalog') productsAt = 0;
+      if (t.topic === 'chat') window.kamwaChat?.refresh?.();
+      if (t.topic === 'live') { window.dispatchEvent(new CustomEvent('kamwa-live')); return; }
+      pulse();
+    });
+  }
+  setInterval(connectEvents, 5000); // compte connecté / déconnecté : on rouvre le flux avec les bons droits
   document.addEventListener('visibilitychange', () => { if (!document.hidden) pulse(); });
   window.addEventListener('online', () => pulse());
 
@@ -1754,6 +1779,7 @@
     if (parts[0] !== 'recherche') $('.header').classList.remove('search-open');
     if (parts[0] !== 'recherche') $('#searchInput').value = '';
     markTab(parts[0]);
+    if (opts.keep) { const y = window.scrollY; [0, 150, 450].forEach((ms) => setTimeout(() => { if (Math.abs(window.scrollY - y) > 2) window.scrollTo(0, y); }, ms)); }
     if (!opts.keep) {
       window.scrollTo(0, 0);
       // Changement de page : le compte et le catalogue sont revérifiés en arrière-plan
