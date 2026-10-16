@@ -70,12 +70,13 @@ function jsonLd(html) {
 
 // Rayon deviné d'après le nom (modifiable ensuite) et poids moyen pour le transport en avion
 const GUESS = [
+  [/\bps[45]\b|playstation|xbox|nintendo|switch 2|jeu vid[ée]o|manette|console de jeu|\bjeu (pc|ps|xbox|switch)/i, 'Jeux vidéo & consoles'],
   [/iphone|smartphone|t[ée]l[ée]phone|galaxy|pixel|redmi/i, 'Téléphones'], [/ipad|tablette/i, 'Tablettes'], [/macbook|ordinateur|laptop|pc portable|imac/i, 'Ordinateurs'],
   [/montre|watch/i, 'Montres'], [/casque|[ée]couteurs|airpods|enceinte|speaker|barre de son/i, 'Audio'], [/t[ée]l[ée]viseur|\btv\b|t[ée]l[ée] /i, 'TV & Maison'],
   [/chaussure|basket|sneaker|escarpin|sandale|botte|mocassin/i, 'Chaussures'], [/robe|jupe|chemisier|top femme|femme/i, 'Femme'],
   [/t-shirt|tee-shirt|pantalon|jogging|chemise|sweat|jean|polo|veste|short|homme/i, 'Homme'], [/c[âa]ble|chargeur|coque|adaptateur|batterie externe/i, 'Accessoires'],
 ];
-const WEIGHT = { Téléphones: 0.5, Tablettes: 1, Ordinateurs: 2.5, Montres: 0.3, Audio: 0.7, 'TV & Maison': 3, Composants: 0.5, Accessoires: 0.3, Homme: 0.5, Femme: 0.5, Chaussures: 1.3 };
+const WEIGHT = { Téléphones: 0.5, Tablettes: 1, Ordinateurs: 2.5, Montres: 0.3, Audio: 0.7, 'TV & Maison': 3, 'Jeux vidéo & consoles': 0.4, Composants: 0.5, Accessoires: 0.3, Homme: 0.5, Femme: 0.5, Chaussures: 1.3 };
 const guessCategory = (name) => GUESS.find(([re]) => re.test(name || ''))?.[1] || null;
 
 /** Lit la page et renvoie { name, brand, description, images[], priceEur, currency, options[], specs[], category, weightKg, source } */

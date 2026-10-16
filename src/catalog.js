@@ -1,6 +1,6 @@
 // Rayons de la boutique : liste unique utilisée par le site (via /api/config) et par l'espace admin.
 const UNIVERSES = [
-  { name: 'Électronique', categories: ['Téléphones', 'Tablettes', 'Ordinateurs', 'Montres', 'Audio', 'TV & Maison', 'Composants', 'Accessoires'] },
+  { name: 'Électronique', categories: ['Téléphones', 'Tablettes', 'Ordinateurs', 'Montres', 'Audio', 'TV & Maison', 'Jeux vidéo & consoles', 'Composants', 'Accessoires'] },
   { name: 'Mode', categories: ['Homme', 'Femme', 'Chaussures'] },
 ];
 

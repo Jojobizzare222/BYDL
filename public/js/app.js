@@ -9,8 +9,8 @@
   // Univers et catégories affichés dans le menu : fournis par le serveur (src/catalog.js), même liste que l'admin
   let UNIVERSES = [];
   // Icônes Phosphor (fichier /icons.svg, récupérées via Iconify)
-  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=5#${name}"></use></svg>`;
-  const ICONS = { 'Téléphones': 'device-mobile-duotone', 'Tablettes': 'device-tablet-duotone', 'Ordinateurs': 'laptop-duotone', 'Montres': 'watch-duotone', 'Audio': 'headphones-duotone', 'TV & Maison': 'television-duotone', 'Composants': 'cpu-duotone', 'Accessoires': 'plug-duotone', 'Homme': 't-shirt-duotone', 'Femme': 'dress-duotone', 'Chaussures': 'sneaker-duotone' };
+  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=6#${name}"></use></svg>`;
+  const ICONS = { 'Téléphones': 'device-mobile-duotone', 'Tablettes': 'device-tablet-duotone', 'Ordinateurs': 'laptop-duotone', 'Montres': 'watch-duotone', 'Audio': 'headphones-duotone', 'TV & Maison': 'television-duotone', 'Jeux vidéo & consoles': 'game-controller-duotone', 'Composants': 'cpu-duotone', 'Accessoires': 'plug-duotone', 'Homme': 't-shirt-duotone', 'Femme': 'dress-duotone', 'Chaussures': 'sneaker-duotone' };
   const catIcon = (cat, cls = '') => icon(ICONS[cat] || 'shopping-bag-duotone', cls);
   // Vignettes sans photo : une des trois teintes de la charte, selon la catégorie
   const tintOf = (cat) => Object.keys(ICONS).indexOf(cat) % 3;
