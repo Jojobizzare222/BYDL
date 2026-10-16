@@ -98,5 +98,6 @@ module.exports = {
   activity: createCollection('activity'), // journal : qui a fait quoi
   imports: createCollection('imports'), // achats en Europe : demandes de devis
   shipments: createCollection('shipments'), // envois groupés Europe → Congo
+  conversations: createCollection('conversations'), // messagerie : conversations clients (assistant + équipe) et salon « Équipe Kamwa »
   ledger: createCollection('ledger'), // finances : dépenses, autres entrées, transferts entre caisses (les ventes viennent des commandes)
 };

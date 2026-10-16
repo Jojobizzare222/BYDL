@@ -9,7 +9,7 @@
   // Univers et catégories affichés dans le menu : fournis par le serveur (src/catalog.js), même liste que l'admin
   let UNIVERSES = [];
   // Icônes Phosphor (fichier /icons.svg, récupérées via Iconify)
-  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=9#${name}"></use></svg>`;
+  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=10#${name}"></use></svg>`;
   const ICONS = { 'Téléphones': 'device-mobile-duotone', 'Tablettes': 'device-tablet-duotone', 'Ordinateurs': 'laptop-duotone', 'Montres': 'watch-duotone', 'Audio': 'headphones-duotone', 'TV & Maison': 'television-duotone', 'Jeux vidéo & consoles': 'game-controller-duotone', 'Composants': 'cpu-duotone', 'Accessoires': 'plug-duotone', 'Homme': 't-shirt-duotone', 'Femme': 'dress-duotone', 'Chaussures': 'sneaker-duotone' };
   const catIcon = (cat, cls = '') => icon(ICONS[cat] || 'shopping-bag-duotone', cls);
   // Vignettes sans photo : une des trois teintes de la charte, selon la catégorie
@@ -214,16 +214,50 @@
   menu.addEventListener('click', (e) => { if (e.target === menu || e.target.closest('a')) openMenu(false); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && menu.classList.contains('open')) openMenu(false); });
 
+  // ---------- Menu déroulant des grandes catégories (en-tête) ----------
+  let dropTimer = null;
+  function closeDrop() {
+    const d = $('#catDrop'); if (d) d.hidden = true;
+    document.querySelectorAll('#catnav .uni').forEach((b) => b.setAttribute('aria-expanded', 'false'));
+  }
+  function openDrop(btn) {
+    clearTimeout(dropTimer);
+    const u = UNIVERSES.find((x) => x.name === btn.dataset.uni); if (!u) return;
+    let d = $('#catDrop');
+    if (!d) { d = document.createElement('div'); d.id = 'catDrop'; d.className = 'cat-drop'; $('.hdr-sub .sub-inner').appendChild(d);
+      d.addEventListener('mouseenter', () => clearTimeout(dropTimer)); d.addEventListener('mouseleave', () => { dropTimer = setTimeout(closeDrop, 250); });
+      d.addEventListener('click', (e) => { if (e.target.closest('a')) closeDrop(); }); }
+    d.innerHTML = `<a class="drop-all" href="#/c/${enc(u.name)}">Tout ${esc(u.name.toLowerCase())} ${icon('caret-right')}</a>
+      <div class="drop-grid">${u.categories.map((c) => `<a href="#/c/${enc(u.name)}/${enc(c)}">${catIcon(c)}<span>${esc(c)}</span></a>`).join('')}</div>`;
+    const box = $('.hdr-sub .sub-inner').getBoundingClientRect(); const r = btn.getBoundingClientRect();
+    d.style.left = Math.max(8, Math.min(r.left - box.left, box.width - 348)) + 'px';
+    d.hidden = false;
+    document.querySelectorAll('#catnav .uni').forEach((b) => b.setAttribute('aria-expanded', String(b === btn)));
+  }
+  $('#catnav').addEventListener('click', (e) => {
+    const b = e.target.closest('.uni'); if (!b) return;
+    // Ordinateur (souris) : le survol ouvre le menu, le clic mène à la catégorie. Téléphone : le toucher ouvre / ferme.
+    if (matchMedia('(hover: hover)').matches) { closeDrop(); location.hash = '#/c/' + enc(b.dataset.uni); return; }
+    if (b.getAttribute('aria-expanded') === 'true') closeDrop(); else openDrop(b);
+  });
+  $('#catnav').addEventListener('mouseover', (e) => { const b = e.target.closest('.uni'); if (b && matchMedia('(hover: hover)').matches) openDrop(b); });
+  $('#catnav').addEventListener('mouseout', (e) => { if (e.target.closest('.uni') && matchMedia('(hover: hover)').matches) dropTimer = setTimeout(closeDrop, 250); });
+  $('#catnav').addEventListener('scroll', closeDrop);
+  document.addEventListener('click', (e) => { if (!e.target.closest('#catDrop, #catnav .uni')) closeDrop(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDrop(); });
+
   // ---------- Menu catégories ----------
   function renderNav(active) {
-    const links = [`<a href="#/" class="${!active ? 'active' : ''}">Accueil</a>`];
+    // En-tête allégé : seulement les grandes catégories (Électronique, Mode…) ; leurs rayons s'ouvrent dans un menu déroulant
+    const links = [`<a href="#/" class="${!active ? 'active' : ''}">Accueil</a>`,
+      `<a href="#/europe" class="france-link ${active === 'france' ? 'active' : ''}">${icon('airplane-tilt')} Achat en Europe</a>`];
     for (const u of UNIVERSES) {
-      links.push(`<a href="#/c/${enc(u.name)}" class="${active === u.name ? 'active' : ''}">${esc(u.name)}</a>`);
-      for (const c of u.categories) links.push(`<a href="#/c/${enc(u.name)}/${enc(c)}" class="${active === c ? 'active' : ''}">${esc(c)}</a>`);
+      const on = active === u.name || u.categories.includes(active);
+      links.push(`<button type="button" class="uni ${on ? 'active' : ''}" data-uni="${esc(u.name)}" aria-expanded="false">${esc(u.name)} ${icon('caret-down')}</button>`);
     }
     links.push(`<a href="#/promos" class="deals-link ${active === 'promos' ? 'active' : ''}">Bonnes affaires</a>`);
-    links.splice(1, 0, `<a href="#/europe" class="france-link ${active === 'france' ? 'active' : ''}">${icon('airplane-tilt')} Achat en Europe</a>`);
     $('#catnav').innerHTML = links.join('');
+    closeDrop();
     // Menu « Toutes » et liste des rayons de la recherche (une seule fois)
     if (!$('#menuBody').innerHTML) {
       $('#menuBody').innerHTML = `<h3>À la une</h3>

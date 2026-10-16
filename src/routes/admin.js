@@ -36,6 +36,7 @@ router.use(requireStaff);
 router.use('/finance', requireRole(), require('./finance'));
 // Achat en Europe (devis, agent Europe, envois)
 router.use('/france', require('./import-admin'));
+router.use('/chat', require('./chat-admin')); // messagerie : clients + salon de l'équipe
 
 // Journal : qui a fait quoi (gardé dans la base, consultable par l'admin)
 function log(req, action, target, details = '') {

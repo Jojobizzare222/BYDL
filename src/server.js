@@ -33,7 +33,7 @@ app.get('/images/uploads/:name', (req, res) => {
 // Version du site : change à chaque mise à jour (déploiement Vercel, ou fichier modifié sur le serveur).
 // Le navigateur la compare en changeant de page et se recharge tout seul : pas besoin de relancer l'application.
 const fs = require('fs');
-const SITE_FILES = ['index.html', 'js/app.js', 'js/legal.js', 'js/cookies.js', 'js/pwa.js', 'css/style.css', 'sw.js', 'admin/index.html', 'admin/admin.js', 'admin/admin.css']
+const SITE_FILES = ['index.html', 'js/app.js', 'js/legal.js', 'js/cookies.js', 'js/pwa.js', 'js/chat.js', 'css/style.css', 'sw.js', 'admin/index.html', 'admin/admin.js', 'admin/admin.css']
   .map((f) => path.join(__dirname, '..', 'public', f));
 let versionCache = { at: 0, v: null };
 function siteVersion() {
@@ -54,6 +54,7 @@ app.use('/api/orders', require('./routes/orders'));
 app.use('/api/payments', require('./routes/payments'));
 app.use('/api/account', require('./routes/account'));
 app.use('/api/imports', require('./routes/imports'));
+app.use('/api/chat', require('./routes/chat')); // messagerie (bulle « Aide » de la boutique)
 app.use('/api/admin', require('./routes/admin'));
 // Vitrine de démo (Vercel) : comptes et données d'exemple, créés une fois par démarrage de la base temporaire
 require('./demo').seed();

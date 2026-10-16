@@ -43,7 +43,7 @@
   }
 
   // ---------- Outils d'affichage ----------
-  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=9#${name}"></use></svg>`;
+  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=10#${name}"></use></svg>`;
   // En-tête de page façon « Espace pro › Commandes » + titre + description + boutons d'action à droite
   const pageHead = ({ crumb, title, desc = '', actions = '' }) => `
     <div class="page-head">
@@ -1860,7 +1860,127 @@
   }
 
   // ---------- Routeur ----------
+  // ---------- Messagerie : clients (assistant + conseillers) et salon de l'équipe ----------
+  const CONV_ST = { bot: ['Assistant', ''], open: ['Conseiller demandé', 'warn'], closed: ['Terminée', 'ok'] };
+  const ID_TAG = { verified: ['Identité vérifiée', 'ok'], pending: ['Pièce à vérifier', 'warn'], rejected: ['Pièce refusée', 'danger'], missing: ['Pièce à fournir', 'danger'] };
+  const CANNED = ['Bonjour, je regarde votre demande et je reviens vers vous.', 'Votre commande est en préparation, nous vous appelons avant la livraison.', 'Pouvez-vous me donner votre numéro de commande (CMD-…) ?', 'Merci pour votre patience. Bonne journée !'];
+  const msgTime = (iso) => { const d = new Date(iso); return d.toDateString() === new Date().toDateString() ? d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) + ' ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }); };
+  const bubble = (m, mine) => `
+    <div class="pm ${m.internal ? 'note' : m.from} ${mine ? 'mine' : ''}">
+      <span class="who">${m.internal ? `${icon('note-pencil')} Note interne · ${esc(m.staffName || '')}` : m.from === 'customer' ? 'Client' : m.from === 'bot' ? 'Assistant automatique' : esc(m.staffName || 'Kamwa')}</span>
+      <div class="pb">${esc(m.text).replace(/\n/g, '<br>')}${(m.links || []).length ? `<div class="muted" style="margin-top:4px">${m.links.map((l) => esc(l.label)).join(' · ')}</div>` : ''}</div>
+      <span class="t">${msgTime(m.at)}</span>
+    </div>`;
+  async function viewMessaging(id) {
+    const support = CAN.orders();
+    if (!id) id = support ? '' : 'equipe';
+    let list = [];
+    if (support) { try { list = await api('/chat/conversations'); } catch { return; } }
+    const f = state.msgFilter || 'todo';
+    const match = (c, k) => k === 'all' || (k === 'todo' ? c.status === 'open' : c.status === k);
+    const FILT = [['todo', 'À répondre'], ['bot', 'Avec l\'assistant'], ['closed', 'Terminées'], ['all', 'Toutes']];
+    const rows = list.filter((c) => match(c, f));
+    app.innerHTML = pageHead({ title: 'Messagerie', desc: support ? "Les questions des clients (bulle « Aide » de la boutique). L'assistant automatique répond d'abord ; quand un client demande un conseiller, la conversation arrive dans « À répondre ». Le salon « Équipe Kamwa » sert à échanger entre vous." : 'Le salon « Équipe Kamwa » pour échanger avec toute l\'équipe.' }) + `
+      <div class="msg-layout ${id ? 'has-conv' : ''}">
+        <aside class="msg-list">
+          <a class="msg-item team ${id === 'equipe' ? 'on' : ''}" href="#/messagerie/equipe">${icon('chats-circle-duotone')}<span><strong>Équipe Kamwa</strong><small>Salon interne de l'équipe</small></span><b class="n" id="teamUnread" hidden></b></a>
+          ${support ? `${tabsBar(FILT.map(([k, l]) => [k, l, list.filter((c) => match(c, k)).length]), f, 'mf')}
+          ${rows.length ? rows.map((c) => `
+            <a class="msg-item ${c.id === id ? 'on' : ''} ${c.unread ? 'unread' : ''}" href="#/messagerie/${enc(c.id)}">
+              <span class="av">${esc((c.name || 'V')[0].toUpperCase())}</span>
+              <span><strong>${esc(c.name)}</strong><small>${c.lastFrom === 'customer' ? '' : c.lastFrom === 'staff' ? 'Vous : ' : 'Assistant : '}${esc((c.lastText || '').slice(0, 70))}</small></span>
+              <span class="side"><em>${c.lastAt ? msgTime(c.lastAt) : ''}</em>${c.unread ? `<b class="n">${c.unread}</b>` : `<i class="tag ${CONV_ST[c.status]?.[1] || ''}">${esc(CONV_ST[c.status]?.[0] || '')}</i>`}</span>
+            </a>`).join('') : '<p class="muted" style="padding:14px">Aucune conversation ici.</p>'}` : ''}
+        </aside>
+        <section class="msg-conv" id="msgConv">${id ? '<p class="muted" style="padding:20px">Chargement…</p>' : `<div class="msg-empty">${icon('chat-circle-dots-duotone')}<p>Choisissez une conversation.</p></div>`}</section>
+      </div>`;
+    app.querySelectorAll('[data-mf]').forEach((b) => b.addEventListener('click', () => { state.msgFilter = b.dataset.mf; viewMessaging(id); }));
+    if (id === 'equipe') await openTeam();
+    else if (id) await openConv(id);
+    // Nouveaux messages : toutes les 4 s tant que la page est affichée
+    state.msgTimer = setInterval(async () => {
+      if (document.hidden || !location.hash.startsWith('#/messagerie')) return;
+      if (id === 'equipe') return openTeam(true);
+      if (id) openConv(id, true);
+    }, 4000);
+  }
+  function replyBox(team) {
+    return `<form class="msg-reply" id="msgForm">
+      ${team ? '' : `<div class="canned">${CANNED.map((t, i) => `<button type="button" data-canned="${i}">${esc(t.slice(0, 34))}…</button>`).join('')}</div>`}
+      <div class="row-reply"><textarea id="msgText" rows="2" maxlength="2000" placeholder="${team ? 'Message à toute l\'équipe…' : 'Votre réponse au client…'}"></textarea>
+      <button class="btn">${icon('paper-plane-right-fill')} Envoyer</button></div>
+      ${team ? '' : `<label class="check" style="margin:6px 0 0"><input type="checkbox" id="msgInternal"> Note interne (invisible pour le client)</label>`}
+    </form>`;
+  }
+  function bindReply(send) {
+    const form = $('#msgForm'), ta = $('#msgText');
+    form.querySelectorAll('[data-canned]').forEach((b) => b.addEventListener('click', () => { ta.value = CANNED[b.dataset.canned]; ta.focus(); }));
+    ta.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); form.requestSubmit(); } });
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const text = ta.value.trim(); if (!text) return;
+      ta.disabled = true;
+      try { await send(text, $('#msgInternal')?.checked); ta.value = ''; if ($('#msgInternal')) $('#msgInternal').checked = false; }
+      catch (err) { toast(err.message); }
+      ta.disabled = false; ta.focus();
+    });
+  }
+  async function openConv(id, refresh) {
+    let c;
+    try { c = await api('/chat/conversations/' + enc(id)); } catch (err) { $('#msgConv').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; return; }
+    const sig = JSON.stringify([c.messages.length, c.status]);
+    if (refresh && sig === state.convSig) return;
+    state.convSig = sig;
+    if (refresh && $('#msgText')?.value) { $('#msgThread').innerHTML = c.messages.map((m) => bubble(m, m.from === 'staff')).join(''); $('#msgThread').scrollTop = 1e9; return; }
+    const st = CONV_ST[c.status] || ['', ''];
+    const idt = c.idStatus ? ID_TAG[c.idStatus] : null;
+    $('#msgConv').innerHTML = `
+      <div class="msg-top">
+        <a class="ghost back" href="#/messagerie">${icon('caret-left')}</a>
+        <div><strong>${esc(c.name)}</strong> <span class="tag ${st[1]}">${esc(st[0])}</span>${c.assignedTo ? ` <span class="muted">· suivi par ${esc(c.assignedTo)}</span>` : ''}<br>
+          <span class="muted">${c.phone ? `<a href="tel:${esc(c.phone)}">${esc(c.phone)}</a> · <a href="https://wa.me/242${esc(String(c.phone).replace(/^0/, ''))}" target="_blank" rel="noopener">WhatsApp</a>` : 'Visiteur sans compte'}${idt ? ` · <span class="tag ${idt[1]}">${idt[0]}</span>` : ''}</span>
+          ${c.orders.length ? `<div class="msg-orders">${c.orders.map((o) => `<a href="#/commande/${enc(o.id)}">${esc(o.id)} · ${fcfa(o.total)}</a>`).join('')}</div>` : ''}</div>
+        ${c.status !== 'closed' ? `<button class="ghost" id="convClose">${icon('check-bold')} Terminer</button>` : ''}
+      </div>
+      <div class="msg-thread" id="msgThread">${c.messages.map((m) => bubble(m, m.from === 'staff')).join('')}</div>
+      ${replyBox(false)}`;
+    $('#msgThread').scrollTop = 1e9;
+    bindReply(async (text, internal) => { await api('/chat/conversations/' + enc(id) + '/messages', { method: 'POST', body: { text, internal } }); state.convSig = null; await openConv(id, true); });
+    $('#convClose')?.addEventListener('click', async () => { await api('/chat/conversations/' + enc(id) + '/close', { method: 'POST' }); toast('Conversation terminée'); viewMessaging(id); });
+    loadChatCounts();
+  }
+  async function openTeam(refresh) {
+    let t;
+    try { t = await api('/chat/team'); } catch (err) { $('#msgConv').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; return; }
+    const sig = JSON.stringify(t.messages.length);
+    if (refresh && sig === state.teamSig) return;
+    state.teamSig = sig;
+    const thread = t.messages.length ? t.messages.map((m) => bubble(m, m.userId === t.me)).join('') : '<p class="muted" style="text-align:center">Pas encore de message. Dites bonjour à l\'équipe !</p>';
+    if (refresh && $('#msgThread')) { $('#msgThread').innerHTML = thread; $('#msgThread').scrollTop = 1e9; loadChatCounts(); return; }
+    $('#msgConv').innerHTML = `
+      <div class="msg-top"><a class="ghost back" href="#/messagerie">${icon('caret-left')}</a><div><strong>Équipe Kamwa</strong><br><span class="muted">Salon interne : visible par toute l'équipe (pas par les fournisseurs ni les clients)</span></div></div>
+      <div class="msg-thread" id="msgThread">${thread}</div>
+      ${replyBox(true)}`;
+    $('#msgThread').scrollTop = 1e9;
+    bindReply(async (text) => { await api('/chat/team', { method: 'POST', body: { text } }); state.teamSig = null; await openTeam(true); });
+    loadChatCounts();
+  }
+  // Pastilles du menu + sonnerie quand un client attend un conseiller
+  async function loadChatCounts() {
+    if (!state.user || CAN.supplier()) return;
+    try {
+      const n = await api('/chat/unread');
+      const total = (n.support || 0) + (n.team || 0);
+      for (const el of [$('#chatCount')]) { if (el) { el.hidden = !total; el.textContent = total; } }
+      if ($('#teamUnread')) { $('#teamUnread').hidden = !n.team; $('#teamUnread').textContent = n.team; }
+      if (state.chatWaiting != null && n.waiting > state.chatWaiting) { ring(); toast('💬 Un client attend une réponse dans la messagerie'); }
+      state.chatWaiting = n.waiting;
+    } catch {}
+  }
+  setInterval(() => { if (!document.hidden) loadChatCounts(); }, 15000);
+
   function route() {
+    clearInterval(state.msgTimer);
     let [page, id] = (location.hash || homeHash()).slice(2).split('/').map(decodeURIComponent);
     if (id && id.includes('?') && page !== 'finances') id = id.split('?')[0]; // ex. #/produit/nouveau?kamwa=… (bouton « → Kamwa »)
     window.scrollTo(0, 0);
@@ -1870,11 +1990,13 @@
     const allowed = {
       tableau: () => Boolean(state.user),
       commandes: CAN.orders, commande: CAN.orders, produits: CAN.products, produit: CAN.products,
+      messagerie: () => Boolean(state.user) && !CAN.supplier(),
       fournisseur: CAN.supplier, clients: CAN.admin, agences: CAN.admin, equipe: CAN.admin, journal: CAN.admin, finances: CAN.admin, reglages: CAN.admin, livraisons: CAN.courier, france: CAN.orders, envois: () => CAN.orders() || CAN.agent(), agent: () => CAN.agent() || CAN.admin(), 'mot-de-passe': () => !CAN.admin(),
     };
     if (!allowed[page]?.()) [page, id] = homeHash().slice(2).split('/');
     const tab = page.startsWith('produit') ? 'produits' : page === 'commande' ? 'commandes' : page;
     document.querySelectorAll('[data-tab]').forEach((a) => a.classList.toggle('on', a.dataset.tab === tab));
+    if (page === 'messagerie') return viewMessaging(id);
     if (page === 'clients') return viewCustomers();
     if (page === 'agences') return viewAgencies(id);
     if (page === 'equipe') return viewStaff(id);
@@ -1898,6 +2020,7 @@
     app.innerHTML = '<p class="empty">Chargement…</p>';
     state.user = (await api('/me')).user;
     await Promise.all([CAN.orders() ? loadOrders() : null, CAN.products() ? loadProducts() : null]);
+    loadChatCounts();
     // Onglets et boutons selon le rôle
     document.querySelectorAll('[data-roles]').forEach((el) => { el.hidden = !el.dataset.roles.split(' ').includes(state.user.role); });
     const prodLabel = document.querySelector('[data-tab="produits"] .lbl');

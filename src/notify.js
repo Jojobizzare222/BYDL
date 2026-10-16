@@ -100,4 +100,18 @@ async function notifyIdentity(customer) {
   await send(subject, text, customer.id);
 }
 
-module.exports = { notifyPaidOrder, notifyReservation, notifyImportRequest, notifyIdentity };
+// Un client demande un conseiller dans la messagerie
+async function notifyChat(conv) {
+  const last = (conv.messages || []).filter((m) => m.from === 'customer').slice(-3).map((m) => `« ${m.text.slice(0, 200)} »`);
+  const subject = `Messagerie : ${conv.name || 'un visiteur'} demande un conseiller`;
+  const text = [
+    `${conv.name || 'Un visiteur'}${conv.phone ? ' (' + conv.phone + ')' : ''} attend une réponse dans la messagerie.`,
+    '',
+    ...last,
+    '',
+    `Répondre : ${config.publicUrl}/admin/#/messagerie/${encodeURIComponent(conv.id)}`,
+  ].join('\n');
+  await send(subject, text, conv.id);
+}
+
+module.exports = { notifyPaidOrder, notifyReservation, notifyImportRequest, notifyIdentity, notifyChat };
