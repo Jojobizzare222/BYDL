@@ -826,7 +826,7 @@
         <div class="big-check">${icon('check-circle-duotone')}</div>
         <h1>${order?.paymentPlan === 'cod' ? 'Merci, commande confirmée&nbsp;!' : 'Merci, paiement reçu&nbsp;!'}</h1>
         ${order ? `<p>Commande <strong>${esc(order.id)}</strong> : ${fcfa(order.total)}</p>
-        ${order.import ? `<p>Notre agent en France achète votre article. Vous suivez chaque étape (achat, photos, départ, arrivée) dans « Suivre ma commande ». Délai : ${esc(order.import.delay || '10 à 21 jours')}.</p>` : ''}
+        ${order.import ? `<p>Nous nous occupons de l'achat de votre article. Vous suivez chaque étape (achat, photos, départ, arrivée) dans « Suivre ma commande ». Délai : ${esc(order.import.delay || '10 à 21 jours')}.</p>` : ''}
         ${order.paymentPlan === 'cod' ? `<p>${order.deposit ? `Acompte reçu : ${fcfa(order.deposit)}. ` : ''}Vous paierez <strong>${fcfa(order.balance ?? order.total)}</strong> à la livraison, en espèces ou en Mobile Money.</p>` : ''}
         <p>${order.import ? `Nous vous tenons informé au <strong>${esc(order.customer.phone)}</strong>, puis nous organisons la livraison à ${esc(order.customer.city)} dès l'arrivée au Congo.` : `Nous vous appelons au <strong>${esc(order.customer.phone)}</strong> pour organiser la livraison à ${esc(order.customer.city)}.`}</p>
         ${order.import ? '' : codeCard(order)}
@@ -997,9 +997,9 @@
     const steps = im
       ? [
           ['Commande passée', o.createdAt, 'Devis accepté. Le paiement confirme la commande.'],
-          ['Payée', o.paidAt, `Paiement reçu. Notre agent en France achète votre article (délai total annoncé : ${esc(im.delay || '10 à 21 jours')}).`],
+          ['Payée', o.paidAt, `Paiement reçu. Nous achetons votre article (délai total annoncé : ${esc(im.delay || '10 à 21 jours')}).`],
           ['Achetée en France', im.boughtAt, 'Votre article est commandé auprès du vendeur en France.'],
-          ['Reçue par notre agent', im.receivedAt, "Notre agent a reçu et vérifié votre article. Il part avec le prochain envoi vers le Congo."],
+          ['Article vérifié', im.receivedAt, "Votre article a été reçu et vérifié. Il part avec le prochain envoi vers le Congo."],
           ['Partie de France', im.departedAt, `Votre colis est en route vers le Congo${im.eta ? ` — arrivée prévue vers le <strong>${shortDate(im.eta)}</strong>` : ''}.`],
           ['Arrivée au Congo', im.arrivedAt, 'Votre colis est arrivé. Nous vous appelons pour la livraison.'],
           ['En livraison', at('shipped'), 'Le livreur arrive. Préparez votre code de livraison.'],
@@ -1039,7 +1039,7 @@
                 ${i === current ? `<p class="hint" style="margin:4px 0 0">${text}</p>` : ''}
               </li>`).join('')}
           </ol>
-          ${im && im.photos?.length ? `<div class="import-photos"><strong>${icon('camera')} Photos de votre article, prises par notre agent</strong><div>${im.photos.map((src) => `<a href="${esc(src)}" target="_blank" rel="noopener"><img src="${esc(src)}" alt="Votre article" loading="lazy"></a>`).join('')}</div></div>` : ''}
+          ${im && im.photos?.length ? `<div class="import-photos"><strong>${icon('camera')} Photos de votre article, prises à sa réception</strong><div>${im.photos.map((src) => `<a href="${esc(src)}" target="_blank" rel="noopener"><img src="${esc(src)}" alt="Votre article" loading="lazy"></a>`).join('')}</div></div>` : ''}
           ${im && o.status === 'pending_payment' ? `<p><a class="btn cta" href="#/devis/${enc(im.requestId || '')}">Payer ma commande</a></p>` : ''}
           ${im && im.stage !== 'arrived' ? '' : codeCard(o)}
           ${(o.attempts || []).length && !['delivered', 'cancelled'].includes(o.status) ? `<div class="alert warn">${o.attempts.map((a) => `Tentative de livraison le ${longDate(a.at)} : ${esc(a.label)}.`).join('<br>')} Nous vous recontactons.</div>` : ''}
@@ -1091,15 +1091,14 @@
         <div>
           <span class="pill">${icon('airplane-tilt')} Venu de France</span>
           <h1>Achetez en France,<br>recevez au Congo.</h1>
-          <p>Des produits choisis en France, à un <strong>prix tout compris en FCFA</strong> (transport en avion et douane inclus). Vous payez en Mobile Money, notre agent achète en France, et nous vous livrons. <strong>Vous achetez, vous recevez, point.</strong></p>
+          <p>Des produits choisis en France, à un <strong>prix tout compris en FCFA</strong> (transport en avion et douane inclus). Vous payez en Mobile Money, nous nous occupons de tout jusqu'à votre porte. <strong>Vous achetez, vous recevez, point.</strong></p>
         </div>
       </section>
       <div class="fr-steps">
-        <div><b>1</b><span>Vous choisissez votre article</span></div>
-        <div><b>2</b><span>Vous payez en Mobile Money</span></div>
-        <div><b>3</b><span>Notre agent l'achète en France</span></div>
-        <div><b>4</b><span>Il voyage en avion vers le Congo</span></div>
-        <div><b>5</b><span>Livré chez vous en ${esc(conf.delay)}</span></div>
+        <div>${icon('shield-check')}<span><strong>Achat pris en charge</strong>Nous achetons et contrôlons chaque article pour vous.</span></div>
+        <div>${icon('airplane-tilt')}<span><strong>Acheminement maîtrisé</strong>Transport et formalités de douane gérés par nos soins.</span></div>
+        <div>${icon('wallet')}<span><strong>Prix tout compris</strong>En FCFA, payé en Mobile Money, sans frais cachés.</span></div>
+        <div>${icon('truck')}<span><strong>Livré chez vous</strong>Suivi à chaque étape, livraison en ${esc(conf.delay)}.</span></div>
       </div>
       ${(() => { const list = state.products.filter((x) => x.origin === 'FR'); return list.length ? `<section class="shelf" style="margin-top:8px"><div class="shelf-head"><div><p class="kicker k-violet">${icon('airplane-tilt')} Venus de France</p><h2>Nos produits</h2></div></div><div class="grid">${list.map(card).join('')}</div></section>` : '<div class="panel empty">Les premiers produits venus de France arrivent très bientôt.</div>'; })()}
       ${mine.length ? `<section class="panel"><h2>Mes demandes</h2>${mine.map((d) => `<a class="order-card" href="#/devis/${enc(d.id)}/${enc(d.token)}"><div class="top"><strong>${esc(d.id)}</strong>${devisBadge(d.status)}</div><div class="hint">${esc(d.items.map((it) => it.title || it.url).join(', ').slice(0, 100))}${d.quote ? ` · <strong style="color:var(--ink)">${fcfa(d.quote.total)}</strong>` : ''}</div></a>`).join('')}</section>` : ''}
