@@ -59,6 +59,7 @@ router.post('/register', async (req, res) => {
     ...id.fields,
     createdAt: new Date().toISOString(),
   });
+  identity.checkLater(customer.id, id); // lecture automatique de la pièce (résultat pour l'admin)
   notifyIdentity(customer);
   auth.openSession(req, res, customer.id);
   const claimed = claimDeviceOrders(customer.id, deviceOrders);
@@ -88,6 +89,7 @@ router.post('/identity', async (req, res) => {
   if (id.error) return res.status(400).json({ error: id.error });
   identity.removePhoto(customer.idPhoto); // l'ancienne photo refusée n'est pas gardée
   const updated = customers.update(customer.id, id.fields);
+  identity.checkLater(customer.id, id);
   notifyIdentity(updated);
   res.json({ customer: auth.publicCustomer(updated) });
 });

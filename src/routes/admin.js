@@ -360,7 +360,7 @@ router.get('/customers', requireRole(), (req, res) => {
   const all = orders.all();
   const list = customers
     .all()
-    .map((c) => ({ ...customerAuth.publicCustomer(c), idCheckedBy: c.idCheckedBy || null, hasIdPhoto: Boolean(c.idPhoto), idIsPdf: /\.pdf$/.test(c.idPhoto || ''), orders: all.filter((o) => o.customerId === c.id).length }))
+    .map((c) => ({ ...customerAuth.publicCustomer(c), idCheckedBy: c.idCheckedBy || null, hasIdPhoto: Boolean(c.idPhoto), idAuto: c.idAuto || null, idAutoAt: c.idAutoAt || null, idIsPdf: /\.pdf$/.test(c.idPhoto || ''), orders: all.filter((o) => o.customerId === c.id).length }))
     .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
   res.json(list);
 });
@@ -381,6 +381,13 @@ router.get('/customers/:id/identity-photo', requireRole(), (req, res) => {
   // PDF : ouvert par la visionneuse intégrée du navigateur (isolée de Kamwa Pro)
   res.set({ 'Cache-Control': 'no-store, private', 'X-Content-Type-Options': 'nosniff', 'Content-Disposition': 'inline' });
   res.sendFile(file, (err) => { if (err && !res.headersSent) res.sendStatus(404); });
+});
+// Relancer la lecture automatique de la pièce (photo déjà enregistrée)
+router.post('/customers/:id/identity-check', requireRole(), async (req, res) => {
+  const customer = customers.get(req.params.id);
+  if (!customer?.idPhoto) return res.status(404).json({ error: 'Pas de pièce enregistrée' });
+  const r = await identity.recheck(customer);
+  res.json({ idAuto: customers.get(customer.id).idAuto || r, idAutoAt: customers.get(customer.id).idAutoAt || null });
 });
 // Décision : « verify » (le client peut commander) ou « reject » (motif montré au client, qui renvoie une photo)
 router.post('/customers/:id/identity', requireRole(), (req, res) => {

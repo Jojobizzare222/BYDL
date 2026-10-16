@@ -1074,7 +1074,7 @@
         { key: 'name', label: 'Client', sortValue: (c) => norm(c.name), render: (c) => `<strong>${esc(c.name)}</strong>` },
         { key: 'phone', label: 'Téléphone', render: (c) => esc(c.phone || '—') },
         { key: 'email', label: 'E-mail', render: (c) => esc(c.email || '—') },
-        { key: 'idStatus', label: 'Identité', render: (c) => `<span class="tag ${ID_ST[c.idStatus]?.[1] || ''}">${esc(ID_ST[c.idStatus]?.[0] || c.idStatus)}</span>${c.idType ? `<br><span class="muted">${esc(ID_TYPES[c.idType] || '')}${c.idIsPdf ? ' · PDF' : ''}</span>` : ''}` },
+        { key: 'idStatus', label: 'Identité', render: (c) => `<span class="tag ${ID_ST[c.idStatus]?.[1] || ''}">${esc(ID_ST[c.idStatus]?.[0] || c.idStatus)}</span>${c.idType ? `<br><span class="muted">${esc(ID_TYPES[c.idType] || '')}${c.idIsPdf ? ' · PDF' : ''}</span>` : ''}${c.idStatus === 'pending' && c.idAuto ? `<br><span class="tag ${c.idAuto.read && !(c.idAuto.flags || []).length ? 'ok' : 'warn'}">${c.idAuto.read && !(c.idAuto.flags || []).length ? 'Lecture : tout concorde' : 'Lecture : à regarder'}</span>` : ''}` },
         { key: 'orders', label: 'Commandes', cls: 'num' },
         { key: 'createdAt', label: 'Inscrit le', render: (c) => date(c.createdAt).split(' ')[0] },
         { key: 'act', label: '', sortable: false, render: (c) => `<div class="cell-actions">${c.hasIdPhoto ? `<button class="${c.idStatus === 'pending' ? 'btn small' : 'ghost'}" data-idc="${esc(c.id)}">${icon('identification-card')} ${c.idStatus === 'pending' ? 'Vérifier' : 'Voir la pièce'}</button>` : ''}<button class="ghost" data-code="${esc(c.id)}">${icon('key-bold')} Nouveau code</button></div>` },
@@ -1088,6 +1088,28 @@
     });
     const firstPending = list.find((c) => c.idStatus === 'pending');
     if (f === 'pending' && firstPending) idReview(firstPending);
+  }
+  // Résultat de la lecture automatique (zone MRZ des passeports / CNI, sinon texte imprimé : NIU, CNI sans MRZ)
+  function autoCheckHtml(c) {
+    const a = c.idAuto;
+    if (!a) return `<div class="auto-check pending">${icon('magic-wand-duotone')} <span><strong>Lecture automatique</strong> en cours ou pas encore faite.</span> <button class="ghost" id="idAutoRun">Lancer la lecture</button></div>`;
+    const good = a.read && !(a.flags || []).length;
+    const F = a.fields || {};
+    const rows = [['Nom', F.surname], ['Prénoms', F.givenNames], ['N° du document', F.documentNumber], ['Né(e) le', F.birthDate && date(F.birthDate).split(' ')[0]],
+      ['Expire le', F.expiryDate && date(F.expiryDate).split(' ')[0]], ['Nationalité', F.nationality], ['Pays émetteur', F.issuer]].filter(([, v]) => v);
+    const checks = a.checks ? Object.values(a.checks).filter(Boolean).length : null;
+    const yes = (v, t, f) => (v === true || v === 'yes' ? `<span class="ok">${icon('check-bold')} ${t}</span>` : v === false || v === 'no' ? `<span class="bad">${icon('x-bold')} ${f}</span>` : v === 'partial' ? `<span class="mid">~ ${t} (en partie)</span>` : '');
+    return `<div class="auto-check ${good ? 'good' : a.read ? 'warn' : 'none'}">
+      <div class="ac-head">${icon(good ? 'seal-check-duotone' : 'warning-duotone')} <strong>Lecture automatique</strong> <span class="muted">· ${a.method === 'mrz' ? 'zone MRZ (lignes <<<)' : a.method === 'text' ? 'texte de la pièce' : '—'}</span></div>
+      <p>${esc(a.summary || '')}</p>
+      ${a.read ? `<div class="ac-chips">${checks !== null ? `<span class="${checks === 4 ? 'ok' : 'bad'}">${icon(checks === 4 ? 'check-bold' : 'x-bold')} Contrôles ${checks}/4</span>` : ''}
+        ${yes(a.nameMatch, 'Nom du compte retrouvé', 'Nom différent')}${yes(a.typeOk, 'Type de pièce cohérent', 'Type de pièce différent')}
+        ${a.numberFound !== undefined && a.numberFound !== null ? yes(a.numberFound, 'Numéro retrouvé', 'Numéro introuvable') : ''}
+        ${a.expired === true ? `<span class="bad">${icon('x-bold')} Expirée</span>` : a.expired === false ? `<span class="ok">${icon('check-bold')} En cours de validité</span>` : ''}
+        ${a.congo === true ? `<span class="ok">${icon('check-bold')} « Congo »</span>` : ''}</div>` : ''}
+      ${rows.length ? `<table class="ac-table">${rows.map(([k, v]) => `<tr><td>${esc(k)}</td><td><strong>${esc(v)}</strong></td></tr>`).join('')}</table>` : ''}
+      <button class="ghost" id="idAutoRun">Relancer la lecture</button>
+    </div>`;
   }
   // Fiche de vérification : photo (servie seulement à l'admin connecté) + validation / refus
   function idReview(c) {
@@ -1104,7 +1126,8 @@
           <p><strong>${esc(ID_TYPES[c.idType] || 'Pièce')}</strong>${c.idNumber ? ` n° <span class="mono">${esc(c.idNumber)}</span>` : ''}<br>
             <span class="muted">Envoyée le ${date(c.idSubmittedAt)}</span></p>
           <p><span class="tag ${ID_ST[c.idStatus]?.[1] || ''}">${esc(ID_ST[c.idStatus]?.[0] || '')}</span>${c.idCheckedBy ? ` <span class="muted">par ${esc(c.idCheckedBy)} le ${date(c.idCheckedAt)}</span>` : ''}${c.idRejectReason ? `<br><span class="muted">Motif : ${esc(c.idRejectReason)}</span>` : ''}</p>
-          <div class="alert warn" style="margin:10px 0">Vérifiez : le <strong>nom</strong> correspond au compte, la pièce est <strong>lisible</strong>, entière et <strong>en cours de validité</strong>.</div>
+          <div id="idAuto">${autoCheckHtml(c)}</div>
+          <div class="alert warn" style="margin:10px 0">Vérifiez : le <strong>nom</strong> correspond au compte, la pièce est <strong>lisible</strong>, entière et <strong>en cours de validité</strong>. La lecture automatique aide, mais c'est vous qui décidez.</div>
           <div class="row">
             <button class="btn green" id="idOk">${icon('check-bold')} Pièce vérifiée</button>
             <button class="btn ghost danger" id="idNo">${icon('x-bold')} Refuser</button>
@@ -1121,6 +1144,16 @@
         viewCustomers();
       } catch (err) { $('#idMsg').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; }
     };
+    const bindAuto = () => $('#idAutoRun')?.addEventListener('click', async (e) => {
+      e.target.disabled = true; e.target.textContent = 'Lecture en cours… (quelques secondes)';
+      try { const r = await api('/customers/' + enc(c.id) + '/identity-check', { method: 'POST' }); Object.assign(c, r); $('#idAuto').innerHTML = autoCheckHtml(c); bindAuto(); }
+      catch (err) { $('#idAuto').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; }
+    });
+    bindAuto();
+    // Lecture encore en cours juste après l'envoi : on revient voir dans quelques secondes
+    if (!c.idAuto && !c.idIsPdf) setTimeout(async () => {
+      try { const l = await api('/customers'); const f = l.find((x) => x.id === c.id); if (f?.idAuto && $('#idAuto')) { Object.assign(c, f); $('#idAuto').innerHTML = autoCheckHtml(c); bindAuto(); } } catch {}
+    }, 6000);
     $('#idOk').addEventListener('click', () => decide('verify'));
     $('#idNo').addEventListener('click', () => {
       const reason = prompt('Motif du refus (montré au client) :', 'Photo illisible ou incomplète');

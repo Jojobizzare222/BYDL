@@ -82,9 +82,45 @@ async function readSubmission(body) {
   if (photo.error) return { error: photo.error };
   let file;
   try { file = photo.pdf && !config.demo ? storePdf(photo.buf) : await storePhoto(photo.pdf ? null : photo.buf); } catch (err) { return { error: err.message }; }
-  return { fields: { idType: type, idNumber: number || null, idPhoto: file, idStatus: 'pending', idSubmittedAt: new Date().toISOString(), idRejectReason: null, idCheckedAt: null, idCheckedBy: null } };
+  return { buf: photo.buf, pdf: photo.pdf, fields: { idType: type, idNumber: number || null, idPhoto: file, idStatus: 'pending', idAuto: null, idAutoAt: null, idSubmittedAt: new Date().toISOString(), idRejectReason: null, idCheckedAt: null, idCheckedBy: null } };
+}
+
+// ---------- Contrôle automatique (lecture de la pièce, voir mrz.js) ----------
+// Lancé juste après l'envoi, sans faire attendre le client ; le résultat n'est montré qu'à l'admin.
+// Démo : on ne garde que les conclusions (concordances, alertes), jamais les données lues (nom, numéro, dates).
+function publicSafe(r) {
+  if (!config.demo || !r) return r;
+  const { fields, ...rest } = r;
+  return rest;
+}
+async function runCheck(customerId, buf) {
+  const { customers } = require('../store');
+  const mrz = require('./mrz');
+  const c = customers.get(customerId);
+  if (!c) return null;
+  let r;
+  try { r = await mrz.analyzeDocument(buf, c); } catch (err) { r = { read: false, summary: `Lecture automatique impossible (${err.message}) : vérifiez à l'œil.` }; }
+  const fresh = customers.get(customerId);
+  if (!fresh || fresh.idPhoto !== c.idPhoto) return null; // pièce remplacée entre-temps
+  customers.update(customerId, { idAuto: publicSafe(r), idAutoAt: new Date().toISOString() });
+  return r;
+}
+function checkLater(customerId, submission) {
+  const { customers } = require('../store');
+  if (submission.pdf) {
+    customers.update(customerId, { idAuto: { read: false, summary: "Document PDF : lecture automatique non disponible, vérifiez à l'œil." }, idAutoAt: new Date().toISOString() });
+    return;
+  }
+  setImmediate(() => runCheck(customerId, submission.buf).catch((err) => console.error('[pièce] contrôle automatique :', err.message)));
+}
+/** Relance le contrôle sur la photo enregistrée (bouton de l'admin). */
+async function recheck(customer) {
+  const file = photoPath(customer.idPhoto);
+  if (!file || file.endsWith('.pdf')) return { read: false, summary: "Document PDF : lecture automatique non disponible, vérifiez à l'œil." };
+  if (config.demo) return { read: false, summary: 'Démo : la vraie photo n\'est pas conservée, la lecture porte seulement sur l\'image envoyée au moment de l\'inscription.' };
+  return runCheck(customer.id, fs.readFileSync(file));
 }
 
 const idStatus = (c) => (c?.idStatus && STATUS_LABELS[c.idStatus] ? c.idStatus : 'missing');
 
-module.exports = { ID_DIR, ID_TYPES, STATUS_LABELS, readSubmission, photoPath, removePhoto, idStatus };
+module.exports = { ID_DIR, ID_TYPES, STATUS_LABELS, readSubmission, photoPath, removePhoto, idStatus, checkLater, recheck };

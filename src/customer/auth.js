@@ -48,7 +48,8 @@ function findByIdentifier(identifier) {
 
 // Données renvoyées au navigateur (jamais l'empreinte du code)
 // Jamais l'empreinte du code ni le nom du fichier de la pièce d'identité
-const publicCustomer = ({ codeHash, idPhoto, idCheckedBy, ...c }) => ({ ...c, idStatus: c.idStatus || 'missing' });
+// ni le résultat du contrôle automatique (réservé à l'admin)
+const publicCustomer = ({ codeHash, idPhoto, idCheckedBy, idAuto, idAutoAt, ...c }) => ({ ...c, idStatus: c.idStatus || 'missing' });
 
 function readCookie(req) {
   const match = (req.get('Cookie') || '').match(new RegExp(`(?:^|;\\s*)${COOKIE}=([a-f0-9]{64})`));
