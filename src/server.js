@@ -9,13 +9,13 @@ app.disable('x-powered-by');
 app.use(express.json({ limit: '100kb' }));
 
 // Fichiers statiques :
-//  - HTML/CSS/JS en « no-cache » : le navigateur revérifie à chaque visite (réponse 304 très légère si rien n'a changé),
+//  - HTML/CSS/JS (et le jeu d'icônes) en « no-cache » : le navigateur revérifie à chaque visite (réponse 304 très légère si rien n'a changé),
 //    donc les clients voient tout de suite la dernière version du site ;
 //  - images en cache 24 h : important pour les connexions mobiles lentes.
 app.use(
   express.static(path.join(__dirname, '..', 'public'), {
     setHeaders(res, filePath) {
-      res.setHeader('Cache-Control', /\.(html|css|js)$/.test(filePath) ? 'no-cache' : 'public, max-age=86400');
+      res.setHeader('Cache-Control', /\.(html|css|js)$|icons\.svg$/.test(filePath) ? 'no-cache' : 'public, max-age=86400');
     },
   })
 );
