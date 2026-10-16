@@ -3,42 +3,41 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#2D1B69">
+  <meta name="theme-color" content="#ffffff">
   <link rel="icon" href="/brand/favicon.svg" type="image/svg+xml">
   <link rel="icon" href="/brand/favicon-32.png" sizes="32x32" type="image/png">
   <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png">
   <meta property="og:title" content="Kamwa — Laissez-vous surprendre">
   <meta property="og:image" content="/brand/partage-kamwa.png">
-  <link rel="preload" href="/fonts/dmsans.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="/fonts/baloo2.woff2" as="font" type="font/woff2" crossorigin>
   <title>Kamwa — Électronique et mode au meilleur prix</title>
   <meta name="description" content="Kamwa : smartphones, tablettes, ordinateurs, composants, accessoires, mode homme et femme. Paiement MTN MoMo et Airtel Money, livraison à Pointe-Noire et Brazzaville.">
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-  <div class="promo-strip">Payez en <strong>Mobile Money</strong>, par <strong>carte</strong> ou en <strong>espèces</strong> · Livraison 24-48 h à Pointe-Noire et Brazzaville</div>
+  <div class="promo-strip">Payez en Mobile Money, par carte ou en espèces · Livraison en 24-48 h à Pointe-Noire et Brazzaville</div>
 
   <header class="header">
     <div class="header-inner">
-      <a href="#/" class="logo" aria-label="Kamwa, accueil"><img src="/brand/logo-kamwa-clair.svg" alt="Kamwa" width="150" height="36"></a>
-      <form class="search" id="searchForm" role="search">
-        <input id="searchInput" type="search" placeholder="Rechercher un produit, une catégorie…" aria-label="Rechercher">
-        <button type="submit" aria-label="Lancer la recherche">
-          <svg class="ico" aria-hidden="true"><use href="/icons.svg#magnifying-glass-bold"></use></svg>
-        </button>
-      </form>
+      <a href="#/" class="logo" aria-label="Kamwa, accueil"><img src="/brand/logo-kamwa.svg" alt="Kamwa" width="112" height="27"></a>
       <div class="header-actions">
-      <a class="cart-btn" id="accountBtn" href="#/compte" aria-label="Mon compte">
-        <svg class="ico" aria-hidden="true"><use href="/icons.svg#user-circle-bold"></use></svg>
-        <span class="cart-label" id="accountLabel">Compte</span>
-      </a>
-      <button class="cart-btn" id="cartBtn" aria-label="Ouvrir le panier">
-        <svg class="ico" aria-hidden="true"><use href="/icons.svg#shopping-bag-bold"></use></svg>
-        <span class="cart-label">Panier</span>
-        <span class="badge" id="cartCount">0</span>
-      </button>
+        <button class="cart-btn" id="searchToggle" aria-label="Rechercher" aria-expanded="false">
+          <svg class="ico" aria-hidden="true"><use href="/icons.svg?v=3#magnifying-glass"></use></svg>
+        </button>
+        <a class="cart-btn" id="accountBtn" href="#/compte" aria-label="Mon compte">
+          <svg class="ico" aria-hidden="true"><use href="/icons.svg?v=3#user-circle"></use></svg>
+          <span class="cart-label" id="accountLabel">Compte</span>
+        </a>
+        <button class="cart-btn" id="cartBtn" aria-label="Ouvrir le panier">
+          <svg class="ico" aria-hidden="true"><use href="/icons.svg?v=3#handbag"></use></svg>
+          <span class="badge" id="cartCount">0</span>
+        </button>
       </div>
     </div>
+    <form class="search" id="searchForm" role="search" hidden>
+      <svg class="ico" aria-hidden="true"><use href="/icons.svg?v=3#magnifying-glass"></use></svg>
+      <input id="searchInput" type="search" placeholder="Rechercher sur Kamwa" aria-label="Rechercher">
+      <button type="button" class="icon-btn" id="searchClose" aria-label="Fermer la recherche"><svg class="ico" aria-hidden="true"><use href="/icons.svg?v=3#x"></use></svg></button>
+    </form>
     <nav class="catnav" id="catnav" aria-label="Catégories"></nav>
   </header>
 
@@ -48,7 +47,7 @@
     <div class="drawer-panel" role="dialog" aria-label="Panier">
       <div class="drawer-head">
         <h2>Mon panier</h2>
-        <button class="icon-btn" id="closeDrawer" aria-label="Fermer"><svg class="ico" aria-hidden="true"><use href="/icons.svg#x-bold"></use></svg></button>
+        <button class="icon-btn" id="closeDrawer" aria-label="Fermer"><svg class="ico" aria-hidden="true"><use href="/icons.svg?v=3#x-bold"></use></svg></button>
       </div>
       <div id="cartLines"></div>
       <div class="drawer-foot">
@@ -60,14 +59,33 @@
   </aside>
 
   <footer class="footer">
-    <div class="footer-grid">
-      <div><strong><svg class="ico" aria-hidden="true"><use href="/icons.svg#lock-key-bold"></use></svg>Paiement sécurisé</strong><p>Mobile Money, carte bancaire ou espèces. Vous validez avec votre code secret.</p></div>
-      <div><strong><svg class="ico" aria-hidden="true"><use href="/icons.svg#truck-duotone"></use></svg>Livraison</strong><p>24-48 h à Pointe-Noire et Brazzaville. Autres villes sur demande.</p></div>
-      <div><strong><svg class="ico" aria-hidden="true"><use href="/icons.svg#headset-duotone"></use></svg>Service client</strong><p>Nous vous appelons après chaque commande.</p></div>
+    <div class="footer-inner">
+      <p class="footer-note">Prix en francs CFA (FCFA). Photos d'illustration : la couleur ou les accessoires peuvent différer du produit livré. Paiement Mobile Money : vous validez toujours avec votre code secret, Kamwa ne le connaît jamais.</p>
+      <div class="footer-grid" id="footerGrid">
+        <div><h3>Boutique</h3><ul id="footerShop"></ul></div>
+        <div><h3>Mon compte</h3><ul><li><a href="#/compte">Mon compte Kamwa</a></li><li><a href="#/compte">Suivre une commande</a></li><li><a href="#/compte/creer">Créer un compte</a></li></ul></div>
+        <div><h3>Acheter chez Kamwa</h3><ul><li><a href="#/legal/vente">Paiement et livraison</a></li><li><a href="#/legal/vente#retours">Retours et remboursements</a></li><li><a href="#/promos">Bonnes affaires</a></li></ul></div>
+        <div><h3>À propos de Kamwa</h3><ul><li><a href="#/legal/mentions">Mentions légales</a></li><li><a href="#/credits">Crédits photos</a></li><li><a href="/admin/">Espace pro</a></li></ul></div>
+      </div>
+      <div class="footer-legal">
+        <p class="copy">Copyright © <span id="year">2026</span> Kamwa. Tous droits réservés.</p>
+        <nav class="legal-links" aria-label="Informations légales">
+          <a href="#/legal/confidentialite">Politique de confidentialité</a>
+          <a href="#/legal/conditions">Conditions d'utilisation</a>
+          <a href="#/legal/vente">Ventes et remboursements</a>
+          <a href="#/legal/mentions">Mentions légales</a>
+          <a href="#/cookies">Gérer les cookies</a>
+        </nav>
+        <p class="country">Congo-Brazzaville</p>
+      </div>
     </div>
-    <p class="copy">© Kamwa. Prix en francs CFA (FCFA), TVA incluse. · <a href="#/credits">Crédits photos</a></p>
   </footer>
 
+  <!-- Bandeau cookies (rempli par cookies.js) -->
+  <div id="cookieBanner" hidden></div>
+
+  <script src="/js/legal.js" defer></script>
+  <script src="/js/cookies.js" defer></script>
   <script src="/js/app.js" defer></script>
 </body>
 </html>

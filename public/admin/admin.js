@@ -94,7 +94,7 @@
   if (window.Chart) {
     Chart.defaults.color = '#A69FBF';
     Chart.defaults.borderColor = 'rgba(255,255,255,.08)';
-    Chart.defaults.font.family = "'DM Sans', system-ui, sans-serif";
+    Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
     Chart.defaults.plugins.legend.labels.boxWidth = 12;
   }
   const shortNum = (n) => new Intl.NumberFormat('fr-FR', { notation: 'compact', maximumFractionDigits: 1 }).format(n);

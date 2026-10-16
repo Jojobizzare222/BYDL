@@ -1,6 +1,6 @@
 /* Espace pro Kamwa — thème sombre (inspiré des tableaux d'administration type Discourse), accents de la charte « Wax festif » */
-@font-face { font-family: 'Baloo 2'; src: url('/fonts/baloo2.woff2') format('woff2'); font-weight: 400 800; font-display: swap; }
-@font-face { font-family: 'DM Sans'; src: url('/fonts/dmsans.woff2') format('woff2'); font-weight: 100 1000; font-display: swap; }
+/* Police : celle du système sur iPhone/Mac (San Francisco), Inter (libre, hébergée ici) ailleurs — comme la boutique */
+@font-face { font-family: 'Inter'; src: url('/fonts/inter.woff2') format('woff2'); font-weight: 100 900; font-display: swap; }
 :root {
   --bg: #15121C;          /* fond général */
   --side: #1B1724;        /* barre latérale */
@@ -20,10 +20,10 @@
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; }
-body { font: 15px/1.5 'DM Sans', system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; background: var(--bg); color: var(--ink); -webkit-font-smoothing: antialiased; }
+body { font: 15px/1.5 -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Helvetica Neue", "Segoe UI", Roboto, Arial, sans-serif; letter-spacing: -0.01em; background: var(--bg); color: var(--ink); -webkit-font-smoothing: antialiased; }
 a { color: var(--brand); }
-h1 { font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 1.9rem; line-height: 1.1; margin: 0 0 6px; color: #fff; }
-h2 { font-family: 'Baloo 2', sans-serif; font-weight: 700; font-size: 1.15rem; margin: 0 0 10px; color: #fff; }
+h1 { font-weight: 700; letter-spacing: -0.025em; font-size: 1.9rem; line-height: 1.1; margin: 0 0 6px; color: #fff; }
+h2 { font-weight: 600; letter-spacing: -0.015em; font-size: 1.15rem; margin: 0 0 10px; color: #fff; }
 button, input, select, textarea { font: inherit; }
 [hidden] { display: none !important; }
 code, .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .85em; }
@@ -127,7 +127,7 @@ table.dt { width: 100%; border-collapse: collapse; }
 .kpi { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; display: grid; gap: 2px; position: relative; overflow: hidden; }
 .kpi-ico { position: absolute; right: 14px; top: 14px; font-size: 1.6rem; color: var(--mango); opacity: .9; }
 .kpi-label { color: var(--muted); font-size: .88rem; padding-right: 34px; }
-.kpi-value { font-family: 'Baloo 2', sans-serif; font-size: 1.75rem; font-weight: 800; color: #fff; line-height: 1.15; }
+.kpi-value { font-size: 1.7rem; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; color: #fff; line-height: 1.15; }
 .kpi-hint { color: var(--muted); font-size: .8rem; }
 .todo { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
 .todo a { display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; background: #2B2350; color: #fff; text-decoration: none; font-weight: 600; font-size: .9rem; }
@@ -212,7 +212,7 @@ textarea { resize: vertical; }
 .item { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px; text-decoration: none; color: var(--ink); }
 .item .total { font-weight: 800; text-align: right; }
 .item .sub, .sub { color: var(--muted); font-size: .82rem; }
-.price { color: var(--price); font-family: 'Baloo 2', sans-serif; font-weight: 800; }
+.price { color: var(--price); font-weight: 600; }
 
 /* Détail commande */
 .lines div { display: flex; justify-content: space-between; gap: 10px; padding: 8px 0; border-bottom: 1px dashed var(--line); }
@@ -228,7 +228,7 @@ textarea { resize: vertical; }
 .gal-del { left: auto; right: 4px; color: var(--err); }
 .gal-empty { grid-column: 1 / -1; text-align: center; font-size: 2rem; padding: 16px; background: var(--paper-2); border-radius: 10px; }
 
-.code-box { font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 1.8rem; letter-spacing: .12em; color: var(--mango); background: var(--bg); border: 2px dashed var(--mango); border-radius: 12px; padding: 12px; margin: 10px 0; text-align: center; }
+.code-box { font-weight: 700; font-variant-numeric: tabular-nums; font-size: 1.8rem; letter-spacing: .12em; color: var(--mango); background: var(--bg); border: 2px dashed var(--mango); border-radius: 12px; padding: 12px; margin: 10px 0; text-align: center; }
 .demo-box { margin-top: 16px; padding: 12px; border: 2px dashed var(--mango); border-radius: 12px; background: #241E14; display: grid; gap: 8px; }
 .demo-box .muted { margin: 0; }
 

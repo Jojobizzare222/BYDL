@@ -9,7 +9,7 @@
   // Univers et catégories affichés dans le menu : fournis par le serveur (src/catalog.js), même liste que l'admin
   let UNIVERSES = [];
   // Icônes Phosphor (fichier /icons.svg, récupérées via Iconify)
-  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg#${name}"></use></svg>`;
+  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=3#${name}"></use></svg>`;
   const ICONS = { 'Téléphones': 'device-mobile-duotone', 'Tablettes': 'device-tablet-duotone', 'Ordinateurs': 'laptop-duotone', 'Montres': 'watch-duotone', 'Audio': 'headphones-duotone', 'TV & Maison': 'television-duotone', 'Composants': 'cpu-duotone', 'Accessoires': 'plug-duotone', 'Homme': 't-shirt-duotone', 'Femme': 'dress-duotone', 'Chaussures': 'sneaker-duotone' };
   const catIcon = (cat, cls = '') => icon(ICONS[cat] || 'shopping-bag-duotone', cls);
   // Vignettes sans photo : une des trois teintes de la charte, selon la catégorie
@@ -94,7 +94,8 @@
 
   function renderCart() {
     const items = cartItems();
-    $('#cartCount').textContent = items.reduce((s, l) => s + l.qty, 0);
+    const count = items.reduce((s, l) => s + l.qty, 0);
+    $('#cartCount').textContent = count || '';
     $('#cartTotal').textContent = fcfa(cartTotal());
     const saving = cartSaving();
     $('#cartSaving').innerHTML = saving > 0 ? `<span>Vous économisez</span><span>${fcfa(saving)}</span>` : '';
@@ -136,7 +137,14 @@
     if (q) setQty(q.dataset.qty, (state.cart[q.dataset.qty] || 0) + Number(q.dataset.d));
   });
 
-  // ---------- Recherche ----------
+  // ---------- Recherche (panneau sous l'en-tête) ----------
+  const toggleSearch = (open) => {
+    $('#searchForm').hidden = !open;
+    $('#searchToggle').setAttribute('aria-expanded', String(open));
+    if (open) $('#searchInput').focus();
+  };
+  $('#searchToggle').addEventListener('click', () => toggleSearch($('#searchForm').hidden));
+  $('#searchClose').addEventListener('click', () => toggleSearch(false));
   $('#searchForm').addEventListener('submit', (e) => {
     e.preventDefault();
     const q = $('#searchInput').value.trim();
@@ -152,6 +160,7 @@
     }
     links.push(`<a href="#/promos" class="deals-link ${active === 'promos' ? 'active' : ''}">Bonnes affaires</a>`);
     $('#catnav').innerHTML = links.join('');
+    $('#footerShop').innerHTML = UNIVERSES.map((u) => `<li><a href="#/c/${enc(u.name)}">${esc(u.name)}</a></li>`).join('') + '<li><a href="#/promos">Bonnes affaires</a></li>';
   }
 
   // ---------- Composants ----------
@@ -170,18 +179,16 @@
     const d = discount(p);
     return `
       <article class="card">
-        <a href="#/p/${p.id}">
+        <a href="#/p/${p.id}" class="card-link">
           ${visual(p)}</div>
-          ${d ? `<span class="disc">-${d}%</span>` : ''}
+          ${d ? `<span class="disc">-${d} %</span>` : ''}
         </a>
         <div class="card-body">
-          ${p.brand ? `<span class="brand">${esc(p.brand)}</span>` : ''}
+          ${p.condition && p.condition !== 'neuf' ? `<span class="brand">${esc(p.condition === 'reconditionné' ? 'Reconditionné' : 'Occasion')}</span>` : p.featured ? '<span class="brand">Nouveau</span>' : ''}
           <a href="#/p/${p.id}"><h3>${esc(p.name)}</h3></a>
-          ${d ? `<span class="old">${fcfa(p.oldPrice)}</span>` : '<span class="old" style="visibility:hidden">0</span>'}
-          <span class="price">${fcfa(p.price)}</span>
-          <span class="momo-note">Mobile Money · carte</span>
+          <div class="prices"><span class="price">${fcfa(p.price)}</span>${d ? `<span class="old">${fcfa(p.oldPrice)}</span>` : ''}</div>
           ${p.stock > 0 && p.stock <= 6 ? `<span class="stock-low">Plus que ${p.stock} en stock</span>` : ''}
-          <button class="btn cta" data-add="${p.id}" ${p.stock === 0 ? 'disabled' : ''}>${p.stock === 0 ? 'Épuisé' : `${icon('shopping-bag-bold')} Ajouter`}</button>
+          <button class="btn cta small" data-add="${p.id}" ${p.stock === 0 ? 'disabled' : ''}>${p.stock === 0 ? 'Épuisé' : 'Ajouter'}</button>
         </div>
       </article>`;
   }
@@ -194,76 +201,62 @@
     return l;
   }
 
-  function msToMidnight() {
-    const now = new Date(); const end = new Date(now); end.setHours(24, 0, 0, 0);
-    const s = Math.floor((end - now) / 1000);
-    return [Math.floor(s / 3600), Math.floor((s % 3600) / 60), s % 60].map((n) => String(n).padStart(2, '0')).join(':');
-  }
-
   // ---------- Vues ----------
   function viewHome() {
     renderNav(null);
     const deals = [...state.products].filter((p) => discount(p) > 0).sort((a, b) => discount(b) - discount(a)).slice(0, 10);
-    const featured = (u) => state.products.filter((p) => p.universe === u && p.featured).concat(state.products.filter((p) => p.universe === u && !p.featured)).slice(0, 10);
+    const inUniverse = (u) => state.products.filter((p) => p.universe === u);
+    const featured = (u) => inUniverse(u).filter((p) => p.featured).concat(inUniverse(u).filter((p) => !p.featured)).slice(0, 10);
+    const withImg = (list) => list.find((p) => p.image);
+    const heroP = withImg(state.products.filter((p) => p.featured)) || withImg(state.products);
+    const tile = (p, { kicker, title, text, href, cta = 'Acheter', cls = '' }) => `
+      <section class="tile ${cls}">
+        <div class="tile-text">
+          ${kicker ? `<p class="tile-kicker">${esc(kicker)}</p>` : ''}
+          <h2>${title}</h2>
+          <p class="tile-sub">${text}</p>
+          <div class="tile-ctas"><a class="btn cta" href="${href}">${esc(cta)}</a>${p ? `<a class="link-more" href="#/p/${p.id}">En savoir plus ${icon('caret-right')}</a>` : ''}</div>
+        </div>
+        ${p?.image ? `<a class="tile-img" href="#/p/${p.id}"><img src="${esc(p.image)}" alt="${esc(p.name)}" loading="lazy"></a>` : ''}
+      </section>`;
+    const tiles = UNIVERSES.map((u) => {
+      const p = withImg(featured(u.name).filter((x) => x !== heroP));
+      return tile(p, { title: esc(u.name), text: esc(u.categories.slice(0, 4).join(' · ')), href: `#/c/${enc(u.name)}`, cta: 'Découvrir' });
+    });
+    if (deals.length) tiles.push(tile(withImg(deals), { kicker: 'Bonnes affaires', title: `Jusqu'à -${discount(deals[0])} %`, text: 'Des prix réduits sur une sélection de produits.', href: '#/promos', cta: 'Voir les offres' }));
 
     app.innerHTML = `
-      <section class="hero" aria-label="Offres du moment">
-        <div class="slides" id="slides">
-          ${hasUniverse('Électronique') ? `<div class="slide s1">
-            <span class="kicker">Semaine high-tech</span>
-            <h2>iPhone, iPad &amp; MacBook</h2>
-            <span class="big">jusqu'à -11%</span>
-            <a class="btn light" href="#/c/${enc('Électronique')}">J'en profite</a>
-          </div>` : ''}
-          <div class="slide s2">
-            <span class="kicker">Nouveau</span>
-            <h2>Payez comme vous voulez</h2>
-            <span>Mobile Money, carte bancaire ou espèces en agence.</span>
-            <a class="btn promo" href="#/promos">Voir les bonnes affaires</a>
-          </div>
-          ${hasUniverse('Mode') ? `<div class="slide s3">
-            <span class="kicker">Mode</span>
-            <h2>T-shirts, joggings &amp; baskets</h2>
-            <span class="big">dès 4 000 FCFA</span>
-            <a class="btn light" href="#/c/Mode">Découvrir</a>
-          </div>` : ''}
-        </div>
-        <div class="dots" id="dots"></div>
-      </section>
+      ${heroP ? tile(heroP, { kicker: heroP.featured ? 'Nouveau' : 'À la une', title: esc(heroP.name.replace(/^Apple /, '')), text: `À partir de ${fcfa(heroP.price)}. Livré en 24-48 h à Pointe-Noire et Brazzaville.`, href: `#/p/${heroP.id}`, cls: 'hero' }) : ''}
 
-      <div class="reassure">
-        <div><span class="ic">${icon('hand-coins-duotone')}</span><span><b>Paiement facile</b>Mobile Money · carte · espèces</span></div>
-        <div><span class="ic">${icon('truck-duotone')}</span><span><b>Livraison 24-48 h</b>Pointe-Noire · Brazzaville</span></div>
-        <div><span class="ic">${icon('headset-duotone')}</span><span><b>Service client</b>On vous rappelle après la commande</span></div>
-      </div>
+      <div class="tiles">${tiles.join('')}</div>
 
-      <nav class="universes" aria-label="Rayons">
-        ${UNIVERSES.flatMap((u) => u.categories.map((c) => `<a href="#/c/${enc(u.name)}/${enc(c)}"><span class="ic">${catIcon(c)}</span>${esc(c)}</a>`)).join('')}
-      </nav>
-
-      <section class="section deals">
-        <div class="section-head">
-          <h2>${icon('lightning-fill')} Bonnes affaires du jour</h2>
-          <span class="countdown" id="countdown">${msToMidnight()}</span>
-        </div>
-        <div class="rail">${deals.map(card).join('')}</div>
+      <section class="shelf">
+        <h2 class="shelf-title">Tous les rayons.</h2>
+        <nav class="universes" aria-label="Rayons">
+          ${UNIVERSES.flatMap((u) => u.categories.map((c) => `<a href="#/c/${enc(u.name)}/${enc(c)}"><span class="ic">${icon((ICONS[c] || 'shopping-bag-duotone').replace('-duotone', ''))}</span>${esc(c)}</a>`)).join('')}
+        </nav>
       </section>
 
       ${UNIVERSES.map((u) => `
-        <section class="section">
-          <div class="section-head"><h2>${esc(u.name)}</h2><a href="#/c/${enc(u.name)}">Tout voir ›</a></div>
-          <div class="grid">${featured(u.name).map(card).join('')}</div>
-        </section>`).join('')}`;
+        <section class="shelf">
+          <div class="shelf-head"><h2 class="shelf-title">${esc(u.name)}. <span>Les derniers arrivages.</span></h2><a class="link-more" href="#/c/${enc(u.name)}">Tout voir ${icon('caret-right')}</a></div>
+          <div class="rail">${featured(u.name).map(card).join('')}</div>
+        </section>`).join('')}
 
-    // Carrousel
-    const slides = $('#slides'); const n = slides.children.length; let i = 0;
-    const dots = $('#dots');
-    dots.innerHTML = Array.from({ length: n }, (_, k) => `<button aria-label="Offre ${k + 1}" data-slide="${k}"></button>`).join('');
-    const go = (k) => { i = (k + n) % n; slides.style.transform = `translateX(-${i * 100}%)`; [...dots.children].forEach((d, j) => d.classList.toggle('on', j === i)); };
-    dots.addEventListener('click', (e) => { const b = e.target.closest('[data-slide]'); if (b) go(Number(b.dataset.slide)); });
-    go(0);
-    state.timers.push(setInterval(() => go(i + 1), 5000));
-    state.timers.push(setInterval(() => { const c = $('#countdown'); if (c) c.textContent = msToMidnight(); }, 1000));
+      ${deals.length ? `<section class="shelf">
+        <div class="shelf-head"><h2 class="shelf-title">Bonnes affaires. <span>Des prix qui font plaisir.</span></h2><a class="link-more" href="#/promos">Tout voir ${icon('caret-right')}</a></div>
+        <div class="rail">${deals.map(card).join('')}</div>
+      </section>` : ''}
+
+      <section class="shelf">
+        <h2 class="shelf-title">Pourquoi Kamwa. <span>Simple, du choix à la livraison.</span></h2>
+        <div class="reassure">
+          <div><span class="ic">${icon('credit-card')}</span><b>Payez comme vous voulez</b><p>Mobile Money (MTN, Airtel), carte bancaire ou espèces en agence.</p></div>
+          <div><span class="ic">${icon('truck')}</span><b>Livraison en 24-48 h</b><p>À Pointe-Noire et Brazzaville. Autres villes sur demande.</p></div>
+          <div><span class="ic">${icon('storefront')}</span><b>Retrait en agence</b><p>Réservez en ligne, payez et repartez avec votre commande.</p></div>
+          <div><span class="ic">${icon('chat-circle')}</span><b>Un vrai service client</b><p>Nous vous appelons après chaque commande.</p></div>
+        </div>
+      </section>`;
   }
 
   function viewList({ title, crumbs, list, active, chips }) {
@@ -830,10 +823,28 @@
       </div>`;
   }
 
+  // ---------- Pages légales (textes dans /js/legal.js) ----------
+  function viewLegal(key) {
+    renderNav(null);
+    const page = window.KAMWA_LEGAL?.[key];
+    if (!page) return viewHome();
+    app.innerHTML = `
+      <article class="legal">
+        <p class="legal-kicker">Informations légales</p>
+        <h1>${esc(page.title)}</h1>
+        <p class="legal-date">Dernière mise à jour : ${esc(page.updated)}</p>
+        ${page.html}
+        <nav class="legal-nav">${Object.entries(window.KAMWA_LEGAL).map(([k, x]) => `<a href="#/legal/${k}" class="${k === key ? 'on' : ''}">${esc(x.title)}</a>`).join('')}<a href="#/cookies">Gérer les cookies</a></nav>
+      </article>`;
+    const anchor = location.hash.split('#')[2];
+    if (anchor) document.getElementById(anchor)?.scrollIntoView();
+  }
+
   // ---------- Routeur ----------
   function route() {
     state.timers.forEach(clearInterval); state.timers = [];
-    const parts = (location.hash || '#/').slice(2).split('/').map(decodeURIComponent);
+    const parts = (location.hash || '#/').slice(2).split('#')[0].split('/').map(decodeURIComponent);
+    $('#searchForm').hidden = parts[0] !== 'recherche';
     window.scrollTo(0, 0);
     switch (parts[0]) {
       case 'c': return viewCategory(parts[1], parts[2]);
@@ -845,6 +856,8 @@
       case 'compte': return viewAccount(parts[1]);
       case 'suivi': return viewTracking(parts[1]);
       case 'credits': return viewCredits();
+      case 'legal': return viewLegal(parts[1]);
+      case 'cookies': renderNav(null); return window.kamwaConsent?.renderSettings(app);
       default: return viewHome();
     }
   }
@@ -867,6 +880,7 @@
       return;
     }
     renderCart();
+    $('#year').textContent = new Date().getFullYear();
     const last = loadJSON('kamwa-last-order');
     if (last?.id && !tokenOf(last.id)) rememberOrder(last.id, last.token);
     await refreshCustomer();
