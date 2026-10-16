@@ -505,7 +505,7 @@
     document.querySelectorAll('script[type="application/ld+json"]').forEach(function (s) {
       try { (function w(n) { A(n).forEach(function (x) { if (x && typeof x === 'object') { N.push(x); if (x['@graph']) w(x['@graph']); } }); })(JSON.parse(s.textContent)); } catch (e) { /* ignoré */ }
     });
-    var isT = function (x, t) { return A(x['@type']).join(',').indexOf(t) >= 0; };
+    var isT = function (x, t) { return A(x['@type']).join(',').toLowerCase().indexOf(t.toLowerCase()) >= 0; }; // « product » en minuscules (ex. Cdiscount)
     var P = N.filter(function (x) { return isT(x, 'ProductGroup'); })[0] || N.filter(function (x) { return isT(x, 'Product'); })[0];
     if (P) {
       d.n = T(P.name); d.b = T(P.brand && P.brand.name || P.brand); d.de = T(P.description);

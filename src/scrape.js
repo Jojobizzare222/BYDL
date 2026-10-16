@@ -149,6 +149,10 @@ async function readProduct(url) {
   r.category = guessCategory(r.name);
   r.weightKg = WEIGHT[r.category] || 1;
   if (!r.name) throw new Error("Aucune information produit trouvée sur cette page. Vérifiez que le lien mène bien à la page d'UN produit.");
+  // Ni fiche produit, ni prix : le site a probablement renvoyé une page générique (lecture automatique bloquée)
+  if (!prod && r.priceEur == null && !r.options.length) {
+    throw new Error("Ce site n'a pas montré la fiche du produit à Kamwa (lecture automatique bloquée). Utilisez le bouton « → Kamwa » depuis la page du produit (explications juste en dessous).");
+  }
   return r;
 }
 
