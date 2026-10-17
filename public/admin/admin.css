@@ -475,7 +475,6 @@ html[data-theme="light"] .ac-chips .ok { color: #0E7A5A; background: #E1F5EC; } 
 html[data-theme="light"] .id-review .id-photo img { background: #EEE; }
 html[data-theme="light"] .msg-reply .canned button { color: var(--ink); }
 html[data-theme="light"] .share-panel.on { background: #EAF8F1; }
-html[data-theme="light"] .splash { background: radial-gradient(60% 50% at 50% 45%, #FFFFFF 0%, #F3EFFF 60%, #EAE4FF 100%); }
 html[data-theme="light"] .kmap .leaflet-tile-pane { filter: none; }
 
 /* Sélecteur d'apparence (barre latérale) */
