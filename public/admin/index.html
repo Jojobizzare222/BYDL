@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <!-- Apparence (clair / sombre / automatique) appliquée AVANT l'affichage : pas de flash de couleur -->
-  <script>(function(){var k="kamwa-pro-theme",d="dark",m;try{m=localStorage.getItem(k)||d}catch(e){m=d}var q=matchMedia("(prefers-color-scheme: dark)");function a(){var t=m==="auto"?(q.matches?"dark":"light"):m;document.documentElement.setAttribute("data-theme",t);}a();if(q.addEventListener)q.addEventListener("change",function(){if(m==="auto")a()});window.kamwaTheme={mode:function(){return m},set:function(v){m=v;try{localStorage.setItem(k,v)}catch(e){}a();document.dispatchEvent(new CustomEvent("kamwa-theme"))}};})();</script>
+  <script>(function(){var k="kamwa-pro-theme",d="light",m;try{m=localStorage.getItem(k)||d}catch(e){m=d}var q=matchMedia("(prefers-color-scheme: dark)");function a(){var t=m==="auto"?(q.matches?"dark":"light"):m;document.documentElement.setAttribute("data-theme",t);}a();if(q.addEventListener)q.addEventListener("change",function(){if(m==="auto")a()});window.kamwaTheme={mode:function(){return m},set:function(v){m=v;try{localStorage.setItem(k,v)}catch(e){}a();document.dispatchEvent(new CustomEvent("kamwa-theme"))}};})();</script>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#2D1B69">
   <link rel="icon" href="/brand/favicon.svg" type="image/svg+xml">
@@ -114,11 +114,24 @@
   </aside>
   <div class="side-backdrop" id="sideBackdrop"></div>
 
+  <!-- Rail des modules (ordinateur) : généré par admin.js à partir du menu ci-dessus -->
+  <nav class="rail" id="rail" aria-label="Modules" hidden></nav>
+
   <div class="main">
     <header class="mobile-top">
       <button id="menuBtn" aria-label="Ouvrir le menu"><svg class="ico" aria-hidden="true"><use href="/icons.svg?v=12#list-bold"></use></svg></button>
       <img src="/brand/logo-kamwa-clair.svg" alt="Kamwa" width="108" height="26">
       <span class="count" id="todoCountMobile" hidden></span>
+    </header>
+    <!-- Barre du haut : page en cours, onglets du module, recherche, alertes, personne connectée -->
+    <header class="topbar" id="topbar" hidden>
+      <div class="top-left"><span class="top-title" id="topTitle"></span><nav class="pills" id="pills" aria-label="Pages du module"></nav></div>
+      <div class="top-tools">
+        <form class="gsearch" id="gsearch" role="search"><svg class="ico" aria-hidden="true"><use href="/icons.svg?v=12#magnifying-glass-bold"></use></svg><input type="search" id="gsearchInput" placeholder="N° commande, colis, client, article…" aria-label="Rechercher"></form>
+        <a class="top-ico" id="bellTop" href="#/commandes" title="À traiter" hidden><svg class="ico" aria-hidden="true"><use href="/icons.svg?v=12#bell"></use></svg><span class="n" id="bellCount"></span></a>
+        <button class="top-ico" type="button" id="themeTop" title="Apparence"><svg class="ico" aria-hidden="true"><use href="/icons.svg?v=12#sun" id="themeTopIco"></use></svg></button>
+        <a class="user-chip" href="#/mot-de-passe" id="userChip" title="Mon compte"><span class="av" id="userAv"></span><span><b id="userName"></b><small id="userRole"></small></span></a>
+      </div>
     </header>
     <main id="app"></main>
   </div>

@@ -160,26 +160,27 @@
 
     // Raccourcis du bandeau d'accueil, selon le rôle
     const quick = [];
-    if (CAN.products()) quick.push(`<a class="btn light" href="#/produit/nouveau">${icon('plus-bold')} Ajouter un produit</a>`);
-    if (CAN.admin() || state.user?.role === 'catalog') quick.push(`<a class="btn light" href="#/achats">${icon('clipboard-text')} Achats fournisseurs</a>`);
-    if (CAN.supplier()) quick.push(`<a class="btn light" href="#/bons-de-commande">${icon('clipboard-text')} Bons de commande</a>`);
-    if (CAN.orders()) quick.push(`<a class="btn glass" href="#/commandes">${icon('receipt-duotone')} Voir les commandes</a>`);
-    if (CAN.supplier()) quick.push(`<a class="btn glass" href="#/fournisseur">${icon('receipt-duotone')} Mes commandes</a>`);
-    if (CAN.courier()) quick.push(`<a class="btn light" href="#/livraisons">${icon('truck-duotone')} Mes livraisons</a>`);
-    if (CAN.agent()) quick.push(`<a class="btn light" href="#/agent">${icon('airplane-tilt')} Achats à traiter</a>`);
-    if (CAN.orders()) quick.push(`<a class="btn glass" href="#/france">${icon('airplane-tilt')} Devis Europe</a>`);
+    if (CAN.products()) quick.push(`<a class="btn" href="#/produit/nouveau">${icon('plus-bold')} Ajouter un produit</a>`);
+    if (CAN.admin() || state.user?.role === 'catalog') quick.push(`<a class="ghost" href="#/achats">${icon('clipboard-text')} Achats fournisseurs</a>`);
+    if (CAN.supplier()) quick.push(`<a class="ghost" href="#/bons-de-commande">${icon('clipboard-text')} Bons de commande</a>`);
+    if (CAN.orders()) quick.push(`<a class="ghost" href="#/commandes">${icon('receipt-duotone')} Commandes</a>`);
+    if (CAN.orders()) quick.push(`<a class="ghost" href="#/colis">${icon('package')} Colis</a>`);
+    if (CAN.supplier()) quick.push(`<a class="ghost" href="#/fournisseur">${icon('receipt-duotone')} Mes commandes</a>`);
+    if (CAN.courier()) quick.push(`<a class="btn" href="#/livraisons">${icon('truck-duotone')} Mes livraisons</a>`);
+    if (CAN.courier()) quick.push(`<a class="ghost" href="#/scanner">${icon('camera-bold')} Scanner un colis</a>`);
+    if (CAN.agent()) quick.push(`<a class="btn" href="#/agent">${icon('airplane-tilt')} Achats à traiter</a>`);
+    if (CAN.orders()) quick.push(`<a class="ghost" href="#/france">${icon('airplane-tilt')} Devis Europe</a>`);
     const today = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
     app.innerHTML = `
-      <section class="dash-hero">
-        <span class="deco o1"></span><span class="deco o2"></span><span class="deco o3"></span><span class="hero-spark"></span>
-        <div class="hero-text">
+      <section class="dash-top">
+        <div>
           <p class="hero-date">${esc(today.charAt(0).toUpperCase() + today.slice(1))}</p>
           <h1>Bonjour ${esc(who)}</h1>
-          <p>${d.role === 'catalog' ? 'Voici où en est le catalogue.' : `Voici l'activité des ${days} derniers jours.`}</p>
-          <div class="hero-actions">${quick.join('')}</div>
+          <p class="muted">${d.role === 'catalog' ? 'Voici où en est le catalogue.' : `Voici l'activité des ${days} derniers jours.`}</p>
         </div>
-        ${period ? `<div class="hero-side">${period}</div>` : ''}
-      </section>`
+        ${period || ''}
+      </section>
+      <div class="quick">${quick.join('')}</div>`
       + `<div class="kpis">${d.kpis.map((k, i) => `<div class="kpi kc${i % 4}"><span class="kpi-ico">${icon(k.icon)}</span><span class="kpi-label">${esc(k.label)}</span><span class="kpi-value">${k.format === 'fcfa' ? fcfa(k.value) : new Intl.NumberFormat('fr-FR').format(k.value)}</span>${k.hint ? `<span class="kpi-hint">${esc(k.hint)}</span>` : ''}</div>`).join('')}</div>`
       + (todo.length ? `<div class="todo">${todo.join('')}</div>` : '')
       + `<div class="dash-grid">${cards.join('')}</div>`;
@@ -2697,6 +2698,79 @@
   }
   document.addEventListener('click', (e) => { const b = e.target.closest('[data-theme-set]'); if (b) { window.kamwaTheme?.set(b.dataset.themeSet); renderProTheme(); if (state.user && !proBusy()) route({ keep: true }); } });
   renderProTheme();
+  // Bouton Apparence de la barre du haut : clair → sombre → auto
+  $('#themeTop')?.addEventListener('click', () => {
+    const m = window.kamwaTheme?.mode() || 'light';
+    window.kamwaTheme?.set(m === 'light' ? 'dark' : m === 'dark' ? 'auto' : 'light');
+    renderProTheme(); renderTopbar(); if (state.user && !proBusy()) route({ keep: true });
+  });
+
+  // ---------- Rail des modules + onglets du module (structure ERP : menu à gauche, pages du module en haut) ----------
+  const MODULE_ICONS = { 'Ventes': 'receipt-duotone', 'Achat en Europe': 'airplane-tilt-duotone', 'Catalogue': 'package-duotone', 'Livraison': 'truck-duotone', 'Gestion': 'wallet-duotone', 'Équipe': 'users-three-duotone' };
+  const ROLE_LABELS = { admin: 'Administrateur', catalog: 'Catalogue', orders: 'Commandes', supplier: 'Fournisseur', courier: 'Livreur', agent: 'Agent Europe' };
+  const linkInfo = (a) => {
+    const c = a.cloneNode(true); c.querySelectorAll('.count').forEach((x) => x.remove());
+    const use = a.querySelector('use'); const cnt = a.querySelector('.count');
+    return { tab: a.dataset.tab, href: a.getAttribute('href'), label: c.textContent.replace(/\s+/g, ' ').trim(), icon: use ? use.getAttribute('href').split('#')[1] : 'squares-four', on: a.classList.contains('on'), count: cnt && !cnt.hidden ? cnt.textContent : '' };
+  };
+  function navModel() {
+    const groups = []; let cur = null;
+    for (const el of $('.side-nav').children) {
+      if (el.hidden) continue;
+      if (el.classList.contains('side-title')) { cur = { title: el.textContent.trim(), icon: MODULE_ICONS[el.textContent.trim()] || 'squares-four', links: [] }; groups.push(cur); }
+      else if (el.matches('a[data-tab]')) { const l = linkInfo(el); if (cur) cur.links.push(l); else groups.push({ title: l.label, icon: l.icon, links: [l], single: true }); }
+    }
+    return groups.filter((g) => g.links.length);
+  }
+  function renderRail() {
+    if (!state.user) return;
+    const groups = navModel();
+    const active = groups.find((g) => g.links.some((l) => l.on)) || null;
+    $('#rail').innerHTML = `<a class="rail-logo" href="#/tableau" title="Kamwa Pro"><img src="/brand/symbole-kamwa.svg" alt="Kamwa" width="34" height="34"></a>
+      ${groups.map((g) => { const n = g.links.reduce((s, l) => s + (parseInt(l.count, 10) || 0), 0); return `<a class="rail-item ${g === active ? 'on' : ''}" href="${esc(g.links[0].href)}" title="${esc(g.title)}">${icon(g.icon)}<span>${esc(g.title)}</span>${n ? `<i class="n">${n}</i>` : ''}</a>`; }).join('')}
+      <div class="rail-foot">
+        <a class="rail-item" href="/" target="_blank" rel="noopener" title="Voir la boutique">${icon('arrow-square-out-bold')}<span>Boutique</span></a>
+        <button class="rail-item" type="button" id="railLogout" title="Quitter">${icon('sign-out-bold')}<span>Quitter</span></button>
+      </div>`;
+    $('#railLogout').addEventListener('click', () => $('#logoutBtn').click());
+    const links = active && !active.single ? active.links : [];
+    $('#pills').innerHTML = links.length > 1 ? links.map((l) => `<a class="pill ${l.on ? 'on' : ''}" href="${esc(l.href)}">${esc(l.label)}${l.count ? ` <i class="n">${esc(l.count)}</i>` : ''}</a>`).join('') : '';
+    const page = (active ? active.links.find((l) => l.on) : null);
+    $('#topTitle').textContent = active ? (active.single ? active.title : `${active.title}${page ? ' › ' + page.label : ''}`) : 'Kamwa Pro';
+    $('#rail').hidden = false; $('#topbar').hidden = false;
+  }
+  function renderTopbar() {
+    if (!state.user) return;
+    const u = state.user;
+    $('#userAv').textContent = (u.name || 'K').trim().charAt(0).toUpperCase();
+    $('#userName').textContent = u.name;
+    $('#userRole').textContent = u.company || ROLE_LABELS[u.role] || u.role;
+    const m = window.kamwaTheme?.mode() || 'light';
+    $('#themeTopIco').setAttribute('href', `/icons.svg?v=12#${m === 'dark' ? 'moon' : m === 'auto' ? 'circle-half' : 'sun'}`);
+    $('#themeTop').title = `Apparence : ${m === 'dark' ? 'sombre' : m === 'auto' ? 'automatique' : 'claire'} (cliquer pour changer)`;
+    const todo = $('#todoCount'); const chat = $('#chatCount');
+    const n = (todo && !todo.hidden ? parseInt(todo.textContent, 10) || 0 : 0) + (chat && !chat.hidden ? parseInt(chat.textContent, 10) || 0 : 0);
+    $('#bellTop').hidden = !n; $('#bellCount').textContent = n;
+    $('#bellTop').href = todo && !todo.hidden ? '#/commandes' : '#/messagerie';
+    $('#userChip').href = CAN.admin() ? '#/reglages' : '#/mot-de-passe';
+  }
+  // Le rail suit le menu (pastilles, rôle, page active) sans y toucher à la main
+  new MutationObserver(() => { if (state.user) { renderRail(); renderTopbar(); } }).observe($('.side-nav'), { subtree: true, attributes: true, childList: true, characterData: true });
+  // Recherche globale : numéro de commande / colis / bon / document, téléphone, sinon produits
+  $('#gsearch').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const q = $('#gsearchInput').value.trim(); if (!q) return;
+    const go = (tableId, hash) => { tableState[tableId] = { ...(tableState[tableId] || { sort: null, dir: -1 }), q }; location.hash = hash; if (location.hash === hash) route(); };
+    if (/^CMD-/i.test(q) && CAN.orders()) location.hash = '#/commande/' + enc(q.toUpperCase());
+    else if (/^KM-/i.test(q) && (CAN.orders() || CAN.courier())) location.hash = '#/colis/' + enc(q.toUpperCase());
+    else if (/^(BC|PO)-/i.test(q) && (CAN.admin() || state.user.role === 'catalog')) go('purchases', '#/achats');
+    else if (/^(FA|RC|AV)-/i.test(q) && CAN.orders()) go('documents', '#/documents');
+    else if (/^\+?\d[\d ]{6,}$/.test(q) && CAN.admin()) go('customers', '#/clients');
+    else if (/^\+?\d[\d ]{6,}$/.test(q) && CAN.orders()) go('orders', '#/commandes');
+    else if (CAN.products()) go('products', '#/produits');
+    else if (CAN.orders()) go('orders', '#/commandes');
+    $('#gsearchInput').value = '';
+  });
 
   // ---------- Agent Tendances (admin) ----------
   const VERDICT = { integrate: ['À intégrer', 'ok'], watch: ['À surveiller', 'warn'], avoid: ['À éviter', 'danger'] };
@@ -2884,6 +2958,7 @@
     if (!allowed[page]?.()) [page, id] = homeHash().slice(2).split('/');
     const tab = page.startsWith('produit') ? 'produits' : page === 'commande' ? 'commandes' : page === 'achat' ? 'achats' : page;
     document.querySelectorAll('[data-tab]').forEach((a) => a.classList.toggle('on', a.dataset.tab === tab));
+    if (state.user) renderRail();
     if (page === 'messagerie') return viewMessaging(id);
     if (page === 'tendances') return viewTrends();
     if (page === 'documents') return viewDocuments();
@@ -2925,6 +3000,7 @@
     document.body.classList.add('logged');
     $('#whoami').textContent = state.user.name + (state.user.company ? ` · ${state.user.company}` : '');
     $('#top').hidden = false;
+    renderTopbar(); renderRail();
     renderSoundBtn();
     if (state.user.mustChangePassword) location.hash = '#/mot-de-passe';
     route();
