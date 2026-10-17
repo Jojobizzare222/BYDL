@@ -52,8 +52,13 @@ router.get('/events', (req, res) => {
       return null;
     }
     if (col === 'products') return ['admin', 'catalog'].includes(role) || (role === 'supplier' && (doc.supplierId === u.id)) ? { topic: 'products', id: doc.id } : null;
-    if (col === 'conversations') return doc.kind === 'team' ? (role !== 'supplier' ? { topic: 'team' } : null) : ordersRole ? { topic: 'chat', id: doc.id } : null;
+    if (col === 'conversations') {
+      if (doc.kind === 'team') return role !== 'supplier' ? { topic: 'team' } : null;
+      if (doc.kind === 'supplier') return (role === 'supplier' ? doc.supplierId === u.id : ['admin', 'orders', 'catalog'].includes(role)) ? { topic: 'chat', id: doc.id } : null;
+      return ordersRole ? { topic: 'chat', id: doc.id } : null;
+    }
     if (col === 'customers') return role === 'admin' ? { topic: 'customers', id: doc.id } : null;
+    if (col === 'reviews') return ['admin', 'catalog'].includes(role) ? { topic: 'reviews' } : null;
     if (col === 'agencies') return role === 'admin' ? { topic: 'agencies' } : null;
     if (col === 'ledger') return role === 'admin' ? { topic: 'finance' } : null;
     if (col === 'documents') return ordersRole ? { topic: 'documents', id: doc.orderId } : null;
@@ -409,7 +414,19 @@ router.get('/courier/deliveries', requireRole('courier'), (req, res) => {
   const current = mine.filter((o) => o.status === 'shipped').sort((a, b) => ((a.planned?.date || '9') + (a.planned?.slot === 'morning' ? 'a' : a.planned?.slot === 'afternoon' ? 'b' : 'c') + a.assignedAt).localeCompare((b.planned?.date || '9') + (b.planned?.slot === 'morning' ? 'a' : b.planned?.slot === 'afternoon' ? 'b' : 'c') + b.assignedAt));
   const done = mine.filter((o) => o.status === 'delivered' && o.deliveredBy === req.user.id).sort((a, b) => (a.deliveredAt < b.deliveredAt ? 1 : -1)).slice(0, 20);
   const cashHeld = mine.filter((o) => o.cashHeldBy === req.user.id && !o.cashRemittedAt).reduce((n, o) => n + (o.balance || 0), 0);
-  res.json({ current: current.map(courierView), done: done.map(courierView), cashHeld, failReasons: delivery.FAIL_REASONS });
+  // Résumé de la journée (heure du Congo) : à faire, livrées, ratées, encaissé (audit 17/10/2026)
+  const today = delivery.todayCongo();
+  const dayOf = (iso) => (iso ? new Date(new Date(iso).toLocaleString('en-US', { timeZone: 'Africa/Brazzaville' })).toLocaleDateString('en-CA') : '');
+  const deliveredToday = orders.all().filter((o) => o.deliveredBy === req.user.id && dayOf(o.deliveredAt) === today);
+  const collectedToday = (m) => deliveredToday.filter((o) => o.balancePaid?.method === m).reduce((n, o) => n + (o.balance || 0), 0);
+  const summary = {
+    toDo: current.filter((o) => !o.planned || o.planned.date <= today).length,
+    later: current.filter((o) => o.planned && o.planned.date > today).length,
+    delivered: deliveredToday.length,
+    failed: orders.all().reduce((n, o) => n + (o.attempts || []).filter((a) => a.by === req.user.id && dayOf(a.at) === today).length, 0),
+    cash: collectedToday('cash'), momo: collectedToday('momo'),
+  };
+  res.json({ current: current.map(courierView), done: done.map(courierView), cashHeld, summary, failReasons: delivery.FAIL_REASONS });
 });
 const myDelivery = (req, res) => {
   const o = orders.get(req.params.id);
@@ -528,6 +545,33 @@ router.post('/customers/:id/identity', requireRole(), (req, res) => {
   require('../push').notifyCustomer(customer.id, decision === 'verify' ? 'Identité vérifiée ✓' : 'Pièce d\'identité refusée', decision === 'verify' ? 'Votre compte Kamwa est vérifié : vous pouvez commander.' : `Motif : ${reason}. Envoyez une nouvelle photo depuis votre compte.`);
   log(req, decision === 'verify' ? "Pièce d'identité vérifiée" : "Pièce d'identité refusée", { id: customer.id, name: customer.name }, decision === 'reject' ? reason : identity.ID_TYPES[customer.idType]);
   res.json({ ...customerAuth.publicCustomer(updated), idCheckedBy: updated.idCheckedBy });
+});
+
+// ---------- Avis clients : consultation et modération [admin, catalog] ----------
+router.get('/reviews', requireRole('catalog'), (req, res) => {
+  const { reviews } = require('../store');
+  const list = reviews.all().sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1)).map((r) => ({
+    ...require('../reviews').publicReview(r), productId: r.productId, productName: products.get(r.productId)?.name || 'Produit supprimé', orderId: r.orderId, hidden: Boolean(r.hidden), hiddenBy: r.hiddenBy || null,
+  }));
+  res.json(list);
+});
+router.patch('/reviews/:id', requireRole('catalog'), (req, res) => {
+  const { reviews } = require('../store');
+  const r = reviews.get(req.params.id);
+  if (!r) return res.status(404).json({ error: 'Avis introuvable' });
+  const hidden = Boolean(req.body?.hidden);
+  const u = reviews.update(r.id, { hidden, hiddenBy: hidden ? req.user.name : null, hiddenAt: hidden ? new Date().toISOString() : null });
+  log(req, hidden ? 'Avis masqué' : 'Avis réaffiché', { id: r.productId, name: products.get(r.productId)?.name || r.productId }, `${r.rating}/5 · ${r.name}`);
+  res.json({ id: u.id, hidden: u.hidden });
+});
+
+// ---------- Frais de livraison par ville / quartier (admin) ----------
+router.get('/settings/fees', requireRole(), (req, res) => res.json(require('../fees').feeSettings()));
+router.put('/settings/fees', requireRole(), (req, res) => {
+  const r = require('../fees').saveFeeSettings(req.body || {});
+  if (r.error) return res.status(400).json({ error: r.error });
+  log(req, 'Frais de livraison modifiés', null, r.value.cities.map((c) => `${c.city} ${c.fee}`).join(' · '));
+  res.json(r.value);
 });
 
 // ---------- Règles de vente : compte vérifié obligatoire, moyens de paiement (admin) ----------
@@ -740,8 +784,32 @@ router.get('/supplier/orders', requireRole('supplier'), (req, res) => {
       fulfillment: o.fulfillment || 'delivery',
       history: o.history || [],
       lines: lines.map((l) => ({ productId: l.productId, name: l.name, qty: l.qty, supplierPrice: products.get(l.productId)?.supplierPrice ?? null })),
+      ready: o.supplierReady?.[req.user.id] || null,
     }));
   res.json({ orders: list, statusLabels: STATUS_LABELS });
+});
+
+// Le fournisseur signale que SES articles d'une commande sont prêts à être récupérés par Kamwa (ou annule le signal).
+// Message automatique dans son fil avec Kamwa ; affiché sur la fiche commande et dans « À faire ».
+router.post('/supplier/orders/:id/ready', requireRole('supplier'), (req, res) => {
+  if (req.user.role !== 'supplier') return res.status(403).json({ error: 'Réservé aux fournisseurs' });
+  const o = orders.get(req.params.id);
+  const mine = o && o.lines.filter((l) => products.get(l.productId)?.supplierId === req.user.id);
+  if (!o || !mine.length) return res.status(404).json({ error: 'Commande introuvable' });
+  if (!['paid', 'confirmed'].includes(o.status)) return res.status(409).json({ error: 'Cette commande n\'est plus à préparer' });
+  const ready = req.body?.ready !== false;
+  const note = String(req.body?.note || '').trim().slice(0, 300);
+  const all = { ...(o.supplierReady || {}) };
+  if (ready) all[req.user.id] = { at: new Date().toISOString(), by: req.user.company || req.user.name, note };
+  else delete all[req.user.id];
+  const updated = orders.update(o.id, { supplierReady: all });
+  const chat = require('../chat');
+  const items = mine.map((l) => `${l.qty} × ${l.name}`).join(', ');
+  const r = chat.addMessage(chat.supplierThread(req.user), { from: 'supplier', staffName: req.user.company || req.user.name, userId: req.user.id, auto: true,
+    text: ready ? `Commande ${o.id} prête à récupérer : ${items}.${note ? `\n${note}` : ''}` : `Commande ${o.id} : finalement pas encore prête.` });
+  require('../store').conversations.update(r.conv.id, { unreadStaff: (r.conv.unreadStaff || 0) + 1 });
+  log(req, ready ? 'Articles prêts à récupérer' : 'Articles plus prêts', { id: o.id, name: o.id }, items);
+  res.json({ id: o.id, ready: updated.supplierReady[req.user.id] || null });
 });
 
 // ---------- Équipe et fournisseurs (admin uniquement) ----------
@@ -901,6 +969,8 @@ router.get('/stats', (req, res) => {
     toCall: allOrders.filter((o) => ['paid', 'confirmed'].includes(o.status) && o.fulfillment !== 'pickup' && !o.callConfirmedAt).length,
     toPlan: allOrders.filter((o) => ['paid', 'confirmed'].includes(o.status) && o.fulfillment !== 'pickup' && !o.planned).length,
     messages: require('../store').conversations.all().filter((c) => c.kind === 'support' && c.status === 'open').length,
+    supplierReady: allOrders.filter((o) => ['paid', 'confirmed'].includes(o.status) && Object.keys(o.supplierReady || {}).length).length,
+    supplierMessages: require('../store').conversations.all().filter((c) => c.kind === 'supplier' && c.unreadStaff > 0).length,
   };
   out.todo = todo;
   out.byStatus = countBy(allOrders.filter((o) => Date.parse(o.createdAt) >= since), (o) => STATUS_LABELS[o.status] || o.status);

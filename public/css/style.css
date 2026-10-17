@@ -1064,3 +1064,43 @@ body[data-route="commande"] .chat-fab, body[data-route="p"] .chat-fab, body[data
 /* Rangées qui défilent : fondu à droite tant qu'il reste des éléments à voir */
 .scroll-more { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 40px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 40px), transparent); }
 @media (max-width: 900px) { .buybar { transition: transform .25s ease, opacity .25s; } .buybar.off { transform: translateY(110%); opacity: 0; pointer-events: none; visibility: hidden; } }
+.ok-txt { color: var(--ok); font-weight: 600; }
+#zoneBox select { margin-bottom: 0; }
+
+/* ---------- Avis clients (priorité 3) ---------- */
+.stars { display: inline-flex; gap: 1px; vertical-align: middle; }
+.stars i { width: 13px; height: 13px; background: var(--line); clip-path: polygon(50% 0, 61.8% 35.4%, 100% 35.4%, 69.1% 57.3%, 80.9% 92.7%, 50% 70.8%, 19.1% 92.7%, 30.9% 57.3%, 0 35.4%, 38.2% 35.4%); }
+.stars i.on { background: var(--mango); }
+.stars i.half { background: linear-gradient(90deg, var(--mango) 50%, var(--line) 50%); }
+.stars.lg i { width: 20px; height: 20px; }
+.rating { display: inline-flex; align-items: center; gap: 6px; margin: 2px 0 4px; }
+.rating small { color: var(--muted); font-size: .8rem; }
+.pdp-meta { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin: -4px 0 10px; }
+.rating-link { text-decoration: none; color: inherit; }
+.share-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; min-height: 40px; border: 1.5px solid var(--line); border-radius: 999px; background: var(--paper); color: var(--ink); font: inherit; font-size: .88rem; cursor: pointer; }
+.share-btn:hover { border-color: var(--brand-2); }
+.reviews { margin: 34px 0 10px; }
+.reviews h2 { margin-bottom: 14px; }
+.rv-sum { display: flex; gap: 28px; align-items: center; flex-wrap: wrap; padding: 18px; background: var(--paper); border: 1px solid var(--line-soft); border-radius: var(--radius); margin-bottom: 16px; }
+.rv-avg { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.rv-avg b { font-size: 2.4rem; line-height: 1; font-weight: 600; }
+.rv-avg small { color: var(--muted); }
+.rv-dist { flex: 1; min-width: 220px; display: grid; gap: 4px; }
+.rv-dist > div { display: grid; grid-template-columns: 38px 1fr 28px; align-items: center; gap: 8px; font-size: .85rem; }
+.rv-dist span { display: inline-flex; align-items: center; gap: 3px; color: var(--muted); } .rv-dist span .ico { color: var(--mango); font-size: .8rem; }
+.rv-dist i { height: 8px; border-radius: 99px; background: var(--soft); overflow: hidden; } .rv-dist i b { display: block; height: 100%; background: var(--mango); border-radius: 99px; }
+.rv-dist small { color: var(--muted); text-align: right; }
+.rv { padding: 14px 0; border-bottom: 1px solid var(--line-soft); }
+.rv-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.rv-head small { color: var(--muted); margin-left: auto; }
+.rv p { margin: 8px 0 0; line-height: 1.55; }
+.verified { display: inline-flex; align-items: center; gap: 4px; color: var(--ok); font-size: .8rem; font-weight: 600; }
+.review-form { margin-bottom: 18px; max-width: 620px; }
+.review-form h3 { margin: 0 0 8px; }
+.star-pick { display: inline-flex; flex-direction: row-reverse; gap: 4px; margin: 2px 0 12px; }
+.star-pick label { cursor: pointer; padding: 4px; margin: 0; }
+.star-pick input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.star-pick i { display: block; width: 32px; height: 32px; background: var(--line); clip-path: polygon(50% 0, 61.8% 35.4%, 100% 35.4%, 69.1% 57.3%, 80.9% 92.7%, 50% 70.8%, 19.1% 92.7%, 30.9% 57.3%, 0 35.4%, 38.2% 35.4%); transition: background .15s; }
+.star-pick input:checked ~ i, .star-pick label:has(input:checked) ~ label i, .star-pick label:hover i, .star-pick label:hover ~ label i { background: var(--mango); }
+.star-pick input:focus-visible + i { outline: 2px solid var(--brand-2); outline-offset: 2px; }
+.rv-link { display: inline-flex; align-items: center; gap: 4px; font-size: .85rem; color: var(--link); margin-top: 4px; } .rv-link .ico { color: var(--mango); }

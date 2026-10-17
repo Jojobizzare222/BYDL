@@ -102,5 +102,6 @@ module.exports = {
   stockMoves: createCollection('stock_moves'), // mouvements de stock : réceptions, ventes, annulations, corrections, inventaires
   parcels: createCollection('parcels'), // colis : numéro KM-…, étapes (préparé, livreur, point relais, remis), historique des scans
   documents: createCollection('documents'), // factures (FA-), reçus (RC-), avoirs (AV-) : numérotés, jamais modifiés ni supprimés
+  reviews: createCollection('reviews'), // avis clients : note + commentaire, seulement après une commande livrée
   ledger: createCollection('ledger'), // finances : dépenses, autres entrées, transferts entre caisses (les ventes viennent des commandes)
 };

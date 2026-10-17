@@ -2,7 +2,7 @@
 // Ces comptes sont PUBLICS (affichés sur la page de connexion de la démo) et n'existent jamais sur la vraie boutique.
 const crypto = require('crypto');
 const config = require('./config');
-const { settings, staff, products, orders, payments, ledger, agencies } = require('./store');
+const { settings, staff, products, orders, payments, ledger, agencies, reviews } = require('./store');
 const { hashPassword } = require('./admin/auth');
 
 const DEMO_PASSWORD = 'demo-kamwa';
@@ -92,6 +92,12 @@ function seed() {
   entry(9, 'expense', 'delivery', 12000, 'cash', 'Carburant livreur');
   entry(6, 'transfer', 'transfer', 200000, 'bank', 'Retrait pour la caisse', { toMethod: 'cash' });
   entry(3, 'expense', 'supplier', 15000, 'momo', 'Acompte Mode Congo', { supplierId: sup });
+
+  // Avis clients d'exemple (identifiants fixes : identiques dans chaque copie du serveur)
+  const rv = (id, productId, rating, name, text, n) => products.get(productId) && reviews.insert({ id, productId, customerId: 'C-DEMO', orderId: 'CMD-DEMO-0000', rating, text, name, hidden: false, createdAt: new Date(Date.now() - n * 864e5).toISOString(), demo: true });
+  rv('AV-DEMO-01', 'a020', 5, 'Grâce M.', 'Reçu en 24 h à Pointe-Noire, téléphone neuf et bien emballé. Le livreur a appelé avant de passer.', 6);
+  rv('AV-DEMO-02', 'a020', 4, 'Junior K.', 'Bon rapport qualité-prix. Retrait au point relais très simple.', 3);
+  rv('AV-DEMO-03', 'a018', 5, 'Prisca N.', 'Conforme à la description. Je recommande Kamwa.', 2);
 
   settings.set('demo_seeded', now);
   console.log('[démo] comptes et données d\'exemple créés');

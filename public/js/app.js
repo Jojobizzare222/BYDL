@@ -56,6 +56,17 @@
   new MutationObserver(() => requestAnimationFrame(markScrollers)).observe(document.getElementById('app'), { childList: true });
   // Numéro congolais (9 chiffres commençant par 0, avec ou sans +242), comme le serveur
   const localPhone = (v) => { let d = String(v || '').replace(/\D/g, ''); if (d.startsWith('00')) d = d.slice(2); if (d.startsWith('242') && d.length === 12) d = d.slice(3); return /^0\d{8}$/.test(d) ? d : null; };
+  // Frais de livraison (réglés dans Kamwa Pro, envoyés par /api/config) : villes, quartiers, livraison offerte
+  const feeCfg = () => state.config?.deliveryFees || { cities: [{ city: 'Pointe-Noire', fee: 0, zones: [] }, { city: 'Brazzaville', fee: 0, zones: [] }], other: { allowed: true, fee: 0 }, freeFrom: 0 };
+  const normCity = (s) => String(s || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const cityFees = (city) => feeCfg().cities.find((c) => normCity(c.city) === normCity(city));
+  const deliveryCities = () => [...feeCfg().cities.map((c) => c.city), ...(feeCfg().other.allowed ? ['Autre ville'] : [])];
+  function deliveryFee(city, zone, subtotal) {
+    const cfg = feeCfg(), c = cityFees(city);
+    const f = c ? (zone ? c.zones.find((z) => normCity(z.name) === normCity(zone))?.fee : undefined) ?? c.fee : cfg.other.allowed ? cfg.other.fee : null;
+    if (f == null) return null;
+    return cfg.freeFrom > 0 && subtotal >= cfg.freeFrom ? 0 : f;
+  }
   // Erreurs de formulaire : message SOUS chaque champ fautif, curseur placé sur le premier (audit 17/10/2026)
   function fieldErrors(form, list) {
     form.querySelectorAll('.field-err').forEach((e) => e.remove());
@@ -280,6 +291,7 @@
   // Ville de livraison (en-tête) : retenue pour pré-remplir la commande
   function renderDeliverCity() {
     const city = loadJSON('kamwa-customer')?.city || 'Pointe-Noire';
+    if (state.config?.deliveryFees) $('#deliverSelect').innerHTML = [...new Set([...deliveryCities(), city])].map((c) => `<option>${esc(c)}</option>`).join('');
     $('#deliverCity').textContent = city;
     $('#deliverSelect').value = city;
   }
@@ -444,6 +456,13 @@
   // Confirmation d'ajout au panier (message + accès direct au panier)
   const added = () => toast('Ajouté au panier ✓', { label: 'Voir le panier', run: openDrawer });
 
+  // Étoiles des avis clients (note sur 5, demi-étoile arrondie à l'affichage)
+  const stars = (n, cls = '') => `<span class="stars ${cls}" aria-label="${String(n).replace('.', ',')} sur 5">${[1, 2, 3, 4, 5].map((i) => `<i class="${n >= i - 0.25 ? 'on' : n >= i - 0.75 ? 'half' : ''}"></i>`).join('')}</span>`;
+  const famRating = (family) => {
+    const r = family.filter((x) => x.rating); const count = r.reduce((n, x) => n + x.rating.count, 0);
+    return count ? { avg: Math.round((r.reduce((n, x) => n + x.rating.avg * x.rating.count, 0) / count) * 10) / 10, count } : null;
+  };
+  const ratingLine = (r) => (r ? `<span class="rating">${stars(r.avg)}<small>${String(r.avg).replace('.', ',')} (${r.count})</small></span>` : '');
   function card(p, family = [p]) {
     const multi = family.length > 1;
     const d = discount(p);
@@ -458,6 +477,7 @@
         <div class="card-body">
           <div class="card-tag">${tag}</div>
           <a href="#/p/${p.id}"><h3>${esc(multi ? familyName(p) : p.name)}</h3></a>
+          ${ratingLine(famRating(family))}
           ${multi ? `<div class="swatches" aria-label="${family.length} couleurs">${family.slice(0, 6).map((x) => `<i style="background:${colorOf(x)?.hex || '#ccc'}" title="${esc(colorOf(x)?.label || '')}"></i>`).join('')}<small>${family.length} couleurs</small></div>` : ''}
           <div class="prices"><span class="price">${multi && family.some((x) => x.price !== p.price) ? 'dès ' : ''}${fcfa(multi ? Math.min(...family.map((x) => x.price)) : p.price)}</span><span class="old">${d && !multi ? fcfa(p.oldPrice) : ''}</span></div>
           <span class="stock-low">${!multi && p.stock > 0 && p.stock <= 6 ? `${icon('fire')} Plus que ${p.stock} en stock` : ''}</span>
@@ -743,6 +763,40 @@
       </div>`;
   }
 
+  // Avis clients de la fiche produit (+ formulaire pour un client qui a reçu ce produit)
+  async function loadReviews(p) {
+    const box = $('#reviews'); if (!box) return;
+    let d;
+    try { d = await api('/products/' + enc(p.id) + '/reviews'); } catch { box.remove(); return; }
+    if (!box.isConnected) return;
+    const mine = d.mine;
+    const formHtml = mine?.can ? `
+      <form class="review-form panel" id="reviewForm">
+        <h3>${mine.review ? 'Modifier mon avis' : 'Donner mon avis'}</h3>
+        <div class="star-pick" role="radiogroup" aria-label="Votre note">${[5, 4, 3, 2, 1].map((n) /* ordre inversé + row-reverse : survol et choix colorent les étoiles de gauche */ => `<label><input type="radio" name="rating" value="${n}" ${mine.review?.rating === n ? 'checked' : ''}><i title="${n} sur 5"></i></label>`).join('')}</div>
+        <label for="rvText">Votre commentaire <span class="hint">(facultatif)</span></label>
+        <textarea id="rvText" rows="3" maxlength="1000" placeholder="Qualité, livraison, conformité…">${esc(mine.review?.text || '')}</textarea>
+        <div id="rvMsg"></div>
+        <button class="btn cta">${mine.review ? 'Mettre à jour' : 'Publier mon avis'}</button>
+        <p class="hint">Publié avec votre prénom et l'initiale de votre nom.</p>
+      </form>` : '';
+    if (!d.count && !formHtml) { box.innerHTML = `<h2>Avis clients</h2><p class="hint">Pas encore d'avis. Seuls les clients qui ont reçu ce produit peuvent en donner un.</p>`; return; }
+    box.innerHTML = `
+      <h2>Avis clients</h2>
+      ${d.count ? `<div class="rv-sum"><div class="rv-avg"><b>${String(d.avg).replace('.', ',')}</b>${stars(d.avg, 'lg')}<small>${d.count} avis · achats vérifiés</small></div>
+        <div class="rv-dist">${d.dist.map((n, i) => `<div><span>${5 - i} ${icon('star-fill')}</span><i><b style="width:${d.count ? Math.round((n / d.count) * 100) : 0}%"></b></i><small>${n}</small></div>`).join('')}</div></div>` : ''}
+      ${formHtml}
+      ${d.list.map((r) => `<article class="rv"><div class="rv-head">${stars(r.rating)}<strong>${esc(r.name)}</strong><span class="verified">${icon('seal-check-duotone')} Achat vérifié</span><small>${new Date(r.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}</small></div>${r.text ? `<p>${esc(r.text).replace(/\n/g, '<br>')}</p>` : ''}</article>`).join('')}`;
+    $('#reviewForm')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const rating = e.target.rating.value;
+      if (!rating) { $('#rvMsg').innerHTML = `<p class="field-err">${icon('warning-duotone')} Choisissez une note (1 à 5 étoiles).</p>`; return; }
+      const btn = e.target.querySelector('button'); btn.disabled = true;
+      try { await api('/account/reviews', { method: 'POST', body: { productId: p.id, rating: Number(rating), text: $('#rvText').value } }); toast('Merci pour votre avis !'); loadReviews(p); }
+      catch (err) { $('#rvMsg').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; btn.disabled = false; }
+    });
+  }
+
   function viewProduct(id) {
     const p = byId(id);
     if (!p) return viewHome();
@@ -758,6 +812,7 @@
         </div>
         <div>
           <h1>${esc(p.name)}</h1>
+          <div class="pdp-meta">${p.rating ? `<a href="#reviews" class="rating-link" data-scroll="reviews">${ratingLine(p.rating)}</a>` : ''}<button type="button" class="share-btn" id="shareBtn">${icon('export')} Partager</button></div>
           ${(() => { const sib = siblings(p); return sib.length > 1 ? `<div class="color-pick"><span class="lbl">Couleur : <b>${esc(colorOf(p)?.label || '')}</b></span><div>${sib.map((x) => `<a href="#/p/${enc(x.id)}" class="${x.id === p.id ? 'on' : ''}" title="${esc(colorOf(x)?.label || x.name)}" aria-label="${esc(colorOf(x)?.label || x.name)}"><i style="background:${colorOf(x)?.hex || '#ccc'}"></i></a>`).join('')}</div></div>` : ''; })()}
           ${p.condition && p.condition !== 'neuf' ? `<span class="cond-tag">${esc(p.condition === 'reconditionné' ? 'Reconditionné' : 'Occasion')}</span>` : ''}
           <p>${esc(p.description)}</p>
@@ -777,7 +832,17 @@
           <div class="buybar"><span><small>${esc(p.name)}</small><b>${fcfa(p.price)}</b></span><button class="btn cta" type="button" id="buybarAdd" ${p.stock === 0 ? 'disabled' : ''}>${p.stock === 0 ? 'Épuisé' : 'Ajouter au panier'}</button></div>
         </div>
       </div>
+      <section class="reviews" id="reviews"></section>
       ${similar.length ? `<section class="shelf"><div class="shelf-head"><div><p class="kicker">${esc(p.category)}</p><h2>Vous aimerez aussi</h2></div></div>${railCarousel(similar)}</section>` : ''}`;
+    loadReviews(p);
+    app.querySelector('[data-scroll="reviews"]')?.addEventListener('click', (e) => { e.preventDefault(); $('#reviews').scrollIntoView({ behavior: 'smooth' }); });
+    // Partager (WhatsApp…) : le lien /p/<id> donne un aperçu avec photo, nom et prix
+    $('#shareBtn').addEventListener('click', async () => {
+      const url = `${location.origin}/p/${enc(p.id)}`;
+      const text = `${p.name} à ${fcfa(p.price)} sur Kamwa`;
+      if (navigator.share) { try { await navigator.share({ title: p.name, text, url }); return; } catch (err) { if (err?.name === 'AbortError') return; } }
+      window.open(`https://wa.me/?text=${enc(text + '\n' + url)}`, '_blank', 'noopener');
+    });
     // Choix couleur / taille : un bouton par valeur
     const sel = {};
     app.querySelectorAll('.opt-choices').forEach((g) => g.addEventListener('click', (e) => {
@@ -971,8 +1036,9 @@
           <div id="deliveryFields">
             <label for="city">Ville de livraison</label>
             <select id="city" name="city">
-              ${['Pointe-Noire', 'Brazzaville', 'Dolisie', 'Autre'].map((c) => `<option ${saved.city === c ? 'selected' : ''}>${c}</option>`).join('')}
+              ${deliveryCities().map((c) => `<option ${saved.city === c ? 'selected' : ''}>${esc(c)}</option>`).join('')}
             </select>
+            <div id="zoneBox" hidden><label for="zone">Quartier</label><select id="zone" name="zone"></select></div>
             <label for="address">Quartier / adresse / repère</label>
             <textarea id="address" name="address" rows="2" placeholder="Ex. Quartier Tié-Tié, près de la pharmacie…">${esc(saved.address)}</textarea>
             <label>Votre adresse sur la carte <span class="hint">(conseillé)</span></label>
@@ -1025,12 +1091,30 @@
           <h2>Récapitulatif</h2>
           ${items.map(({ product: p, qty, variant }) => `<div class="line"><span>${qty} × ${esc(p.name)}${variant ? `<br><span class="hint">${esc(variantText(variant))}</span>` : ''}</span><strong>${fcfa(p.price * qty)}</strong></div>`).join('')}
           ${cartSaving() > 0 ? `<div class="row saving" style="margin-top:10px"><span>Vous économisez</span><span>${fcfa(cartSaving())}</span></div>` : ''}
-          <div class="row total" style="margin-top:10px"><span>Total</span><strong>${total}</strong></div>
+          <div class="row" style="margin-top:10px"><span>Livraison</span><span id="feeLine">—</span></div>
+          <div class="row total" style="margin-top:10px"><span>Total</span><strong id="sumTotal">${total}</strong></div>
         </div>
       </div>`;
 
     const form = $('#checkoutForm');
-    const BUTTON = { momo: `Payer ${total}`, card: `Payer ${total} par carte`, cash: 'Réserver et payer au point relais', cod: 'Confirmer ma commande' };
+    // Frais de livraison : même calcul que le serveur (qui recalcule de toute façon au paiement)
+    const zoneSync = () => {
+      const zones = cityFees(form.city.value)?.zones || [];
+      $('#zoneBox').hidden = !zones.length;
+      if (zones.length && form.zone.dataset.city !== form.city.value) {
+        form.zone.innerHTML = `<option value="">Autre quartier</option>` + zones.map((z) => `<option ${saved.zone === z.name ? 'selected' : ''}>${esc(z.name)}</option>`).join('');
+        form.zone.dataset.city = form.city.value;
+      }
+    };
+    const fee = () => (method() === 'cash' && receive() === 'pickup' ? 0 : deliveryFee(form.city.value, $('#zoneBox').hidden ? '' : form.zone.value, cartTotal()));
+    const grand = () => fcfa(cartTotal() + (fee() || 0));
+    const BTN = { momo: () => `Payer ${grand()}`, card: () => `Payer ${grand()} par carte`, cash: () => 'Réserver et payer au point relais', cod: () => 'Confirmer ma commande' };
+    const BUTTON = new Proxy({}, { get: (_, k) => BTN[k]?.() });
+    const showFee = () => {
+      const f = fee();
+      $('#feeLine').innerHTML = method() === 'cash' && receive() === 'pickup' ? 'Gratuite (retrait)' : f == null ? 'Non disponible : retrait au point relais' : f ? fcfa(f) : '<span class="ok-txt">Offerte</span>';
+      $('#sumTotal').textContent = grand();
+    };
     // Point de livraison placé par le client (gardé sur ce téléphone pour la prochaine fois)
     let homePos = saved.location && kamwaMap.hasPos(saved.location) ? saved.location : null;
     let homeMap = null;
@@ -1071,15 +1155,19 @@
       $('#deliveryFields').hidden = m === 'cash' && receive() === 'pickup';
       if (!$('#deliveryFields').hidden) initHomeMap();
       if (m === 'cash') $('#cashHint').innerHTML = receive() === 'pickup'
-          ? `Vos articles sont réservés <strong>${methods.pickupHoldHours} h</strong>. Vous payez <strong>${total}</strong> en espèces au point relais et repartez avec votre commande.`
-          : `Vos articles sont réservés <strong>${methods.pickupHoldHours} h</strong>. Vous payez <strong>${total}</strong> en espèces au point relais, puis nous vous livrons à l'adresse indiquée (code de livraison à donner au livreur).`;
+          ? `Vos articles sont réservés <strong>${methods.pickupHoldHours} h</strong>. Vous payez <strong>${grand()}</strong> en espèces au point relais et repartez avec votre commande.`
+          : `Vos articles sont réservés <strong>${methods.pickupHoldHours} h</strong>. Vous payez <strong>${grand()}</strong> en espèces au point relais (livraison comprise), puis nous vous livrons à l'adresse indiquée (code de livraison à donner au livreur).`;
       $('#payBtn').textContent = BUTTON[m];
+      showFee();
       const a = methods.agencies.find((x) => x.id === form.agency?.value);
       if (a) $('#agencyInfo').innerHTML = `<strong>${esc(a.name)}</strong><br>${icon('map-pin-bold')} ${esc(a.address || 'Adresse communiquée par téléphone')}${a.hours ? `<br>${icon('clock-bold')} ` + esc(a.hours) : ''}${a.phone ? `<br>${icon('phone-bold')} ` + esc(a.phone) : ''}${kamwaMap.hasPos(a) ? `<br><a href="${kamwaMap.directions(a)}" target="_blank" rel="noopener">${icon('arrow-square-out-bold')} Itinéraire (Google Maps)</a>` : ''}`;
     };
     form.querySelectorAll('input[name="method"]').forEach((r) => r.addEventListener('change', syncMethod));
     relayPicker($('#relayPick'), methods.agencies, form.agency.value, (id) => { form.agency.value = id; syncMethod(); }, saved.city);
     form.querySelectorAll('input[name="receive"]').forEach((r) => r.addEventListener('change', syncMethod));
+    form.city.addEventListener('change', () => { zoneSync(); syncMethod(); });
+    form.zone.addEventListener('change', syncMethod);
+    zoneSync();
     syncMethod();
 
     // Pré-sélection automatique de l'opérateur selon le préfixe du numéro
@@ -1109,7 +1197,7 @@
       const btn = $('#payBtn'); btn.disabled = true; btn.textContent = 'Envoi de la demande…';
       const customer = pickup
         ? { name: form.name.value, phone: form.phone.value, city: agency?.city || '', address: `Retrait au point relais : ${agency?.name || ''}` }
-        : { name: form.name.value, phone: form.phone.value, city: form.city.value, address: form.address.value, ...(homePos ? { location: homePos } : {}) };
+        : { name: form.name.value, phone: form.phone.value, city: form.city.value, ...(!$('#zoneBox').hidden && form.zone.value ? { zone: form.zone.value } : {}), address: form.address.value, ...(homePos ? { location: homePos } : {}) };
       if (!pickup) { try { localStorage.setItem('kamwa-customer', JSON.stringify(customer)); } catch {} }
       try {
         // Même panier qu'une tentative précédente non payée : on réutilise la MÊME commande
@@ -1579,7 +1667,7 @@
           <span class="chips">${UNIVERSES.map((u) => `<label class="chip-check"><input type="checkbox" data-uni-show="${esc(u.name)}" ${(p.hiddenUniverses || []).includes(u.name) ? '' : 'checked'}> ${esc(u.name)}</label>`).join('')}</span></div>
         ${toggle('showFlash', 'Ventes flash sur l\'accueil', 'Afficher le bloc des prix qui fondent', p.showFlash !== false)}
         <div class="pref-row"><span><b>Ville de livraison</b><small>Pré-remplie à chaque commande</small></span>
-          <select data-pref-select="city"><option value="">—</option>${['Pointe-Noire', 'Brazzaville', 'Dolisie', 'Autre'].map((v) => `<option ${p.city === v ? 'selected' : ''}>${v}</option>`).join('')}</select></div>
+          <select data-pref-select="city"><option value="">—</option>${deliveryCities().map((v) => `<option ${p.city === v ? 'selected' : ''}>${esc(v)}</option>`).join('')}</select></div>
         <div class="pref-row"><span><b>Point relais favori</b><small>Proposé en premier à chaque commande</small></span>
           <select data-pref-select="relayId"><option value="">—</option>${state.relays.map((a) => `<option value="${esc(a.id)}" ${p.relayId === a.id ? 'selected' : ''}>${esc(a.city)} — ${esc(a.name)}</option>`).join('')}</select></div>
       </div>
@@ -1785,7 +1873,8 @@
         </div>
         <div class="panel">
           <h2>Récapitulatif</h2>
-          ${o.lines.map((l) => `<div class="line"><span>${l.qty} × ${esc(l.name)}</span><strong>${fcfa(l.total)}</strong></div>`).join('')}
+          ${o.lines.map((l) => `<div class="line"><span>${l.qty} × ${esc(l.name)}${o.status === 'delivered' && l.productId && byId(l.productId) ? `<br><a class="rv-link" href="#/p/${enc(l.productId)}">${icon('star-fill')} Donner mon avis</a>` : ''}</span><strong>${fcfa(l.total)}</strong></div>`).join('')}
+          ${o.deliveryFee ? `<div class="line"><span>Livraison</span><strong>${fcfa(o.deliveryFee)}</strong></div>` : ''}
           <div class="row total" style="margin-top:10px"><span>Total</span><strong>${fcfa(o.total)}</strong></div>
           <p class="hint" style="margin-top:12px">${isPickup(o) ? `Retrait au point relais : ${esc(ag.name)} (${esc(ag.city)})` : `Livraison : ${esc(o.customer.city || '—')} · ${esc(o.customer.address || '')}`}<br>Contact : ${esc(o.customer.phone)}</p>
         </div>
@@ -2029,6 +2118,7 @@
       return;
     }
     renderCart();
+    renderDeliverCity(); // villes de livraison réglées dans Kamwa Pro
     $('#year').textContent = new Date().getFullYear();
     const last = loadJSON('kamwa-last-order');
     if (last?.id && !tokenOf(last.id)) rememberOrder(last.id, last.token);

@@ -108,7 +108,7 @@ function cleanPrefs(input, cur = {}) {
   const names = UNIVERSES.map((u) => u.name);
   if ('homeUniverse' in (input || {})) out.homeUniverse = names.includes(input.homeUniverse) ? input.homeUniverse : '';
   if (Array.isArray(input?.hiddenUniverses)) out.hiddenUniverses = input.hiddenUniverses.filter((n) => names.includes(n)).slice(0, names.length - 1); // au moins un rayon reste visible
-  if ('city' in (input || {})) out.city = ['Pointe-Noire', 'Brazzaville', 'Dolisie', 'Autre'].includes(input.city) ? input.city : '';
+  if ('city' in (input || {})) { const f = require('../fees').feeSettings(); out.city = [...f.cities.map((c) => c.city), 'Autre ville'].includes(input.city) ? input.city : ''; }
   if ('relayId' in (input || {})) { const { agencies } = require('../store'); const a = agencies.get(String(input.relayId || '')); out.relayId = a && a.active !== false ? a.id : ''; }
   if (input?.notify && typeof input.notify === 'object') out.notify = { orders: input.notify.orders !== false, chat: input.notify.chat !== false };
   return out;
@@ -145,6 +145,15 @@ router.get('/orders', (req, res) => {
 });
 
 // Rattacher des commandes de ce téléphone à un compte déjà connecté
+// Avis client : seulement sur un produit reçu (commande livrée sur ce compte) ; un avis par produit, modifiable
+router.post('/reviews', (req, res) => {
+  const me = auth.currentCustomer(req);
+  if (!me) return res.status(401).json({ error: 'Connectez-vous pour donner votre avis' });
+  const r = require('../reviews').save(me, req.body || {});
+  if (r.error) return res.status(r.status).json({ error: r.error });
+  res.status(201).json(require('../reviews').publicReview(r.value));
+});
+
 router.post('/claim', (req, res) => {
   const customer = auth.currentCustomer(req);
   if (!customer) return res.status(401).json({ error: 'Connectez-vous' });

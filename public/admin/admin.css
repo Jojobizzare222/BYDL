@@ -758,3 +758,23 @@ html[data-theme="light"] .demo-box .muted { color: #5A4A1E; }
 html[data-theme="light"] .demo-box .ghost { background: #fff; color: #171C30; border-color: #E4D3A8; }
 /* Onglets qui défilent sur téléphone : léger fondu à droite pour montrer qu'il y en a d'autres */
 .scroll-more { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 40px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 40px), transparent); }
+.fee-city { display: grid; grid-template-columns: 1.2fr .8fr 2fr auto; gap: 10px; align-items: end; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.fee-city textarea { min-height: 42px; }
+.fee-del { min-height: 42px; }
+@media (max-width: 700px) { .fee-city { grid-template-columns: 1fr 1fr; } .fee-zones { grid-column: 1 / -1; } }
+.msg-sep { display: flex; align-items: center; gap: 6px; margin: 14px 12px 4px; font-size: .74rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; }
+.av.sup { background: rgba(255,179,0,.18); color: #C98A00; }
+.msg-layout.solo { grid-template-columns: 1fr; }
+.msg-layout.solo .msg-conv { display: flex; }
+.pm.supplier .pb { background: var(--paper-2); }
+.supplier-ready { display: flex; gap: 8px; align-items: flex-start; margin: 12px 0 0; padding: 10px 12px; border-radius: 10px; background: rgba(43,196,138,.1); }
+.supplier-ready .ico { color: var(--ok); margin-top: 2px; }
+.linkish { background: none; border: 0; padding: 2px 0; color: var(--brand); text-decoration: underline; cursor: pointer; font: inherit; font-size: .85rem; }
+/* Livreur : résumé de la journée */
+.day-sum { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 14px; }
+.day-sum > div { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; display: flex; flex-direction: column; gap: 2px; }
+.day-sum b { font-size: 1.35rem; font-variant-numeric: tabular-nums; }
+.day-sum span { color: var(--muted); font-size: .82rem; }
+.day-sum .ok b { color: var(--ok); } .day-sum .ko b { color: var(--err); }
+@media (max-width: 640px) { .day-sum { grid-template-columns: 1fr 1fr; } }
+.rv-stars { color: #FFB300; letter-spacing: 1px; white-space: nowrap; } .rv-stars.r1, .rv-stars.r2 { color: var(--err); }

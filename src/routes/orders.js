@@ -32,7 +32,7 @@ function hasAccess(order, token) {
 const clientLines = (lines) => (lines || []).map(({ unitCost, supplierId, ...l }) => l);
 // Données internes de livraison et de caisse : jamais montrées au client
 const INTERNAL = ['courierId', 'cashHeldBy', 'cashRemittedAt', 'cashRemittedTo', 'codeFails', 'codeLocked', 'codeVerifiedAt', 'callConfirmedBy',
-  'callAttempts', 'deliveredBy', 'deliveredWithoutCode', 'depositPaymentId', 'refused', 'depositRetained', 'refundedAt'];
+  'callAttempts', 'deliveredBy', 'deliveredWithoutCode', 'depositPaymentId', 'refused', 'depositRetained', 'refundedAt', 'supplierReady'];
 function clientOrder({ accessToken, note, paidAfterCancel, ...order }) {
   for (const k of INTERNAL) delete order[k];
   if (order.attempts) order.attempts = order.attempts.map(({ at, label }) => ({ at, label }));
@@ -115,7 +115,7 @@ router.post('/', (req, res) => {
     customerId: account?.id || null, // commande rattachée au compte si le client est connecté
     lines,
     subtotal,
-    deliveryFee: 0, // à définir selon la zone (Pointe-Noire, Brazzaville…)
+    deliveryFee: 0, // fixé au paiement selon la ville / le quartier (src/fees.js) ; retrait au point relais : gratuit
     total: subtotal,
     currency: 'XAF',
     customer: {
@@ -123,6 +123,7 @@ router.post('/', (req, res) => {
       phone,
       city: (customer.city || '').trim(),
       address: (customer.address || '').trim(),
+      ...(String(customer.zone || '').trim() ? { zone: String(customer.zone).trim().slice(0, 40) } : {}), // quartier (frais de livraison)
       // Adresse placée sur la carte par le client (facultatif) : aide le livreur et le suivi en direct
       ...(validPoint(customer.location) ? { location: validPoint(customer.location) } : {}),
     },
@@ -206,6 +207,7 @@ router.patch('/:id/customer', (req, res) => {
   const customer = {
     name: String(c.name).trim().slice(0, 120), phone,
     city: String(c.city || '').trim().slice(0, 60), address: String(c.address || '').trim().slice(0, 300),
+    ...(String(c.zone || '').trim() ? { zone: String(c.zone).trim().slice(0, 40) } : {}),
     ...(validPoint(c.location) ? { location: validPoint(c.location) } : {}),
   };
   res.json(clientOrder(orders.update(order.id, { customer })));

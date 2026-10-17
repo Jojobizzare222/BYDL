@@ -6,6 +6,15 @@ const { UPLOAD_DIR } = require('./routes/admin');
 
 const app = express();
 app.disable('x-powered-by');
+// Adresse IP réelle du client derrière un relais (Vercel ; plus tard nginx sur le VPS avec TRUST_PROXY=1) :
+// utilisée par toutes les limites (connexions, codes, messagerie, requêtes). Sans relais déclaré, on ne croit pas l'en-tête X-Forwarded-For.
+app.set('trust proxy', process.env.VERCEL ? true : process.env.TRUST_PROXY ? (Number(process.env.TRUST_PROXY) || process.env.TRUST_PROXY) : false);
+const security = require('./security');
+app.use(security.headers);
+// Compression (gzip) des pages, scripts et réponses de l'API : beaucoup moins de données sur les connexions mobiles.
+// Jamais sur les flux en direct (/events), qui doivent partir tout de suite.
+app.use(require('compression')({ filter: (req, res) => !/\/events$/.test(req.path) && require('compression').filter(req, res) }));
+app.use('/api', security.rateLimit);
 // Création de compte / envoi de la pièce d'identité : la photo est jointe (réduite par le navigateur), d'où une limite plus haute
 app.use(['/api/account/register', '/api/account/identity'], express.json({ limit: '6mb' }));
 app.use(express.json({ limit: '100kb' }));
@@ -30,6 +39,30 @@ app.get('/images/uploads/:name', (req, res) => {
   });
 });
 
+// Aperçu de partage (WhatsApp, Facebook…) : /p/<id> donne le nom, le prix et la photo du produit (balises Open Graph),
+// puis ouvre la fiche dans la boutique (#/p/<id>). Rien d'autre que ce qui est déjà public sur la fiche.
+app.get('/p/:id', (req, res) => {
+  const { products } = require('./store');
+  const p = products.get(req.params.id);
+  const ok = p && p.active !== false && !p.pending;
+  const host = /localhost|127\.0\.0\.1/.test(config.publicUrl) ? `${req.protocol}://${req.get('host')}` : config.publicUrl;
+  const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const target = ok ? `/#/p/${encodeURIComponent(p.id)}` : '/';
+  const img = ok && p.image ? (/^https?:/.test(p.image) ? p.image : host + p.image) : `${host}/brand/partage-kamwa.png?v=2`;
+  const price = ok ? new Intl.NumberFormat('fr-FR').format(p.price).replace(/\u202f/g, ' ') + ' FCFA' : '';
+  const title = ok ? `${p.name} — ${price}` : 'Kamwa';
+  const desc = ok ? `${p.description ? String(p.description).slice(0, 150) + ' · ' : ''}Payez au point relais · livraison 24-48 h à Pointe-Noire et Brazzaville.` : 'Électronique et mode au meilleur prix, livrées au Congo.';
+  res.set('Cache-Control', 'public, max-age=300');
+  res.status(ok ? 200 : 404).type('html').send(`<!doctype html><html lang="fr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1"><title>${esc(title)}</title>
+<meta property="og:type" content="product"><meta property="og:site_name" content="Kamwa">
+<meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}">
+<meta property="og:image" content="${esc(img)}"><meta property="og:url" content="${esc(host + req.originalUrl)}">
+<meta name="twitter:card" content="summary_large_image"><meta name="description" content="${esc(desc)}">
+<meta http-equiv="refresh" content="0;url=${esc(target)}"><link rel="canonical" href="${esc(host + target)}">
+</head><body style="font-family:sans-serif;padding:24px"><p><a href="${esc(target)}">Voir ${esc(ok ? p.name : 'la boutique Kamwa')}</a></p></body></html>`);
+});
+
 // Version du site : change à chaque mise à jour (déploiement Vercel, ou fichier modifié sur le serveur).
 // Le navigateur la compare en changeant de page et se recharge tout seul : pas besoin de relancer l'application.
 const fs = require('fs');
@@ -47,7 +80,7 @@ function siteVersion() {
 }
 app.get('/api/config', (req, res) => {
   res.set('Cache-Control', 'no-store');
-  res.json({ shopName: config.shopName, currency: config.currency, paymentMode: config.paymentMode, demo: config.demo, universes: UNIVERSES, version: siteVersion(), accountRequired: require('./sales').salesSettings().accountRequired });
+  res.json({ shopName: config.shopName, currency: config.currency, paymentMode: config.paymentMode, demo: config.demo, universes: UNIVERSES, version: siteVersion(), accountRequired: require('./sales').salesSettings().accountRequired, deliveryFees: require('./fees').publicFees() });
 });
 app.use('/api/products', require('./routes/products'));
 app.use('/api/orders', require('./routes/orders'));
@@ -69,7 +102,7 @@ app.get('/api/events', (req, res) => {
   const { currentCustomer } = require('./customer/auth');
   const me = currentCustomer(req)?.id || null;
   events.stream(req, res, ({ col, doc, before }) => {
-    if (col === 'products' || col === 'agencies') return { topic: 'catalog' };
+    if (col === 'products' || col === 'agencies' || col === 'reviews') return { topic: 'catalog' };
     if (!me) return null;
     if (col === 'orders' && (doc.customerId === me || before?.customerId === me)) return { topic: 'order', id: doc.id };
     if (col === 'customers' && doc.id === me) return { topic: 'account' };

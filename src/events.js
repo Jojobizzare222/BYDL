@@ -10,7 +10,7 @@ const store = require('./store');
 const bus = new EventEmitter();
 bus.setMaxListeners(1000);
 
-const WATCHED = ['orders', 'products', 'customers', 'conversations', 'agencies', 'ledger', 'staff', 'payments', 'documents', 'parcels', 'purchases', 'stock_moves'];
+const WATCHED = ['orders', 'products', 'customers', 'conversations', 'agencies', 'ledger', 'staff', 'payments', 'documents', 'parcels', 'purchases', 'stock_moves', 'reviews'];
 function watchStore() {
   for (const name of WATCHED) {
     const col = store[name];

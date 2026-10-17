@@ -20,6 +20,7 @@
     supplier: () => state.user?.role === 'supplier',
     admin: () => state.user?.role === 'admin',
     courier: () => state.user?.role === 'courier',
+    desk: () => ['admin', 'orders', 'catalog'].includes(state.user?.role), // échanges avec les fournisseurs
   };
   const homeHash = () => '#/tableau';
 
@@ -123,9 +124,19 @@
     return `<section class="card ${cls}"><h2>${icon(ico)} ${esc(title)}</h2>${body}</section>`;
   }
   const chartSlot = (id, data) => (isEmpty(data) ? '<p class="nodata">Pas encore de données</p>' : `<div class="chart-box"><canvas id="${id}"></canvas></div>`);
+  // Chart.js (200 Ko) n'est chargé qu'au premier graphique affiché (tableau de bord, finances) : ouverture plus rapide de Kamwa Pro
+  let chartLib = null;
+  const loadChart = () => chartLib || (chartLib = new Promise((resolve, reject) => {
+    const sc = document.createElement('script'); sc.src = '/admin/vendor/chart.umd.min.js';
+    sc.onload = () => { chartTheme(); resolve(); }; sc.onerror = () => { chartLib = null; reject(new Error('Graphiques indisponibles')); };
+    document.head.appendChild(sc);
+  }));
   function makeChart(id, config) {
-    const el = document.getElementById(id);
-    if (el && window.Chart) charts.push(new Chart(el, { ...config, options: { responsive: true, maintainAspectRatio: false, ...config.options } }));
+    const draw = () => {
+      const el = document.getElementById(id);
+      if (el && window.Chart) charts.push(new Chart(el, { ...config, options: { responsive: true, maintainAspectRatio: false, ...config.options } }));
+    };
+    if (window.Chart) draw(); else loadChart().then(draw).catch(() => {});
   }
   const doughnut = (id, list) => makeChart(id, {
     type: 'doughnut',
@@ -157,6 +168,8 @@
       [T.todayDeliveries, '', 'clock-bold', 'livraison(s) prévue(s) aujourd\'hui', '#/calendrier'],
       [T.toShip, '', 'package-duotone', 'commande(s) à préparer et à remettre', '#/commandes', 'paid'],
       [T.messages, 'warn', 'chat-circle-dots-duotone', 'client(s) attendent une réponse', '#/messagerie'],
+      [T.supplierReady, '', 'storefront', 'commande(s) : articles prêts chez un fournisseur, à récupérer', '#/commandes', 'paid'],
+      [T.supplierMessages, 'warn', 'chats-circle-duotone', 'fournisseur(s) vous ont écrit', '#/messagerie'],
       [T.idToCheck, 'warn', 'identification-card', 'pièce(s) d\'identité à vérifier', '#/clients'],
       [d.pendingProducts, 'warn', 'clock-countdown-duotone', 'produit(s) à valider', '#/produits', null, 'pending'],
     ].filter((x) => x[0]).map(([n, cls, ico, label, href, f, pf]) => `<a class="todo-row ${cls}" href="${href}"${f ? ` data-f="${f}"` : ''}${pf ? ` data-pf="${pf}"` : ''}><span class="todo-ico">${icon(ico)}</span><b>${n}</b><span>${label}</span>${icon('caret-right', 'todo-go')}</a>`);
@@ -432,6 +445,8 @@
       return ['En attente du paiement du client', 'Rien à faire pour l\'instant. Sans paiement, la commande s\'annule toute seule.', null, 'wait'];
     }
     if (o.status === 'shipped') return [`En livraison${o.courierName ? ' avec ' + o.courierName : ''}`, 'Le livreur valide la remise avec le code du client. En cas de problème : « Livraison ratée ».', null, 'wait'];
+    const waitingSupplier = [...new Set((o.lines || []).map((l) => l.supplierId).filter(Boolean))].some((sid) => !o.supplierReady?.[sid]);
+    if (waitingSupplier && ['paid', 'confirmed'].includes(o.status)) return ['Attendre le fournisseur', 'Il prépare ses articles et cliquera « Prêt à récupérer » ; vous serez prévenu dans la Messagerie.', null, 'wait'];
     if (isPickup(o)) return ['Remettre les articles au client', `Au point relais ${o.agency?.name || ''}, contre son code de retrait à 4 chiffres.`, '[data-status="delivered"]', ''];
     if (!o.callConfirmedAt) return ['Appeler le client', `Confirmez l'adresse et le créneau avec ${o.customer.name} (${o.customer.phone}).`, '#callOk', ''];
     if (!o.planned) return ['Planifier la livraison', 'Choisissez la date et le créneau.', '#planBox', ''];
@@ -457,8 +472,10 @@
         <h2>Articles</h2>
         <div class="lines">
           ${o.lines.map((l) => `<div><span>${l.qty} × ${esc(l.name)}</span><span>${fcfa(l.total)}</span></div>`).join('')}
+          ${o.deliveryFee ? `<div><span>Livraison${o.customer.zone ? ` (${esc(o.customer.zone)})` : ''}</span><span>${fcfa(o.deliveryFee)}</span></div>` : ''}
           <div><span>Total</span><span>${fcfa(o.total)}</span></div>
         </div>
+        ${Object.values(o.supplierReady || {}).map((r) => `<p class="supplier-ready">${icon('storefront')} <span><strong>${esc(r.by)}</strong> : articles prêts à récupérer depuis le ${date(r.at)}${r.note ? `<br><span class="muted">${esc(r.note)}</span>` : ''}</span></p>`).join('')}
       </div>
       ${CAN.orders() ? parcelsPanel(o) : ''}
       ${CAN.orders() ? docsPanel(o) : ''}
@@ -733,7 +750,9 @@
         <div class="row between"><strong class="mono">${esc(x.id)}</strong>${x.paymentPlan === 'cod' ? `<span class="collect-tag">À encaisser : ${fcfa(x.toCollect)}</span>` : '<span class="tag ok">Déjà payée</span>'}</div>
         ${x.planned ? `<p class="plan-when ${x.planned.date < today() ? 'late' : x.planned.date === today() ? 'now' : ''}">${icon('clock-bold')} ${x.planned.date === today() ? "Aujourd'hui" : frDate(x.planned.date)} · ${esc(x.planned.label)}</p>` : ''}
         <h3>${esc(x.customer.name)}</h3>
-        <p class="deliv-addr">${icon('map-pin-duotone')} ${esc(x.customer.city || '')} · ${esc(x.customer.address || '')}${x.customer.location ? `<br><a href="${kamwaMap.directions(x.customer.location)}" target="_blank" rel="noopener">${icon('arrow-square-out-bold')} Itinéraire jusqu'au point placé par le client</a>` : ''}</p>
+        <p class="deliv-addr">${icon('map-pin-duotone')} ${esc(x.customer.city || '')} · ${esc(x.customer.address || '')}${x.customer.location
+          ? `<br><a href="${kamwaMap.directions(x.customer.location)}" target="_blank" rel="noopener">${icon('arrow-square-out-bold')} Itinéraire jusqu'au point placé par le client</a>`
+          : x.customer.address ? `<br><a href="https://www.google.com/maps/search/?api=1&query=${enc(`${x.customer.address}, ${x.customer.city || ''}, Congo`)}" target="_blank" rel="noopener">${icon('arrow-square-out-bold')} Chercher l'adresse sur la carte</a> <span class="muted">(adresse écrite : à confirmer en appelant)</span>` : ''}</p>
         <p class="muted">${x.lines.map((l) => `${l.qty} × ${esc(l.name)}`).join('<br>')}</p>
         ${x.attempts ? `<p class="muted">${x.attempts} tentative(s) déjà ratée(s)</p>` : ''}
         <div class="row">
@@ -759,7 +778,15 @@
         </form>
       </article>`;
     };
+    const sm = d.summary || {};
+    const daySummary = `<div class="day-sum">
+        <div><b>${sm.toDo || 0}</b><span>à livrer aujourd'hui</span></div>
+        <div class="ok"><b>${sm.delivered || 0}</b><span>livrée(s)</span></div>
+        <div class="${sm.failed ? 'ko' : ''}"><b>${sm.failed || 0}</b><span>ratée(s)</span></div>
+        <div><b>${fcfa((sm.cash || 0) + (sm.momo || 0))}</b><span>encaissé aujourd'hui${sm.momo ? ` · dont ${fcfa(sm.momo)} Mobile Money` : ''}</span></div>
+      </div>${sm.later ? `<p class="muted" style="margin:-4px 0 12px">${sm.later} autre(s) livraison(s) prévue(s) les jours suivants.</p>` : ''}`;
     app.innerHTML = pageHead({ title: 'Mes livraisons', desc: 'Appelez le client avant de partir. Remettez le colis, puis demandez-lui son code de livraison à 4 chiffres : sans ce code, la livraison ne peut pas être validée.' })
+      + daySummary
       + (d.cashHeld ? `<div class="alert warn">${icon('wallet-duotone')} Vous avez <strong>${fcfa(d.cashHeld)}</strong> en espèces à remettre à Kamwa.</div>` : '')
       + (d.current.length ? '<div id="sharePanel"></div>' : '')
       + (d.current.length ? `<div class="deliv-list">${d.current.map(card).join('')}</div>` : '<div class="panel empty">Aucune livraison en cours. Les commandes qu\'on vous confie apparaissent ici.</div>')
@@ -794,12 +821,19 @@
 
   // ---------- Réglages du paiement à la réception (admin) ----------
   async function viewSettings() {
-    let c, sl, co;
-    try { [c, sl, co] = await Promise.all([api('/settings/cod'), api('/settings/sales'), api('/documents/company')]); } catch { return; }
+    let c, sl, co, fe;
+    try { [c, sl, co, fe] = await Promise.all([api('/settings/cod'), api('/settings/sales'), api('/documents/company'), api('/settings/fees')]); } catch { return; }
+    const zonesText = (zones) => zones.map((z) => `${z.name} : ${z.fee}`).join('\n');
+    const cityRow = (ct = { city: '', fee: 0, zones: [] }) => `<div class="fee-city">
+        <div><label>Ville</label><input type="text" data-fc="city" value="${esc(ct.city)}" placeholder="Pointe-Noire" maxlength="40"></div>
+        <div><label>Tarif (FCFA)</label><input type="number" data-fc="fee" min="0" step="100" value="${ct.fee}"></div>
+        <div class="fee-zones"><label>Quartiers à tarif différent <span class="muted">(un par ligne : « Quartier : montant »)</span></label><textarea data-fc="zones" rows="2" placeholder="Ngoyo : 2000">${esc(zonesText(ct.zones))}</textarea></div>
+        <button type="button" class="ghost fee-del" title="Retirer cette ville">${icon('trash-bold')}</button>
+      </div>`;
     const cp = co.company;
     const coField = (k, label, ph = '', wide = false) => `<div${wide ? ' style="grid-column:1/-1"' : ''}><label for="co_${k}">${label}${co.missing.includes(k) ? ' <span class="tag warn">à compléter</span>' : ''}</label><input id="co_${k}" type="text" data-co="${k}" value="${esc(cp[k] || '')}" placeholder="${esc(ph)}"></div>`;
     const PAY = [['cash', 'Espèces en agence (retrait ou livraison)'], ['momo', 'Mobile Money (MTN, Airtel)'], ['card', 'Carte bancaire (prestataire à brancher)'], ['cod', 'Paiement à la réception']];
-    app.innerHTML = pageHead({ crumb: 'Gestion', title: 'Réglages', desc: 'Règles de vente, société (factures et reçus) et paiement à la réception.' }) + `
+    app.innerHTML = pageHead({ crumb: 'Gestion', title: 'Réglages', desc: 'Règles de vente, frais de livraison, société (factures et reçus) et paiement à la réception.' }) + `
       <form class="panel" id="salesForm" style="max-width:640px">
         <h2>${icon('identification-card')} Règles de vente</h2>
         <label class="check"><input type="checkbox" id="slAccount" ${sl.accountRequired ? 'checked' : ''}> Compte avec pièce d'identité <b>vérifiée</b> obligatoire pour commander</label>
@@ -807,6 +841,18 @@
         ${PAY.map(([k, l]) => `<label class="check"><input type="checkbox" data-pay="${k}" ${sl.methods[k] ? 'checked' : ''}> ${esc(l)}</label>`).join('')}
         <p class="muted">Les espèces ne sont proposées que s'il existe au moins une agence active (onglet Agences).</p>
         <div id="slMsg"></div>
+        <button class="btn" style="margin-top:14px">Enregistrer</button>
+      </form>
+      <form class="panel" id="feesForm" style="max-width:760px">
+        <h2>${icon('truck-duotone')} Frais de livraison</h2>
+        <p class="muted" style="margin-top:0">Ajoutés au total quand le client choisit la livraison à domicile. Le retrait au point relais reste gratuit. Montant calculé par le serveur au moment du paiement.</p>
+        <div id="feeCities">${fe.cities.map(cityRow).join('')}</div>
+        <button type="button" class="ghost" id="feeAdd">${icon('plus-bold')} Ajouter une ville</button>
+        <div class="grid2" style="margin-top:14px">
+          <div><label class="check"><input type="checkbox" id="feOther" ${fe.other.allowed ? 'checked' : ''}> Livrer aussi les autres villes</label><input type="number" id="feOtherFee" min="0" step="100" value="${fe.other.fee}" aria-label="Tarif autres villes"></div>
+          <div><label for="feFree">Livraison offerte à partir de (FCFA, 0 = jamais)</label><input type="number" id="feFree" min="0" step="1000" value="${fe.freeFrom}"></div>
+        </div>
+        <div id="feMsg"></div>
         <button class="btn" style="margin-top:14px">Enregistrer</button>
       </form>
       <form class="panel" id="companyForm" style="max-width:640px">
@@ -849,6 +895,19 @@
         <div id="sMsg"></div>
         <button class="btn" style="margin-top:14px">Enregistrer</button>
       </form>`;
+    $('#feeAdd').addEventListener('click', () => { $('#feeCities').insertAdjacentHTML('beforeend', cityRow()); $('#feeCities').lastElementChild.querySelector('input').focus(); });
+    $('#feeCities').addEventListener('click', (e) => { if (e.target.closest('.fee-del')) e.target.closest('.fee-city').remove(); });
+    $('#feesForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const cities = [...app.querySelectorAll('.fee-city')].map((r) => ({
+        city: r.querySelector('[data-fc=city]').value, fee: Number(r.querySelector('[data-fc=fee]').value || 0),
+        zones: r.querySelector('[data-fc=zones]').value.split('\n').map((l) => l.split(':')).filter((x) => x[0].trim()).map(([n, f]) => ({ name: n.trim(), fee: Number(String(f || '').replace(/\D/g, '') || 0) })),
+      }));
+      try {
+        await api('/settings/fees', { method: 'PUT', body: { cities, other: { allowed: $('#feOther').checked, fee: Number($('#feOtherFee').value || 0) }, freeFrom: Number($('#feFree').value || 0) } });
+        toast('Frais de livraison enregistrés ✓'); $('#feMsg').innerHTML = '';
+      } catch (err) { $('#feMsg').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; }
+    });
     $('#coVat').addEventListener('change', () => { $('#coVatBox').hidden = !$('#coVat').checked; });
     $('#companyForm').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -1981,9 +2040,10 @@
     state.labels = data.statusLabels;
     const qty = (o) => o.lines.reduce((n, l) => n + l.qty, 0);
     const amount = (o) => o.lines.reduce((n, l) => n + (l.supplierPrice || 0) * l.qty, 0);
-    const toPrepare = data.orders.filter((o) => o.status === 'paid');
-    app.innerHTML = pageHead({ title: 'Mes commandes', desc: "Kamwa s'occupe de la livraison. Préparez les articles des commandes « Payée » pour les remettre à Kamwa." })
-      + `<div class="todo"><a href="#/fournisseur">${icon('package-duotone')} À préparer : ${toPrepare.reduce((n, o) => n + qty(o), 0)} article(s)</a></div><div id="tbl"></div>`;
+    const active = (o) => ['paid', 'confirmed'].includes(o.status);
+    const toPrepare = data.orders.filter((o) => active(o) && !o.ready);
+    app.innerHTML = pageHead({ title: 'Mes commandes', desc: "Kamwa s'occupe de la livraison. Préparez les articles des commandes payées, puis cliquez « Prêt à récupérer » : Kamwa est prévenu et vient les chercher." })
+      + `<div class="todo"><a href="#/fournisseur">${icon('package-duotone')} À préparer : ${toPrepare.reduce((n, o) => n + qty(o), 0)} article(s)</a><a href="#/messagerie">${icon('chats-circle-duotone')} Écrire à Kamwa</a></div><div id="tbl"></div>`;
     dataTable($('#tbl'), {
       id: 'supplier-orders', rows: data.orders, defaultSort: 'date', placeholder: 'N° de commande ou produit', empty: 'Aucune commande de vos produits pour le moment.',
       searchText: (o) => `${o.id} ${o.lines.map((l) => l.name).join(' ')}`,
@@ -1995,7 +2055,51 @@
         { key: 'amount', label: 'Montant', cls: 'num', sortValue: amount, render: (o) => fcfa(amount(o)) },
         { key: 'mode', label: 'Mode', sortValue: (o) => o.fulfillment, render: (o) => (o.fulfillment === 'pickup' ? 'Retrait en agence' : o.agency ? 'Payé en agence, livré' : 'Livraison') },
         { key: 'status', label: 'Statut', render: (o) => badge(o.status) },
+        { key: 'ready', label: 'Préparation', sortValue: (o) => (active(o) ? (o.ready ? 1 : 0) : 2), render: (o) => !active(o) ? '<span class="muted">—</span>'
+          : o.ready ? `<span class="tag ok">${icon('check-bold')} Prêt le ${date(o.ready.at)}</span>${o.ready.note ? `<br><span class="muted">${esc(o.ready.note)}</span>` : ''}<br><button class="linkish" data-unready="${esc(o.id)}">Annuler</button>`
+          : `<button class="btn small" data-ready="${esc(o.id)}">${icon('check-bold')} Prêt à récupérer</button>` },
       ],
+    });
+    const mark = async (id, ready) => {
+      let note = '';
+      if (ready) { note = prompt('Où et quand Kamwa peut-il récupérer les articles ? (facultatif)\nEx. au magasin, à partir de 14 h', ''); if (note === null) return; }
+      try { await api('/supplier/orders/' + enc(id) + '/ready', { method: 'POST', body: { ready, note } }); toast(ready ? 'Kamwa est prévenu : articles prêts ✓' : 'Signal annulé'); viewSupplierOrders(); }
+      catch (err) { toast('❌ ' + err.message); }
+    };
+    $('#tbl').addEventListener('click', (e) => { // #tbl est recréé à chaque affichage : un seul écouteur
+      const r = e.target.closest('[data-ready], [data-unready]'); if (!r) return;
+      e.preventDefault(); e.stopPropagation();
+      mark(r.dataset.ready || r.dataset.unready, Boolean(r.dataset.ready));
+    });
+  }
+
+  // ---------- Avis clients : lecture et modération (admin, catalogue) ----------
+  async function viewReviews() {
+    let list;
+    try { list = await api('/reviews'); } catch { return; }
+    const f = state.reviewFilter || 'all';
+    const match = (r, k) => k === 'all' || (k === 'low' ? r.rating <= 2 && !r.hidden : k === 'hidden' ? r.hidden : !r.hidden);
+    const starsTxt = (n) => '★'.repeat(n) + '☆'.repeat(5 - n);
+    app.innerHTML = pageHead({ crumb: 'Catalogue', title: 'Avis clients', desc: "Seuls les clients qui ont reçu le produit peuvent donner un avis : ils sont publiés tout de suite. Masquez un avis injurieux ou hors sujet (il reste ici, vous pouvez le réafficher). Répondez aux avis négatifs en appelant le client." })
+      + tabsBar([['all', 'Tous'], ['shown', 'Publiés'], ['low', '1-2 étoiles'], ['hidden', 'Masqués']].map(([k, l]) => [k, l, list.filter((r) => match(r, k)).length]), f, 'rf')
+      + '<div id="tbl"></div>';
+    dataTable($('#tbl'), {
+      id: 'reviews', rows: list.filter((r) => match(r, f)), defaultSort: 'date', placeholder: 'Produit, client ou mot du commentaire', empty: 'Aucun avis ici.',
+      searchText: (r) => `${r.productName} ${r.name} ${r.text}`,
+      columns: [
+        { key: 'product', label: 'Produit', sortValue: (r) => norm(r.productName), render: (r) => `<a href="#/produit/${enc(r.productId)}">${esc(r.productName)}</a><br><span class="muted mono">${esc(r.orderId || '')}</span>` },
+        { key: 'rating', label: 'Note', cls: 'num', render: (r) => `<span class="rv-stars r${r.rating}" title="${r.rating} sur 5">${starsTxt(r.rating)}</span>` },
+        { key: 'text', label: 'Avis', sortable: false, render: (r) => `<strong>${esc(r.name)}</strong><br>${r.text ? esc(r.text) : '<span class="muted">(sans commentaire)</span>'}` },
+        { key: 'date', label: 'Date', sortValue: (r) => r.createdAt, render: (r) => date(r.createdAt) },
+        { key: 'state', label: 'État', sortValue: (r) => (r.hidden ? 1 : 0), render: (r) => (r.hidden ? `<span class="tag warn">Masqué</span><br><span class="muted">par ${esc(r.hiddenBy || '')}</span><br><button class="linkish" data-rv="${esc(r.id)}" data-h="0">Réafficher</button>` : `<span class="tag ok">Publié</span><br><button class="linkish" data-rv="${esc(r.id)}" data-h="1">Masquer</button>`) },
+      ],
+    });
+    app.querySelectorAll('[data-rf]').forEach((b) => b.addEventListener('click', () => { state.reviewFilter = b.dataset.rf; viewReviews(); }));
+    $('#tbl').addEventListener('click', async (e) => {
+      const b = e.target.closest('[data-rv]'); if (!b) return;
+      const hidden = b.dataset.h === '1';
+      if (hidden && !confirm("Masquer cet avis ? Il ne sera plus visible sur la boutique (vous pourrez le réafficher).")) return;
+      try { await api('/reviews/' + enc(b.dataset.rv), { method: 'PATCH', body: { hidden } }); toast(hidden ? 'Avis masqué' : 'Avis réaffiché'); viewReviews(); } catch (err) { toast('❌ ' + err.message); }
     });
   }
 
@@ -2373,15 +2477,17 @@
   const msgTime = (iso) => { const d = new Date(iso); return d.toDateString() === new Date().toDateString() ? d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) + ' ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }); };
   const bubble = (m, mine) => `
     <div class="pm ${m.internal ? 'note' : m.from} ${mine ? 'mine' : ''}">
-      <span class="who">${m.internal ? `${icon('note-pencil')} Note interne · ${esc(m.staffName || '')}` : m.from === 'customer' ? 'Client' : m.from === 'bot' ? 'Assistant automatique' : esc(m.staffName || 'Kamwa')}</span>
+      <span class="who">${m.internal ? `${icon('note-pencil')} Note interne · ${esc(m.staffName || '')}` : m.from === 'customer' ? 'Client' : m.from === 'bot' ? 'Assistant automatique' : m.from === 'supplier' ? `${esc(m.staffName || 'Fournisseur')}${m.auto ? ' · automatique' : ''}` : esc(m.staffName || 'Kamwa')}</span>
       <div class="pb">${esc(m.text).replace(/\n/g, '<br>')}${(m.links || []).length ? `<div class="muted" style="margin-top:4px">${m.links.map((l) => esc(l.label)).join(' · ')}</div>` : ''}</div>
       <span class="t">${msgTime(m.at)}</span>
     </div>`;
   async function viewMessaging(id) {
+    if (CAN.supplier()) return viewSupplierChat();
     const support = CAN.orders();
     if (!id) id = support ? '' : 'equipe';
-    let list = [];
+    let list = [], sups = [];
     if (support) { try { list = await api('/chat/conversations'); } catch { return; } }
+    if (CAN.desk()) { try { sups = await api('/chat/suppliers'); } catch {} }
     const f = state.msgFilter || 'todo';
     const match = (c, k) => k === 'all' || (k === 'todo' ? c.status === 'open' : c.status === k);
     const FILT = [['todo', 'À répondre'], ['bot', 'Avec l\'assistant'], ['closed', 'Terminées'], ['all', 'Toutes']];
@@ -2397,23 +2503,68 @@
               <span><strong>${esc(c.name)}${vb(c.idStatus)}</strong><small>${c.lastFrom === 'customer' ? '' : c.lastFrom === 'staff' ? 'Vous : ' : 'Assistant : '}${esc((c.lastText || '').slice(0, 70))}</small></span>
               <span class="side"><em>${c.lastAt ? msgTime(c.lastAt) : ''}</em>${c.unread ? `<b class="n">${c.unread}</b>` : `<i class="tag ${CONV_ST[c.status]?.[1] || ''}">${esc(CONV_ST[c.status]?.[0] || '')}</i>`}</span>
             </a>`).join('') : '<p class="muted" style="padding:14px">Aucune conversation ici.</p>'}` : ''}
+          ${sups.length ? `<p class="msg-sep">${icon('storefront')} Fournisseurs</p>${sups.map((f) => `
+            <a class="msg-item ${id === 'f-' + f.supplierId ? 'on' : ''} ${f.unread ? 'unread' : ''}" href="#/messagerie/f-${enc(f.supplierId)}">
+              <span class="av sup">${esc((f.name || 'F')[0].toUpperCase())}</span>
+              <span><strong>${esc(f.name)}</strong><small>${f.lastText ? (f.lastFrom === 'staff' ? 'Kamwa : ' : '') + esc(f.lastText.slice(0, 70)) : 'Pas encore de message'}</small></span>
+              <span class="side"><em>${f.lastAt ? msgTime(f.lastAt) : ''}</em>${f.unread ? `<b class="n">${f.unread}</b>` : ''}</span>
+            </a>`).join('')}` : ''}
         </aside>
         <section class="msg-conv" id="msgConv">${id ? '<p class="muted" style="padding:20px">Chargement…</p>' : `<div class="msg-empty">${icon('chat-circle-dots-duotone')}<p>Choisissez une conversation.</p></div>`}</section>
       </div>`;
     app.querySelectorAll('[data-mf]').forEach((b) => b.addEventListener('click', () => { state.msgFilter = b.dataset.mf; viewMessaging(id); }));
     if (id === 'equipe') await openTeam();
+    else if (id?.startsWith('f-')) await openSupplierThread(id.slice(2));
     else if (id) await openConv(id);
     // Nouveaux messages : toutes les 4 s tant que la page est affichée
     state.msgTimer = setInterval(async () => {
       if (document.hidden || !location.hash.startsWith('#/messagerie')) return;
       if (id === 'equipe') return openTeam(true);
+      if (id?.startsWith('f-')) return openSupplierThread(id.slice(2), true);
       if (id) openConv(id, true);
     }, 4000);
+  }
+  // Fil « Fournisseur ↔ Kamwa » vu par l'équipe (admin, commandes, catalogue)
+  async function openSupplierThread(sid, refresh) {
+    let t;
+    try { t = await api('/chat/suppliers/' + enc(sid)); } catch (err) { $('#msgConv').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; return; }
+    const sig = JSON.stringify(t.messages.length);
+    if (refresh && sig === state.supSig) return;
+    state.supSig = sig;
+    const thread = t.messages.length ? t.messages.map((m) => bubble(m, m.from === 'staff' && m.userId === t.me)).join('') : '<p class="muted" style="text-align:center">Pas encore de message avec ce fournisseur.</p>';
+    if (refresh && $('#msgThread')) { $('#msgThread').innerHTML = thread; $('#msgThread').scrollTop = 1e9; loadChatCounts(); return; }
+    $('#msgConv').innerHTML = `
+      <div class="msg-top"><a class="ghost back" href="#/messagerie">${icon('caret-left')}</a><div><strong>${esc(t.name)}</strong> <span class="tag">Fournisseur</span><br><span class="muted">${esc(t.contact || '')}${t.phone ? ` · <a href="tel:${esc(t.phone)}">${esc(t.phone)}</a> · <a href="https://wa.me/242${esc(String(t.phone).replace(/\D/g, '').replace(/^242/, ''))}" target="_blank" rel="noopener">WhatsApp</a>` : ''}</span></div></div>
+      <div class="msg-thread" id="msgThread">${thread}</div>
+      ${replyBox('supplier')}`;
+    $('#msgThread').scrollTop = 1e9;
+    bindReply(async (text) => { await api('/chat/suppliers/' + enc(sid) + '/messages', { method: 'POST', body: { text } }); state.supSig = null; await openSupplierThread(sid, true); });
+    loadChatCounts();
+  }
+  // Le fournisseur : son fil avec Kamwa (il ne voit ni les clients ni le salon de l'équipe)
+  async function viewSupplierChat(refresh) {
+    let t;
+    try { t = await api('/chat/kamwa'); } catch { return; }
+    const sig = JSON.stringify(t.messages.length);
+    if (refresh && sig === state.supSig) return;
+    state.supSig = sig;
+    const thread = t.messages.length ? t.messages.map((m) => bubble(m, m.from === 'supplier')).join('') : '<p class="muted" style="text-align:center">Écrivez à Kamwa : une question sur une commande, un produit, un rendez-vous de récupération…</p>';
+    if (refresh && $('#msgThread')) { $('#msgThread').innerHTML = thread; $('#msgThread').scrollTop = 1e9; loadChatCounts(); return; }
+    app.innerHTML = pageHead({ title: 'Messagerie', desc: 'Votre fil avec l\'équipe Kamwa. Quand vous cliquez « Prêt à récupérer » sur une commande, Kamwa est prévenu ici automatiquement.' }) + `
+      <div class="msg-layout has-conv solo"><section class="msg-conv" id="msgConv">
+        <div class="msg-top"><div><strong>Kamwa</strong><br><span class="muted">Administration, commandes et catalogue</span></div></div>
+        <div class="msg-thread" id="msgThread">${thread}</div>
+        ${replyBox('supplier')}
+      </section></div>`;
+    $('#msgThread').scrollTop = 1e9;
+    bindReply(async (text) => { await api('/chat/kamwa', { method: 'POST', body: { text } }); state.supSig = null; await viewSupplierChat(true); });
+    loadChatCounts();
+    state.msgTimer = setInterval(() => { if (!document.hidden && location.hash.startsWith('#/messagerie')) viewSupplierChat(true); }, 4000);
   }
   function replyBox(team) {
     return `<form class="msg-reply" id="msgForm">
       ${team ? '' : `<div class="canned">${CANNED.map((t, i) => `<button type="button" data-canned="${i}">${esc(t.slice(0, 34))}…</button>`).join('')}</div>`}
-      <div class="row-reply"><textarea id="msgText" rows="2" maxlength="2000" placeholder="${team ? 'Message à toute l\'équipe…' : 'Votre réponse au client…'}"></textarea>
+      <div class="row-reply"><textarea id="msgText" rows="2" maxlength="2000" placeholder="${team === 'supplier' ? 'Votre message…' : team ? 'Message à toute l\'équipe…' : 'Votre réponse au client…'}"></textarea>
       <button class="btn">${icon('paper-plane-right-fill')} Envoyer</button></div>
       ${team ? '' : `<label class="check" style="margin:6px 0 0"><input type="checkbox" id="msgInternal"> Note interne (invisible pour le client)</label>`}
     </form>`;
@@ -2473,10 +2624,10 @@
   }
   // Pastilles du menu + sonnerie quand un client attend un conseiller
   async function loadChatCounts() {
-    if (!state.user || CAN.supplier()) return;
+    if (!state.user) return;
     try {
       const n = await api('/chat/unread');
-      const total = (n.support || 0) + (n.team || 0);
+      const total = (n.support || 0) + (n.team || 0) + (n.suppliers || 0) + (n.kamwa || 0);
       for (const el of [$('#chatCount')]) { if (el) { el.hidden = !total; el.textContent = total; } }
       if ($('#teamUnread')) { $('#teamUnread').hidden = !n.team; $('#teamUnread').textContent = n.team; }
       if (state.chatWaiting != null && n.waiting > state.chatWaiting) { ring(); toast('Un client attend une réponse dans la messagerie'); }
@@ -2572,7 +2723,7 @@
   // à la même position, sauf pendant une saisie (elle se met alors à jour dès que la saisie est terminée).
   const LIVE_TOPICS = {
     tableau: ['orders', 'products', 'customers', 'chat', 'finance'], commandes: ['orders'], commande: ['orders', 'documents', 'parcels'], documents: ['documents'], colis: ['parcels', 'orders'], calendrier: ['orders', 'purchases'], achats: ['purchases'], achat: ['purchases'], stock: ['stock', 'products', 'purchases'], 'bons-de-commande': ['purchases'], clients: ['customers'],
-    livraisons: ['orders'], fournisseur: ['orders', 'products'],
+    livraisons: ['orders'], fournisseur: ['orders', 'products'], avis: ['reviews'],
     produits: ['products'], agences: ['agencies'], journal: ['orders', 'products', 'customers', 'staff', 'finance'], finances: ['finance', 'orders'], equipe: ['staff'],
   };
   const NO_LIVE_WITH_ID = ['produit', 'achat', 'calendrier', 'agences', 'equipe', 'finances', 'reglages', 'mot-de-passe'];
@@ -2613,10 +2764,12 @@
     proEs.onerror = () => { if (proEs.readyState === EventSource.CLOSED) { proEs = null; setTimeout(connectProEvents, 3000); } };
   }
   function refreshMessaging(id) {
+    if (CAN.supplier()) return viewSupplierChat(true);
     if (id === 'equipe') return openTeam(true);
+    if (id?.startsWith('f-')) return openSupplierThread(id.slice(2), true);
     if (id) openConv(id, true);
     // liste des conversations à gauche
-    api('/chat/conversations').then(() => { if (!$('#msgText')?.value && !id) viewMessaging(id); }).catch(() => {});
+    if (!id && !$('#msgText')?.value) viewMessaging(id);
   }
 
   function route(opts = {}) {
@@ -2633,8 +2786,8 @@
     const allowed = {
       tableau: () => Boolean(state.user),
       commandes: CAN.orders, commande: CAN.orders, produits: CAN.products, produit: CAN.products,
-      messagerie: () => Boolean(state.user) && !CAN.supplier(),
-      calendrier: () => CAN.orders() || CAN.courier(), achats: () => CAN.admin() || state.user?.role === 'catalog', achat: () => CAN.admin() || state.user?.role === 'catalog', stock: () => CAN.admin() || state.user?.role === 'catalog', 'bons-de-commande': CAN.supplier, documents: CAN.orders, colis: () => CAN.orders() || CAN.courier(), scanner: () => CAN.orders() || CAN.courier(),
+      messagerie: () => Boolean(state.user),
+      calendrier: () => CAN.orders() || CAN.courier(), achats: () => CAN.admin() || state.user?.role === 'catalog', achat: () => CAN.admin() || state.user?.role === 'catalog', stock: () => CAN.admin() || state.user?.role === 'catalog', avis: () => CAN.admin() || state.user?.role === 'catalog', 'bons-de-commande': CAN.supplier, documents: CAN.orders, colis: () => CAN.orders() || CAN.courier(), scanner: () => CAN.orders() || CAN.courier(),
       fournisseur: CAN.supplier, clients: CAN.admin, agences: CAN.admin, equipe: CAN.admin, journal: CAN.admin, finances: CAN.admin, reglages: CAN.admin, livraisons: CAN.courier, 'mot-de-passe': () => !CAN.admin(),
     };
     if (!allowed[page]?.()) [page, id] = homeHash().slice(2).split('/');
@@ -2646,6 +2799,7 @@
     if (page === 'achats') return viewPurchases();
     if (page === 'achat') return id === 'nouveau' ? (CAN.admin() ? viewPurchaseNew() : (location.hash = '#/achats')) : viewPurchase(id);
     if (page === 'stock') return viewStock(id);
+    if (page === 'avis') return viewReviews();
     if (page === 'bons-de-commande') return viewSupplierPurchases();
     if (page === 'colis') return id ? viewParcel(id) : viewParcels();
     if (page === 'calendrier') return viewCalendar(id);

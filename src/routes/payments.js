@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const { feeFor } = require('../fees');
 const router = require('express').Router();
 const config = require('../config');
 const { orders, payments, products, agencies } = require('../store');
@@ -44,7 +45,7 @@ router.post('/', async (req, res) => {
   if (!methodAllowed(method)) return res.status(400).json({ error: "Ce moyen de paiement n'est pas proposé pour le moment" });
   // Espèces en agence : retrait à l'agence (par défaut) ou livraison à domicile une fois payé
   const cashMode = method === 'cash' && fulfillment === 'delivery' ? 'delivery' : 'pickup';
-  const order = orders.get(orderId);
+  let order = orders.get(orderId);
   if (!order || !hasAccess(order, token)) return res.status(404).json({ error: 'Commande introuvable' });
 
   // Anti double paiement : avant toute nouvelle demande, on revérifie les demandes déjà envoyées pour cette commande.
@@ -108,6 +109,15 @@ router.post('/', async (req, res) => {
     if (!product || line.qty > availableStock(product, order.id)) {
       return res.status(409).json({ error: `Stock insuffisant pour ${line.name}. Retirez-le du panier ou réessayez plus tard.` });
     }
+  }
+
+  // Frais de livraison (src/fees.js) : calculés ICI selon la ville / le quartier ; retrait au point relais = gratuit
+  {
+    const subtotal = order.subtotal ?? order.lines.reduce((n, l) => n + l.total, 0);
+    const willDeliver = method !== 'cash' || cashMode === 'delivery';
+    const f = willDeliver ? feeFor(order.customer?.city, order.customer?.zone, subtotal) : { deliverable: true, fee: 0 };
+    if (!f.deliverable) return res.status(400).json({ error: `Pas encore de livraison à ${order.customer?.city || 'cette ville'} : choisissez le retrait au point relais.`, noDelivery: true });
+    if (order.deliveryFee !== f.fee || order.total !== subtotal + f.fee) order = orders.update(order.id, { subtotal, deliveryFee: f.fee, total: subtotal + f.fee });
   }
 
   // Plan de paiement de la commande : à la réception (acompte + reste) ou payée en ligne / en agence

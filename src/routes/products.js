@@ -21,7 +21,8 @@ router.get('/', (req, res) => {
     if (r.partial) res.set('X-Search-Partial', '1');
     if (r.didYouMean) res.set('X-Search-Suggest', encodeURIComponent(r.didYouMean));
   }
-  res.json(list.map(publicProduct));
+  const notes = require('../reviews').summaries(); // note moyenne des avis clients
+  res.json(list.map((p) => ({ ...publicProduct(p), ...(notes.get(p.id) ? { rating: notes.get(p.id) } : {}) })));
 });
 
 // Suggestions pendant la frappe : quelques produits + rayons correspondants
@@ -44,7 +45,18 @@ router.get('/suggest', (req, res) => {
 router.get('/:id', (req, res) => {
   const product = products.get(req.params.id);
   if (!product || product.pending) return res.status(404).json({ error: 'Produit introuvable' });
-  res.json(publicProduct(product));
+  const note = require('../reviews').summaries().get(product.id);
+  res.json({ ...publicProduct(product), ...(note ? { rating: note } : {}) });
+});
+
+// Avis clients d'un produit ; si le client est connecté : peut-il donner son avis, et le sien
+router.get('/:id/reviews', (req, res) => {
+  const product = products.get(req.params.id);
+  if (!product || product.pending) return res.status(404).json({ error: 'Produit introuvable' });
+  const R = require('../reviews');
+  const me = require('../customer/auth').currentCustomer(req);
+  res.set('Cache-Control', 'no-store');
+  res.json({ ...R.forProduct(product.id), mine: me ? { can: Boolean(R.deliveredOrderFor(me.id, product.id)), review: R.mineFor(me.id, product.id) ? R.publicReview(R.mineFor(me.id, product.id)) : null } : null });
 });
 
 module.exports = router;

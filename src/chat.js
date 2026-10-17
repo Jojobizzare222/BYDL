@@ -5,6 +5,13 @@
 //    interne « Équipe Kamwa » (toute l'équipe, sauf les fournisseurs, qui sont externes).
 // Les messages sont rangés dans la conversation (collection `conversations`, 500 derniers messages gardés).
 const crypto = require('crypto');
+// Frais de livraison réels (Kamwa Pro → Réglages) pour la réponse « livraison »
+function feesLine() {
+  const f = require('./fees').feeSettings();
+  const fm = (n) => new Intl.NumberFormat('fr-FR').format(n) + ' FCFA';
+  const parts = f.cities.map((c) => `${c.city} : ${c.fee ? fm(c.fee) : 'offerte'}${c.zones.length ? ' (certains quartiers : tarif différent)' : ''}`);
+  return `Frais de livraison : ${parts.join(' · ')}${f.freeFrom ? `. Offerte dès ${fm(f.freeFrom)} d'achat` : ''}.`;
+}
 const { conversations, agencies, orders, settings } = require('./store');
 const { salesSettings } = require('./sales');
 
@@ -67,7 +74,7 @@ function botAnswer(text, { customer, conv }) {
     case 'hello': return { text: `Mbote${customer ? ' ' + customer.name.split(' ')[0] : ''} ! Je suis l'assistant Kamwa. Que puis-je faire pour vous ?`, quick: MENU };
     case 'thanks': return { text: 'Avec plaisir ! Autre chose ?', quick: MENU };
     case 'human': return { handoff: true, text: '' };
-    case 'delivery': return { text: `Livraison en 24 à 48 h à Pointe-Noire et Brazzaville (autres villes : sur demande).\nVous pouvez aussi retirer votre commande dans une de nos agences.\nÀ la livraison, donnez votre code de livraison au livreur seulement quand vous avez le colis en main.`, quick: ['Paiement', 'Points relais', 'Ma commande', 'Parler à un conseiller'] };
+    case 'delivery': return { text: `Livraison en 24 à 48 h à Pointe-Noire et Brazzaville (autres villes : sur demande).\n${feesLine()}\nVous pouvez aussi retirer votre commande gratuitement dans un point relais.\nÀ la livraison, donnez votre code de livraison au livreur seulement quand vous avez le colis en main.`, quick: ['Paiement', 'Points relais', 'Ma commande', 'Parler à un conseiller'] };
     case 'payment': return { text: cashOnly
       ? `Le paiement se fait en espèces dans nos points relais (à choisir sur la carte au moment de commander). Vous réservez en ligne (articles gardés ${Number(process.env.PICKUP_HOLD_HOURS || 48)} h), vous payez au point relais, puis vous repartez avec votre commande ou nous vous la livrons.\n\nNos points relais :\n${agencyList()}`
       : `Moyens de paiement proposés : ${Object.entries(sales.methods).filter(([, v]) => v).map(([k]) => ({ cash: 'espèces en agence', momo: 'Mobile Money (MTN, Airtel)', card: 'carte bancaire', cod: 'paiement à la réception' })[k]).join(', ')}.`,
@@ -108,4 +115,10 @@ function teamConversation() {
   return conversations.get(TEAM_ID) || conversations.insert({ id: TEAM_ID, kind: 'team', title: 'Équipe Kamwa', messages: [], reads: {}, createdAt: new Date().toISOString() });
 }
 
-module.exports = { addMessage, botAnswer, WELCOME, MENU, TEAM_ID, teamConversation, sha256, newId };
+// Fil « Fournisseur ↔ Kamwa » : un par fournisseur (identifiant fixe)
+const supplierConvId = (supplierId) => 'SUP-' + supplierId;
+function supplierThread(u) {
+  return conversations.get(supplierConvId(u.id)) || conversations.insert({ id: supplierConvId(u.id), kind: 'supplier', supplierId: u.id, title: u.company || u.name, messages: [], reads: {}, unreadStaff: 0, createdAt: new Date().toISOString() });
+}
+
+module.exports = { addMessage, botAnswer, WELCOME, MENU, TEAM_ID, teamConversation, supplierConvId, supplierThread, sha256, newId };
