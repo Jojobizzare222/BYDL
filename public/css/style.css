@@ -806,7 +806,7 @@ p.lbl { font-weight: 600; font-size: .88rem; margin: 16px 0 0; }
 .relay-card b { display: block; } .relay-card small { color: var(--muted); display: block; line-height: 1.35; }
 .relay-card .dist { margin-left: auto; font-size: .78rem; font-weight: 700; color: var(--brand-text); white-space: nowrap; }
 .relay-tools { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0 0; }
-.relay-tools .btn { margin: 0; display: inline-flex; align-items: center; gap: 6px; }
+.relay-tools .btn { margin: 0; display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: auto; }
 
 /* Suivi en direct du livreur */
 .live-box { margin: 14px 0; padding: 14px; border-radius: 18px; background: linear-gradient(160deg, #F1EDFF, #FFF6EC); border: 1px solid var(--line-soft); }
@@ -818,12 +818,15 @@ p.lbl { font-weight: 600; font-size: .88rem; margin: 16px 0 0; }
 .live-bar .ico { position: absolute; right: -14px; top: 50%; transform: translateY(-50%); font-size: 1.3rem; color: var(--accent); }
 .relay-change { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
 .relay-change #relayChangeBox { flex-basis: 100%; }
+.relay-change > .btn { margin: 0; width: auto; display: inline-flex; align-items: center; gap: 6px; }
+.panel.pay-here { background: #F0F7F4; margin: 12px 0 0; }
 
 /* Notifications de suivi */
 .push-card { display: flex; align-items: center; gap: 10px; margin: 12px 0; padding: 12px 14px; border-radius: 16px; background: var(--violet-soft); color: var(--ink); font-size: .9rem; }
 .push-card > .ico { font-size: 1.5rem; color: var(--brand-2); flex: none; }
 .push-card span { flex: 1; line-height: 1.4; } .push-card strong { display: block; }
-.push-card .btn { margin: 0; flex: none; }
+.push-card .btn { margin: 0; flex: none; width: auto; white-space: nowrap; padding-inline: 20px; }
+@media (max-width: 520px) { .push-card { flex-wrap: wrap; } .push-card span { flex: 1 1 calc(100% - 40px); } .push-card .btn { flex: 1 0 100%; } }
 .push-card.on { background: #E1F5EC; color: var(--ok); }
 
 
@@ -851,6 +854,7 @@ html[data-theme="dark"] .pc-mango { background: #5A4310; color: #FFE3A3; }
 html[data-theme="dark"] .alert.err, html[data-theme="dark"] .st-cancelled { background: #3D1C1C; color: #FF9C8C; }
 html[data-theme="dark"] .alert.warn { background: #3A2E12; color: #FFD27A; }
 html[data-theme="dark"] .alert.ok, html[data-theme="dark"] .push-card.on { background: #123426; color: #6BE0A8; }
+html[data-theme="dark"] .panel.pay-here { background: #12291F; }
 html[data-theme="dark"] .st-paid { background: #3A2A12; color: #FFC77A; }
 html[data-theme="dark"] .app-tabs { background: rgba(28,23,39,.97); border-top-color: var(--line-soft); }
 html[data-theme="dark"] .install-card, html[data-theme="dark"] .quote-msg, html[data-theme="dark"] .cookie-banner { background: var(--paper); color: var(--ink); }

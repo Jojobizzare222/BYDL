@@ -1534,7 +1534,7 @@
             ${kamwaMap.hasPos(ag) ? `<a class="btn ghost small" href="${kamwaMap.directions(ag)}" target="_blank" rel="noopener">${icon('map-pin-bold')} Itinéraire</a>` : ''}
             <button type="button" class="btn ghost small" id="relayChange">${icon('storefront')} Changer de point relais</button>
             <div id="relayChangeBox"></div></div>` : ''}
-          ${payAg && o.status === 'pending_payment' && !expired ? `<div class="panel" style="background:#F0F7F4;margin:12px 0 0">
+          ${payAg && o.status === 'pending_payment' && !expired ? `<div class="panel pay-here">
             <strong>${icon('map-pin-bold')} ${esc(ag.name)} — ${esc(ag.city)}</strong>
             <p class="hint" style="margin:4px 0 0">${esc(ag.address || 'Adresse communiquée par téléphone')}${ag.hours ? `<br>${icon('clock-bold')} ` + esc(ag.hours) : ''}${ag.phone ? `<br>${icon('phone-bold')} ` + esc(ag.phone) : ''}</p>
             <p class="hint">Présentez le numéro de commande <strong>${esc(o.id)}</strong> au point relais.</p></div>` : ''}`}
