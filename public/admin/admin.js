@@ -95,13 +95,13 @@
 
   // ---------- Tableau de bord (graphiques Chart.js, adaptés au rôle) ----------
   const charts = [];
-  const PALETTE = ['#FFB300', '#9D8CFF', '#FF6B4F', '#2BC48A', '#5AB4FF', '#F278B6'];
+  const PALETTE = ['#FFB300', '#2D66D6', '#FF6B4F', '#2BC48A', '#14B8A6', '#94A3B8'] // mangue, bleu Kamwa Pro, corail, vert, bleu-vert, ardoise;
   // Couleurs des graphiques selon l'apparence (recalculées à chaque affichage du tableau de bord)
   function chartTheme() {
     if (!window.Chart) return;
     const lightTheme = document.documentElement.getAttribute('data-theme') === 'light';
-    Chart.defaults.color = lightTheme ? '#6B6585' : '#A69FBF';
-    Chart.defaults.borderColor = lightTheme ? 'rgba(27,21,48,.08)' : 'rgba(255,255,255,.08)';
+    Chart.defaults.color = lightTheme ? '#657185' : '#9FABBF';
+    Chart.defaults.borderColor = lightTheme ? 'rgba(21,31,48,.08)' : 'rgba(255,255,255,.08)';
     Chart.defaults.font.family = getComputedStyle(document.body).fontFamily;
     Chart.defaults.plugins.legend.labels.boxWidth = 12;
   }
@@ -120,7 +120,7 @@
   }
   const doughnut = (id, list) => makeChart(id, {
     type: 'doughnut',
-    data: { labels: list.map((x) => x.label), datasets: [{ data: list.map((x) => x.value), backgroundColor: PALETTE, borderColor: '#221D2D', borderWidth: 3 }] },
+    data: { labels: list.map((x) => x.label), datasets: [{ data: list.map((x) => x.value), backgroundColor: PALETTE, borderColor: '#1D232D', borderWidth: 3 }] },
     options: { cutout: '62%', plugins: { legend: { position: 'bottom' } } },
   });
   const hbar = (id, list, money) => makeChart(id, {
@@ -197,7 +197,7 @@
           labels: d.labels.map(dayLabel),
           datasets: d.series.map((x, i) => ({
             type: x.type, label: x.label, data: x.data, yAxisID: x.axis === 'y2' ? 'y2' : 'y', order: x.type === 'line' ? 0 : 1,
-            backgroundColor: x.type === 'bar' ? 'rgba(157,140,255,.55)' : 'rgba(255,179,0,.15)', borderColor: x.type === 'bar' ? 'transparent' : PALETTE[0],
+            backgroundColor: x.type === 'bar' ? 'rgba(45,102,214,.55)' : 'rgba(255,179,0,.15)', borderColor: x.type === 'bar' ? 'transparent' : PALETTE[0],
             borderRadius: 4, maxBarThickness: 26, tension: 0.35, fill: x.type === 'line', pointRadius: days > 30 ? 0 : 2, borderWidth: x.type === 'line' ? 2 : 0,
           })),
         },
@@ -2536,7 +2536,7 @@
       data: {
         labels: d.monthly.map((x) => x.month.slice(5) + '/' + x.month.slice(2, 4)),
         datasets: [
-          { type: 'bar', label: 'Ventes', data: d.monthly.map((x) => x.revenue), backgroundColor: 'rgba(157,140,255,.6)', borderRadius: 6, maxBarThickness: 28, order: 2 },
+          { type: 'bar', label: 'Ventes', data: d.monthly.map((x) => x.revenue), backgroundColor: 'rgba(140,182,255,.6)', borderRadius: 6, maxBarThickness: 28, order: 2 },
           { type: 'bar', label: 'Coûts et charges', data: d.monthly.map((x) => x.costs), backgroundColor: 'rgba(255,107,79,.55)', borderRadius: 6, maxBarThickness: 28, order: 2 },
           { type: 'line', label: 'Résultat', data: d.monthly.map((x) => x.result), borderColor: PALETTE[0], backgroundColor: PALETTE[0], tension: 0.35, pointRadius: 3, order: 1 },
         ],
