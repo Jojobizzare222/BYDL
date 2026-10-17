@@ -566,10 +566,10 @@ h1.mono { font-family: inherit; font-size: 1.6rem; letter-spacing: .02em; }
    rail des modules à gauche, onglets du module + recherche en haut, cartes blanches compactes.
    Thème CLAIR par défaut ; le sombre reste disponible. Les règles ci-dessous passent devant les anciennes.
    ====================================================================== */
-:root { --radius: 12px; --soft: rgba(255,255,255,.04); --rail: #1B1724; --rail-ink: #A49CBE; --glass: rgba(27,23,36,.92); --shadow: 0 1px 2px rgba(0,0,0,.25); }
+:root { --radius: 12px; --soft: rgba(255,255,255,.04); --rail: #0B1A33; --rail-ink: #A7B4CF; --glass: rgba(27,23,36,.92); --shadow: 0 1px 2px rgba(0,0,0,.25); }
 html[data-theme="light"] {
   --bg: #F5F6FA; --side: #FFFFFF; --paper: #FFFFFF; --paper-2: #F1F2F8; --line: #E4E6EF; --ink: #171C30; --muted: #6A7190;
-  --brand: #5236C9; --soft: #F5F6FA; --rail: #2D1B69; --rail-ink: #CFC6F2; --glass: rgba(255,255,255,.92); --shadow: 0 1px 2px rgba(23,28,48,.05);
+  --brand: #5236C9; --soft: #F5F6FA; --rail: #10264A; --rail-ink: #B9C6E0; --glass: rgba(255,255,255,.92); --shadow: 0 1px 2px rgba(23,28,48,.05);
 }
 body { font-size: 13.5px; }
 h1 { font-size: 1.35rem; } h2 { font-size: 1rem; }
@@ -586,7 +586,9 @@ html[data-theme="light"] .bg-shapes { opacity: .45; }
 .rail-item.on .ico { color: var(--mango); }
 .rail-item .n { position: absolute; top: 4px; right: 6px; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 999px; background: var(--mango); color: #241A45; font-size: .62rem; font-weight: 700; display: grid; place-items: center; font-style: normal; }
 .rail-foot { margin-top: auto; display: flex; flex-direction: column; gap: 2px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,.1); width: 100%; align-items: center; }
-.rail::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 3px; background: var(--grad-line); }
+.rail::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 3px; background: linear-gradient(90deg, #FFB300, #FF5A3C); }
+.rail-item.on { background: rgba(255,255,255,.12); }
+.rail-item:hover { background: rgba(255,255,255,.07); }
 
 /* Barre du haut */
 .topbar { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 14px; padding: 9px 24px; background: var(--glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); min-height: 56px; }
