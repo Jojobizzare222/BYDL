@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Bilan des corrections</title>
+<style>
+  :root { --ink: #171C30; --muted: #5d6478; --line: #e3e6ef; --bg: #f5f6fa; --navy: #10264A; --blue: #1E56C2; --red: #C62E1F; --red-bg: #FDEEEC; --orange: #8A5A00; --orange-bg: #FFF1CC; --yellow-bg: #FFF8E1; --grey-bg: #EEF0F5; --green: #0E7A55; --green-bg: #E3F6EE; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; color: var(--ink); background: var(--bg); line-height: 1.5; font-size: 15px; }
+  header { background: var(--navy); color: #fff; padding: 28px 16px 22px; }
+  header .in, main { max-width: 980px; margin: 0 auto; }
+  header h1 { margin: 0 0 4px; font-size: 1.6rem; } header p { margin: 0; color: #C6D2EA; }
+  main { padding: 18px 16px 60px; }
+  h2 { font-size: 1.25rem; margin: 30px 0 10px; } h3 { font-size: 1.02rem; margin: 18px 0 8px; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; margin: 12px 0; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
+  .kpi { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+  .kpi b { display: block; font-size: 1.5rem; } .kpi span { color: var(--muted); font-size: .88rem; }
+  table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+  td.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .sev { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: .74rem; font-weight: 700; white-space: nowrap; }
+  .s1 { background: var(--red-bg); color: var(--red); } .s2 { background: var(--orange-bg); color: var(--orange); } .s3 { background: var(--grey-bg); color: var(--muted); } .ok { background: var(--green-bg); color: var(--green); }
+  .f { border-left: 4px solid var(--green); padding: 10px 14px; margin: 10px 0; background: #fff; border-radius: 0 12px 12px 0; }
+  .f.todo { border-left-color: #E3A008; } .f.idea { border-left-color: var(--blue); }
+  .f h4 { margin: 0 0 4px; font-size: .98rem; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+  .f p { margin: 4px 0; }
+  .before { color: var(--muted); } .now { color: var(--ink); } .see { color: var(--blue); font-size: .9rem; }
+  .muted { color: var(--muted); }
+  .stars { letter-spacing: 1px; color: #E3A008; white-space: nowrap; }
+  .up { color: var(--green); font-weight: 700; white-space: nowrap; }
+  ul { padding-left: 20px; } li { margin: 4px 0; }
+  .note { background: var(--yellow-bg); border: 1px solid #F2DFA0; border-radius: 12px; padding: 12px 14px; }
+  code { background: var(--grey-bg); padding: 1px 6px; border-radius: 6px; font-size: .88em; }
+  pre { background: #0F172A; color: #E2E8F0; padding: 12px 14px; border-radius: 10px; overflow-x: auto; font-size: .88rem; }
+  .check li { list-style: none; margin-left: -20px; } .check li::before { content: "✓ "; color: var(--green); font-weight: 700; }
+  @media (max-width: 640px) { table, thead, tbody, tr, td, th { display: block; } thead { display: none; } tr { border-bottom: 1px solid var(--line); padding: 6px 0; } td { border: 0; padding: 3px 4px; } td.n { text-align: left; } }
+</style>
+</head>
+<body>
+<header><div class="in">
+  <h1>Bilan des corrections de l'audit</h1>
+  <p>Les trois priorités traitées, contrôle global refait · 17 octobre 2026 · rien de plus ne sera fait avant ton retour</p>
+</div></header>
+<main>
+
+<h2>En résumé</h2>
+<div class="grid">
+  <div class="kpi"><b>14 / 14</b><span>points des priorités 1, 2 et 3 traités</span></div>
+  <div class="kpi"><b style="color:var(--green)">567</b><span>vérifications automatiques réussies, 0 échec (26 séries)</span></div>
+  <div class="kpi"><b>6</b><span>nouvelles séries de tests écrites pour ces corrections</span></div>
+  <div class="kpi"><b>≈ 3,9 / 5</b><span>satisfaction client estimée (contre ≈ 3,3 avant)</span></div>
+  <div class="kpi"><b>0</b><span>consigne du projet enfreinte (vérifié une par une)</span></div>
+</div>
+<div class="card">
+  <p><strong>Verdict :</strong> les failles importantes de l'audit sont fermées. L'employé Catalogue ne voit plus les prix d'achat. Les commandes fantômes ne se créent plus et s'annulent toutes seules. La recherche comprend les fautes. Chaque commande dit dans Kamwa Pro quelle est la prochaine étape. Le site est compressé et protégé par des en-têtes de sécurité.</p>
+  <p>Trois choses restent entre tes mains avant d'aller plus loin :</p>
+  <ul>
+    <li><strong>Les tarifs de livraison</strong> : le système est prêt, mais il est réglé à 0 FCFA partout en attendant tes montants.</li>
+    <li><strong>Deux décisions de fonctionnement</strong> : la pièce d'identité au guichet, et Mobile Money pour la livraison.</li>
+    <li><strong>Le vrai catalogue</strong> : vrais produits, prix d'achat et photos.</li>
+  </ul>
+  <p>Les détails sont en bas de page.</p>
+</div>
+
+<h2>Ce qui a été corrigé</h2>
+
+<h3>Priorité 1 : sécurité et données</h3>
+<div class="f"><h4><span class="sev ok">Corrigé</span> Prix d'achat cachés à l'employé Catalogue</h4>
+  <p class="before">Avant : dans Achats et Stock, l'employé Catalogue voyait les prix fournisseurs et la valeur du stock.</p>
+  <p class="now">Maintenant : il ne voit plus les montants, prix unitaires, dettes ni la valeur du stock. Il peut encore réceptionner une livraison (quantités). Créer, envoyer ou payer un bon de commande est réservé à l'administrateur. C'est vérifié par le serveur, pas seulement caché à l'écran.</p>
+  <p class="see">À voir : démo, compte « Employé Catalogue » → Achats / Stock.</p></div>
+<div class="f"><h4><span class="sev ok">Corrigé</span> Plus de commandes fantômes</h4>
+  <p class="now">Trois changements :</p>
+  <ul>
+    <li>Tous les champs sont vérifiés <strong>avant</strong> d'envoyer quoi que ce soit, avec le message sous le champ à corriger.</li>
+    <li>Une deuxième tentative reprend la <strong>même</strong> commande, même si le client a corrigé ses coordonnées.</li>
+    <li>Le client a un bouton « Annuler ma réservation ». Une commande jamais payée s'annule toute seule : 2 h sans demande de paiement, ou 24 h après l'expiration d'une réservation. Le stock est alors libéré et le motif est affiché au client.</li>
+  </ul></div>
+<div class="f"><h4><span class="sev ok">Corrigé</span> Un seul chemin pour mettre en livraison</h4>
+  <p class="now">« Marquer en livraison » a disparu : il faut « Confier au livreur ». Pour un retrait au point relais, la remise demande maintenant le code du client. L'administrateur peut forcer si le client est vérifié autrement.</p></div>
+<div class="f"><h4><span class="sev ok">Corrigé</span> La bulle « Aide » ne cache plus rien</h4>
+  <p class="now">Elle se réduit en petite icône sur le panier, la commande, la fiche produit et le compte. Elle se cache quand le panier est ouvert.</p></div>
+
+<h3>Priorité 2 : ventes</h3>
+<div class="f"><h4><span class="sev ok">Fait</span> Compte vérifié annoncé tôt</h4>
+  <p class="now">La bannière de l'accueil, la fiche produit et le panier disent « Première commande ? Créez votre compte avec votre pièce d'identité (vérifiée sous 24 h) ». Le message s'adapte : pas de compte, pièce en attente, ou pièce manquante.</p></div>
+<div class="f"><h4><span class="sev ok">Fait</span> Recherche tolérante avec suggestions</h4>
+  <p class="now">La recherche comprend :</p>
+  <ul>
+    <li>les fautes : « iphne » trouve les iPhone ;</li>
+    <li>les pluriels et les accents ;</li>
+    <li>les mots courants : « portable », « ordi », « tél », « baskets »…</li>
+  </ul>
+  <p class="now">Pendant la frappe, un menu propose les produits (avec photo et prix) et les rayons. Quand rien n'est trouvé, la page propose des rayons et des produits populaires.</p>
+  <p class="see">À voir : taper « iphne » dans la barre de recherche.</p></div>
+<div class="f"><h4><span class="sev ok">Fait</span> Confort sur téléphone</h4>
+  <ul>
+    <li><strong>Barre d'achat fixe</strong> sur la fiche produit (prix + « Ajouter au panier »). Elle se cache quand le bouton principal est déjà à l'écran.</li>
+    <li><strong>En-tête qui se réduit</strong> quand on descend (la recherche reste) et qui revient quand on remonte.</li>
+    <li><strong>Message « Ajouté au panier »</strong> avec un bouton « Voir le panier ».</li>
+    <li><strong>Panier</strong> : photos des articles et boutons + / − plus grands.</li>
+    <li><strong>Zones à toucher</strong> de l'en-tête d'au moins 44 px.</li>
+    <li><strong>Rangées d'onglets</strong> : un fondu indique qu'il y a une suite.</li>
+  </ul></div>
+<div class="f"><h4><span class="sev ok">Fait</span> Couleurs regroupées, filtres, numéro court</h4>
+  <ul>
+    <li><strong>Couleurs</strong> : les fiches d'un même produit en plusieurs couleurs ne forment plus qu'une carte, avec des pastilles (« 4 couleurs ») et « Choisir la couleur ». La fiche produit permet de passer d'une couleur à l'autre.</li>
+    <li><strong>Filtres des rayons</strong> : prix, marque, en promo, en stock.</li>
+    <li><strong>Numéro de commande court</strong> : <code>CMD-10001</code>, <code>CMD-10002</code>… Ce numéro seul n'ouvre rien : la clé secrète ou le compte restent nécessaires.</li>
+  </ul></div>
+<div class="f"><h4><span class="sev ok">Fait</span> Kamwa Pro : « Prochaine étape » et liste « À faire »</h4>
+  <p class="now">En haut de chaque commande, un bandeau dit quoi faire avec un bouton « Y aller » qui amène au bon endroit :</p>
+  <ul>
+    <li>encaisser au point relais ;</li>
+    <li>appeler le client ;</li>
+    <li>planifier ;</li>
+    <li>attendre le fournisseur ;</li>
+    <li>confier au livreur ;</li>
+    <li>remettre contre le code.</li>
+  </ul>
+  <p class="now">Le tableau de bord a une seule liste « À faire », avec les mêmes mots partout : clients à appeler, livraisons à planifier, encaissements, commandes à préparer, messages, pièces à vérifier, produits à valider, articles prêts chez un fournisseur. Commandes a aussi un nouvel onglet « À appeler ». Les émojis des boutons sont remplacés par des icônes, l'onglet du navigateur affiche « Kamwa Pro », et l'encadré des comptes démo est lisible en thème clair.</p></div>
+
+<h3>Priorité 3 : confort et croissance</h3>
+<div class="f"><h4><span class="sev ok">Fait</span> Frais de livraison par ville et par quartier</h4>
+  <p class="now">Les tarifs se règlent dans Kamwa Pro → Réglages → « Frais de livraison » :</p>
+  <ul>
+    <li>un tarif par ville ;</li>
+    <li>des quartiers à tarif différent ;</li>
+    <li>les autres villes livrées ou non ;</li>
+    <li>la livraison offerte à partir d'un montant d'achat.</li>
+  </ul>
+  <p class="now">Le montant est <strong>calculé par le serveur</strong> au moment du paiement, et le navigateur ne peut pas le changer. Le retrait au point relais reste gratuit. Les frais apparaissent :</p>
+  <ul>
+    <li>à la commande, avec le choix du quartier et le total mis à jour ;</li>
+    <li>sur la facture (ligne « Livraison ») ;</li>
+    <li>sur la fiche commande et sur le suivi ;</li>
+    <li>dans les réponses de l'assistant.</li>
+  </ul>
+  <p class="note"><strong>Réglé à 0 FCFA partout</strong>, comme avant, en attendant tes vrais montants.</p></div>
+<div class="f"><h4><span class="sev ok">Fait</span> Fournisseur : « Prêt à récupérer » et messagerie</h4>
+  <p class="now">Dans « Mes commandes », le fournisseur clique « Prêt à récupérer » et peut préciser où et quand. Kamwa est prévenu :</p>
+  <ul>
+    <li>par un message automatique ;</li>
+    <li>dans la liste « À faire » ;</li>
+    <li>sur la fiche commande.</li>
+  </ul>
+  <p class="now">Chaque fournisseur a maintenant un fil privé avec Kamwa dans la Messagerie (lu par l'administrateur et les employés Commandes et Catalogue). Le fournisseur ne voit toujours ni les clients ni le salon de l'équipe. Le client ne voit jamais quel fournisseur a préparé ses articles.</p></div>
+<div class="f"><h4><span class="sev ok">Fait</span> Livreur : sa journée et l'itinéraire depuis l'adresse</h4>
+  <p class="now">En haut de « Mes livraisons » : à livrer aujourd'hui, livrées, ratées, montant encaissé. Si le client n'a pas placé son point sur la carte, un lien « Chercher l'adresse sur la carte » ouvre Google Maps avec l'adresse écrite (simple lien, aucune clé ni frais).</p></div>
+<div class="f"><h4><span class="sev ok">Fait</span> Avis clients et partage WhatsApp</h4>
+  <p class="now"><strong>Avis :</strong> seuls les clients qui ont <strong>reçu</strong> le produit peuvent donner un avis (« Achat vérifié »). Chaque avis comporte une note de 1 à 5 et un commentaire, avec un seul avis par produit, que le client peut modifier. Le nom affiché est réduit au prénom et à l'initiale (« Awa T. »).</p>
+  <p class="now">Les étoiles apparaissent sur les cartes et la fiche produit. Le suivi d'une commande livrée propose « Donner mon avis ». L'administrateur et l'employé Catalogue peuvent masquer un avis abusif dans Kamwa Pro → Avis clients, puis le réafficher.</p>
+  <p class="now"><strong>Partage :</strong> un bouton « Partager » sur la fiche produit. Le lien envoyé affiche dans WhatsApp la <strong>photo, le nom et le prix</strong> du produit, et non plus l'image générique de Kamwa.</p>
+  <p class="see">À voir : démo, fiche « iPhone SE 64 Go Minuit » (3 avis d'exemple sur la démo).</p></div>
+<div class="f"><h4><span class="sev ok">Fait</span> Technique : compression, sécurité, limite de requêtes</h4>
+  <ul>
+    <li><strong>Compression</strong> des pages et des scripts : environ 3 fois moins de données sur mobile. Kamwa Pro ne charge les graphiques qu'à leur premier affichage.</li>
+    <li><strong>En-têtes de sécurité</strong> sur le serveur et sur la démo Vercel :
+      <ul>
+        <li>contre l'affichage du site dans une page piégée ;</li>
+        <li>une liste stricte des sources autorisées : tout vient de Kamwa, sauf les cartes OpenStreetMap ;</li>
+        <li>HTTPS imposé quand le site est en HTTPS.</li>
+      </ul>
+    </li>
+    <li><strong>Limite de requêtes</strong> par adresse : 120 actions et 600 lectures par minute. C'est volontairement généreux, car au Congo beaucoup de téléphones partagent la même adresse chez l'opérateur.</li>
+  </ul></div>
+
+<h2>Résultats des tests</h2>
+<div class="card">
+<table>
+  <thead><tr><th>Série de tests</th><th>Vérifications</th><th>Résultat</th></tr></thead>
+  <tbody>
+    <tr><td>Rôles et droits</td><td class="n">58</td><td><span class="sev ok">OK</span></td></tr>
+    <tr><td>Bons de commande, réceptions, stock</td><td class="n">43</td><td><span class="sev ok">OK</span></td></tr>
+    <tr><td>Livraison sécurisée (codes, encaissement)</td><td class="n">39</td><td><span class="sev ok">OK</span></td></tr>
+    <tr><td>Pièce d'identité (photo privée, lecture auto)</td><td class="n">34</td><td><span class="sev ok">OK</span></td></tr>
+    <tr><td>Paiements (double paiement, réservation, expiration)</td><td class="n">33</td><td><span class="sev ok">OK</span></td></tr>
+    <tr><td>Comptes clients</td><td class="n">28</td><td><span class="sev ok">OK</span></td></tr>
+    <tr><td>Espace pro (connexion, produits, photos)</td><td class="n">28</td><td><span class="sev ok">OK</span></td></tr>
+    <tr><td>Finances</td><td class="n">26</td><td><span class="sev ok">OK</span></td></tr>
+    <tr><td>Colis et étiquettes</td><td class="n">25</td><td><span class="sev ok">OK</span></td></tr>
+    <tr><td><strong>Nouveau</strong> · Priorité 3 : avis, livreur, partage, sécurité</td><td class="n">24</td><td><span class="sev ok">OK</span></td></tr>
+    <tr><td><strong>Nouveau</strong> · Fournisseur : prêt à récupérer + messagerie</td><td class="n">23</td><td><span class="sev ok">OK</span></td></tr>
+    <tr><td>Factures, reçus, avoirs</td><td class="n">22</td><td><span class="sev ok">OK</span></td></tr>
+    <tr><td>Messagerie clients</td><td class="n">20</td><td><span class="sev ok">OK</span></td></tr>
+    <tr><td>Calendrier de livraison</td><td class="n">18</td><td><span class="sev ok">OK</span></td></tr>
+    <tr><td><strong>Nouveau</strong> · Frais de livraison</td><td class="n">16</td><td><span class="sev ok">OK</span></td></tr>
+    <tr><td>Suppression de produits</td><td class="n">16</td><td><span class="sev ok">OK</span></td></tr>
+    <tr><td>Achat complet</td><td class="n">14</td><td><span class="sev ok">OK</span></td></tr>
+    <tr><td><strong>Nouveau</strong> · Priorité 2 : recherche, suggestions, numéro court, « À faire »</td><td class="n">14</td><td><span class="sev ok">OK</span></td></tr>
+    <tr><td>Réglages personnels du client</td><td class="n">14</td><td><span class="sev ok">OK</span></td></tr>
+    <tr><td><strong>Nouveau</strong> · Priorité 1 : commandes fantômes</td><td class="n">13</td><td><span class="sev ok">OK</span></td></tr>
+    <tr><td>Statistiques du tableau de bord</td><td class="n">13</td><td><span class="sev ok">OK</span></td></tr>
+    <tr><td>Rafraîchissement instantané</td><td class="n">12</td><td><span class="sev ok">OK</span></td></tr>
+    <tr><td>Suivi du livreur en direct</td><td class="n">12</td><td><span class="sev ok">OK</span></td></tr>
+    <tr><td>Notifications sur le téléphone</td><td class="n">10</td><td><span class="sev ok">OK</span></td></tr>
+    <tr><td>Points relais</td><td class="n">7</td><td><span class="sev ok">OK</span></td></tr>
+    <tr><td><strong>Nouveau</strong> · Limite de requêtes</td><td class="n">5</td><td><span class="sev ok">OK</span></td></tr>
+    <tr><td><strong>Total : 26 séries</strong></td><td class="n"><strong>567</strong></td><td><strong>0 échec</strong></td></tr>
+  </tbody>
+</table>
+<p class="muted">Lors du premier passage, 3 vérifications ont échoué. C'étaient des erreurs des tests eux-mêmes, pas du site :</p>
+<ul class="muted">
+  <li>Un test confondait le réglage « mot de passe défini : oui » avec un vrai mot de passe.</li>
+  <li>Un autre comptait des photos laissées par une ancienne exécution.</li>
+</ul>
+<p class="muted">Les deux tests sont corrigés, et la relance donne 0 échec.</p>
+<p class="muted">Pendant le travail, les tests ont aussi attrapé 3 vrais défauts, corrigés avant la livraison :</p>
+<ul class="muted">
+  <li>« iPhone » remontait l'Apple TV, à cause du mot « tél » dans « télévision ».</li>
+  <li>L'en-tête compact clignotait.</li>
+  <li>L'information « prêt chez tel fournisseur » partait vers le client. Elle est maintenant gardée en interne.</li>
+</ul>
+</div>
+
+<h3>Parcours à la main</h3>
+<div class="card">
+  <ul>
+    <li><strong>Client</strong>, sur téléphone et sur ordinateur, en thème clair et sombre :
+      <ul>
+        <li>recherche avec une faute ;</li>
+        <li>suggestions ;</li>
+        <li>rayon avec les couleurs regroupées ;</li>
+        <li>fiche produit avec la barre d'achat, les avis et le partage ;</li>
+        <li>commande avec les frais par ville et par quartier, en retrait gratuit ou en livraison.</li>
+      </ul>
+    </li>
+    <li><strong>Administrateur</strong> :
+      <ul>
+        <li>tableau de bord et liste « À faire » ;</li>
+        <li>« Prochaine étape » et bouton « Y aller » ;</li>
+        <li>réglages des frais ;</li>
+        <li>graphiques chargés à la demande ;</li>
+        <li>carte des points relais avec les nouvelles règles de sécurité.</li>
+      </ul>
+    </li>
+    <li><strong>Autres rôles</strong> :
+      <ul>
+        <li>employé Commandes : tableau de bord ;</li>
+        <li>employé Catalogue : Avis clients ;</li>
+        <li>fournisseur : « Prêt à récupérer » et Messagerie ;</li>
+        <li>livreur : résumé de la journée et lien vers la carte.</li>
+      </ul>
+    </li>
+    <li><strong>Démo en ligne</strong> (bydl.vercel.app) : mise à jour et vérifiée. Aucune erreur dans la console, les en-têtes de sécurité et les avis sont présents, et l'aperçu de partage montre la vraie photo.</li>
+  </ul>
+  <p>Quatre petits défauts trouvés pendant ce tour sont déjà corrigés :</p>
+  <ul>
+    <li>le champ de réponse du fournisseur était sous l'écran sur téléphone ;</li>
+    <li>des cellules de tableau étaient coupées en deux sur téléphone ;</li>
+    <li>l'exemple « Ngoyo » était proposé pour Brazzaville ;</li>
+    <li>le bouton « Retirer » n'avait pas de texte.</li>
+  </ul>
+</div>
+
+<h2>Correction du rapport précédent</h2>
+<div class="card">
+  <p><span class="sev s2">Erreur de ma part</span> L'audit disait « rayons Femme et Chaussures vides mais affichés dans le menu ». <strong>C'était faux.</strong> La boutique masquait déjà automatiquement les rayons sans produit visible. On n'y arrive que par une adresse tapée à la main, et la page dit alors qu'il n'y a pas encore de produit. Rien à corriger de ce côté.</p>
+</div>
+
+<h2>Respect des consignes du projet</h2>
+<div class="card">
+  <ul class="check">
+    <li>La boutique ne contient aucun lien vers l'espace pro (deux applications distinctes).</li>
+    <li>Pas d'émoji dans la boutique, et plus aucun dans les boutons de Kamwa Pro. Toutes les icônes utilisées existent dans le jeu d'icônes.</li>
+    <li>Le fournisseur ne voit jamais les coordonnées des clients, y compris dans le nouveau fil de discussion et le bouton « Prêt ».</li>
+    <li>Prix d'achat et prix fournisseurs réservés à l'administrateur : avis, suggestions et aperçus de partage ne les montrent jamais.</li>
+    <li>Le livreur ne voit l'adresse du client que pendant la livraison en cours. Son résumé ne contient que des nombres.</li>
+    <li>Aucun secret ni donnée client dans le dépôt public. Les avis d'exemple n'existent que sur la démo.</li>
+    <li>Pas de scraping ni de contournement : Google Maps est utilisé par simple lien, sans clé.</li>
+    <li>Thème clair et sombre pour tous les nouveaux éléments, Kamwa Pro en clair par défaut.</li>
+    <li>Le cache de l'application installée a été renouvelé (version 36), pour que les téléphones prennent les nouveautés.</li>
+    <li>Le parcours d'achat et la sécurité du paiement sont intacts : les 33 tests de paiement et les 14 tests d'achat complet passent.</li>
+  </ul>
+</div>
+
+<h2>Satisfaction client ré-estimée</h2>
+<div class="card">
+<table>
+  <thead><tr><th>Étape</th><th>Avant</th><th>Maintenant</th><th>Ce qui a changé</th></tr></thead>
+  <tbody>
+    <tr><td>Découverte (accueil)</td><td class="stars">★★★½</td><td class="stars">★★★★</td><td>En-tête compact, couleurs regroupées, compte annoncé tôt</td></tr>
+    <tr><td>Recherche</td><td class="stars">★★</td><td class="stars">★★★★</td><td>Fautes, pluriels, synonymes, suggestions pendant la frappe</td></tr>
+    <tr><td>Fiche produit</td><td class="stars">★★★½</td><td class="stars">★★★★½</td><td>Barre d'achat, choix de couleur, avis vérifiés, partage</td></tr>
+    <tr><td>Panier</td><td class="stars">★★★</td><td class="stars">★★★★</td><td>Photos, message « Ajouté », gros boutons, bulle qui ne gêne plus</td></tr>
+    <tr><td>Création de compte</td><td class="stars">★★½</td><td class="stars">★★★</td><td>Annoncée tôt, erreurs sous chaque champ. Reste l'attente de vérification (jusqu'à 24 h).</td></tr>
+    <tr><td>Commande et paiement</td><td class="stars">★★★</td><td class="stars">★★★½</td><td>Frais affichés, plus de commande fantôme. La page reste longue.</td></tr>
+    <tr><td>Suivi de commande</td><td class="stars">★★★★½</td><td class="stars">★★★★★</td><td>Numéro court, bouton « Annuler », « Donner mon avis »</td></tr>
+    <tr><td>Aide (assistant)</td><td class="stars">★★★</td><td class="stars">★★★</td><td>Donne maintenant les frais de livraison. Ne répond toujours pas aux questions produit.</td></tr>
+  </tbody>
+</table>
+<p><strong>Estimation globale : ≈ 3,9 / 5</strong> <span class="up">(+0,6)</span>. Il s'agit, comme la première fois, d'une évaluation d'expert, pas d'un sondage auprès de vrais clients. Le prochain vrai gain viendra de tests avec 5 personnes de ton entourage sur leur propre téléphone.</p>
+</div>
+
+<h2>Propositions d'améliorations revues</h2>
+<p class="muted">Ce qui reste de l'audit, plus ce que j'ai remarqué en travaillant, classé par intérêt. Rien n'est commencé : à toi de choisir.</p>
+
+<h3>Recommandé ensuite</h3>
+<div class="f idea"><h4><span class="sev s2">Ventes</span> Commande en 2-3 étapes courtes</h4>
+  <p>La page de commande reste longue sur téléphone (coordonnées, carte, point relais, paiement). Je propose 3 écrans : « Vous », « Livraison ou retrait », « Paiement », avec un récapitulatif toujours visible. C'est un travail moyen, et l'étape où l'on perd encore le plus de clients.</p></div>
+<div class="f idea"><h4><span class="sev s2">Ventes</span> L'assistant répond aux questions produit</h4>
+  <p>« Vous avez des Samsung ? », « prix iPhone 13 ? » : l'assistant peut maintenant s'appuyer sur la nouvelle recherche pour répondre avec 3 produits et leurs prix. C'est un petit travail.</p></div>
+<div class="f idea"><h4><span class="sev s2">Gestion</span> Prix d'achat obligatoire pour les produits Kamwa</h4>
+  <p>Sans prix d'achat, la marge et le résultat dans Finances sont faux (106 produits sur 109 sans coût). Je propose :</p>
+  <ul>
+    <li>un champ obligatoire à la création d'un produit Kamwa ;</li>
+    <li>une alerte « produits sans coût » sur le tableau de bord ;</li>
+    <li>le remplissage automatique par les bons de commande (déjà en place).</li>
+  </ul>
+  <p>C'est un petit travail.</p></div>
+<div class="f idea"><h4><span class="sev s2">Visibilité</span> Être trouvé sur Google</h4>
+  <p>Les adresses en <code>#/</code> ne sont pas lues par Google. Les nouvelles pages de partage <code>/p/&lt;produit&gt;</code> peuvent servir de base. Il faudrait y ajouter un fichier <code>robots.txt</code> et un plan du site listant tous les produits. C'est un petit travail, utile surtout une fois le vrai catalogue en ligne.</p></div>
+
+<h3>Utile, moins urgent</h3>
+<div class="f idea"><h4><span class="sev s3">Confort</span> Petits points restants</h4>
+  <ul>
+    <li><strong>Bandeau cookies</strong> : il occupe encore la moitié de l'écran du téléphone à la première visite. On peut le réduire à une barre.</li>
+    <li><strong>Code oublié</strong> : seul un conseiller peut en redonner un. Une solution autonome demanderait un SMS ou un e-mail réel.</li>
+    <li><strong>Employé Commandes</strong> : il ne voit pas la fiche Clients (pièce en attente) et doit demander à l'administrateur.</li>
+    <li><strong>Fournisseur</strong> : pas encore de relevé « ce que Kamwa me doit / m'a payé ». Son « Prêt à récupérer » pose la question du lieu par une petite fenêtre, qu'un vrai formulaire remplacerait.</li>
+    <li><strong>Avis</strong> : Kamwa ne peut pas encore répondre publiquement à un avis, et les avis ne contiennent pas de photo.</li>
+    <li><strong>Sécurité</strong> : la liste des scripts autorisés tolère encore les petits scripts écrits dans les pages (thème, animation). On peut la durcir plus tard.</li>
+  </ul></div>
+
+<h2>Ce qui dépend de toi</h2>
+<div class="card">
+  <ol>
+    <li><strong>Tarifs de livraison</strong> : Kamwa Pro → Réglages → Frais de livraison. Il faut le prix par ville, les quartiers plus chers, les autres villes (oui ou non) et éventuellement la livraison offerte au-delà d'un montant. Pour l'instant, tout est à 0 FCFA.</li>
+    <li><strong>Pièce d'identité au guichet</strong> : la vérifier au point relais lors du premier paiement, au lieu d'attendre jusqu'à 24 h en ligne avant de pouvoir commander ? (non fait, comme convenu)</li>
+    <li><strong>Mobile Money pour la livraison à domicile</strong> : aujourd'hui, se faire livrer oblige à passer d'abord payer au point relais. (non fait, comme convenu)</li>
+    <li><strong>Vrai catalogue</strong> : produits, prix d'achat, photos réelles. Les avis et les étoiles prendront tout leur sens avec de vraies ventes.</li>
+    <li><strong>Informations légales</strong> de la société (RCCM, NIU…) dans Réglages et les pages légales.</li>
+    <li><strong>Essai du scanner</strong> de colis sur un vrai téléphone (je n'ai pu l'essayer qu'avec une caméra simulée).</li>
+  </ol>
+</div>
+
+<h2>Pour voir les changements</h2>
+<div class="card">
+  <p><strong>Sur la démo :</strong> <a href="https://bydl.vercel.app">bydl.vercel.app</a> est déjà à jour. L'espace pro est sur <a href="https://bydl.vercel.app/admin">bydl.vercel.app/admin</a>, avec les boutons de comptes démo et le mot de passe <code>demo-kamwa</code>.</p>
+  <p><strong>Sur ton Mac</strong>, ton <code>npm start</code> tourne encore avec l'ancienne version. Un nouveau module a été ajouté (la compression), donc dans le Terminal : arrête le serveur avec <code>Ctrl + C</code>, puis tape ces deux commandes :</p>
+  <pre>npm install
+npm start</pre>
+  <p><strong>GitHub :</strong> le travail est enregistré dans 5 sauvegardes (P1, P2, P3, contrôle global, ce bilan). Il te reste à cliquer « Push origin » dans GitHub Desktop.</p>
+</div>
+
+</main>
+</body>
+</html>
