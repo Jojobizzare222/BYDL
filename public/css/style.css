@@ -909,6 +909,19 @@ html[data-motion="reduce"] .bg-shapes, html[data-saver="on"] .bg-shapes { displa
 .acc-avatar { width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 1.4rem; background: linear-gradient(135deg, var(--mango), var(--accent)); color: #2D1B69; }
 .acc-id { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; font-size: .8rem; font-weight: 700; background: rgba(255,255,255,.12); }
 .acc-id.ok { color: #7EF0B8; } .acc-id.warn { color: #FFD27A; }
+/* Factures et reçus (suivi de commande, Mon compte) */
+.docs-box { margin: 14px 0; padding: 14px; border-radius: 18px; background: var(--paper); border: 1px solid var(--line-soft); }
+.docs-box h3 { margin: 0 0 8px; font-size: 1rem; display: flex; align-items: center; gap: 8px; }
+.panel > .docs-box { margin: 0; padding: 0; border: 0; background: none; }
+.doc-row { display: flex; align-items: center; gap: 12px; padding: 10px 8px; border-radius: 12px; text-decoration: none; color: var(--ink); }
+.doc-row + .doc-row { border-top: 1px solid var(--line-soft); }
+.doc-row:hover { background: var(--soft); }
+.doc-ico { width: 38px; height: 38px; flex: none; border-radius: 12px; display: grid; place-items: center; font-size: 1.2rem; background: var(--violet-soft); color: var(--brand-2); }
+.doc-ico.receipt { background: #E1F5EC; color: var(--ok); } .doc-ico.credit { background: var(--coral-soft); color: var(--accent-dark); }
+.doc-txt { flex: 1; min-width: 0; } .doc-txt b { display: block; font-variant-numeric: tabular-nums; } .doc-txt small { color: var(--muted); }
+.doc-open { flex: none; display: inline-flex; align-items: center; gap: 4px; font-size: .85rem; font-weight: 600; color: var(--link); }
+.doc-hint { display: flex; align-items: center; gap: 6px; color: var(--brand-text); }
+@media (max-width: 420px) { .doc-open { font-size: 0; gap: 0; } .doc-open .ico { font-size: 1.1rem; } }
 /* Badge « identité vérifiée » : sceau Kamwa à côté du nom */
 .vbadge { width: 1.05em; height: 1.05em; flex: none; display: inline-block; vertical-align: -.14em; margin-left: .3em; --vb: #5B3FE0; --vb-check: #fff; }
 .vbadge .vb-seal { fill: var(--vb); stroke: var(--vb); stroke-width: 1.2; stroke-linejoin: round; }
@@ -996,5 +1009,6 @@ html[data-theme="dark"] .acc-tabs a.on { background: var(--brand); }
 html[data-theme="dark"] .chat-fab { background: linear-gradient(135deg, #6A4FE8, #3A2585); }
 html[data-theme="dark"] .see-all { border-color: var(--line); color: var(--ink); }
 html[data-theme="dark"] .acc-head { background: radial-gradient(120% 180% at 0% 0%, #3A2585, #1E1550 60%); }
+html[data-theme="dark"] .doc-ico.receipt { background: #123426; color: #6BE0A8; } html[data-theme="dark"] .doc-ico.credit { background: #3A1B16; color: #FF9A85; }
 html[data-theme="dark"] .vbadge { --vb: #A08BFF; --vb-check: #1E1247; }
 html[data-theme="dark"] .code-reveal { box-shadow: 0 18px 40px rgba(0,0,0,.45); }

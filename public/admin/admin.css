@@ -513,3 +513,11 @@ html[data-theme="light"] img[src="/brand/logo-kamwa-clair.svg"] { content: url('
 .vbadge .vb-seal { fill: var(--vb); stroke: var(--vb); stroke-width: 1.2; stroke-linejoin: round; }
 .vbadge .vb-check { fill: none; stroke: var(--vb-check); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
 html[data-theme="light"] .vbadge { --vb: #5B3FE0; --vb-check: #fff; }
+
+/* Factures, reçus, avoirs */
+.doc-list { list-style: none; margin: 0; padding: 0; }
+.doc-list li { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.doc-list li:last-child { border: 0; }
+.doc-list .cell-actions, #tbl .cell-actions { flex-wrap: wrap; }
+.doc-list .cell-actions a, .dt .cell-actions a.ghost { display: inline-flex; align-items: center; gap: 5px; text-decoration: none; }
+.dt .mono, .doc-list .mono { white-space: nowrap; }

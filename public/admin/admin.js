@@ -419,6 +419,7 @@
           <div><span>Total</span><span>${fcfa(o.total)}</span></div>
         </div>
       </div>
+      ${CAN.orders() ? docsPanel(o) : ''}
 
       <div class="panel">
         <h2>Client</h2>
@@ -977,10 +978,12 @@
 
   // ---------- Réglages du paiement à la réception (admin) ----------
   async function viewSettings() {
-    let c, fr, sl;
-    try { [c, fr, sl] = await Promise.all([api('/settings/cod'), api('/france/settings'), api('/settings/sales')]); } catch { return; }
+    let c, fr, sl, co;
+    try { [c, fr, sl, co] = await Promise.all([api('/settings/cod'), api('/france/settings'), api('/settings/sales'), api('/documents/company')]); } catch { return; }
+    const cp = co.company;
+    const coField = (k, label, ph = '', wide = false) => `<div${wide ? ' style="grid-column:1/-1"' : ''}><label for="co_${k}">${label}${co.missing.includes(k) ? ' <span class="tag warn">à compléter</span>' : ''}</label><input id="co_${k}" type="text" data-co="${k}" value="${esc(cp[k] || '')}" placeholder="${esc(ph)}"></div>`;
     const PAY = [['cash', 'Espèces en agence (retrait ou livraison)'], ['momo', 'Mobile Money (MTN, Airtel)'], ['card', 'Carte bancaire (prestataire à brancher)'], ['cod', 'Paiement à la réception']];
-    app.innerHTML = pageHead({ crumb: 'Gestion', title: 'Réglages', desc: 'Règles de vente, paiement à la réception et tarifs des achats en Europe.' }) + `
+    app.innerHTML = pageHead({ crumb: 'Gestion', title: 'Réglages', desc: 'Règles de vente, société (factures et reçus), paiement à la réception et tarifs des achats en Europe.' }) + `
       <form class="panel" id="salesForm" style="max-width:640px">
         <h2>${icon('identification-card')} Règles de vente</h2>
         <label class="check"><input type="checkbox" id="slAccount" ${sl.accountRequired ? 'checked' : ''}> Compte avec pièce d'identité <b>vérifiée</b> obligatoire pour commander</label>
@@ -988,6 +991,28 @@
         ${PAY.map(([k, l]) => `<label class="check"><input type="checkbox" data-pay="${k}" ${sl.methods[k] ? 'checked' : ''}> ${esc(l)}</label>`).join('')}
         <p class="muted">Les espèces ne sont proposées que s'il existe au moins une agence active (onglet Agences).</p>
         <div id="slMsg"></div>
+        <button class="btn" style="margin-top:14px">Enregistrer</button>
+      </form>
+      <form class="panel" id="companyForm" style="max-width:640px">
+        <h2>${icon('receipt')} Société — factures et reçus</h2>
+        <p class="muted" style="margin-top:0">Ces informations apparaissent en haut de chaque facture, reçu et avoir. Un document déjà émis garde celles du jour de son émission.</p>
+        <div class="grid2">
+          ${coField('name', 'Nom commercial', 'Kamwa')}${coField('legalForm', 'Forme juridique', 'SARL, SAS, Entreprise individuelle…')}
+          ${coField('capital', 'Capital (facultatif)', '1 000 000 FCFA')}${coField('rccm', 'RCCM', 'CG-PNR-01-2026-B12-00000')}
+          ${coField('niu', 'NIU', 'M2026…')}${coField('phone', 'Téléphone', '06 000 00 00')}
+          ${coField('address', 'Adresse', 'N°, avenue, quartier', true)}
+          ${coField('city', 'Ville', 'Pointe-Noire')}${coField('country', 'Pays', 'République du Congo')}
+          ${coField('email', 'E-mail', 'contact@kamwa.cg')}${coField('website', 'Site', 'kamwa.cg')}
+        </div>
+        <label class="check" style="margin-top:12px"><input type="checkbox" id="coVat" ${cp.vatEnabled ? 'checked' : ''}> Kamwa facture la TVA (détail HT / TVA / TTC sur les factures)</label>
+        <div class="grid2" id="coVatBox" ${cp.vatEnabled ? '' : 'hidden'}>
+          <div><label for="co_vatRate">Taux de TVA (%)</label><input id="co_vatRate" data-co="vatRate" type="number" step="0.01" min="0" max="50" value="${cp.vatRate}"></div>
+          <div><label for="co_vatExtra">Centime additionnel (% de la TVA)</label><input id="co_vatExtra" data-co="vatExtra" type="number" step="0.01" min="0" max="50" value="${cp.vatExtra}"></div>
+        </div>
+        <label for="co_vatNote" style="margin-top:10px">Mention sous le total (sans TVA)</label><input id="co_vatNote" type="text" data-co="vatNote" value="${esc(cp.vatNote || '')}">
+        <label for="co_footer" style="margin-top:10px">Message en bas des documents</label><input id="co_footer" type="text" data-co="footer" value="${esc(cp.footer || '')}">
+        <p class="muted">Régime de TVA : à confirmer avec votre comptable (au Congo : 18 % + centime additionnel de 5 % de la TVA). Les prix de la boutique restent affichés TTC.</p>
+        <div id="coMsg"></div>
         <button class="btn" style="margin-top:14px">Enregistrer</button>
       </form>
       <form class="panel" id="codForm" style="max-width:640px">
@@ -1029,6 +1054,14 @@
       e.preventDefault();
       const body = { enabled: $('#fEnabled').checked, freightPerKg: Number($('#fFreight').value), minWeightKg: Number($('#fMinW').value), customsPercent: Number($('#fCustoms').value), commissionPercent: Number($('#fComm').value), fixedFee: Number($('#fFixed').value), roundTo: Number($('#fRound').value), validityHours: Number($('#fValid').value), delay: $('#fDelay').value };
       try { await api('/france/settings', { method: 'PUT', body }); toast('Tarifs Europe enregistrés ✓'); } catch (err) { $('#fMsg').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; }
+    });
+    $('#coVat').addEventListener('change', () => { $('#coVatBox').hidden = !$('#coVat').checked; });
+    $('#companyForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const body = { vatEnabled: $('#coVat').checked };
+      app.querySelectorAll('[data-co]').forEach((i) => { body[i.dataset.co] = i.value; });
+      try { await api('/documents/company', { method: 'PUT', body }); toast('Société enregistrée ✓'); $('#coMsg').innerHTML = ''; route({ keep: true }); }
+      catch (err) { $('#coMsg').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; }
     });
     $('#salesForm').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -1139,6 +1172,81 @@
         .bindPopup(`<b>${esc(a.name)}</b><br>${esc(a.address || '')}<br><a href="#/agences/${enc(a.id)}">Modifier</a>`));
       if (ms.length) map.fitBounds(L.featureGroup(ms).getBounds().pad(0.2), { maxZoom: 15 });
     }).catch(() => {});
+  }
+
+  // ---------- Factures, reçus, avoirs (créés automatiquement, jamais modifiés ni supprimés) ----------
+  const DOC_TAG = { invoice: ['Facture', 'ok'], receipt: ['Reçu', 'info'], credit: ['Avoir', 'danger'] };
+  const docPrint = (d, ticket) => `/api/admin/documents/${enc(d.id)}/print${ticket ? '?format=ticket' : ''}`;
+  const docWa = (d) => {
+    if (!d.customer?.phone) return '';
+    const first = (d.customer.name || '').split(' ')[0];
+    const what = d.type === 'receipt' ? `votre reçu de paiement n° ${d.number} (${fcfa(d.amount)})` : d.type === 'credit' ? `votre avoir n° ${d.number}` : `votre facture n° ${d.number} (${fcfa(d.amount)})`;
+    const msg = `Bonjour ${first}, merci pour votre achat sur Kamwa ! Voici ${what} pour la commande ${d.orderId} : ${location.origin}${d.link}`;
+    return `https://wa.me/242${String(d.customer.phone).replace(/\D/g, '')}?text=${enc(msg)}`;
+  };
+  const docActions = (d) => `<div class="cell-actions">
+      <a class="ghost" href="${docPrint(d)}" target="_blank" rel="noopener" title="Ouvrir, imprimer ou enregistrer en PDF">${icon('download-simple-bold')} A4</a>
+      <a class="ghost" href="${docPrint(d, true)}" target="_blank" rel="noopener" title="Ticket de caisse 80 mm">${icon('receipt')} Ticket</a>
+      ${docWa(d) ? `<a class="ghost" href="${docWa(d)}" target="_blank" rel="noopener" title="Envoyer au client par WhatsApp">${icon('chat-circle')} WhatsApp</a>` : ''}</div>`;
+  const docAmount = (d) => (d.type === 'credit' ? '− ' : '') + fcfa(d.amount);
+
+  function docsPanel(o) {
+    const docs = o.documents || [];
+    const due = ['paid', 'confirmed', 'shipped', 'delivered', 'cancelled'].includes(o.status);
+    return `<div class="panel">
+        <h2>${icon('receipt')} Factures et reçus</h2>
+        ${docs.length ? `<ul class="doc-list">${docs.map((d) => `<li>
+            <span><span class="tag ${DOC_TAG[d.type][1]}">${DOC_TAG[d.type][0]}</span> <strong class="mono">${esc(d.number)}</strong><br>
+              <span class="muted">${date(d.issuedAt)} · ${docAmount(d)}${d.methodLabel && d.type === 'receipt' ? ` · ${esc(d.methodLabel)}` : ''}${d.collectedBy ? ` · encaissé par ${esc(d.collectedBy)}` : ''}</span></span>
+            ${docActions(d)}</li>`).join('')}</ul>` : `<p class="muted" style="margin:0">${due ? 'Aucun document pour cette commande (commande antérieure aux factures automatiques).' : 'Le reçu et la facture seront créés automatiquement dès le paiement.'}</p>`}
+        ${due && !docs.length ? `<button class="ghost" data-doc-sync="${esc(o.id)}" style="margin-top:10px">${icon('check-bold')} Établir les documents manquants</button>` : ''}
+      </div>`;
+  }
+  app.addEventListener('click', async (e) => {
+    const b = e.target.closest('[data-doc-sync]');
+    if (!b) return;
+    b.disabled = true;
+    try { await api(`/documents/order/${enc(b.dataset.docSync)}`, { method: 'POST', body: {} }); await loadOrders(); route({ keep: true }); }
+    catch (err) { alert(err.message); b.disabled = false; }
+  });
+
+  async function viewDocuments() {
+    let r;
+    try { r = await api('/documents'); } catch { return; }
+    const list = r.documents;
+    const f = state.docFilter || 'all';
+    const TABS = [['all', 'Tous'], ['invoice', 'Factures'], ['receipt', 'Reçus'], ['credit', 'Avoirs']];
+    const month = new Date().toISOString().slice(0, 7);
+    const inMonth = list.filter((d) => d.issuedAt.slice(0, 7) === month);
+    const tot = (t, fn = () => true) => inMonth.filter((d) => d.type === t && fn(d)).reduce((s, d) => s + d.amount, 0);
+    const monthName = new Date().toLocaleDateString('fr-FR', { month: 'long' });
+    app.innerHTML = pageHead({
+      title: 'Factures & reçus',
+      desc: "Créés automatiquement : un <strong>reçu</strong> à chaque somme reçue (espèces en agence, Mobile Money, acompte, reste à la livraison), une <strong>facture</strong> à chaque vente, un <strong>avoir</strong> si une vente facturée est annulée. Numéros qui se suivent, jamais modifiés ni supprimés. Imprimez (A4 ou ticket 80 mm), enregistrez en PDF ou envoyez au client par WhatsApp.",
+      actions: `<a class="btn" href="/api/admin/documents/export.csv">${icon('download-simple-bold')} Exporter</a>`,
+    })
+      + (r.companyMissing.length && CAN.admin() ? `<div class="alert warn">Les documents affichent « À compléter » à la place de : ${r.companyMissing.map((k) => ({ legalForm: 'forme juridique', rccm: 'RCCM', niu: 'NIU', address: 'adresse', phone: 'téléphone' }[k])).join(', ')}. <a href="#/reglages">Compléter dans Réglages → Société</a> (chaque document garde les informations du jour de son émission).</div>` : '')
+      + `<div class="kpis">
+          <div class="kpi kc0"><span class="kpi-ico">${icon('receipt-duotone')}</span><span class="kpi-label">Facturé en ${esc(monthName)}</span><span class="kpi-value">${fcfa(tot('invoice'))}</span><span class="kpi-hint">${inMonth.filter((d) => d.type === 'invoice').length} facture(s)</span></div>
+          <div class="kpi kc1"><span class="kpi-ico">${icon('money-duotone')}</span><span class="kpi-label">Encaissé en ${esc(monthName)}</span><span class="kpi-value">${fcfa(tot('receipt'))}</span><span class="kpi-hint">dont espèces ${fcfa(tot('receipt', (d) => d.method === 'cash'))}</span></div>
+          <div class="kpi kc2"><span class="kpi-ico">${icon('arrow-counter-clockwise')}</span><span class="kpi-label">Avoirs en ${esc(monthName)}</span><span class="kpi-value">${fcfa(tot('credit'))}</span><span class="kpi-hint">${inMonth.filter((d) => d.type === 'credit').length} avoir(s)</span></div>
+        </div>`
+      + tabsBar(TABS.map(([k, l]) => [k, l, k === 'all' ? list.length : list.filter((d) => d.type === k).length]), f, 'df')
+      + '<div id="tbl"></div>';
+    app.querySelectorAll('[data-df]').forEach((b) => b.addEventListener('click', () => { state.docFilter = b.dataset.df; viewDocuments(); }));
+    dataTable($('#tbl'), {
+      id: 'documents', rows: list.filter((d) => f === 'all' || d.type === f), defaultSort: 'issuedAt', placeholder: 'Numéro, client, téléphone ou commande', empty: 'Aucun document pour le moment : ils apparaissent au premier paiement.',
+      searchText: (d) => `${d.number} ${d.customer.name} ${d.customer.phone} ${d.orderId}`,
+      columns: [
+        { key: 'number', label: 'Numéro', render: (d) => `<span class="tag ${DOC_TAG[d.type][1]}">${DOC_TAG[d.type][0]}</span><br><strong class="mono">${esc(d.number)}</strong>` },
+        { key: 'issuedAt', label: 'Date', render: (d) => date(d.issuedAt) },
+        { key: 'client', label: 'Client', sortValue: (d) => norm(d.customer.name), render: (d) => `${esc(d.customer.name)}<br><span class="muted">${esc(d.customer.phone)}</span>` },
+        { key: 'orderId', label: 'Commande', render: (d) => `<a href="#/commande/${enc(d.orderId)}">${esc(d.orderId)}</a>${d.invoiceNumber && d.type !== 'invoice' ? `<br><span class="muted">${d.type === 'credit' ? 'annule' : 'facture'} ${esc(d.invoiceNumber)}</span>` : ''}` },
+        { key: 'amount', label: 'Montant', cls: 'num', sortValue: (d) => (d.type === 'credit' ? -d.amount : d.amount), render: (d) => `<strong>${docAmount(d)}</strong>` },
+        { key: 'method', label: 'Paiement', render: (d) => `${esc(d.methodLabel || '—')}${d.agency ? `<br><span class="muted">${esc(d.agency)}</span>` : ''}${d.collectedBy ? `<br><span class="muted">par ${esc(d.collectedBy)}</span>` : ''}` },
+        { key: 'act', label: '', sortable: false, render: docActions },
+      ],
+    });
   }
 
   // ---------- Clients ----------
@@ -2026,7 +2134,7 @@
       <div class="msg-top">
         <a class="ghost back" href="#/messagerie">${icon('caret-left')}</a>
         <div><strong>${esc(c.name)}</strong>${vb(c.idStatus)} <span class="tag ${st[1]}">${esc(st[0])}</span>${c.assignedTo ? ` <span class="muted">· suivi par ${esc(c.assignedTo)}</span>` : ''}<br>
-          <span class="muted">${c.phone ? `<a href="tel:${esc(c.phone)}">${esc(c.phone)}</a> · <a href="https://wa.me/242${esc(String(c.phone).replace(/^0/, ''))}" target="_blank" rel="noopener">WhatsApp</a>` : 'Visiteur sans compte'}${idt ? ` · <span class="tag ${idt[1]}">${idt[0]}</span>` : ''}</span>
+          <span class="muted">${c.phone ? `<a href="tel:${esc(c.phone)}">${esc(c.phone)}</a> · <a href="https://wa.me/242${esc(String(c.phone).replace(/\D/g, ''))}" target="_blank" rel="noopener">WhatsApp</a>` : 'Visiteur sans compte'}${idt ? ` · <span class="tag ${idt[1]}">${idt[0]}</span>` : ''}</span>
           ${c.orders.length ? `<div class="msg-orders">${c.orders.map((o) => `<a href="#/commande/${enc(o.id)}">${esc(o.id)} · ${fcfa(o.total)}</a>`).join('')}</div>` : ''}</div>
         ${c.status !== 'closed' ? `<button class="ghost" id="convClose">${icon('check-bold')} Terminer</button>` : ''}
       </div>
@@ -2193,7 +2301,7 @@
   // Le serveur signale chaque changement qui concerne ce rôle ; la page affichée se redessine tout de suite,
   // à la même position, sauf pendant une saisie (elle se met alors à jour dès que la saisie est terminée).
   const LIVE_TOPICS = {
-    tableau: ['orders', 'products', 'customers', 'chat', 'imports', 'finance'], commandes: ['orders'], commande: ['orders'], clients: ['customers'],
+    tableau: ['orders', 'products', 'customers', 'chat', 'imports', 'finance'], commandes: ['orders'], commande: ['orders', 'documents'], documents: ['documents'], clients: ['customers'],
     france: ['imports', 'orders'], envois: ['imports', 'orders'], agent: ['imports', 'orders'], livraisons: ['orders'], fournisseur: ['orders', 'products'],
     produits: ['products'], agences: ['agencies'], tendances: ['trends'], journal: ['orders', 'products', 'customers', 'staff', 'finance'], finances: ['finance', 'orders'], equipe: ['staff'],
   };
@@ -2255,7 +2363,7 @@
       tableau: () => Boolean(state.user),
       commandes: CAN.orders, commande: CAN.orders, produits: CAN.products, produit: CAN.products,
       messagerie: () => Boolean(state.user) && !CAN.supplier(),
-      tendances: CAN.admin,
+      tendances: CAN.admin, documents: CAN.orders,
       fournisseur: CAN.supplier, clients: CAN.admin, agences: CAN.admin, equipe: CAN.admin, journal: CAN.admin, finances: CAN.admin, reglages: CAN.admin, livraisons: CAN.courier, france: CAN.orders, envois: () => CAN.orders() || CAN.agent(), agent: () => CAN.agent() || CAN.admin(), 'mot-de-passe': () => !CAN.admin(),
     };
     if (!allowed[page]?.()) [page, id] = homeHash().slice(2).split('/');
@@ -2263,6 +2371,7 @@
     document.querySelectorAll('[data-tab]').forEach((a) => a.classList.toggle('on', a.dataset.tab === tab));
     if (page === 'messagerie') return viewMessaging(id);
     if (page === 'tendances') return viewTrends();
+    if (page === 'documents') return viewDocuments();
     if (page === 'clients') return viewCustomers();
     if (page === 'agences') return viewAgencies(id);
     if (page === 'equipe') return viewStaff(id);

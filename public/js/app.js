@@ -1075,6 +1075,18 @@
     return [...byId.values()].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
   }
 
+  // Factures, reçus, avoirs de la commande (ouverts dans un nouvel onglet : imprimer ou enregistrer en PDF)
+  const DOC_ICON = { invoice: 'receipt', receipt: 'money-duotone', credit: 'arrow-counter-clockwise' };
+  function docsBlock(docs, title = 'Factures et reçus') {
+    if (!docs?.length) return '';
+    return `<div class="docs-box"><h3>${icon('receipt')} ${esc(title)}</h3>
+      ${docs.map((d) => `<a class="doc-row" href="${esc(d.link)}" target="_blank" rel="noopener">
+        <span class="doc-ico ${d.type}">${icon(DOC_ICON[d.type] || 'receipt')}</span>
+        <span class="doc-txt"><b>${esc(d.label)} ${esc(d.number)}</b><small>${shortDate(d.issuedAt)} · ${d.type === 'credit' ? '− ' : ''}${fcfa(d.amount)}${d.orderId ? ` · ${esc(d.orderId)}` : ''}</small></span>
+        <span class="doc-open">Ouvrir ${icon('arrow-square-out-bold')}</span></a>`).join('')}
+      <p class="hint">Ouvrez un document pour l'imprimer ou l'enregistrer en PDF.</p></div>`;
+  }
+
   function orderCard(o) {
     const step = stepIndex(o);
     const items = o.lines.reduce((n, l) => n + l.qty, 0);
@@ -1083,6 +1095,7 @@
         <div class="top"><strong>${esc(o.id)}</strong>${statusBadge(o)}</div>
         <div class="hint">${shortDate(o.createdAt)} · ${items} article${items > 1 ? 's' : ''} · <strong style="color:var(--ink)">${fcfa(o.total)}</strong></div>
         <div class="hint">${esc(o.lines.map((l) => l.name).join(', ').slice(0, 90))}</div>
+        ${o.documents?.length ? `<div class="hint doc-hint">${icon('receipt')} ${esc(o.documents.map((d) => d.label).join(' + '))} : à ouvrir dans le suivi</div>` : ''}
         ${o.status === 'cancelled' ? '' : `<div class="progress" style="grid-template-columns:repeat(${stepCount(o)},1fr)">${Array.from({ length: stepCount(o) }, (_, i) => `<span class="${i <= step ? 'on' : ''}"></span>`).join('')}</div>`}
       </a>`;
   }
@@ -1291,7 +1304,9 @@
         <span class="acc-id ${c.idStatus === 'verified' ? 'ok' : 'warn'}">${icon(c.idStatus === 'verified' ? 'seal-check-duotone' : 'clock-countdown-duotone')} ${c.idStatus === 'verified' ? 'Identité vérifiée' : c.idStatus === 'pending' ? 'Vérification en cours' : 'Pièce à fournir'}</span>
       </div>`;
     if (tab === 'commandes') {
-      app.innerHTML = `<div class="acc">${head}${nav}<div class="panel"><h2>Mes commandes</h2>${list.length ? list.map(orderCard).join('') : '<p class="empty">Pas encore de commande. <a href="#/">Découvrir la boutique</a></p>'}</div></div>`;
+      const docs = list.flatMap((o) => (o.documents || []).map((d) => ({ ...d, orderId: o.id }))).sort((a, b) => (a.issuedAt < b.issuedAt ? 1 : -1));
+      app.innerHTML = `<div class="acc">${head}${nav}<div class="panel"><h2>Mes commandes</h2>${list.length ? list.map(orderCard).join('') : '<p class="empty">Pas encore de commande. <a href="#/">Découvrir la boutique</a></p>'}</div>
+        ${docs.length ? `<div class="panel">${docsBlock(docs, 'Mes factures et reçus')}</div>` : ''}</div>`;
       return;
     }
     if (tab === 'reglages') return accountSettings(c, head, nav);
@@ -1557,6 +1572,7 @@
           ${!['delivered', 'cancelled'].includes(o.status) ? pushCard(o.id) : ''}
           ${o.status === 'shipped' && !isPickup(o) ? '<div class="live-box" id="liveBox"></div>' : ''}
           ${im && im.stage !== 'arrived' ? '' : codeCard(o)}
+          ${docsBlock(o.documents)}
           ${(o.attempts || []).length && !['delivered', 'cancelled'].includes(o.status) ? `<div class="alert warn">${o.attempts.map((a) => `Tentative de livraison le ${longDate(a.at)} : ${esc(a.label)}.`).join('<br>')} Nous vous recontactons.</div>` : ''}
           ${o.status === 'pending_payment' && !payAg ? '<div class="alert err">Paiement pas encore reçu. Si vous venez de valider sur votre téléphone, patientez quelques minutes.</div>' : ''}
           ${payAg && (isPickup(o) ? ['pending_payment', 'paid', 'confirmed'].includes(o.status) : o.status === 'pending_payment') ? `<div class="relay-change">

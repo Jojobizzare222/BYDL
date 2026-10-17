@@ -38,6 +38,7 @@ router.use('/finance', requireRole(), require('./finance'));
 router.use('/france', require('./import-admin'));
 router.use('/chat', require('./chat-admin')); // messagerie : clients + salon de l'équipe
 router.use('/trends', require('./trends-admin')); // agent Tendances (admin)
+router.use('/documents', require('./documents-admin')); // factures, reçus, avoirs [admin, orders]
 
 // Rafraîchissement instantané de Kamwa Pro : signaux filtrés selon le rôle (jamais de données dans le signal)
 router.get('/events', (req, res) => {
@@ -59,6 +60,7 @@ router.get('/events', (req, res) => {
     if (col === 'agencies') return role === 'admin' ? { topic: 'agencies' } : null;
     if (col === 'imports' || col === 'shipments') return ordersRole || role === 'agent' ? { topic: 'imports' } : null;
     if (col === 'ledger') return role === 'admin' ? { topic: 'finance' } : null;
+    if (col === 'documents') return ordersRole ? { topic: 'documents', id: doc.orderId } : null;
     if (col === 'staff') return role === 'admin' && doc.livePos === before?.livePos ? { topic: 'staff' } : null;
     if (col === 'trends') return role === 'admin' && doc.status === 'new' ? { topic: 'trends' } : null;
     return null;
@@ -130,6 +132,7 @@ function adminOrder({ accessToken, ...order }, user) {
     ...order,
     payment: payment ? { operator: payment.operator, phone: payment.phone, status: payment.status, reason: payment.reason, expiresAt: payment.expiresAt || null } : null,
     account: account ? customerAuth.publicCustomer(account) : null,
+    documents: ['admin', 'orders'].includes(user?.role) ? require('../billing').forOrder(order.id).map(require('./documents-admin').summary) : [],
   };
 }
 
@@ -186,7 +189,7 @@ router.post('/orders/:id/cash-received', requireRole('orders'), (req, res) => {
   // Dernière réservation en espèces (même expirée : si le client vient quand même et paie, on encaisse)
   const cash = payments.all().filter((p) => p.orderId === order.id && p.operator === 'cash' && p.status !== 'CANCELLED').pop();
   if (!cash) return res.status(400).json({ error: "Cette commande n'est pas une réservation en agence" });
-  payments.update(cash.id, { status: 'SUCCESSFUL', reason: null, confirmedAt: new Date().toISOString() });
+  payments.update(cash.id, { status: 'SUCCESSFUL', reason: null, confirmedAt: new Date().toISOString(), confirmedBy: req.user.name || 'Kamwa' });
   settleSuccessfulPayment(payments.get(cash.id));
   log(req, 'Paiement en espèces encaissé', { id: order.id, name: order.id }, `${order.total} FCFA`);
   res.json(adminOrder(orders.get(order.id), req.user));

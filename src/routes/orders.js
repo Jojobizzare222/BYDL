@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const { newDeliveryCode } = require('../delivery');
 const { importSettings } = require('../imports');
 const router = require('express').Router();
+const billing = require('../billing');
 const { products, orders } = require('../store');
 const { normalizeLocal } = require('../utils/phone');
 const { availableStock } = require('../utils/stock');
@@ -38,7 +39,9 @@ function clientOrder({ accessToken, note, paidAfterCancel, ...order }) {
       departedAt: i.departedAt || null, eta: i.eta || null, arrivedAt: i.arrivedAt || null,
     };
   }
-  return { ...order, lines: clientLines(order.lines) };
+  // Factures / reçus / avoirs de la commande (liens avec la clé secrète de chaque document)
+  const docs = order.id ? billing.forOrder(order.id).map(billing.publicDoc) : [];
+  return { ...order, lines: clientLines(order.lines), documents: docs };
 }
 const publicOrder = clientOrder;
 

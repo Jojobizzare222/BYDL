@@ -58,6 +58,8 @@ app.use('/api/chat', require('./routes/chat')); // messagerie (bulle « Aide » 
 // Notifications de suivi sur le téléphone (Web Push)
 const push = require('./push');
 push.watchOrders();
+const billing = require('./billing');
+billing.watchOrders(); // factures, reçus, avoirs créés automatiquement à chaque étape d'une commande
 // Rafraîchissement instantané des écrans ouverts (boutique) : seulement ce qui concerne ce client
 const events = require('./events');
 events.watchStore();
@@ -98,6 +100,16 @@ app.post('/api/push/subscribe', (req, res) => {
 app.use('/api/admin', require('./routes/admin'));
 // Vitrine de démo (Vercel) : comptes et données d'exemple, créés une fois par démarrage de la base temporaire
 require('./demo').seed();
+billing.syncAll(); // documents manquants (anciennes commandes, données de démo), dans l'ordre des ventes
+
+// Facture / reçu / avoir ouvert par le client depuis son compte, son suivi ou un lien WhatsApp : clé secrète du document obligatoire
+app.get('/api/documents/:id', (req, res) => {
+  const d = require('./store').documents.get(req.params.id);
+  const k = String(req.query.k || '');
+  if (!d || k.length !== d.token.length || !require('crypto').timingSafeEqual(Buffer.from(k), Buffer.from(d.token))) return res.status(404).type('text').send('Document introuvable');
+  res.set({ 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex', 'Referrer-Policy': 'no-referrer' });
+  res.type('html').send(billing.render(d, { format: req.query.format === 'ticket' ? 'ticket' : 'a4' }));
+});
 
 app.use('/api', (req, res) => res.status(404).json({ error: 'Route inconnue' }));
 app.use((err, req, res, next) => {
