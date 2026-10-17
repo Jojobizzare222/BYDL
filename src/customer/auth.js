@@ -111,9 +111,11 @@ function verifyLogin(req, identifier, code) {
 /** Nouveau code pour un compte (création ou « code oublié » via l'admin). Renvoie le code en clair, à montrer une seule fois. */
 function assignNewCode(customerId) {
   const code = newCode();
-  customers.update(customerId, { codeHash: hashCode(code) });
+  customers.update(customerId, { codeHash: hashCode(code), codeChangedAt: new Date().toISOString() });
   db.prepare('DELETE FROM customer_sessions WHERE customer_id = ?').run(customerId); // déconnecte les anciens appareils
   failures.delete('acc:' + customerId);
+  // Alerte de sécurité sur les téléphones du client (jamais le code lui-même)
+  require('../push').notifyCustomer(customerId, 'Votre code Kamwa a changé', "Si ce n'est pas vous, écrivez-nous tout de suite dans « Aide ».", '/#/compte/reglages', 'kamwa-securite');
   return code;
 }
 

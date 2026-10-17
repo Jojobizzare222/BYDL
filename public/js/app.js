@@ -82,12 +82,17 @@
   const shortDate = (iso) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '');
   const longDate = (iso) => (iso ? new Date(iso).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }) : '');
   const formatCode = (c) => `${c.slice(0, 3)} ${c.slice(3)}`;
+  // Badge « identité vérifiée » (sceau Kamwa) : à côté du nom de chaque client dont la pièce a été validée
+  const VERIFIED = '<svg class="vbadge" viewBox="0 0 24 24" role="img" aria-label="Identité vérifiée"><title>Identité vérifiée par Kamwa</title><path class="vb-seal" d="M12 .7l2.41 2.32 3.24-.81.93 3.21 3.21.93-.81 3.24L23.3 12l-2.32 2.41.81 3.24-3.21.93-.93 3.21-3.24-.81L12 23.3l-2.41-2.32-3.24.81-.93-3.21-3.21-.93.81-3.24L.7 12l2.32-2.41-.81-3.24 3.21-.93.93-3.21 3.24.81z"/><path class="vb-check" d="M7.4 12.4l3.1 3 6-6.2"/></svg>';
+  const verifiedBadge = (c) => (c && c.idStatus === 'verified' ? VERIFIED : '');
+  // Code Kamwa en 6 tuiles qui apparaissent une à une (3 + 3)
+  const codeDigits = (c) => `<div class="cr-digits" aria-label="Code ${esc(c.split('').join(' '))}">${c.split('').map((d, i) => `${i === 3 ? '<i></i>' : ''}<span style="--i:${i}">${esc(d)}</span>`).join('')}</div>`;
 
   function renderAccountBtn() {
     const first = state.customer ? state.customer.name.split(' ')[0] : '';
-    $('#accountHello').textContent = first ? 'Mbote ' + first + ' !' : 'Mon espace';
+    $('#accountHello').innerHTML = first ? `Mbote ${esc(first)} !${verifiedBadge(state.customer)}` : 'Mon espace';
     $('#accountLabel').textContent = first ? 'Mon compte' : 'Se connecter';
-    $('#menuHello').textContent = first ? 'Mbote ' + first + ' !' : 'Mon espace Kamwa';
+    $('#menuHello').innerHTML = first ? `Mbote ${esc(first)} !${verifiedBadge(state.customer)}` : 'Mon espace Kamwa';
   }
   async function refreshCustomer() {
     try {
@@ -1281,7 +1286,7 @@
     const nav = `<nav class="acc-tabs" aria-label="Mon compte">${ACC_TABS.map(([k, l, ic]) => `<a href="#/compte${k ? '/' + k : ''}" class="${tab === k ? 'on' : ''}">${icon(ic)} ${l}</a>`).join('')}</nav>`;
     const head = `<div class="acc-head">
         <div class="acc-avatar">${esc(c.name.trim()[0] || 'K').toUpperCase()}</div>
-        <div><h1>Bonjour ${esc(c.name.split(' ')[0])}</h1>
+        <div><h1>Bonjour ${esc(c.name.split(' ')[0])}${verifiedBadge(c)}</h1>
           <span class="hint">${esc([c.phone, c.email].filter(Boolean).join(' · '))} · client depuis le ${shortDate(c.createdAt)}</span></div>
         <span class="acc-id ${c.idStatus === 'verified' ? 'ok' : 'warn'}">${icon(c.idStatus === 'verified' ? 'seal-check-duotone' : 'clock-countdown-duotone')} ${c.idStatus === 'verified' ? 'Identité vérifiée' : c.idStatus === 'pending' ? 'Vérification en cours' : 'Pièce à fournir'}</span>
       </div>`;
@@ -1374,7 +1379,7 @@
         <h2>${icon('user-circle')} Mon profil</h2>
         <div class="pref-row"><span><b>Nom</b><small>Celui de votre pièce d'identité</small></span><span>${esc(c.name)}</span></div>
         <div class="pref-row"><span><b>Identifiant</b><small>Pour le changer, écrivez-nous dans « Aide »</small></span><span>${esc([c.phone, c.email].filter(Boolean).join(' · '))}</span></div>
-        <form class="pref-row" id="codeForm"><span><b>Changer mon code Kamwa</b><small>Code actuel obligatoire ; vos autres appareils seront déconnectés</small></span>
+        <form class="pref-row" id="codeForm"><span><b>Changer mon code Kamwa</b><small>Code actuel obligatoire ; vos autres appareils seront déconnectés${c.codeChangedAt ? ` · dernier changement le ${shortDate(c.codeChangedAt)}` : ''}</small></span>
           <span class="code-change"><input id="curCode" inputmode="numeric" maxlength="7" placeholder="Code actuel" autocomplete="current-password"><button class="btn ghost small">Changer</button></span></form>
         <div id="codeMsg"></div>
       </div>
@@ -1407,8 +1412,32 @@
       e.preventDefault();
       try {
         const r = await api('/account/code', { method: 'POST', body: { code: $('#curCode').value.replace(/\D/g, '') } });
-        $('#codeMsg').innerHTML = `<div class="alert ok">Votre nouveau code Kamwa : <strong class="code-box" style="display:inline-block;margin:6px 0">${formatCode(r.code)}</strong><br>Notez-le bien, il ne sera plus affiché.</div>`;
+        if (state.customer) state.customer.codeChangedAt = r.codeChangedAt;
         $('#curCode').value = '';
+        $('#codeForm').hidden = true;
+        const box = $('#codeMsg');
+        box.innerHTML = `<div class="code-reveal" role="status">
+          <span class="cr-spark s1">${icon('sparkle-fill')}</span><span class="cr-spark s2">${icon('sparkle-fill')}</span>
+          <div class="cr-head"><span class="cr-ico">${icon('key-bold')}</span>
+            <div><b>C'est fait, ${esc(c.name.split(' ')[0])} !</b><small>Votre nouveau code Kamwa est actif dès maintenant</small></div></div>
+          ${codeDigits(r.code)}
+          <div class="cr-actions">
+            <button type="button" class="btn ghost small" data-cr-copy>${icon('clipboard-text')} Copier</button>
+            <button type="button" class="btn cta small" data-cr-done>${icon('check-bold')} Je l'ai noté</button>
+          </div>
+          <ul class="cr-tips">
+            <li>${icon('device-mobile')}<span>Vos autres appareils ont été déconnectés : reconnectez-les avec ce code.</span></li>
+            <li>${icon('lock-key-bold')}<span>Kamwa ne vous demandera <b>jamais</b> ce code, ni par téléphone ni par WhatsApp.</span></li>
+            <li>${icon('camera')}<span>Notez-le ou faites une capture d'écran : il ne sera plus affiché.</span></li>
+          </ul></div>`;
+        box.querySelector('[data-cr-copy]').addEventListener('click', async (ev) => {
+          const b = ev.currentTarget;
+          try { await navigator.clipboard.writeText(r.code); b.innerHTML = `${icon('check-bold')} Copié`; } catch { b.textContent = formatCode(r.code); }
+        });
+        box.querySelector('[data-cr-done]').addEventListener('click', () => {
+          box.innerHTML = `<div class="alert ok id-status">${icon('shield-check')} <span><strong>Code Kamwa changé</strong> le ${shortDate(new Date().toISOString())}. Utilisez-le à votre prochaine connexion.</span></div>`;
+          $('#codeForm').hidden = false;
+        });
       } catch (err) { $('#codeMsg').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; }
     });
   }
@@ -1445,7 +1474,7 @@
             <div class="big-check">${icon('check-circle-duotone')}</div>
             <h1>Bienvenue ${esc(res.customer.name.split(' ')[0])} !</h1>
             <p>Voici votre <strong>code Kamwa</strong> :</p>
-            <div class="code-box">${formatCode(res.code)}</div>
+            ${codeDigits(res.code)}
             <div class="alert err" style="text-align:left"><strong>Notez-le bien</strong> (ou faites une capture d'écran) : il ne sera plus affiché.<br>
             Pour vous connecter : <strong>${esc(who)}</strong> + ce code.</div>
             ${res.claimed ? `<p class="hint">${res.claimed} commande(s) de ce téléphone ajoutée(s) à votre compte.</p>` : ''}
@@ -1836,7 +1865,7 @@
     const a = document.activeElement;
     if (a && app.contains(a) && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) && a.type !== 'radio' && a.type !== 'checkbox') return true;
     if ($('#idPreview') && !$('#idPreview').hidden) return true; // photo de pièce choisie, pas encore envoyée
-    if ($('#checkoutForm') || $('.cam-overlay')) return true; // formulaire de commande en cours : on n'y touche pas
+    if ($('#checkoutForm') || $('.cam-overlay') || $('.code-reveal')) return true; // commande en cours, appareil photo, nouveau code affiché : on n'y touche pas
     return [...app.querySelectorAll('input:not([type=radio]):not([type=checkbox]):not([type=hidden]), textarea')].some((i) => i.value && i.defaultValue !== i.value);
   };
   async function refreshProducts(force) {

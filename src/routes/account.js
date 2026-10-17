@@ -128,7 +128,7 @@ router.post('/code', (req, res) => {
   if (check.error) return res.status(check.status).json({ error: check.status === 401 ? 'Code actuel incorrect' : check.error });
   const code = auth.assignNewCode(customer.id); // déconnecte les autres appareils
   auth.openSession(req, res, customer.id);
-  res.json({ code });
+  res.json({ code, codeChangedAt: customers.get(customer.id).codeChangedAt });
 });
 
 // Historique des commandes du client connecté (les plus récentes d'abord)

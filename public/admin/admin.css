@@ -507,3 +507,9 @@ html[data-theme="light"] img[src="/brand/logo-kamwa-clair.svg"] { content: url('
 .tr-grid { grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); }
 .tr-card .row { display: flex; align-items: center; }
 .tr-nums { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+/* Badge « identité vérifiée » (sceau Kamwa, même dessin que la boutique) */
+.vbadge { width: 1.05em; height: 1.05em; flex: none; display: inline-block; vertical-align: -.16em; margin-left: .3em; --vb: #A08BFF; --vb-check: #1E1247; }
+.vbadge .vb-seal { fill: var(--vb); stroke: var(--vb); stroke-width: 1.2; stroke-linejoin: round; }
+.vbadge .vb-check { fill: none; stroke: var(--vb-check); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+html[data-theme="light"] .vbadge { --vb: #5B3FE0; --vb-check: #fff; }

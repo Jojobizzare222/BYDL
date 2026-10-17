@@ -4,6 +4,9 @@
   const app = $('#app');
   const fcfa = (n) => new Intl.NumberFormat('fr-FR').format(n) + ' FCFA';
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  // Badge « identité vérifiée » (même sceau que dans la boutique) à côté du nom des clients dont la pièce est validée
+  const VERIFIED = '<svg class="vbadge" viewBox="0 0 24 24" role="img" aria-label="Identité vérifiée"><title>Identité vérifiée</title><path class="vb-seal" d="M12 .7l2.41 2.32 3.24-.81.93 3.21 3.21.93-.81 3.24L23.3 12l-2.32 2.41.81 3.24-3.21.93-.93 3.21-3.24-.81L12 23.3l-2.41-2.32-3.24.81-.93-3.21-3.21-.93.81-3.24L.7 12l2.32-2.41-.81-3.24 3.21-.93.93-3.21 3.24.81z"/><path class="vb-check" d="M7.4 12.4l3.1 3 6-6.2"/></svg>';
+  const vb = (st) => (st === 'verified' ? VERIFIED : '');
   const enc = encodeURIComponent;
   const date = (iso) => (iso ? new Date(iso).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }) : '');
   const ICONS = { 'Téléphones': '📱', 'Tablettes': '📲', 'Ordinateurs': '💻', 'Montres': '⌚', 'Audio': '🎧', 'TV & Maison': '📺', 'Jeux vidéo & consoles': '🎮', 'Composants': '💾', 'Accessoires': '🔌', 'Homme': '👕', 'Femme': '👚', 'Chaussures': '👟' };
@@ -377,7 +380,7 @@
       searchText: (o) => `${o.id} ${o.customer.name} ${o.customer.phone} ${o.customer.city}`,
       columns: [
         { key: 'id', label: 'Commande', render: (o) => `<strong class="mono">${esc(o.id)}</strong>${o.paidAfterCancel ? '<br><span class="tag danger">À rembourser</span>' : ''}${isPickup(o) ? `<br><span class="tag">Retrait ${esc(o.agency?.name || '')}</span>` : o.agency ? `<br><span class="tag">Payé à ${esc(o.agency.name || 'l\'agence')} · livré</span>` : ''}${o.paymentPlan === 'cod' ? `<br><span class="tag warn">À la réception</span>` : ''}${o.import ? `<br><span class="tag fr">${icon('airplane-tilt')} Europe : ${esc(FR_STAGES[o.import.stage] || o.import.stage)}</span>` : ''}${!isPickup(o) && ['paid', 'confirmed'].includes(o.status) && !o.callConfirmedAt ? ' <span class="tag danger">À appeler</span>' : ''}${o.courierName && o.status === 'shipped' ? `<br><span class="muted">${icon('truck-duotone')} ${esc(o.courierName)}</span>` : ''}` },
-        { key: 'client', label: 'Client', sortValue: (o) => norm(o.customer.name), render: (o) => `${esc(o.customer.name)}<br><span class="muted">${esc(o.customer.phone)}</span>` },
+        { key: 'client', label: 'Client', sortValue: (o) => norm(o.customer.name), render: (o) => `${esc(o.customer.name)}${vb(o.account?.idStatus)}<br><span class="muted">${esc(o.customer.phone)}</span>` },
         { key: 'city', label: 'Ville', sortValue: (o) => o.customer.city || '', render: (o) => esc(o.customer.city || '—') },
         { key: 'qty', label: 'Articles', cls: 'num', sortValue: qty, render: qty },
         { key: 'total', label: 'Total', cls: 'num', render: (o) => fcfa(o.total) },
@@ -419,7 +422,7 @@
 
       <div class="panel">
         <h2>Client</h2>
-        <p style="margin:0 0 4px"><strong>${esc(c.name)}</strong> · ${esc(c.phone)}</p>
+        <p style="margin:0 0 4px"><strong>${esc(c.name)}</strong>${vb(o.account?.idStatus)} · ${esc(c.phone)}</p>
         <p class="muted" style="margin:0 0 10px">${esc(c.city || '—')} · ${esc(c.address || 'pas d\'adresse')}</p>
         <div class="row">
           <a class="btn dark" href="tel:+${intl}">📞 Appeler</a>
@@ -1156,7 +1159,7 @@
       id: 'customers', rows: list.filter((c) => match(c, f)), defaultSort: 'createdAt', placeholder: 'Nom, téléphone ou e-mail', empty: 'Aucun compte client ici.',
       searchText: (c) => `${c.name} ${c.phone} ${c.email}`,
       columns: [
-        { key: 'name', label: 'Client', sortValue: (c) => norm(c.name), render: (c) => `<strong>${esc(c.name)}</strong>` },
+        { key: 'name', label: 'Client', sortValue: (c) => norm(c.name), render: (c) => `<strong>${esc(c.name)}</strong>${vb(c.idStatus)}` },
         { key: 'phone', label: 'Téléphone', render: (c) => esc(c.phone || '—') },
         { key: 'email', label: 'E-mail', render: (c) => esc(c.email || '—') },
         { key: 'idStatus', label: 'Identité', render: (c) => `<span class="tag ${ID_ST[c.idStatus]?.[1] || ''}">${esc(ID_ST[c.idStatus]?.[0] || c.idStatus)}</span>${c.idType ? `<br><span class="muted">${esc(ID_TYPES[c.idType] || '')}${c.idIsPdf ? ' · PDF' : ''}</span>` : ''}${c.idStatus === 'pending' && c.idAuto ? `<br><span class="tag ${c.idAuto.read && !(c.idAuto.flags || []).length ? 'ok' : 'warn'}">${c.idAuto.read && !(c.idAuto.flags || []).length ? 'Lecture : tout concorde' : 'Lecture : à regarder'}</span>` : ''}` },
@@ -1206,7 +1209,7 @@
           ? `<iframe src="${src}" title="Pièce d'identité scannée de ${esc(c.name)}"></iframe><a class="btn ghost" href="${src}" target="_blank" rel="noopener" style="margin-top:8px">${icon('file-pdf')} Ouvrir le PDF en grand</a>`
           : `<a href="${src}" target="_blank" rel="noopener" title="Agrandir"><img src="${src}" alt="Pièce d'identité de ${esc(c.name)}"></a>`}</div>
         <div>
-          <h2 style="margin-top:0">${icon('identification-card')} ${esc(c.name)}</h2>
+          <h2 style="margin-top:0">${icon('identification-card')} ${esc(c.name)}${vb(c.idStatus)}</h2>
           <p class="muted">${esc([c.phone, c.email].filter(Boolean).join(' · '))}<br>Inscrit le ${date(c.createdAt)}</p>
           <p><strong>${esc(ID_TYPES[c.idType] || 'Pièce')}</strong>${c.idNumber ? ` n° <span class="mono">${esc(c.idNumber)}</span>` : ''}<br>
             <span class="muted">Envoyée le ${date(c.idSubmittedAt)}</span></p>
@@ -1973,7 +1976,7 @@
           ${rows.length ? rows.map((c) => `
             <a class="msg-item ${c.id === id ? 'on' : ''} ${c.unread ? 'unread' : ''}" href="#/messagerie/${enc(c.id)}">
               <span class="av">${esc((c.name || 'V')[0].toUpperCase())}</span>
-              <span><strong>${esc(c.name)}</strong><small>${c.lastFrom === 'customer' ? '' : c.lastFrom === 'staff' ? 'Vous : ' : 'Assistant : '}${esc((c.lastText || '').slice(0, 70))}</small></span>
+              <span><strong>${esc(c.name)}${vb(c.idStatus)}</strong><small>${c.lastFrom === 'customer' ? '' : c.lastFrom === 'staff' ? 'Vous : ' : 'Assistant : '}${esc((c.lastText || '').slice(0, 70))}</small></span>
               <span class="side"><em>${c.lastAt ? msgTime(c.lastAt) : ''}</em>${c.unread ? `<b class="n">${c.unread}</b>` : `<i class="tag ${CONV_ST[c.status]?.[1] || ''}">${esc(CONV_ST[c.status]?.[0] || '')}</i>`}</span>
             </a>`).join('') : '<p class="muted" style="padding:14px">Aucune conversation ici.</p>'}` : ''}
         </aside>
@@ -2022,7 +2025,7 @@
     $('#msgConv').innerHTML = `
       <div class="msg-top">
         <a class="ghost back" href="#/messagerie">${icon('caret-left')}</a>
-        <div><strong>${esc(c.name)}</strong> <span class="tag ${st[1]}">${esc(st[0])}</span>${c.assignedTo ? ` <span class="muted">· suivi par ${esc(c.assignedTo)}</span>` : ''}<br>
+        <div><strong>${esc(c.name)}</strong>${vb(c.idStatus)} <span class="tag ${st[1]}">${esc(st[0])}</span>${c.assignedTo ? ` <span class="muted">· suivi par ${esc(c.assignedTo)}</span>` : ''}<br>
           <span class="muted">${c.phone ? `<a href="tel:${esc(c.phone)}">${esc(c.phone)}</a> · <a href="https://wa.me/242${esc(String(c.phone).replace(/^0/, ''))}" target="_blank" rel="noopener">WhatsApp</a>` : 'Visiteur sans compte'}${idt ? ` · <span class="tag ${idt[1]}">${idt[0]}</span>` : ''}</span>
           ${c.orders.length ? `<div class="msg-orders">${c.orders.map((o) => `<a href="#/commande/${enc(o.id)}">${esc(o.id)} · ${fcfa(o.total)}</a>`).join('')}</div>` : ''}</div>
         ${c.status !== 'closed' ? `<button class="ghost" id="convClose">${icon('check-bold')} Terminer</button>` : ''}
