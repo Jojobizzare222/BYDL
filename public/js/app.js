@@ -47,6 +47,13 @@
     t.classList.add('show');
     clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), action ? 4500 : 2800);
   }
+  // Rangées d'onglets / pastilles qui défilent : fondu à droite tant qu'il reste quelque chose à voir (audit 17/10/2026)
+  const SCROLLERS = '.chips, .acc-tabs, .filters, .catnav';
+  const markScroll = (el) => el.classList.toggle('scroll-more', el.scrollWidth > el.clientWidth + 4 && el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+  const markScrollers = () => document.querySelectorAll(SCROLLERS).forEach(markScroll);
+  document.addEventListener('scroll', (e) => { if (e.target.matches?.(SCROLLERS)) markScroll(e.target); }, true);
+  addEventListener('resize', markScrollers);
+  new MutationObserver(() => requestAnimationFrame(markScrollers)).observe(document.getElementById('app'), { childList: true });
   // Numéro congolais (9 chiffres commençant par 0, avec ou sans +242), comme le serveur
   const localPhone = (v) => { let d = String(v || '').replace(/\D/g, ''); if (d.startsWith('00')) d = d.slice(2); if (d.startsWith('242') && d.length === 12) d = d.slice(3); return /^0\d{8}$/.test(d) ? d : null; };
   // Erreurs de formulaire : message SOUS chaque champ fautif, curseur placé sur le premier (audit 17/10/2026)
@@ -149,7 +156,8 @@
     $('#cartSaving').innerHTML = saving > 0 ? `<span>Vous économisez</span><span>${fcfa(saving)}</span>` : '';
     $('#cartLines').innerHTML = items.length
       ? items.map(({ key, product: p, variant, qty }) => `
-        <div class="line">
+        <div class="line cart-line">
+          <span class="line-img">${p.image ? `<img src="${esc(p.image)}" alt="" loading="lazy" width="56" height="56">` : icon(ICONS[p.category] || 'package')}</span>
           <div>
             <div>${esc(p.name)}</div>
             ${variant ? `<div class="hint">${esc(variantText(variant))}</div>` : ''}
@@ -162,6 +170,7 @@
           <strong>${fcfa(p.price * qty)}</strong>
         </div>`).join('')
       : '<p class="empty">Votre panier est vide.</p>';
+    const hint = $('#cartHint'); if (hint) hint.innerHTML = items.length ? accountHint('cart') : '';
   }
 
   // ---------- Tiroir panier ----------
@@ -179,6 +188,7 @@
       e.preventDefault();
       if ((byId(add.dataset.add)?.options || []).length) { location.hash = '#/p/' + add.dataset.add; return; } // choisir la couleur / taille d'abord
       addToCart(add.dataset.add);
+      added();
       const label = add.innerHTML;
       add.innerHTML = `${icon('check-bold')} Ajouté`;
       setTimeout(() => (add.innerHTML = label), 1200);
@@ -196,6 +206,19 @@
   };
   $('#searchToggle').addEventListener('click', () => toggleSearch(!header.classList.contains('search-open')));
 
+  // En-tête compact sur téléphone quand on descend (ville et rayons masqués, recherche gardée) ; il revient en remontant
+  // (le navigateur recale la page quand l'en-tête change de hauteur : ces défilements-là sont ignorés, sinon il clignoterait)
+  let lastY = scrollY, upBy = 0, settle = 0;
+  const setCompact = (on) => { if (header.classList.contains('compact') !== on) { header.classList.toggle('compact', on); settle = performance.now() + 300; } };
+  addEventListener('scroll', () => {
+    const y = scrollY, d = y - lastY; lastY = y;
+    if (performance.now() < settle) return;
+    if (!matchMedia('(max-width: 860px)').matches) return setCompact(false);
+    if (y < 80) { upBy = 0; return setCompact(false); }
+    if (d > 0) { upBy = 0; if (y > 180 && !header.classList.contains('search-open')) setCompact(true); }
+    else if ((upBy -= d) > 60) { upBy = 0; setCompact(false); }
+  }, { passive: true });
+
   // ---------- Barre d'onglets (téléphone) et installation de l'application ----------
   $('#tabSearch').addEventListener('click', () => { window.scrollTo({ top: 0, behavior: 'smooth' }); toggleSearch(true); });
   $('#tabCart').addEventListener('click', openDrawer);
@@ -212,6 +235,43 @@
     const q = $('#searchInput').value.trim();
     location.hash = q ? '#/recherche/' + enc(q) : searchCat() ? catHash(searchCat()) : '#/';
   });
+  // Suggestions pendant la frappe (audit 17/10/2026) : produits, rayons et « Vouliez-vous dire » ; clavier (↑ ↓ Entrée Échap) et toucher
+  const sugBox = $('#searchSuggest');
+  let sugTimer = null, sugSeq = 0, sugIdx = -1;
+  const sugItems = () => [...sugBox.querySelectorAll('a')];
+  const hideSuggest = () => { sugBox.hidden = true; sugBox.innerHTML = ''; sugIdx = -1; };
+  const markSug = (i) => { const it = sugItems(); sugIdx = Math.max(-1, Math.min(i, it.length - 1)); it.forEach((a, k) => a.classList.toggle('on', k === sugIdx)); if (sugIdx >= 0) it[sugIdx].scrollIntoView({ block: 'nearest' }); };
+  async function suggest(q) {
+    const seq = ++sugSeq;
+    let r;
+    try { r = await fetch('/api/products/suggest?q=' + enc(q)).then((x) => (x.ok ? x.json() : null)); } catch { r = null; }
+    if (seq !== sugSeq || !r || $('#searchInput').value.trim() !== q) return;
+    if (!r.products.length && !r.categories.length) return hideSuggest();
+    sugBox.innerHTML = `
+      ${r.didYouMean ? `<p class="sug-dym">Résultats pour « ${esc(r.didYouMean)} »</p>` : ''}
+      ${r.categories.map((c) => `<a href="#/c/${enc(c.universe)}/${enc(c.category)}" role="option">${icon(ICONS[c.category] || 'squares-four')}<span>Rayon <b>${esc(c.category)}</b></span><small>${c.count}</small></a>`).join('')}
+      ${r.products.map((p) => `<a href="#/p/${enc(p.id)}" role="option"><span class="sug-img">${p.image ? `<img src="${esc(p.image)}" alt="" width="36" height="36" loading="lazy">` : icon(ICONS[p.category] || 'package')}</span><span>${esc(p.name)}</span><small>${fcfa(p.price)}</small></a>`).join('')}
+      <a href="#/recherche/${enc(q)}" role="option" class="sug-all">${icon('magnifying-glass')}<span>Voir tous les résultats pour « ${esc(q)} »</span></a>`;
+    sugBox.hidden = false; sugIdx = -1;
+  }
+  $('#searchInput').addEventListener('input', () => {
+    clearTimeout(sugTimer);
+    const q = $('#searchInput').value.trim();
+    if (q.length < 2) { sugSeq++; return hideSuggest(); }
+    sugTimer = setTimeout(() => suggest(q), 220);
+  });
+  $('#searchInput').addEventListener('keydown', (e) => {
+    if (sugBox.hidden) return;
+    if (e.key === 'ArrowDown') { e.preventDefault(); markSug(sugIdx + 1); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); markSug(sugIdx - 1); }
+    else if (e.key === 'Escape') hideSuggest();
+    else if (e.key === 'Enter' && sugIdx >= 0) { e.preventDefault(); location.hash = sugItems()[sugIdx].getAttribute('href'); hideSuggest(); $('#searchInput').blur(); }
+  });
+  sugBox.addEventListener('click', (e) => { if (e.target.closest('a')) { hideSuggest(); $('#searchInput').blur(); } });
+  document.addEventListener('pointerdown', (e) => { if (!sugBox.hidden && !e.target.closest('#searchForm')) hideSuggest(); });
+  window.addEventListener('hashchange', hideSuggest);
+  $('#searchForm').addEventListener('submit', () => { sugSeq++; clearTimeout(sugTimer); hideSuggest(); });
+
   $('#searchCat').addEventListener('change', () => {
     const o = $('#searchCat').selectedOptions[0];
     $('#searchCatLabel').textContent = o.value ? o.textContent.trim() : 'Rayons';
@@ -351,7 +411,41 @@
     return `<div class="${cls} no-img tint-${tintOf(p.category)}">${catIcon(p.category)}`;
   }
 
-  function card(p) {
+  // Familles : même produit en plusieurs couleurs (fiche « family » saisie dans Kamwa Pro, sinon couleur en fin de nom)
+  const COLORS = { 'lumiere stellaire': '#F2EEE6', 'gris sideral': '#5B5E63', 'titane naturel': '#C2BCB2', 'titane noir': '#3B3B3D', 'titane blanc': '#F1F0EC', 'titane bleu': '#3E4A5C', 'titane desert': '#C8B49B', 'bleu ciel': '#A7C6ED', 'bleu nuit': '#1E2A44', minuit: '#1F2933', noir: '#1B1B1F', blanc: '#F5F5F5', bleu: '#3B6BD6', rose: '#F4C6CF', vert: '#A9CFA0', jaune: '#F7E27A', rouge: '#D23B3B', violet: '#8E6FD8', argent: '#D9DCE1', or: '#E8C77A', gris: '#8B8F96', mauve: '#B9A5D6', graphite: '#4A4A4F', orange: '#F28C38', beige: '#E3D3B4', marron: '#7A5233', kaki: '#7A7A4A', creme: '#F3EBD9', corail: '#FF7F66' };
+  const COLOR_KEYS = Object.keys(COLORS).sort((a, b) => b.length - a.length);
+  const plain = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const colorOf = (p) => { const n = plain(p.name); const c = COLOR_KEYS.find((k) => n.endsWith(' ' + k)); return c ? { key: c, label: p.name.slice(p.name.length - c.length), hex: COLORS[c] } : null; };
+  const familyKey = (p) => { if (p.family) return 'f:' + plain(p.family); const c = colorOf(p); return c ? `${p.category}|${plain(p.name).slice(0, -c.key.length).trim()}` : null; };
+  const familyName = (p) => p.family || (colorOf(p) ? p.name.slice(0, p.name.length - colorOf(p).label.length).trim() : p.name);
+  const siblings = (p) => { const k = familyKey(p); return k ? state.products.filter((x) => familyKey(x) === k) : [p]; };
+  function groupFamilies(list) {
+    const seen = new Map(); const out = [];
+    for (const p of list) {
+      const k = familyKey(p);
+      if (k && seen.has(k)) { seen.get(k).push(p); continue; }
+      const g = [p]; if (k) seen.set(k, g); out.push(g);
+    }
+    return out;
+  }
+  const cardsOf = (list) => groupFamilies(list).map((g) => card(g[0], g)).join('');
+
+  // Compte vérifié obligatoire : annoncé DÈS le début du parcours (audit 17/10/2026), pas seulement au moment de commander
+  function accountHint(where = 'pdp') {
+    if (state.config?.accountRequired === false) return '';
+    const c = state.customer;
+    if (c && c.idStatus === 'verified') return '';
+    const msg = !c
+      ? `<b>Première commande ?</b> Créez votre compte Kamwa avec la photo de votre pièce d'identité : nous la vérifions (en général sous 24 h), puis vous commandez. <a href="#/compte/creer">Créer mon compte</a> · <a href="#/compte">Me connecter</a>`
+      : c.idStatus === 'pending' ? `<b>Votre pièce d'identité est en cours de vérification.</b> Vous pourrez commander dès sa validation (en général sous 24 h). Votre panier est gardé.`
+      : `<b>Pièce d'identité à envoyer</b> pour pouvoir commander. <a href="#/compte">Envoyer ma pièce</a>`;
+    return `<div class="acct-hint ${where}">${icon('identification-card')}<span>${msg}</span></div>`;
+  }
+  // Confirmation d'ajout au panier (message + accès direct au panier)
+  const added = () => toast('Ajouté au panier ✓', { label: 'Voir le panier', run: openDrawer });
+
+  function card(p, family = [p]) {
+    const multi = family.length > 1;
     const d = discount(p);
     const tag = p.condition && p.condition !== 'neuf' ? `<span class="tag tag-violet">${esc(p.condition === 'reconditionné' ? 'Reconditionné' : 'Occasion')}</span>`
       : p.featured ? '<span class="tag tag-mango">Nouveau</span>' : '';
@@ -363,10 +457,11 @@
         </a>
         <div class="card-body">
           <div class="card-tag">${tag}</div>
-          <a href="#/p/${p.id}"><h3>${esc(p.name)}</h3></a>
-          <div class="prices"><span class="price">${fcfa(p.price)}</span><span class="old">${d ? fcfa(p.oldPrice) : ''}</span></div>
-          <span class="stock-low">${p.stock > 0 && p.stock <= 6 ? `${icon('fire')} Plus que ${p.stock} en stock` : ''}</span>
-          <button class="btn cta small" data-add="${p.id}" ${p.stock === 0 ? 'disabled' : ''}>${p.stock === 0 ? 'Épuisé' : (p.options || []).length ? 'Choisir' : `${icon('plus')} Ajouter`}</button>
+          <a href="#/p/${p.id}"><h3>${esc(multi ? familyName(p) : p.name)}</h3></a>
+          ${multi ? `<div class="swatches" aria-label="${family.length} couleurs">${family.slice(0, 6).map((x) => `<i style="background:${colorOf(x)?.hex || '#ccc'}" title="${esc(colorOf(x)?.label || '')}"></i>`).join('')}<small>${family.length} couleurs</small></div>` : ''}
+          <div class="prices"><span class="price">${multi && family.some((x) => x.price !== p.price) ? 'dès ' : ''}${fcfa(multi ? Math.min(...family.map((x) => x.price)) : p.price)}</span><span class="old">${d && !multi ? fcfa(p.oldPrice) : ''}</span></div>
+          <span class="stock-low">${!multi && p.stock > 0 && p.stock <= 6 ? `${icon('fire')} Plus que ${p.stock} en stock` : ''}</span>
+          ${multi ? `<a class="btn cta small" href="#/p/${p.id}">Choisir la couleur</a>` : `<button class="btn cta small" data-add="${p.id}" ${p.stock === 0 ? 'disabled' : ''}>${p.stock === 0 ? 'Épuisé' : (p.options || []).length ? 'Choisir' : `${icon('plus')} Ajouter`}</button>`}
         </div>
       </article>`;
   }
@@ -377,7 +472,7 @@
     const id = 'rail' + ++railSeq;
     return `<div class="rail-wrap">
       <button class="rail-arrow prev" data-rail="${id}" data-dir="-1" aria-label="Produits précédents">${icon('caret-left')}</button>
-      <div class="rail" id="${id}">${list.map(card).join('')}</div>
+      <div class="rail" id="${id}">${cardsOf(list)}</div>
       <button class="rail-arrow next" data-rail="${id}" data-dir="1" aria-label="Produits suivants">${icon('caret-right')}</button>
     </div>`;
   }
@@ -492,7 +587,7 @@
       <section class="duo">
         <a class="promo-card pc-violet" href="#/compte/creer">
           <span class="ic">${icon('gift')}</span>
-          <span><b>Créez votre compte Kamwa</b><small>Gratuit, sans SMS : suivez vos commandes et retrouvez vos achats.</small></span>
+          <span><b>Créez votre compte Kamwa</b><small>Gratuit, avec la photo de votre pièce d'identité (vérifiée sous 24 h) : il est nécessaire pour commander.</small></span>
           <span class="go">${icon('arrow-right')}</span>
         </a>
         <a class="promo-card pc-mango" href="#/legal/vente">
@@ -529,12 +624,30 @@
     }, 1000));
   }
 
-  function viewList({ title, crumbs, list, active, chips }) {
+  // Filtres de liste (prix, marque, promo, en stock) : gardés tant qu'on reste sur la même page
+  const PRICE_BANDS = [['', 'Tous les prix'], ['0-50000', 'Moins de 50 000 FCFA'], ['50000-150000', '50 000 à 150 000'], ['150000-500000', '150 000 à 500 000'], ['500000-', 'Plus de 500 000']];
+  function applyFilters(list, f) {
+    return list.filter((p) => {
+      if (f.brand && (p.brand || '') !== f.brand) return false;
+      if (f.price) { const [a, b] = f.price.split('-').map((x) => (x ? Number(x) : null)); if ((a != null && p.price < a) || (b != null && p.price >= b)) return false; }
+      if (f.deal && !discount(p)) return false;
+      if (f.stock && p.stock === 0) return false;
+      return true;
+    });
+  }
+  function viewList({ title, crumbs, list, active, chips, notice = '', empty = '' }) {
     renderNav(active);
+    const key = location.hash;
+    if (state.filterKey !== key) { state.filterKey = key; state.filters = {}; }
+    const f = state.filters;
+    const brands = [...new Set(list.map((p) => p.brand).filter(Boolean))].sort();
+    const shown = applyFilters(list, f);
+    const groups = groupFamilies(sortList(shown));
+    const active2 = Object.values(f).filter(Boolean).length;
     app.innerHTML = `
       <div class="crumbs">${crumbs}</div>
       <div class="list-head">
-        <h1>${esc(title)} <small style="color:var(--muted);font-weight:400;font-size:.85rem">(${list.length} produit${list.length > 1 ? 's' : ''})</small></h1>
+        <h1>${esc(title)} <small style="color:var(--muted);font-weight:400;font-size:.85rem">(${groups.length} produit${groups.length > 1 ? 's' : ''})</small></h1>
         <select id="sort" aria-label="Trier">
           <option value="pertinence">Trier : pertinence</option>
           <option value="prix-asc">Prix croissant</option>
@@ -542,10 +655,22 @@
           <option value="remise">Meilleures remises</option>
         </select>
       </div>
+      ${notice}
       ${chips || ''}
-      ${list.length ? `<div class="grid">${sortList(list).map(card).join('')}</div>` : '<p class="empty">Aucun produit trouvé. Essayez un autre mot-clé.</p>'}`;
+      ${list.length ? `<div class="filters" role="group" aria-label="Filtrer">
+        <select data-f="price" aria-label="Prix">${PRICE_BANDS.map(([v, l]) => `<option value="${v}" ${f.price === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
+        ${brands.length > 1 ? `<select data-f="brand" aria-label="Marque"><option value="">Toutes les marques</option>${brands.map((b) => `<option ${f.brand === b ? 'selected' : ''}>${esc(b)}</option>`).join('')}</select>` : ''}
+        <label class="fchip"><input type="checkbox" data-f="deal" ${f.deal ? 'checked' : ''}> En promo</label>
+        <label class="fchip"><input type="checkbox" data-f="stock" ${f.stock ? 'checked' : ''}> Disponible</label>
+        ${active2 ? '<button type="button" class="linkish" data-f-reset>Effacer les filtres</button>' : ''}
+      </div>` : ''}
+      ${groups.length ? `<div class="grid">${groups.map((g) => card(g[0], g)).join('')}</div>`
+        : list.length ? '<p class="empty">Aucun produit avec ces filtres. <button type="button" class="linkish" data-f-reset>Effacer les filtres</button></p>'
+        : (empty || '<p class="empty">Aucun produit trouvé. Essayez un autre mot-clé.</p>')}`;
     const sel = $('#sort'); sel.value = state.sort;
-    sel.addEventListener('change', () => { state.sort = sel.value; route(); });
+    sel.addEventListener('change', () => { state.sort = sel.value; route({ keep: true }); });
+    app.querySelectorAll('[data-f]').forEach((el) => el.addEventListener('change', () => { f[el.dataset.f] = el.type === 'checkbox' ? el.checked : el.value; route({ keep: true }); }));
+    app.querySelectorAll('[data-f-reset]').forEach((b) => b.addEventListener('click', () => { state.filters = {}; route({ keep: true }); }));
   }
 
   function viewCategory(universe, category) {
@@ -565,11 +690,25 @@
 
   async function viewSearch(q) {
     $('#searchInput').value = q;
-    let list = [];
-    try { list = await api('/products?q=' + enc(q)); } catch {}
+    let list = [], partial = false, fixed = null;
+    try {
+      const r = await fetch('/api/products?q=' + enc(q));
+      list = await r.json();
+      partial = r.headers.get('X-Search-Partial') === '1';
+      fixed = r.headers.get('X-Search-Suggest') ? decodeURIComponent(r.headers.get('X-Search-Suggest')) : null;
+    } catch {}
     const cat = searchCat();
     if (cat) list = list.filter((p) => (cat.startsWith('u:') ? p.universe === cat.slice(2) : p.category === cat.slice(2)));
-    viewList({ title: `Résultats pour « ${q} »`, crumbs: '<a href="#/">Accueil</a> › Recherche', list, active: null });
+    const notice = fixed && list.length ? `<p class="search-note">${icon('magnifying-glass')} Résultats pour <strong>« ${esc(fixed)} »</strong> — vous avez tapé « ${esc(q)} ».</p>`
+      : partial && list.length ? `<p class="search-note">${icon('magnifying-glass')} Aucun produit ne correspond à tous vos mots : voici les plus proches.</p>` : '';
+    const popular = state.products.filter((p) => p.featured || discount(p)).slice(0, 8);
+    const empty = `<div class="empty-search">
+        <p><strong>Aucun produit pour « ${esc(q)} ».</strong> Vérifiez l'orthographe, essayez un mot plus simple (ex. « téléphone », « chaussures »), ou parcourez un rayon :</p>
+        <div class="chips">${UNIVERSES.flatMap((u) => u.categories.map((c) => `<a class="chip" href="#/c/${enc(u.name)}/${enc(c)}">${esc(c)}</a>`)).join('')}</div>
+        <p class="hint">Vous ne trouvez pas ? Écrivez-nous dans « Aide » : nous vous répondons.</p>
+        ${popular.length ? `<h2 style="margin-top:22px">Nos produits du moment</h2><div class="grid">${cardsOf(popular)}</div>` : ''}
+      </div>`;
+    viewList({ title: `Résultats pour « ${q} »`, crumbs: '<a href="#/">Accueil</a> › Recherche', list, active: null, notice, empty });
   }
 
   function viewPromos() {
@@ -619,6 +758,7 @@
         </div>
         <div>
           <h1>${esc(p.name)}</h1>
+          ${(() => { const sib = siblings(p); return sib.length > 1 ? `<div class="color-pick"><span class="lbl">Couleur : <b>${esc(colorOf(p)?.label || '')}</b></span><div>${sib.map((x) => `<a href="#/p/${enc(x.id)}" class="${x.id === p.id ? 'on' : ''}" title="${esc(colorOf(x)?.label || x.name)}" aria-label="${esc(colorOf(x)?.label || x.name)}"><i style="background:${colorOf(x)?.hex || '#ccc'}"></i></a>`).join('')}</div></div>` : ''; })()}
           ${p.condition && p.condition !== 'neuf' ? `<span class="cond-tag">${esc(p.condition === 'reconditionné' ? 'Reconditionné' : 'Occasion')}</span>` : ''}
           <p>${esc(p.description)}</p>
           ${(p.specs || []).length ? `<table class="specs">${p.specs.map((x) => `<tr><th>${esc(x.label)}</th><td>${esc(x.value)}</td></tr>`).join('')}</table>` : ''}
@@ -632,7 +772,9 @@
             <div id="optErr"></div>
             <button class="btn cta block" ${(p.options || []).length ? 'id="addOpt"' : `data-add="${p.id}"`} ${p.stock === 0 ? 'disabled' : ''}>Ajouter au panier</button>
             <a class="btn ghost block" href="#/commande" id="buyNow">Acheter maintenant</a>
+            ${accountHint('pdp')}
           </div>
+          <div class="buybar"><span><small>${esc(p.name)}</small><b>${fcfa(p.price)}</b></span><button class="btn cta" type="button" id="buybarAdd" ${p.stock === 0 ? 'disabled' : ''}>${p.stock === 0 ? 'Épuisé' : 'Ajouter au panier'}</button></div>
         </div>
       </div>
       ${similar.length ? `<section class="shelf"><div class="shelf-head"><div><p class="kicker">${esc(p.category)}</p><h2>Vous aimerez aussi</h2></div></div>${railCarousel(similar)}</section>` : ''}`;
@@ -650,8 +792,16 @@
       if (m) { $('#optErr').innerHTML = `<div class="alert err">Choisissez : ${esc(m.name)}</div>`; return false; }
       addToCart(p.id, { ...sel }); return true;
     };
+    // Barre d'achat fixe (téléphone) : même effet que le bouton principal ; cachée quand le bouton principal est à l'écran
+    const mainAdd = app.querySelector('.buybox .btn.cta.block'), bar = app.querySelector('.buybar');
+    if (mainAdd && bar && 'IntersectionObserver' in window) new IntersectionObserver(([en]) => bar.classList.toggle('off', en.isIntersecting), { rootMargin: '0px 0px -130px 0px' }).observe(mainAdd);
+    $('#buybarAdd')?.addEventListener('click', () => {
+      if ((p.options || []).length) { if (!addWithChoice()) { $('#optErr').scrollIntoView({ behavior: 'smooth', block: 'center' }); return; } added(); return; }
+      addToCart(p.id); added();
+    });
     $('#addOpt')?.addEventListener('click', (e) => {
       if (!addWithChoice()) return;
+      added();
       const b = e.currentTarget; const label = b.innerHTML; b.innerHTML = `${icon('check-bold')} Ajouté`; setTimeout(() => (b.innerHTML = label), 1200);
     });
     $('#buyNow').addEventListener('click', (e) => {
@@ -1527,9 +1677,19 @@
     const readId = bindIdFields($('#registerForm'));
     $('#registerForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const btn = e.target.querySelector('button.cta'); btn.disabled = true; btn.textContent = 'Envoi en cours…';
+      // Tout est vérifié AVANT l'envoi : un message sous chaque champ à corriger (audit 17/10/2026)
+      const form = e.target, phone = $('#rPhone').value.trim(), email = $('#rEmail').value.trim();
+      const problems = [];
+      if ($('#rName').value.trim().length < 2) problems.push([$('#rName'), 'Indiquez votre nom complet.']);
+      if (phone && !localPhone(phone)) problems.push([$('#rPhone'), 'Numéro congolais à 9 chiffres, par exemple 06 123 45 67.']);
+      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) problems.push([$('#rEmail'), 'Adresse e-mail incomplète (exemple : nom@exemple.com).']);
+      if (!phone && !email) problems.push([$('#rPhone'), 'Indiquez un numéro de téléphone ou une adresse e-mail : ce sera votre identifiant.']);
+      let id = null;
+      try { id = readId(); } catch (err) { problems.push([/type/.test(err.message) ? $('#idType') : form.querySelector('.id-pick'), err.message]); }
+      $('#registerError').innerHTML = '';
+      if (!fieldErrors(form, problems)) return;
+      const btn = form.querySelector('button.cta'); btn.disabled = true; btn.textContent = 'Envoi en cours…';
       try {
-        const id = readId();
         const res = await api('/account/register', { method: 'POST', body: { name: $('#rName').value, phone: $('#rPhone').value, email: $('#rEmail').value, ...id, deviceOrders: deviceOrders() } });
         state.customer = res.customer; renderAccountBtn();
         const who = res.customer.phone || res.customer.email;

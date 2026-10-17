@@ -9,7 +9,8 @@
   const vb = (st) => (st === 'verified' ? VERIFIED : '');
   const enc = encodeURIComponent;
   const date = (iso) => (iso ? new Date(iso).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }) : '');
-  const ICONS = { 'Téléphones': '📱', 'Tablettes': '📲', 'Ordinateurs': '💻', 'Montres': '⌚', 'Audio': '🎧', 'TV & Maison': '📺', 'Jeux vidéo & consoles': '🎮', 'Composants': '💾', 'Accessoires': '🔌', 'Homme': '👕', 'Femme': '👚', 'Chaussures': '👟' };
+  const ICONS = { 'Téléphones': 'device-mobile-duotone', 'Tablettes': 'device-tablet-duotone', 'Ordinateurs': 'laptop-duotone', 'Montres': 'watch-duotone', 'Audio': 'headphones-duotone', 'TV & Maison': 'television-duotone', 'Jeux vidéo & consoles': 'game-controller-duotone', 'Composants': 'cpu-duotone', 'Accessoires': 'plug-duotone', 'Homme': 't-shirt-duotone', 'Femme': 'dress-duotone', 'Chaussures': 'sneaker-duotone' };
+  const catIcon = (cat) => icon(ICONS[cat] || 'shopping-bag-duotone');
 
   const state = { user: null, orders: [], labels: {}, transitions: {}, products: [], universes: [], suppliers: [], orderFilter: 'paid', productQuery: '', productFilter: 'all', seenPaid: null };
   // Ce que chaque rôle peut ouvrir (le serveur vérifie aussi, de son côté)
@@ -38,12 +39,21 @@
   let toastTimer;
   function toast(msg) {
     const t = $('#toast');
-    t.textContent = msg;
+    const err = /^❌ /.test(msg); // erreurs : icône + couleur au lieu d'un émoji
+    t.classList.toggle('err', err);
+    t.innerHTML = err ? `${icon('warning-duotone')} ${esc(msg.slice(2))}` : esc(msg);
     t.classList.add('show');
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
   }
 
+  // Rangées d'onglets / pastilles qui défilent : fondu à droite tant qu'il reste quelque chose à voir (audit 17/10/2026)
+  const SCROLLERS = '.tabbar, .pills, .chips';
+  const markScroll = (el) => el.classList.toggle('scroll-more', el.scrollWidth > el.clientWidth + 4 && el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+  const markScrollers = () => document.querySelectorAll(SCROLLERS).forEach(markScroll);
+  document.addEventListener('scroll', (e) => { if (e.target.matches?.(SCROLLERS)) markScroll(e.target); }, true);
+  addEventListener('resize', markScrollers);
+  new MutationObserver(() => requestAnimationFrame(markScrollers)).observe(document.getElementById('app'), { childList: true });
   // ---------- Outils d'affichage ----------
   const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=12#${name}"></use></svg>`;
   // En-tête de page façon « Espace pro › Commandes » + titre + description + boutons d'action à droite
@@ -137,13 +147,19 @@
     if (!location.hash.startsWith('#/tableau') && location.hash !== '' && location.hash !== '#/') return; // la personne a changé de page entre-temps
     const who = state.user.role === 'supplier' ? state.user.company || state.user.name : state.user.name;
     const period = d.role === 'catalog' ? '' : `<div class="period">${[7, 30, 90].map((n) => `<button data-days="${n}" class="${n === days ? 'on' : ''}">${n} jours</button>`).join('')}</div>`;
-    const todo = [];
-    if (d.todo?.todayDeliveries) todo.push(`<a href="#/calendrier">${icon('clock-bold')} ${d.todo.todayDeliveries} livraison(s) aujourd'hui</a>`);
-    if (d.todo?.toShip) todo.push(`<a href="#/commandes" data-f="paid">${icon('package-duotone')} ${d.todo.toShip} à expédier</a>`);
-    if (d.todo?.idToCheck) todo.push(`<a class="warn" href="#/clients">${icon('identification-card')} ${d.todo.idToCheck} pièce(s) d'identité à vérifier</a>`);
-    if (d.todo?.toCollect) todo.push(`<a class="warn" href="#/commandes" data-f="collect">${icon('storefront-duotone')} ${d.todo.toCollect} à encaisser en agence</a>`);
-    if (d.todo?.refunds) todo.push(`<a class="danger" href="#/commandes" data-f="paid">${icon('warning-duotone')} ${d.todo.refunds} à rembourser</a>`);
-    if (d.pendingProducts) todo.push(`<a class="warn" href="#/produits" data-pf="pending">${icon('clock-countdown-duotone')} ${d.pendingProducts} produit(s) à valider</a>`);
+    // Liste « À faire » unique, même formulation partout : nombre + action (audit 17/10/2026)
+    const T = d.todo || {};
+    const todo = [
+      [T.refunds, 'danger', 'warning-duotone', 'commande(s) à rembourser', '#/commandes', 'paid'],
+      [T.toCall, 'warn', 'phone-bold', 'client(s) à appeler avant la livraison', '#/commandes', 'call'],
+      [T.toCollect, 'warn', 'storefront-duotone', 'paiement(s) à encaisser au point relais', '#/commandes', 'collect'],
+      [T.toPlan, '', 'truck-duotone', 'livraison(s) à planifier', '#/calendrier'],
+      [T.todayDeliveries, '', 'clock-bold', 'livraison(s) prévue(s) aujourd\'hui', '#/calendrier'],
+      [T.toShip, '', 'package-duotone', 'commande(s) à préparer et à remettre', '#/commandes', 'paid'],
+      [T.messages, 'warn', 'chat-circle-dots-duotone', 'client(s) attendent une réponse', '#/messagerie'],
+      [T.idToCheck, 'warn', 'identification-card', 'pièce(s) d\'identité à vérifier', '#/clients'],
+      [d.pendingProducts, 'warn', 'clock-countdown-duotone', 'produit(s) à valider', '#/produits', null, 'pending'],
+    ].filter((x) => x[0]).map(([n, cls, ico, label, href, f, pf]) => `<a class="todo-row ${cls}" href="${href}"${f ? ` data-f="${f}"` : ''}${pf ? ` data-pf="${pf}"` : ''}><span class="todo-ico">${icon(ico)}</span><b>${n}</b><span>${label}</span>${icon('caret-right', 'todo-go')}</a>`);
 
     const stockList = (list) => (list?.length
       ? `<ul class="mini-list">${list.map((p) => `<li><a href="#/produit/${enc(p.id)}">${esc(p.name)}</a>${p.stock != null ? `<span class="tag ${p.stock === 0 ? 'danger' : 'warn'}">${p.stock} en stock</span>` : ''}</li>`).join('')}</ul>`
@@ -180,12 +196,12 @@
       </section>
       <div class="quick">${quick.join('')}</div>`
       + `<div class="kpis">${d.kpis.map((k, i) => `<div class="kpi kc${i % 4}"><span class="kpi-ico">${icon(k.icon)}</span><span class="kpi-label">${esc(k.label)}</span><span class="kpi-value">${k.format === 'fcfa' ? fcfa(k.value) : new Intl.NumberFormat('fr-FR').format(k.value)}</span>${k.hint ? `<span class="kpi-hint">${esc(k.hint)}</span>` : ''}</div>`).join('')}</div>`
-      + (todo.length ? `<div class="todo">${todo.join('')}</div>` : '')
+      + (d.todo || d.pendingProducts ? `<section class="todo-list"><h2>${icon('list-bullets-duotone')} À faire</h2>${todo.length ? todo.join('') : `<p class="muted">${icon('check-circle-duotone')} Rien en attente. Tout est à jour.</p>`}</section>` : '')
       + `<div class="dash-grid">${cards.join('')}</div>`;
 
     app.querySelectorAll('[data-days]').forEach((b) => b.addEventListener('click', () => { state.days = Number(b.dataset.days); route(); }));
-    app.querySelectorAll('.todo [data-f]').forEach((a) => a.addEventListener('click', () => { state.orderFilter = a.dataset.f; }));
-    app.querySelectorAll('.todo [data-pf]').forEach((a) => a.addEventListener('click', () => { state.productFilter = a.dataset.pf; }));
+    app.querySelectorAll('.todo-list [data-f]').forEach((a) => a.addEventListener('click', () => { state.orderFilter = a.dataset.f; }));
+    app.querySelectorAll('.todo-list [data-pf]').forEach((a) => a.addEventListener('click', () => { state.productFilter = a.dataset.pf; }));
 
     if (d.series) {
       const money = (lbl) => /FCFA/.test(lbl);
@@ -267,7 +283,7 @@
     location.hash = '';
     // On vide tout : la personne suivante (autre rôle) recharge ses propres données
     Object.assign(state, { user: null, seenPaid: null, orders: [], products: [], universes: [], suppliers: [], productFilter: 'all', productQuery: '', demoAccounts: state.demoAccounts });
-    document.title = 'Kamwa Admin';
+    document.title = 'Kamwa Pro';
     showLogin();
   });
 
@@ -322,13 +338,13 @@
       const fresh = state.orders.filter((o) => isNew(o) && !state.seenPaid.has(o.id));
       if (fresh.length) {
         ring();
-        toast(`🛒 Nouvelle commande payée : ${fresh[0].customer.name}, ${fcfa(fresh[0].total)}`);
+        toast(`Nouvelle commande payée : ${fresh[0].customer.name}, ${fcfa(fresh[0].total)}`);
       }
     }
     state.seenPaid = new Set(paidIds);
     const todo = state.orders.filter((o) => ['paid', 'confirmed'].includes(o.status) || o.paidAfterCancel).length;
     for (const el of [$('#todoCount'), $('#todoCountMobile')]) { el.hidden = !todo; el.textContent = todo; }
-    document.title = todo ? `(${todo}) Kamwa Admin` : 'Kamwa Admin';
+    document.title = todo ? `(${todo}) Kamwa Pro` : 'Kamwa Pro';
   }
 
   async function loadProducts() {
@@ -350,10 +366,12 @@
   const isPickup = (o) => o.fulfillment === 'pickup';
   const paysAtAgency = (o) => Boolean(o.agency) && o.status === 'pending_payment'; // espèces à encaisser à l'agence (retrait OU livraison ensuite)
   const toCollect = (o) => o.status === 'pending_payment' && o.payment?.operator === 'cash' && o.payment.status === 'PENDING' && !(o.payment.expiresAt && Date.now() > Date.parse(o.payment.expiresAt));
+  const toCall = (o) => !isPickup(o) && ['paid', 'confirmed'].includes(o.status) && !o.callConfirmedAt;
   const PAY_LABELS = { mtn: 'MTN MoMo', airtel: 'Airtel Money', card: 'Carte bancaire', cash: 'Espèces en agence' };
   const PAY_STATUS = { PENDING: 'en attente', SUCCESSFUL: 'réussi', FAILED: 'échoué', CANCELLED: 'remplacé' };
   const FILTERS = [
     ['paid', 'À livrer / remettre'],
+    ['call', 'À appeler'],
     ['collect', 'À encaisser en agence'],
     ['shipped', 'En livraison'],
     ['delivered', 'Livrées'],
@@ -365,12 +383,13 @@
 
   function viewOrders() {
     const f = state.orderFilter;
-    const matches = (o, k) => k === 'all' || (k === 'collect' ? toCollect(o) : o.status === k) || (k === 'paid' && (o.paidAfterCancel || o.status === 'confirmed'));
+    const matches = (o, k) => k === 'all' || (k === 'collect' ? toCollect(o) : k === 'call' ? toCall(o) : o.status === k) || (k === 'paid' && (o.paidAfterCancel || o.status === 'confirmed'));
     const list = state.orders.filter((o) => matches(o, f));
     const qty = (o) => o.lines.reduce((s, l) => s + l.qty, 0);
     app.innerHTML = pageHead({ title: 'Commandes', desc: 'Suivez chaque commande, du paiement à la livraison. Cliquez sur une ligne pour la gérer.', actions: exportBtn('orders') })
       + tabsBar(FILTERS.map(([k, label]) => [k, label, state.orders.filter((o) => matches(o, k)).length]), f, 'filter')
       + (f === 'pending_payment' ? '<p class="muted">Commandes commencées mais pas payées (paiement refusé, abandonné, en cours, ou réservation en agence). Rien à expédier.</p>' : '')
+      + (f === 'call' ? '<p class="muted">Commandes payées à livrer : appelez le client pour confirmer l\'adresse et le créneau avant de les confier à un livreur.</p>' : '')
       + (f === 'collect' ? '<p class="muted">Réservations en cours : le client vient payer en espèces à l\'agence. Préparez les articles.</p>' : '')
       + '<div id="tbl"></div>';
     dataTable($('#tbl'), {
@@ -392,12 +411,35 @@
   }
 
   const ACTIONS = {
-    shipped: ['Marquer « en livraison » 🚚', 'btn dark'],
+    shipped: ['Revenir à « en livraison »', 'ghost'],
     confirmed: ['Revenir à « à livrer »', 'ghost'],
     delivered: ['Marquer livrée ✓', 'btn green'],
     handed: ['Remise au client ✓', 'btn green'],
     paid: ['Revenir à « Payée »', 'ghost'],
     cancelled: ['Annuler la commande', 'ghost'],
+  };
+
+  // Prochaine étape d'une commande, en une phrase (audit 17/10/2026) : [texte, détail, élément à atteindre, style]
+  function nextStep(o) {
+    const late = o.pickupDeadline && Date.now() > Date.parse(o.pickupDeadline);
+    if (o.paidAfterCancel) return ['Rembourser le client', 'Il a payé alors que la commande était annulée : remboursez-le puis notez-le.', '#note', 'danger'];
+    if (o.status === 'cancelled') return ['Commande annulée', o.cancelReason || 'Rien à faire.', null, 'done'];
+    if (o.status === 'delivered') return [isPickup(o) ? 'Commande remise au client' : 'Commande livrée', 'Terminé. La facture et le reçu sont dans « Documents ».', null, 'done'];
+    if (o.status === 'pending_payment') {
+      if (paysAtAgency(o)) return late
+        ? ['Délai de paiement dépassé', `Appelez ${o.customer.name} : s'il vient encore, encaissez ; sinon annulez la commande.`, '#cashBtn', 'warn']
+        : [`Encaisser ${fcfa(o.total)} en espèces à ${o.agency?.name || 'l\'agence'}`, `Quand ${o.customer.name} paie, cliquez « Paiement reçu en agence ».${isPickup(o) ? ' Préparez déjà les articles.' : ''}`, '#cashBtn', ''];
+      return ['En attente du paiement du client', 'Rien à faire pour l\'instant. Sans paiement, la commande s\'annule toute seule.', null, 'wait'];
+    }
+    if (o.status === 'shipped') return [`En livraison${o.courierName ? ' avec ' + o.courierName : ''}`, 'Le livreur valide la remise avec le code du client. En cas de problème : « Livraison ratée ».', null, 'wait'];
+    if (isPickup(o)) return ['Remettre les articles au client', `Au point relais ${o.agency?.name || ''}, contre son code de retrait à 4 chiffres.`, '[data-status="delivered"]', ''];
+    if (!o.callConfirmedAt) return ['Appeler le client', `Confirmez l'adresse et le créneau avec ${o.customer.name} (${o.customer.phone}).`, '#callOk', ''];
+    if (!o.planned) return ['Planifier la livraison', 'Choisissez la date et le créneau.', '#planBox', ''];
+    return ['Confier le colis à un livreur', `Livraison prévue le ${frDate(o.planned.date)}. Choisissez le livreur puis « Confier au livreur ».`, '#courierSel', ''];
+  }
+  const nextStepBox = (o) => {
+    const [t, d, target, cls] = nextStep(o);
+    return `<div class="next-step ${cls}"><span class="ns-ico">${icon(cls === 'done' ? 'check-circle-duotone' : cls === 'wait' ? 'clock-bold' : cls === 'danger' ? 'warning-duotone' : 'arrow-right-bold')}</span><div><small>${cls === 'done' ? 'État' : 'Prochaine étape'}</small><strong>${esc(t)}</strong><span>${esc(d)}</span></div>${target ? `<button class="btn small" data-goto='${esc(target)}'>Y aller</button>` : ''}</div>`;
   };
 
   function viewOrder(id) {
@@ -409,7 +451,7 @@
     app.innerHTML = `
       <p><a href="#/commandes">‹ Toutes les commandes</a></p>
       <div class="row between"><h1>${esc(o.id)}</h1>${badge(o.status)}</div>
-      ${o.paidAfterCancel ? '<div class="alert err">⚠️ Le client a payé alors que la commande était annulée. Remboursez-le via Mobile Money.</div>' : ''}
+      ${nextStepBox(o)}
 
       <div class="panel">
         <h2>Articles</h2>
@@ -426,11 +468,11 @@
         <p style="margin:0 0 4px"><strong>${esc(c.name)}</strong>${vb(o.account?.idStatus)} · ${esc(c.phone)}</p>
         <p class="muted" style="margin:0 0 10px">${esc(c.city || '—')} · ${esc(c.address || 'pas d\'adresse')}</p>
         <div class="row">
-          <a class="btn dark" href="tel:+${intl}">📞 Appeler</a>
+          <a class="btn dark" href="tel:+${intl}">${icon('phone-bold')} Appeler</a>
           <a class="btn green" href="https://wa.me/${intl}" target="_blank" rel="noopener">WhatsApp</a>
           <button class="ghost" id="editCustomer">Modifier</button>
         </div>
-        ${o.account ? `<p class="muted" style="margin:10px 0 0">👤 Compte client ${esc(o.account.id)}${o.account.email ? ' · ' + esc(o.account.email) : ''} <button class="ghost" id="newCodeBtn" style="min-height:32px;padding:4px 10px">Nouveau code</button></p><div id="newCodeBox"></div>` : '<p class="muted" style="margin:10px 0 0">Commande passée sans compte client.</p>'}
+        ${o.account ? `<p class="muted" style="margin:10px 0 0">${icon('user-circle')} Compte client ${esc(o.account.id)}${o.account.email ? ' · ' + esc(o.account.email) : ''} <button class="ghost" id="newCodeBtn" style="min-height:32px;padding:4px 10px">Nouveau code</button></p><div id="newCodeBox"></div>` : '<p class="muted" style="margin:10px 0 0">Commande passée sans compte client.</p>'}
         <form id="customerForm" hidden>
           <label for="cName">Nom</label><input id="cName" type="text" value="${esc(c.name)}">
           <label for="cPhone">Téléphone</label><input id="cPhone" type="tel" value="${esc(c.phone)}">
@@ -444,10 +486,10 @@
 
       <div class="panel">
         <h2>Suivi</h2>
-        ${!isPickup(o) && o.agency ? `<p style="margin:0 0 10px"><span class="tag">🏪 Paiement en agence puis livraison</span> <strong>${esc(o.agency.name)}</strong> (${esc(o.agency.city)})${o.status === 'pending_payment' && o.pickupDeadline ? `<br><span class="muted">À payer avant le ${date(o.pickupDeadline)}${Date.now() > Date.parse(o.pickupDeadline) ? ' — <strong style="color:var(--err)">délai dépassé</strong>' : ''}</span>` : ''}</p>` : ''}
-        ${isPickup(o) ? `<p style="margin:0 0 10px"><span class="tag">🏪 Retrait en agence</span> <strong>${esc(o.agency?.name)}</strong> (${esc(o.agency?.city)})${o.status === 'pending_payment' && o.pickupDeadline ? `<br><span class="muted">Réservé jusqu'au ${date(o.pickupDeadline)}${Date.now() > Date.parse(o.pickupDeadline) ? ' — <strong style="color:var(--err)">délai dépassé</strong>' : ''}</span>` : ''}</p>` : ''}
+        ${!isPickup(o) && o.agency ? `<p style="margin:0 0 10px"><span class="tag">${icon('storefront')} Paiement en agence puis livraison</span> <strong>${esc(o.agency.name)}</strong> (${esc(o.agency.city)})${o.status === 'pending_payment' && o.pickupDeadline ? `<br><span class="muted">À payer avant le ${date(o.pickupDeadline)}${Date.now() > Date.parse(o.pickupDeadline) ? ' — <strong style="color:var(--err)">délai dépassé</strong>' : ''}</span>` : ''}</p>` : ''}
+        ${isPickup(o) ? `<p style="margin:0 0 10px"><span class="tag">${icon('storefront')} Retrait en agence</span> <strong>${esc(o.agency?.name)}</strong> (${esc(o.agency?.city)})${o.status === 'pending_payment' && o.pickupDeadline ? `<br><span class="muted">Réservé jusqu'au ${date(o.pickupDeadline)}${Date.now() > Date.parse(o.pickupDeadline) ? ' — <strong style="color:var(--err)">délai dépassé</strong>' : ''}</span>` : ''}</p>` : ''}
         <div class="row">
-          ${paysAtAgency(o) ? `<button class="btn green" id="cashBtn">💵 Paiement reçu en agence (${fcfa(o.total)})</button>` : ''}
+          ${paysAtAgency(o) ? `<button class="btn green" id="cashBtn">${icon('money-duotone')} Paiement reçu en agence (${fcfa(o.total)})</button>` : ''}
           ${(o.transitions || []).filter((s) => !(s === 'shipped' && o.status !== 'delivered')).map((s) => { // mise en livraison : « Confier au livreur » (bloc Livraison)
             const [label, cls] = ACTIONS[isPickup(o) && s === 'delivered' ? 'handed' : s];
             return `<button class="${cls}" data-status="${s}">${label}</button>`;
@@ -493,6 +535,14 @@
       }
       save({ status: s }, `Commande : ${state.labels[s]}`);
     }));
+    app.querySelector('[data-goto]')?.addEventListener('click', (e) => {
+      const el = app.querySelector(e.currentTarget.dataset.goto);
+      if (!el) return;
+      el.closest('details')?.setAttribute('open', '');
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 1600);
+      if (el.matches('select, input, textarea')) el.focus({ preventScroll: true });
+    });
     $('#hCancel')?.addEventListener('click', () => { $('#handoverBox').hidden = true; });
     $('#handoverForm')?.addEventListener('submit', (e) => { e.preventDefault(); save({ status: 'delivered', code: $('#hCode').value.trim(), force: Boolean($('#hForce')?.checked) }, 'Commande remise au client ✓'); });
     $('#editCustomer').addEventListener('click', () => { $('#customerForm').hidden = !$('#customerForm').hidden; });
@@ -592,7 +642,7 @@
         const id = $('#courierSel').value;
         if (!id) return toast('Choisissez un livreur (Équipe → Ajouter → Livreur)');
         if (!o.callConfirmedAt && !confirm("Le client n'a pas encore été joint par téléphone. Envoyer quand même le livreur ?")) return;
-        post('/assign', { courierId: id }, 'Commande confiée au livreur 🚚');
+        post('/assign', { courierId: id }, 'Commande confiée au livreur');
       });
     }
     $('#deliverForm')?.addEventListener('submit', async (e) => {
@@ -1693,7 +1743,7 @@
   }
 
   // ---------- Produits ----------
-  const thumb = (p) => (p.image ? `<img class="thumb" src="${esc(p.image)}" alt="" loading="lazy">` : `<span class="thumb">${ICONS[p.category] || '🛍️'}</span>`);
+  const thumb = (p) => (p.image ? `<img class="thumb" src="${esc(p.image)}" alt="" loading="lazy">` : `<span class="thumb">${catIcon(p.category)}</span>`);
   const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
   const role = () => state.user?.role;
   const isAdmin = () => role() === 'admin';
@@ -1712,7 +1762,7 @@
     const list = state.products.filter(test);
     const statusTag = (p) => (p.pending ? '<span class="tag warn">En attente</span>' : p.active === false ? '<span class="tag">Masqué</span>' : p.stock === 0 ? '<span class="tag danger">Rupture</span>' : '<span class="tag ok">En ligne</span>');
     const columns = [
-      { key: 'name', label: 'Produit', sortValue: (p) => norm(p.name), render: (p) => `<div class="cell-prod">${p.image ? `<img src="${esc(p.image)}" alt="" loading="lazy">` : `<span class="ph">${ICONS[p.category] || '🛍️'}</span>`}<span><strong>${esc(p.name)}</strong>${p.featured ? ' <span class="tag">⭐</span>' : ''}<br><span class="muted">${esc(p.brand || '')}</span></span></div>` },
+      { key: 'name', label: 'Produit', sortValue: (p) => norm(p.name), render: (p) => `<div class="cell-prod">${p.image ? `<img src="${esc(p.image)}" alt="" loading="lazy">` : `<span class="ph">${catIcon(p.category)}</span>`}<span><strong>${esc(p.name)}</strong>${p.featured ? ' <span class="tag">⭐</span>' : ''}<br><span class="muted">${esc(p.brand || '')}</span></span></div>` },
       { key: 'category', label: 'Catégorie' },
     ];
     if (!isSupplier()) columns.push({ key: 'supplierName', label: 'Fournisseur', render: (p) => esc(p.supplierName || 'Kamwa') });
@@ -1756,8 +1806,8 @@
         <div class="gallery" id="gallery"></div>
         ${limited ? '' : `
         <div class="row" style="margin-top:8px">
-          <label class="btn dark" style="margin:0" for="camera">📷 Prendre une photo</label>
-          <label class="ghost" style="margin:0" for="files">🖼️ Choisir des photos</label>
+          <label class="btn dark" style="margin:0" for="camera">${icon('camera-bold')} Prendre une photo</label>
+          <label class="ghost" style="margin:0" for="files">${icon('image-square')} Choisir des photos</label>
         </div>
         <input id="camera" type="file" accept="image/*" capture="environment" hidden>
         <input id="files" type="file" accept="image/*" multiple hidden>
@@ -1822,7 +1872,7 @@
             ${limited ? '' : `<button type="button" class="gal-btn gal-del" data-del="${i}" title="Retirer">✕</button>`}
             ${limited || !/^\/images\/uploads\/[\w.-]+$/.test(src) || /-d\.jpg$/.test(src) ? '' : `<button type="button" class="gal-detour" data-detour="${i}" title="Retirer l'arrière-plan">${icon('magic-wand-duotone')} Détourer</button>`}
           </div>`).join('')
-        : `<div class="gal-empty">${ICONS[$('#category')?.value] || '🛍️'}<br><span class="muted">Pas encore de photo</span></div>`;
+        : `<div class="gal-empty">${catIcon($('#category')?.value)}<br><span class="muted">Pas encore de photo</span></div>`;
       $('#gallery').querySelectorAll('[data-del]').forEach((b) => b.addEventListener('click', () => { images.splice(Number(b.dataset.del), 1); renderGallery(); }));
       $('#gallery').querySelectorAll('[data-main]').forEach((b) => b.addEventListener('click', () => { const [x] = images.splice(Number(b.dataset.main), 1); images.unshift(x); renderGallery(); }));
       // Détourer une photo déjà ajoutée : la version détourée remplace la photo dans la fiche
@@ -1834,7 +1884,7 @@
           const { url, found } = await api('/uploads/detoure-existante', { method: 'POST', body: { src: images[i] } });
           images[i] = url; renderGallery();
           $('#photoHint').textContent = found ? 'Arrière-plan retiré ✓ Pensez à enregistrer.' : 'Aucun produit net détecté : vérifiez le résultat (vous pouvez retirer la photo).';
-        } catch (err) { $('#photoHint').textContent = '❌ ' + err.message; renderGallery(); }
+        } catch (err) { $('#photoHint').textContent = 'Erreur : ' + err.message; renderGallery(); }
       }));
     };
     renderGallery();
@@ -1853,7 +1903,7 @@
           let res;
           if (detour) {
             try { res = await api('/uploads/detoure', { method: 'POST', body: blob, headers: { 'Content-Type': blob.type } }); } catch (err) {
-              hint.textContent = '⚠️ ' + err.message;
+              hint.textContent = 'Attention : ' + err.message;
               res = await api('/uploads', { method: 'POST', body: blob, headers: { 'Content-Type': blob.type } });
             }
           } else {
@@ -1863,7 +1913,7 @@
           renderGallery();
           hint.textContent = res.found === false ? 'Photo ajoutée, mais aucun produit net détecté : vérifiez le résultat.' : res.found ? 'Photo détourée et ajoutée ✓ Pensez à enregistrer.' : `Photo ajoutée (${Math.round(blob.size / 1024)} Ko). Pensez à enregistrer.`;
         } catch (err) {
-          hint.textContent = '❌ ' + err.message;
+          hint.textContent = 'Erreur : ' + err.message;
         }
       }
     };
@@ -2298,7 +2348,7 @@
         const blob = await shrinkImage(file);
         receipt = (await api('/uploads', { method: 'POST', body: blob, headers: { 'Content-Type': blob.type } })).url;
         $('#rcptHint').innerHTML = `Justificatif ajouté ✓ <a href="${esc(receipt)}" target="_blank">voir</a>`;
-      } catch (err) { $('#rcptHint').textContent = '❌ ' + err.message; }
+      } catch (err) { $('#rcptHint').textContent = 'Erreur : ' + err.message; }
     });
     $('#entryForm').addEventListener('submit', async (ev) => {
       ev.preventDefault();
@@ -2429,7 +2479,7 @@
       const total = (n.support || 0) + (n.team || 0);
       for (const el of [$('#chatCount')]) { if (el) { el.hidden = !total; el.textContent = total; } }
       if ($('#teamUnread')) { $('#teamUnread').hidden = !n.team; $('#teamUnread').textContent = n.team; }
-      if (state.chatWaiting != null && n.waiting > state.chatWaiting) { ring(); toast('💬 Un client attend une réponse dans la messagerie'); }
+      if (state.chatWaiting != null && n.waiting > state.chatWaiting) { ring(); toast('Un client attend une réponse dans la messagerie'); }
       state.chatWaiting = n.waiting;
     } catch {}
   }

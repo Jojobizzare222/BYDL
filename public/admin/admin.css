@@ -720,3 +720,41 @@ html[data-theme="light"] .tag.info { background: #E0F5F7; color: #0E6E7A; }
 html[data-theme="light"] .kc0 .kpi-ico { background: #E6EEFF; color: #1E56C2; }
 .login::before { background: linear-gradient(90deg, #10264A, #2D66D6, #FFB300); }
 .toast { background: #10264A; color: #fff; }
+
+/* ---------- Audit 17/10/2026 : liste « À faire » unique et « Prochaine étape » ---------- */
+.todo-list { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px 8px; margin-bottom: 14px; }
+.todo-list h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-size: 1rem; }
+.todo-list > p { margin: 4px 0 10px; display: flex; align-items: center; gap: 6px; }
+.todo-row { display: flex; align-items: center; gap: 12px; padding: 10px 6px; min-height: 48px; border-top: 1px solid var(--line); color: var(--ink); text-decoration: none; border-radius: 8px; }
+.todo-row:first-of-type { border-top: 0; }
+.todo-row:hover { background: var(--paper-2); }
+.todo-row b { min-width: 28px; font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+.todo-row > span:not(.todo-ico) { flex: 1; }
+.todo-ico { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; flex: none; background: rgba(45,102,214,.14); color: var(--brand); font-size: 1.1rem; }
+.todo-row.warn .todo-ico { background: rgba(255,179,0,.16); color: #C98A00; }
+.todo-row.danger .todo-ico { background: rgba(255,90,60,.15); color: var(--err); }
+.todo-go { color: var(--muted); }
+.next-step { display: flex; align-items: center; gap: 14px; padding: 14px 16px; margin: 4px 0 14px; border-radius: var(--radius); border: 1px solid rgba(45,102,214,.35); background: rgba(45,102,214,.08); }
+.next-step > div { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.next-step small { text-transform: uppercase; letter-spacing: .06em; font-size: .7rem; font-weight: 600; color: var(--brand); }
+.next-step strong { font-size: 1.05rem; }
+.next-step span:not(.ns-ico) { color: var(--muted); font-size: .9rem; }
+.ns-ico { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; flex: none; background: var(--btn); color: #fff; font-size: 1.2rem; }
+.next-step.warn { border-color: rgba(255,179,0,.5); background: rgba(255,179,0,.09); } .next-step.warn .ns-ico { background: #FFB300; color: #1A2A45; } .next-step.warn small { color: #C98A00; }
+.next-step.danger { border-color: rgba(255,90,60,.5); background: rgba(255,90,60,.08); } .next-step.danger .ns-ico { background: var(--err); } .next-step.danger small { color: var(--err); }
+.next-step.done { border-color: var(--line); background: var(--paper); } .next-step.done .ns-ico { background: var(--ok); } .next-step.done small { color: var(--ok); }
+.next-step.wait { border-color: var(--line); background: var(--paper); } .next-step.wait .ns-ico { background: var(--paper-2); color: var(--muted); } .next-step.wait small { color: var(--muted); }
+.next-step .btn { flex: none; }
+@media (max-width: 640px) { .next-step { flex-wrap: wrap; } .next-step .btn { width: 100%; } }
+.flash { animation: kflash 1.6s ease; border-radius: 8px; }
+@keyframes kflash { 0%, 60% { box-shadow: 0 0 0 4px rgba(255,179,0,.6); } 100% { box-shadow: 0 0 0 0 rgba(255,179,0,0); } }
+@media (prefers-reduced-motion: reduce) { .flash { animation: none; outline: 3px solid #FFB300; } }
+.toast { display: flex; align-items: center; gap: 8px; }
+.toast.err, html[data-theme="light"] .toast.err { background: #B3261E; color: #fff; }
+.thumb .ico, .ph .ico, .gal-empty .ico { font-size: 1.6em; color: var(--brand); }
+/* Encadré des comptes de démonstration lisible en thème clair (audit) */
+html[data-theme="light"] .demo-box { background: #FFF6E0; border-color: #E0A100; }
+html[data-theme="light"] .demo-box .muted { color: #5A4A1E; }
+html[data-theme="light"] .demo-box .ghost { background: #fff; color: #171C30; border-color: #E4D3A8; }
+/* Onglets qui défilent sur téléphone : léger fondu à droite pour montrer qu'il y en a d'autres */
+.scroll-more { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 40px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 40px), transparent); }

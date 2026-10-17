@@ -2,15 +2,22 @@ const crypto = require('crypto');
 const { newDeliveryCode } = require('../delivery');
 const router = require('express').Router();
 const billing = require('../billing');
-const { products, orders } = require('../store');
+const { products, orders, settings } = require('../store');
 const { normalizeLocal } = require('../utils/phone');
 const { availableStock } = require('../utils/stock');
 const { currentCustomer } = require('../customer/auth');
 const { idStatus } = require('../customer/identity');
 const { salesSettings } = require('../sales');
 
-const newOrderId = () =>
-  'CMD-' + new Date().toISOString().slice(2, 10).replace(/-/g, '') + '-' + crypto.randomBytes(4).toString('hex').toUpperCase();
+// Numéro court, facile à dicter au téléphone (audit 17/10/2026) : CMD-10001, CMD-10002… Ce numéro n'ouvre rien à lui seul :
+// lire une commande demande toujours sa clé secrète (token) ou le compte du client.
+function newOrderId() {
+  let n = Math.max(10000, parseInt(settings.get('seq:CMD'), 10) || 0);
+  let id;
+  do id = 'CMD-' + ++n; while (orders.get(id));
+  settings.set('seq:CMD', n);
+  return id;
+}
 
 // Clé secrète remise au seul navigateur qui a créé la commande : sans elle, impossible de lire
 // les coordonnées du client ni de déclencher un paiement.

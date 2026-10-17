@@ -897,6 +897,10 @@ router.get('/stats', (req, res) => {
     refunds: allOrders.filter((o) => o.paidAfterCancel).length,
     ...(role === 'admin' ? { idToCheck: customers.all().filter((c) => c.idStatus === 'pending').length } : {}),
     todayDeliveries: orders.all().filter((o) => o.planned?.date === delivery.todayCongo() && !['delivered', 'cancelled'].includes(o.status)).length,
+    // Liste « À faire » unique (audit 17/10/2026) : appeler, planifier, répondre aux messages
+    toCall: allOrders.filter((o) => ['paid', 'confirmed'].includes(o.status) && o.fulfillment !== 'pickup' && !o.callConfirmedAt).length,
+    toPlan: allOrders.filter((o) => ['paid', 'confirmed'].includes(o.status) && o.fulfillment !== 'pickup' && !o.planned).length,
+    messages: require('../store').conversations.all().filter((c) => c.kind === 'support' && c.status === 'open').length,
   };
   out.todo = todo;
   out.byStatus = countBy(allOrders.filter((o) => Date.parse(o.createdAt) >= since), (o) => STATUS_LABELS[o.status] || o.status);

@@ -82,8 +82,9 @@
           <label class="search-cat"><span id="searchCatLabel">Rayons</span><svg class="ico" aria-hidden="true"><use href="/icons.svg?v=12#caret-down-bold"></use></svg>
             <select id="searchCat" aria-label="Rayon de recherche"><option value="">Tous les rayons</option></select>
           </label>
-          <input id="searchInput" type="search" placeholder="iPhone, baskets, casque…" aria-label="Rechercher un produit">
+          <input id="searchInput" type="search" placeholder="iPhone, baskets, casque…" aria-label="Rechercher un produit" autocomplete="off" aria-controls="searchSuggest" aria-autocomplete="list">
           <button type="submit" class="search-go" aria-label="Rechercher"><svg class="ico" aria-hidden="true"><use href="/icons.svg?v=12#magnifying-glass-bold"></use></svg><span>Chercher</span></button>
+          <div class="suggest" id="searchSuggest" role="listbox" aria-label="Suggestions" hidden></div>
         </form>
         <div class="header-actions">
           <button class="search-toggle" id="searchToggle" hidden aria-expanded="false"></button>
@@ -133,6 +134,7 @@
       </div>
       <div id="cartLines"></div>
       <div class="drawer-foot">
+        <div id="cartHint"></div>
         <div class="row saving" id="cartSaving"></div>
         <div class="row total"><span>Total</span><strong id="cartTotal">0 FCFA</strong></div>
         <a href="#/commande" class="btn cta block" id="checkoutLink">Valider mon panier</a>
