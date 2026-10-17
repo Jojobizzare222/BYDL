@@ -200,6 +200,7 @@ router.get('/', (req, res) => {
     stockNoCost,
     balances: balancesUntil(to),
     suppliers: supplierBalances(),
+    purchaseDebts: require('../purchases').purchaseDebts(),
     monthly,
     byCategory: [...byCategory.entries()].map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value),
     refundsToDo,
@@ -258,12 +259,18 @@ function cleanEntry(input) {
     type, category, amount, date: input.date, method: input.method,
     label: String(input.label || '').trim().slice(0, 120) || catOf(type, category).label,
     note: String(input.note || '').trim().slice(0, 500),
-    toMethod: null, supplierId: null,
+    toMethod: null, supplierId: null, purchaseId: null,
     receipt: input.receipt && /^\/images\/uploads\/[\w.-]+\.(jpg|png|webp)$/.test(input.receipt) ? input.receipt : null,
   };
   if (type === 'transfer') {
     if (!METHODS[input.toMethod] || input.toMethod === input.method) return { error: 'Choisissez deux caisses différentes' };
     e.toMethod = input.toMethod;
+  }
+  if (category === 'stock' && input.purchaseId) {
+    const bc = require('../store').purchases.get(input.purchaseId);
+    if (!bc) return { error: 'Bon de commande introuvable' };
+    e.purchaseId = bc.id;
+    if (!input.label) e.label = `Achat ${bc.number} — ${bc.supplier.name}`;
   }
   if (category === 'supplier') {
     const u = staff.get(input.supplierId);

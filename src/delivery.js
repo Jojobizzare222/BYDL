@@ -62,16 +62,16 @@ function codQuote(order) {
   return { allowed: true, deposit, trusted: false };
 }
 
-const decrementStock = (lines) => {
+const decrementStock = (lines, ref) => {
   for (const line of lines) {
     const p = products.get(line.productId);
-    if (p && p.stock != null) products.update(p.id, { stock: Math.max(0, p.stock - line.qty) });
+    if (p && p.stock != null) require('./stock-moves').moveStock(p.id, -line.qty, { reason: 'sale', ref: ref || null });
   }
 };
-const restoreStock = (lines) => {
+const restoreStock = (lines, ref) => {
   for (const line of lines) {
     const p = products.get(line.productId);
-    if (p && p.stock != null) products.update(p.id, { stock: p.stock + line.qty });
+    if (p && p.stock != null) require('./stock-moves').moveStock(p.id, line.qty, { reason: 'cancel', ref: ref || null });
   }
 };
 
@@ -85,7 +85,7 @@ function confirmCod(order, { depositPaymentId = null } = {}) {
     depositPaymentId: depositPaymentId || order.depositPaymentId || null,
     history: [...(order.history || []), { status: 'confirmed', at: now }],
   });
-  decrementStock(order.lines);
+  decrementStock(order.lines, order.id);
   return updated;
 }
 
@@ -137,7 +137,7 @@ function failDelivery(order, { by, reason, note }) {
   const attempt = { at: now, by: by?.id || null, byName: by?.name || '', reason, label: FAIL_REASONS[reason], note: String(note || '').slice(0, 300) };
   const attempts = [...(order.attempts || []), attempt];
   if (reason === 'refus') {
-    restoreStock(order.lines);
+    restoreStock(order.lines, order.id);
     return orders.update(order.id, {
       attempts, refused: true, status: 'cancelled', cancelReason: 'Colis refusé à la livraison',
       depositRetained: order.paymentPlan === 'cod' && Boolean(order.depositPaidAt),

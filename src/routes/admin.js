@@ -40,6 +40,8 @@ router.use('/chat', require('./chat-admin')); // messagerie : clients + salon de
 router.use('/trends', require('./trends-admin')); // agent Tendances (admin)
 router.use('/documents', require('./documents-admin')); // factures, reçus, avoirs [admin, orders]
 router.use('/parcels', require('./parcels-admin')); // colis, étiquettes, scan [admin, orders, courier]
+router.use('/purchases', require('./purchases-admin')); // bons de commande fournisseurs [admin, catalog ; supplier : les siens]
+router.use('/stock', require('./purchases-admin').stockRouter); // mouvements de stock, inventaire [admin, catalog]
 
 // Rafraîchissement instantané de Kamwa Pro : signaux filtrés selon le rôle (jamais de données dans le signal)
 router.get('/events', (req, res) => {
@@ -62,6 +64,8 @@ router.get('/events', (req, res) => {
     if (col === 'imports' || col === 'shipments') return ordersRole || role === 'agent' ? { topic: 'imports' } : null;
     if (col === 'ledger') return role === 'admin' ? { topic: 'finance' } : null;
     if (col === 'documents') return ordersRole ? { topic: 'documents', id: doc.orderId } : null;
+    if (col === 'purchases') return ['admin', 'catalog'].includes(role) || (role === 'supplier' && doc.supplier?.supplierId === u.id) ? { topic: 'purchases', id: doc.id } : null;
+    if (col === 'stock_moves') return ['admin', 'catalog'].includes(role) ? { topic: 'stock' } : null;
     if (col === 'parcels') return ordersRole || (role === 'courier' && orders.get(doc.orderId)?.courierId === u.id) ? { topic: 'parcels', id: doc.orderId } : null;
     if (col === 'staff') return role === 'admin' && doc.livePos === before?.livePos ? { topic: 'staff' } : null;
     if (col === 'trends') return role === 'admin' && doc.status === 'new' ? { topic: 'trends' } : null;
@@ -158,7 +162,7 @@ router.patch('/orders/:id', requireRole('orders'), (req, res) => {
     patch.status = status;
     patch.history = [...(order.history || []), { status, at: now }];
     // Annulation d'une commande déjà payée : on remet les articles en stock (le remboursement se fait à la main).
-    if (status === 'cancelled' && ['paid', 'confirmed', 'shipped', 'delivered'].includes(order.status)) delivery.restoreStock(order.lines);
+    if (status === 'cancelled' && ['paid', 'confirmed', 'shipped', 'delivered'].includes(order.status)) delivery.restoreStock(order.lines, order.id);
   }
 
   if (customer) {
@@ -632,9 +636,12 @@ router.patch('/products/:id', requireRole('catalog', 'supplier'), (req, res) => 
   const { error, value } = cleanProduct(input, current, { role: req.user.role });
   if (error) return res.status(400).json({ error });
   const diff = changes(current, value);
-  const updated = products.update(current.id, { ...value, updatedBy: req.user.id });
+  const stockDelta = Number.isInteger(value.stock) && Number.isInteger(current.stock) ? value.stock - current.stock : 0;
+  const updated = products.update(current.id, { ...value, ...(stockDelta ? { stock: current.stock } : {}), updatedBy: req.user.id });
+  if (stockDelta) require('../stock-moves').moveStock(current.id, stockDelta, { reason: 'adjust', by: { id: req.user.id, name: req.user.name }, note: 'Fiche produit' });
+  else if (Number.isInteger(value.stock) && current.stock == null) require('../stock-moves').moveStock(current.id, value.stock, { reason: 'adjust', by: { id: req.user.id, name: req.user.name }, note: 'Début du suivi de stock', force: true });
   if (diff) log(req, 'Produit modifié', updated, diff);
-  res.json(productFor(req.user, updated));
+  res.json(productFor(req.user, products.get(current.id))); // stock à jour après le mouvement
 });
 
 // Validation par l'admin : le produit devient visible des clients (le prix de vente doit être fixé).

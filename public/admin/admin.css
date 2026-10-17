@@ -546,3 +546,17 @@ html[data-theme="light"] .tag.info { background: #E6EDFF; color: #2F4FB0; }
 #scanResult { max-width: 520px; margin: 0 auto; } .scan-card { margin: 0; }
 .scan-log { list-style: none; max-width: 520px; margin: 10px auto 0; padding: 0; display: grid; gap: 6px; }
 .scan-log li { display: flex; gap: 8px; align-items: center; padding: 6px 10px; border-radius: 10px; background: var(--soft, rgba(255,255,255,.04)); }
+
+/* Achats : bons de commande, réception, stock */
+.po-grid { gap: 12px; align-items: start; } .po-grid > .panel { margin: 0 0 12px; }
+.po-search { position: relative; margin-bottom: 10px; } .po-search input { margin: 0; }
+.po-hits { position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 5; background: var(--paper, #1C1727); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 12px 30px rgba(0,0,0,.35); overflow: hidden; }
+.po-hits button { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 8px 12px; background: none; border: 0; color: inherit; font: inherit; cursor: pointer; }
+.po-hits button:hover { background: rgba(255,255,255,.06); } html[data-theme="light"] .po-hits button:hover { background: #F4F2FA; }
+.po-hits img { width: 34px; height: 34px; border-radius: 8px; object-fit: cover; background: #fff; flex: none; } .po-hits small { display: block; color: var(--muted); }
+.po-lines { width: 100%; border-collapse: collapse; } .po-lines th { text-align: left; font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); padding: 6px 8px; }
+.po-lines td { padding: 8px; border-top: 1px solid var(--line); vertical-align: middle; } .po-lines .num { text-align: right; } .po-lines input { width: 110px; margin: 0; }
+.po-lines .po-total td { font-weight: 700; border-top: 2px solid var(--line); }
+.warn-text { color: #FFC77A; } html[data-theme="light"] .warn-text { color: #8A5A00; }
+@media (max-width: 700px) { .po-grid { grid-template-columns: 1fr; } .po-lines input { width: 80px; } }
+h1.mono { font-family: inherit; font-size: 1.6rem; letter-spacing: .02em; }

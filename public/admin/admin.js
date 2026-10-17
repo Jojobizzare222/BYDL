@@ -161,6 +161,8 @@
     // Raccourcis du bandeau d'accueil, selon le rôle
     const quick = [];
     if (CAN.products()) quick.push(`<a class="btn light" href="#/produit/nouveau">${icon('plus-bold')} Ajouter un produit</a>`);
+    if (CAN.admin() || state.user?.role === 'catalog') quick.push(`<a class="btn light" href="#/achats">${icon('clipboard-text')} Achats fournisseurs</a>`);
+    if (CAN.supplier()) quick.push(`<a class="btn light" href="#/bons-de-commande">${icon('clipboard-text')} Bons de commande</a>`);
     if (CAN.orders()) quick.push(`<a class="btn glass" href="#/commandes">${icon('receipt-duotone')} Voir les commandes</a>`);
     if (CAN.supplier()) quick.push(`<a class="btn glass" href="#/fournisseur">${icon('receipt-duotone')} Mes commandes</a>`);
     if (CAN.courier()) quick.push(`<a class="btn light" href="#/livraisons">${icon('truck-duotone')} Mes livraisons</a>`);
@@ -1175,6 +1177,291 @@
     }).catch(() => {});
   }
 
+  // ---------- Achats : bons de commande fournisseurs, réceptions, stock ----------
+  const PO_TAG = { draft: '', sent: 'info', confirmed: 'info', partial: 'warn', received: 'ok', cancelled: 'danger' };
+  const poTag = (bc) => `<span class="tag ${PO_TAG[bc.status] || ''}">${esc(bc.statusLabel || bc.status)}</span>`;
+  const poWa = (bc) => {
+    if (!bc.supplier.phone) return '';
+    const msg = `Bonjour, voici notre bon de commande ${bc.number} (${fcfa(bc.total)}) : ${bc.lines.map((l) => `${l.qty} × ${l.name}`).join(', ')}.${bc.expectedAt ? ` Livraison souhaitée le ${bc.expectedAt.split('-').reverse().join('/')}.` : ''} Merci de confirmer. — Kamwa`;
+    return `https://wa.me/${String(bc.supplier.phone).replace(/\D/g, '').replace(/^0/, '242')}?text=${enc(msg)}`;
+  };
+  let poMeta = null;
+  async function loadPoMeta() { const r = await api('/purchases'); poMeta = { suppliers: r.suppliers, products: r.products, statuses: r.statuses }; return r; }
+
+  async function viewPurchases() {
+    let r;
+    try { r = await loadPoMeta(); } catch { return; }
+    const list = r.purchases;
+    const f = state.poFilter || 'open';
+    const TABS = [['open', 'En cours'], ['draft', 'Brouillons'], ['toReceive', 'À recevoir'], ['received', 'Reçus'], ['unpaid', 'À payer'], ['all', 'Tous']];
+    const match = (b, k) => k === 'all' || (k === 'open' && ['sent', 'confirmed', 'partial'].includes(b.status)) || (k === 'toReceive' && ['sent', 'confirmed', 'partial'].includes(b.status)) || (k === 'unpaid' && b.due > 0 && b.status !== 'cancelled') || b.status === k;
+    const due = list.filter((b) => b.due > 0 && b.status !== 'cancelled').reduce((n, b) => n + b.due, 0);
+    const late = list.filter((b) => b.late);
+    app.innerHTML = pageHead({
+      title: 'Achats', desc: "Commandez vos articles aux fournisseurs avec un <strong>bon de commande</strong> (PDF ou WhatsApp). À la livraison, notez les quantités reçues : le <strong>stock monte tout seul</strong> et le coût d'achat du produit est mis à jour. La facture du fournisseur, saisie sur le bon, apparaît dans Finances → Fournisseurs jusqu'à son paiement.",
+      actions: `<a class="btn green" href="#/achat/nouveau">${icon('plus-bold')} Nouveau bon</a>`,
+    })
+      + `<div class="kpis">
+          <div class="kpi kc0"><span class="kpi-ico">${icon('clipboard-text')}</span><span class="kpi-label">Bons en cours</span><span class="kpi-value">${list.filter((b) => match(b, 'open')).length}</span><span class="kpi-hint">${fcfa(list.filter((b) => match(b, 'open')).reduce((n, b) => n + b.total - b.receivedTotal, 0))} attendus</span></div>
+          <div class="kpi kc1"><span class="kpi-ico">${icon('package')}</span><span class="kpi-label">Reçus ce mois</span><span class="kpi-value">${fcfa(list.filter((b) => b.receivedAt && b.receivedAt.slice(0, 7) === today().slice(0, 7)).reduce((n, b) => n + b.receivedTotal, 0))}</span></div>
+          <div class="kpi kc2"><span class="kpi-ico">${icon('wallet-duotone')}</span><span class="kpi-label">Reste à payer</span><span class="kpi-value">${fcfa(due)}</span><span class="kpi-hint">${list.filter((b) => match(b, 'unpaid')).length} bon(s)</span></div>
+        </div>`
+      + (late.length ? `<div class="alert warn">${icon('clock-countdown-duotone')} ${late.length} bon(s) en retard de livraison : ${late.map((b) => `<a href="#/achat/${enc(b.id)}">${esc(b.number)}</a> (${esc(b.supplier.name)}, prévu le ${esc(b.expectedAt.split('-').reverse().join('/'))})`).join(', ')}</div>` : '')
+      + tabsBar(TABS.map(([k, l]) => [k, l, list.filter((b) => match(b, k)).length]), f, 'pof') + '<div id="tbl"></div>';
+    app.querySelectorAll('[data-pof]').forEach((b) => b.addEventListener('click', () => { state.poFilter = b.dataset.pof; viewPurchases(); }));
+    dataTable($('#tbl'), {
+      id: 'purchases', rows: list.filter((b) => match(b, f)), defaultSort: 'createdAt', placeholder: 'Numéro, fournisseur, article', empty: 'Aucun bon de commande ici. Cliquez sur « Nouveau bon ».',
+      searchText: (b) => `${b.number} ${b.supplier.name} ${b.lines.map((l) => l.name).join(' ')}`,
+      columns: [
+        { key: 'number', label: 'Bon', render: (b) => `<a href="#/achat/${enc(b.id)}"><strong class="mono">${esc(b.number)}</strong></a><br>${poTag(b)}${b.late ? ' <span class="tag danger">en retard</span>' : ''}` },
+        { key: 'createdAt', label: 'Date', render: (b) => date(b.createdAt).split(' ')[0] + (b.expectedAt ? `<br><span class="muted">prévu ${esc(b.expectedAt.split('-').reverse().join('/'))}</span>` : '') },
+        { key: 'supplier', label: 'Fournisseur', sortValue: (b) => norm(b.supplier.name), render: (b) => `${esc(b.supplier.name)}${b.supplier.supplierId ? '<br><span class="muted">compte Kamwa Pro</span>' : ''}` },
+        { key: 'lines', label: 'Articles', sortable: false, render: (b) => b.lines.slice(0, 3).map((l) => `${l.qty} × ${esc(l.name)}`).join('<br>') + (b.lines.length > 3 ? `<br><span class="muted">+ ${b.lines.length - 3} autre(s)</span>` : '') },
+        { key: 'receivedQty', label: 'Reçu', cls: 'num', render: (b) => `${b.receivedQty}/${b.qty}` },
+        { key: 'total', label: 'Total', cls: 'num', render: (b) => `<strong>${fcfa(b.total)}</strong>${b.due > 0 && b.status !== 'cancelled' ? `<br><span class="tag warn">à payer ${fcfa(b.due)}</span>` : ''}` },
+        { key: 'act', label: '', sortable: false, render: (b) => `<div class="cell-actions"><a class="ghost" href="#/achat/${enc(b.id)}">Ouvrir</a></div>` },
+      ],
+    });
+  }
+
+  // Lignes d'un bon (création) : recherche produit, quantité, prix d'achat
+  function poLinesEditor(host, lines, products) {
+    const draw = () => {
+      host.innerHTML = `<div class="po-search"><input type="search" id="poQ" placeholder="Chercher un article du catalogue (nom ou référence)…" autocomplete="off"><div class="po-hits" id="poHits" hidden></div></div>
+        ${lines.length ? `<table class="po-lines"><thead><tr><th>Article</th><th class="num">Quantité</th><th class="num">Prix d'achat unitaire</th><th class="num">Total</th><th></th></tr></thead><tbody>
+          ${lines.map((l, i) => `<tr><td><strong>${esc(l.name)}</strong><br><span class="muted">stock actuel : ${l.stock ?? '—'}${l.supplierId ? ' · dépôt-vente' : ''}</span></td>
+            <td class="num"><input type="number" min="1" step="1" value="${l.qty}" data-po-qty="${i}" inputmode="numeric"></td>
+            <td class="num"><input type="number" min="0" step="1" value="${l.unitPrice}" data-po-price="${i}" inputmode="numeric"></td>
+            <td class="num"><strong>${fcfa(l.qty * l.unitPrice)}</strong></td><td><button type="button" class="ghost" data-po-del="${i}" title="Retirer">${icon('x-bold')}</button></td></tr>`).join('')}
+          <tr class="po-total"><td colspan="3">Total du bon</td><td class="num"><strong>${fcfa(lines.reduce((n, l) => n + l.qty * l.unitPrice, 0))}</strong></td><td></td></tr></tbody></table>` : '<p class="muted">Aucun article pour le moment : cherchez-en un ci-dessus.</p>'}`;
+      const q = host.querySelector('#poQ'), hits = host.querySelector('#poHits');
+      q.addEventListener('input', () => {
+        const w = norm(q.value).trim();
+        if (!w) { hits.hidden = true; return; }
+        const found = products.filter((p) => !lines.some((l) => l.productId === p.id) && norm(`${p.name} ${p.id}`).includes(w)).slice(0, 8);
+        hits.innerHTML = found.map((p) => `<button type="button" data-po-add="${esc(p.id)}">${p.image ? `<img src="${esc(p.image)}" alt="">` : ''}<span>${esc(p.name)}<small>stock ${p.stock ?? '—'} · dernier achat ${p.lastPurchasePrice != null ? fcfa(p.lastPurchasePrice) : p.costPrice != null ? fcfa(p.costPrice) : p.supplierPrice != null ? fcfa(p.supplierPrice) : '—'}</small></span></button>`).join('') || '<p class="muted" style="padding:8px 12px;margin:0">Aucun article trouvé.</p>';
+        hits.hidden = false;
+      });
+      hits.addEventListener('click', (e) => {
+        const b = e.target.closest('[data-po-add]'); if (!b) return;
+        const p = products.find((x) => x.id === b.dataset.poAdd);
+        lines.push({ productId: p.id, name: p.name, qty: 1, unitPrice: p.lastPurchasePrice ?? p.costPrice ?? p.supplierPrice ?? 0, stock: p.stock, supplierId: p.supplierId });
+        draw(); host.querySelector(`[data-po-qty="${lines.length - 1}"]`)?.focus();
+      });
+      host.querySelectorAll('[data-po-qty]').forEach((i) => i.addEventListener('change', () => { lines[i.dataset.poQty].qty = Math.max(1, parseInt(i.value, 10) || 1); draw(); }));
+      host.querySelectorAll('[data-po-price]').forEach((i) => i.addEventListener('change', () => { lines[i.dataset.poPrice].unitPrice = Math.max(0, parseInt(i.value, 10) || 0); draw(); }));
+      host.querySelectorAll('[data-po-del]').forEach((b) => b.addEventListener('click', () => { lines.splice(Number(b.dataset.poDel), 1); draw(); }));
+    };
+    draw();
+  }
+
+  async function viewPurchaseNew() {
+    try { if (!poMeta) await loadPoMeta(); } catch { return; }
+    const lines = [];
+    app.innerHTML = pageHead({ crumb: 'Achats', title: 'Nouveau bon de commande', desc: 'Choisissez le fournisseur, ajoutez les articles et leur prix d\'achat. Le bon reste en brouillon tant que vous ne l\'envoyez pas.' }) + `
+      <form class="panel" id="poForm" novalidate>
+        <h2>${icon('users-three-duotone')} Fournisseur</h2>
+        <label for="poSup">Compte fournisseur Kamwa Pro</label>
+        <select id="poSup"><option value="">Autre fournisseur (saisie libre)</option>${poMeta.suppliers.map((u) => `<option value="${esc(u.id)}">${esc(u.name)}</option>`).join('')}</select>
+        <div class="grid2" id="poExt">
+          <div><label for="poName">Nom du fournisseur</label><input id="poName" type="text" maxlength="100" placeholder="Ex. Grossiste Dubaï, Marché Total…"></div>
+          <div><label for="poPhone">Téléphone / WhatsApp</label><input id="poPhone" type="tel" maxlength="30" placeholder="06 000 00 00"></div>
+          <div style="grid-column:1/-1"><label for="poContact">Personne à contacter (facultatif)</label><input id="poContact" type="text" maxlength="100"></div>
+        </div>
+        <h2 style="margin-top:18px">${icon('package')} Articles</h2>
+        <div id="poLines"></div>
+        <div class="grid2" style="margin-top:14px">
+          <div><label for="poDate">Livraison souhaitée</label><input id="poDate" type="date" min="${today()}"></div>
+          <div><label for="poRef">Référence chez le fournisseur (facultatif)</label><input id="poRef" type="text" maxlength="60"></div>
+        </div>
+        <label for="poNote">Note pour le fournisseur (facultatif)</label><textarea id="poNote" rows="2" maxlength="1000" placeholder="Conditions, couleurs, emballage…"></textarea>
+        <div id="poErr"></div>
+        <div class="row" style="margin-top:16px;gap:8px"><button class="btn">${icon('check-bold')} Enregistrer le brouillon</button><a class="ghost" href="#/achats">Annuler</a></div>
+      </form>`;
+    poLinesEditor($('#poLines'), lines, poMeta.products);
+    const syncSup = () => { $('#poExt').hidden = Boolean($('#poSup').value); };
+    $('#poSup').addEventListener('change', syncSup); syncSup();
+    $('#poForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const supplier = $('#poSup').value ? { supplierId: $('#poSup').value } : { name: $('#poName').value, phone: $('#poPhone').value, contact: $('#poContact').value };
+      try {
+        const bc = await api('/purchases', { method: 'POST', body: { supplier, lines: lines.map(({ productId, qty, unitPrice }) => ({ productId, qty, unitPrice })), expectedAt: $('#poDate').value, reference: $('#poRef').value, note: $('#poNote').value } });
+        toast(`${bc.number} enregistré ✓`); location.hash = '#/achat/' + enc(bc.id);
+      } catch (err) { $('#poErr').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; }
+    });
+  }
+
+  async function viewPurchase(id) {
+    let bc;
+    try { if (!poMeta) await loadPoMeta(); bc = await api('/purchases/' + enc(id)); } catch (err) { app.innerHTML = `<p><a href="#/achats">‹ Achats</a></p><div class="alert err">${esc(err.message)}</div>`; return; }
+    const open = ['sent', 'confirmed', 'partial'].includes(bc.status);
+    const left = (l) => l.qty - (l.received || 0);
+    const wa = poWa(bc);
+    app.innerHTML = `<p><a href="#/achats">‹ Achats</a></p>
+      <div class="row between" style="flex-wrap:wrap;gap:8px"><h1 class="mono" style="margin:0">${esc(bc.number)}</h1><span class="row" style="gap:6px">${poTag(bc)}${bc.late ? '<span class="tag danger">en retard</span>' : ''}</span></div>
+      <div class="row" style="gap:8px;flex-wrap:wrap;margin:10px 0 14px">
+        <a class="btn ghost" target="_blank" rel="noopener" href="/api/admin/purchases/${enc(bc.id)}/print">${icon('download-simple-bold')} Bon en PDF</a>
+        ${wa ? `<a class="btn green" target="_blank" rel="noopener" href="${wa}">${icon('chat-circle')} Envoyer par WhatsApp</a>` : ''}
+        ${bc.status === 'draft' ? `<button class="btn" data-po-st="sent">${icon('paper-plane-right-fill')} Marquer envoyé</button>` : ''}
+        ${['draft', 'sent'].includes(bc.status) ? `<button class="btn ghost" data-po-st="confirmed">${icon('check-bold')} Confirmé par le fournisseur</button>` : ''}
+        ${['draft', 'sent', 'confirmed'].includes(bc.status) && (CAN.admin() || bc.status === 'draft') ? `<button class="ghost" data-po-st="cancelled" style="margin-left:auto">${icon('x-bold')} Annuler le bon</button>` : ''}
+      </div>
+      <div id="poMsg"></div>
+      <div class="grid2 po-grid">
+        <div class="panel"><h2>${icon('users-three-duotone')} Fournisseur</h2>
+          <p style="margin:0"><strong>${esc(bc.supplier.name)}</strong>${bc.supplier.supplierId ? ' <span class="tag">compte Kamwa Pro</span>' : ''}${bc.supplier.contact && bc.supplier.contact !== bc.supplier.name ? `<br>${esc(bc.supplier.contact)}` : ''}${bc.supplier.phone ? `<br><a href="tel:${esc(bc.supplier.phone)}">${esc(bc.supplier.phone)}</a>` : ''}${bc.reference ? `<br><span class="muted">Réf. fournisseur : ${esc(bc.reference)}</span>` : ''}</p>
+          ${bc.confirmedAt ? `<p class="muted" style="margin:8px 0 0">Confirmé le ${date(bc.confirmedAt)}${bc.confirmedBy ? ` par ${esc(bc.confirmedBy)}` : ''}</p>` : ''}
+        </div>
+        <form class="panel" id="poInfo"><h2>${icon('clock-bold')} Livraison</h2>
+          <label for="poDate">Date prévue</label><input id="poDate" type="date" value="${esc(bc.expectedAt || '')}" ${['received', 'cancelled'].includes(bc.status) ? 'disabled' : ''}>
+          <label for="poNote">Note</label><textarea id="poNote" rows="2" maxlength="1000" ${['received', 'cancelled'].includes(bc.status) ? 'disabled' : ''}>${esc(bc.note || '')}</textarea>
+          ${['received', 'cancelled'].includes(bc.status) ? '' : '<button class="ghost" style="margin-top:8px">Enregistrer</button>'}
+        </form>
+      </div>
+      <div class="panel"><h2>${icon('package')} Articles ${open || bc.status === 'draft' ? '<span class="muted" style="font-weight:400;font-size:.9rem">— notez ce qui arrive, même en plusieurs fois</span>' : ''}</h2>
+        <form id="poReceive"><table class="po-lines"><thead><tr><th>Article</th><th class="num">Commandé</th><th class="num">Prix unitaire</th><th class="num">Reçu</th>${open || bc.status === 'draft' ? '<th class="num">Reçu aujourd\'hui</th>' : ''}</tr></thead><tbody>
+          ${bc.lines.map((l) => `<tr><td><strong>${esc(l.name)}</strong>${bc.consigned && poMeta.products.find((p) => p.id === l.productId)?.supplierId ? '<br><span class="muted">dépôt-vente : réglé à la vente</span>' : ''}</td><td class="num">${l.qty}</td><td class="num">${fcfa(l.unitPrice)}</td><td class="num">${l.received || 0}${(l.received || 0) >= l.qty ? ' ✓' : ''}</td>
+            ${open || bc.status === 'draft' ? `<td class="num">${left(l) > 0 ? `<input type="number" min="0" max="${left(l)}" step="1" placeholder="0" data-rcv="${esc(l.productId)}" inputmode="numeric" style="width:90px;margin:0">` : '<span class="muted">complet</span>'}</td>` : ''}</tr>`).join('')}
+          <tr class="po-total"><td colspan="${open || bc.status === 'draft' ? 4 : 3}">Total du bon · reçu ${fcfa(bc.receivedTotal)}</td><td class="num"><strong>${fcfa(bc.total)}</strong></td></tr></tbody></table>
+          ${open || bc.status === 'draft' ? `<div class="row" style="gap:8px;margin-top:10px;flex-wrap:wrap"><input type="text" id="rcvNote" placeholder="Note de réception (facultatif)" maxlength="300" style="flex:1;min-width:200px;margin:0"><button class="btn green" type="button" id="rcvAll">${icon('check-bold')} Tout reçu</button><button class="btn" type="submit">${icon('package')} Enregistrer la réception</button></div><p class="muted" style="margin:8px 0 0">À chaque réception, le stock des articles augmente et le coût d'achat est recalculé (coût moyen).</p>` : ''}
+        </form></div>
+      ${bc.status !== 'cancelled' ? `<div class="grid2 po-grid">
+        <form class="panel" id="poInvoice"><h2>${icon('receipt')} Facture du fournisseur</h2>
+          ${bc.invoice ? `<p style="margin:0 0 10px"><strong>${esc(bc.invoice.number || 'Sans numéro')}</strong> · ${fcfa(bc.invoice.amount)} · du ${esc(bc.invoice.date.split('-').reverse().join('/'))}${bc.invoice.dueAt ? ` · à payer avant le ${esc(bc.invoice.dueAt.split('-').reverse().join('/'))}` : ''}</p>` : '<p class="muted" style="margin:0 0 10px">Pas encore de facture : la dette est la valeur des articles reçus.</p>'}
+          ${CAN.admin() ? `<div class="grid2"><div><label for="invNum">N° de facture</label><input id="invNum" type="text" maxlength="60" value="${esc(bc.invoice?.number || '')}"></div><div><label for="invAmt">Montant (FCFA)</label><input id="invAmt" type="number" min="0" step="1" value="${bc.invoice?.amount ?? (bc.receivedTotal || bc.total)}" inputmode="numeric"></div>
+            <div><label for="invDate">Date</label><input id="invDate" type="date" value="${esc(bc.invoice?.date || today())}"></div><div><label for="invDue">Échéance</label><input id="invDue" type="date" value="${esc(bc.invoice?.dueAt || '')}"></div></div>
+            <div class="row" style="gap:8px;margin-top:8px"><button class="ghost">Enregistrer la facture</button>${bc.invoice ? '<button type="button" class="ghost" id="invRemove">Retirer</button>' : ''}</div>` : ''}
+        </form>
+        <div class="panel"><h2>${icon('wallet-duotone')} Paiement</h2>
+          <div class="lines"><div><span>Dû pour ce bon</span><span>${fcfa(bc.owed)}</span></div><div><span>Déjà payé</span><span>${fcfa(bc.paid)}</span></div><div><span><strong>Reste à payer</strong></span><span><strong class="${bc.due > 0 ? 'neg' : 'pos'}">${fcfa(bc.due)}</strong></span></div></div>
+          ${CAN.admin() ? `<a class="btn ${bc.due > 0 ? '' : 'ghost'}" href="#/finances/nouvelle?achat=${enc(bc.id)}&montant=${bc.due}" style="margin-top:10px">${icon('money-duotone')} Enregistrer un paiement</a>` : '<p class="muted" style="margin:8px 0 0">Les paiements se font dans Finances (administrateur).</p>'}
+        </div></div>` : ''}
+      <div class="panel"><h2>${icon('list-bullets-duotone')} Historique</h2>
+        ${bc.receipts?.length ? `<h3 style="margin:0 0 6px">Réceptions</h3><ul class="mini-list">${bc.receipts.map((r) => `<li><span>${r.lines.map((l) => `${l.qty} × ${esc(l.name)}`).join(', ')}${r.note ? `<br><span class="muted">${esc(r.note)}</span>` : ''}</span><span class="muted">${date(r.at)}${r.byName ? ` · ${esc(r.byName)}` : ''}</span></li>`).join('')}</ul>` : ''}
+        <ol class="pcl-hist" style="margin-top:12px">${[...(bc.history || [])].reverse().map((h) => `<li><b>${esc(h.event)}</b>${h.note ? ` — ${esc(h.note)}` : ''}<br><span class="muted">${date(h.at)}${h.byName ? ` · ${esc(h.byName)}` : ''}</span></li>`).join('')}</ol>
+      </div>`;
+    const show = (err) => { $('#poMsg').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; window.scrollTo(0, 0); };
+    app.querySelectorAll('[data-po-st]').forEach((b) => b.addEventListener('click', async () => {
+      const st = b.dataset.poSt;
+      let note = '';
+      if (st === 'cancelled') { note = prompt('Annuler ce bon de commande ? Indiquez la raison :'); if (note === null) return; }
+      try { await api(`/purchases/${enc(bc.id)}/status`, { method: 'POST', body: { status: st, note } }); toast('Bon mis à jour ✓'); viewPurchase(bc.id); } catch (err) { show(err); }
+    }));
+    $('#poInfo').addEventListener('submit', async (e) => { e.preventDefault(); try { await api(`/purchases/${enc(bc.id)}`, { method: 'PATCH', body: { expectedAt: $('#poDate').value, note: $('#poNote').value } }); toast('Enregistré ✓'); viewPurchase(bc.id); } catch (err) { show(err); } });
+    $('#rcvAll')?.addEventListener('click', () => { app.querySelectorAll('[data-rcv]').forEach((i) => { i.value = i.max; }); });
+    $('#poReceive').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const lines = [...app.querySelectorAll('[data-rcv]')].map((i) => ({ productId: i.dataset.rcv, qty: parseInt(i.value, 10) || 0 })).filter((l) => l.qty > 0);
+      if (!lines.length) { show(new Error('Indiquez les quantités reçues (ou « Tout reçu »).')); return; }
+      try { const r = await api(`/purchases/${enc(bc.id)}/receive`, { method: 'POST', body: { lines, note: $('#rcvNote').value } }); toast(`Réception enregistrée : stock mis à jour ✓ (${r.statusLabel})`); viewPurchase(bc.id); } catch (err) { show(err); }
+    });
+    $('#poInvoice')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try { await api(`/purchases/${enc(bc.id)}/invoice`, { method: 'PUT', body: { number: $('#invNum').value, amount: $('#invAmt').value, date: $('#invDate').value, dueAt: $('#invDue').value } }); toast('Facture enregistrée ✓'); viewPurchase(bc.id); } catch (err) { show(err); }
+    });
+    $('#invRemove')?.addEventListener('click', async () => { try { await api(`/purchases/${enc(bc.id)}/invoice`, { method: 'PUT', body: { remove: true } }); viewPurchase(bc.id); } catch (err) { show(err); } });
+  }
+
+  // Espace fournisseur : les bons de commande que Kamwa lui adresse
+  async function viewSupplierPurchases() {
+    let r;
+    try { r = await api('/purchases/mine'); } catch { return; }
+    const list = r.purchases;
+    app.innerHTML = pageHead({ title: 'Bons de commande', desc: 'Les commandes que Kamwa vous passe. Confirmez chaque bon avec votre date de livraison, puis livrez à Kamwa : la réception est enregistrée par l\'équipe.' })
+      + (list.some((b) => b.status === 'sent') ? `<div class="todo">${icon('clipboard-text')} ${list.filter((b) => b.status === 'sent').length} bon(s) à confirmer</div>` : '')
+      + `<div id="tbl"></div><div id="poConfirm"></div>`;
+    dataTable($('#tbl'), {
+      id: 'supplier-purchases', rows: list, defaultSort: 'createdAt', placeholder: 'Numéro ou article', empty: 'Aucun bon de commande pour le moment.',
+      searchText: (b) => `${b.number} ${b.lines.map((l) => l.name).join(' ')}`,
+      columns: [
+        { key: 'number', label: 'Bon', render: (b) => `<strong class="mono">${esc(b.number)}</strong><br>${poTag(b)}` },
+        { key: 'createdAt', label: 'Date', render: (b) => date(b.sentAt || b.createdAt).split(' ')[0] + (b.expectedAt ? `<br><span class="muted">livraison ${esc(b.expectedAt.split('-').reverse().join('/'))}</span>` : '') },
+        { key: 'lines', label: 'Articles', sortable: false, render: (b) => b.lines.map((l) => `${l.qty} × ${esc(l.name)}${(l.received || 0) ? ` <span class="muted">(reçu ${l.received})</span>` : ''}`).join('<br>') },
+        { key: 'total', label: 'Montant', cls: 'num', render: (b) => `<strong>${fcfa(b.total)}</strong>` },
+        { key: 'act', label: '', sortable: false, render: (b) => `<div class="cell-actions">${b.status === 'sent' ? `<button class="btn small" data-po-ok="${esc(b.id)}">${icon('check-bold')} Confirmer</button>` : ''}${b.note ? `<button class="ghost" data-po-note="${esc(b.id)}">Note</button>` : ''}</div>` },
+      ],
+    });
+    $('#tbl').addEventListener('click', async (e) => {
+      const n = e.target.closest('[data-po-note]');
+      if (n) { alert(list.find((b) => b.id === n.dataset.poNote).note); return; }
+      const b = e.target.closest('[data-po-ok]'); if (!b) return;
+      const bc = list.find((x) => x.id === b.dataset.poOk);
+      $('#poConfirm').innerHTML = `<form class="panel" id="poOkForm" style="max-width:520px"><h2>Confirmer ${esc(bc.number)}</h2>
+        <label for="okDate">Date de livraison à Kamwa</label><input id="okDate" type="date" value="${esc(bc.expectedAt || '')}" min="${today()}">
+        <label for="okNote">Message (facultatif)</label><input id="okNote" type="text" maxlength="300" placeholder="Ex. livraison vendredi matin">
+        <div id="okErr"></div><div class="row" style="gap:8px;margin-top:10px"><button class="btn green">${icon('check-bold')} Je confirme ce bon</button><button type="button" class="ghost" id="okCancel">Annuler</button></div></form>`;
+      $('#poConfirm').scrollIntoView({ behavior: 'smooth' });
+      $('#okCancel').addEventListener('click', () => { $('#poConfirm').innerHTML = ''; });
+      $('#poOkForm').addEventListener('submit', async (ev) => {
+        ev.preventDefault();
+        try { await api(`/purchases/mine/${enc(bc.id)}/confirm`, { method: 'POST', body: { expectedAt: $('#okDate').value, note: $('#okNote').value } }); toast('Bon confirmé ✓ Merci !'); viewSupplierPurchases(); }
+        catch (err) { $('#okErr').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; }
+      });
+    });
+  }
+
+  // ---------- Stock : vue d'ensemble, mouvements, inventaire ----------
+  async function viewStock(sub) {
+    const tab = ['mouvements', 'inventaire'].includes(sub) ? sub : '';
+    const tabs = `<div class="tabbar">${[['', 'État du stock'], ['mouvements', 'Mouvements'], ['inventaire', 'Inventaire']].map(([k, l]) => `<a class="tab ${k === tab ? 'on' : ''}" href="#/stock${k ? '/' + k : ''}">${l}</a>`).join('')}</div>`;
+    const head = pageHead({ title: 'Stock', desc: 'Ce que Kamwa a en rayon, ce qui est en commande chez les fournisseurs, et chaque entrée ou sortie (réception, vente, annulation, correction, inventaire).', actions: `<a class="btn" href="#/achat/nouveau">${icon('plus-bold')} Commander au fournisseur</a>` });
+    if (tab === 'mouvements') {
+      let r; try { r = await api('/stock/moves'); } catch { return; }
+      app.innerHTML = head + tabs + '<div id="tbl"></div>';
+      dataTable($('#tbl'), {
+        id: 'stock-moves', rows: r.moves, defaultSort: 'at', placeholder: 'Article, référence, raison', empty: 'Aucun mouvement pour le moment.',
+        searchText: (m) => `${m.name} ${m.ref || ''} ${m.label} ${m.byName}`,
+        columns: [
+          { key: 'at', label: 'Date', render: (m) => date(m.at) },
+          { key: 'name', label: 'Article', sortValue: (m) => norm(m.name), render: (m) => `<a href="#/produit/${enc(m.productId)}">${esc(m.name)}</a>` },
+          { key: 'label', label: 'Raison', render: (m) => `${esc(m.label)}${m.ref ? `<br><span class="muted">${/^CMD-/.test(m.ref) && CAN.orders() ? `<a href="#/commande/${enc(m.ref)}">${esc(m.ref)}</a>` : /^BC-/.test(m.ref) ? `<a href="#/achats">${esc(m.ref)}</a>` : esc(m.ref)}</span>` : ''}${m.note ? `<br><span class="muted">${esc(m.note)}</span>` : ''}` },
+          { key: 'qty', label: 'Quantité', cls: 'num', render: (m) => `<strong class="${m.qty < 0 ? 'neg' : 'pos'}">${m.qty > 0 ? '+' : ''}${m.qty}</strong>` },
+          { key: 'after', label: 'Stock après', cls: 'num', render: (m) => `${m.before} → <strong>${m.after}</strong>` },
+          { key: 'byName', label: 'Par', render: (m) => esc(m.byName || '') },
+        ],
+      });
+      return;
+    }
+    let r; try { r = await api('/stock/overview'); } catch { return; }
+    if (tab === 'inventaire') {
+      const rows = r.products.filter((p) => p.active).sort((a, b) => norm(a.name).localeCompare(norm(b.name)));
+      app.innerHTML = head + tabs + `<form class="panel" id="invForm"><p class="muted" style="margin-top:0">Comptez vos articles et tapez la quantité réelle. Seuls les écarts sont enregistrés (mouvement « Inventaire »). Laissez vide pour ne pas toucher.</p>
+        <div class="table-tools"><label class="search">${icon('magnifying-glass-bold')}<input type="search" id="invQ" placeholder="Filtrer les articles"></label><span class="muted" id="invCount"></span></div>
+        <div class="table-wrap"><table class="dt"><thead><tr><th>Article</th><th class="num">Stock noté</th><th class="num">Compté</th><th class="num">Écart</th></tr></thead><tbody id="invBody">
+          ${rows.map((p) => `<tr data-inv-row data-name="${esc(norm(p.name))}"><td>${esc(p.name)}<br><span class="muted">${esc(p.category || '')}</span></td><td class="num">${p.stock ?? '—'}</td><td class="num"><input type="number" min="0" step="1" data-inv="${esc(p.id)}" data-before="${p.stock ?? 0}" inputmode="numeric" style="width:90px;margin:0"></td><td class="num" data-inv-diff></td></tr>`).join('')}</tbody></table></div>
+        <div class="row" style="gap:8px;margin-top:12px;flex-wrap:wrap"><input type="text" id="invNote" placeholder="Note (ex. inventaire du 17/10)" maxlength="200" style="flex:1;min-width:200px;margin:0"><button class="btn">${icon('check-bold')} Enregistrer l'inventaire</button></div><div id="invMsg"></div></form>`;
+      const upd = () => { let n = 0; app.querySelectorAll('[data-inv]').forEach((i) => { const d = i.value === '' ? null : (parseInt(i.value, 10) || 0) - Number(i.dataset.before); const c = i.closest('tr').querySelector('[data-inv-diff]'); c.innerHTML = d === null ? '' : `<strong class="${d < 0 ? 'neg' : d > 0 ? 'pos' : ''}">${d > 0 ? '+' : ''}${d}</strong>`; if (d !== null) n++; }); $('#invCount').textContent = n ? `${n} article(s) compté(s)` : ''; };
+      app.querySelectorAll('[data-inv]').forEach((i) => i.addEventListener('input', upd));
+      $('#invQ').addEventListener('input', () => { const w = norm($('#invQ').value); app.querySelectorAll('[data-inv-row]').forEach((tr) => { tr.hidden = Boolean(w) && !tr.dataset.name.includes(w); }); });
+      $('#invForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const items = [...app.querySelectorAll('[data-inv]')].filter((i) => i.value !== '').map((i) => ({ productId: i.dataset.inv, counted: parseInt(i.value, 10) || 0 }));
+        if (!items.length) { $('#invMsg').innerHTML = '<div class="alert err">Tapez au moins une quantité comptée.</div>'; return; }
+        if (!confirm(`Enregistrer l'inventaire de ${items.length} article(s) ? Le stock sera remplacé par les quantités comptées.`)) return;
+        try { const res = await api('/stock/count', { method: 'POST', body: { items, note: $('#invNote').value } }); toast(`Inventaire enregistré : ${res.changed.length} écart(s) ✓`); location.hash = '#/stock/mouvements'; }
+        catch (err) { $('#invMsg').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; }
+      });
+      return;
+    }
+    app.innerHTML = head + tabs + `<div class="kpis">
+        <div class="kpi kc0"><span class="kpi-ico">${icon('package')}</span><span class="kpi-label">Valeur du stock</span><span class="kpi-value">${fcfa(r.totalValue)}</span><span class="kpi-hint">au coût d'achat</span></div>
+        <div class="kpi kc1"><span class="kpi-ico">${icon('warning-duotone')}</span><span class="kpi-label">Stock bas (≤ 3)</span><span class="kpi-value">${r.low}</span><span class="kpi-hint">${r.products.filter((p) => p.active && p.stock === 0).length} en rupture</span></div>
+        <div class="kpi kc2"><span class="kpi-ico">${icon('clipboard-text')}</span><span class="kpi-label">En commande</span><span class="kpi-value">${r.products.reduce((n, p) => n + p.onOrder, 0)}</span><span class="kpi-hint">articles attendus des fournisseurs</span></div>
+      </div><div id="tbl"></div>`;
+    dataTable($('#tbl'), {
+      id: 'stock-overview', rows: r.products, defaultSort: 'stock', placeholder: 'Article ou catégorie', empty: 'Aucun produit.',
+      searchText: (p) => `${p.name} ${p.category}`,
+      columns: [
+        { key: 'name', label: 'Article', sortValue: (p) => norm(p.name), render: (p) => `<a href="#/produit/${enc(p.id)}">${esc(p.name)}</a>${p.active ? '' : ' <span class="tag">masqué</span>'}<br><span class="muted">${esc(p.category || '')}${p.supplierId ? ' · dépôt-vente' : ''}</span>` },
+        { key: 'stock', label: 'Stock', cls: 'num', sortValue: (p) => (p.stock == null ? -1e9 : -p.stock), render: (p) => p.stock == null ? '<span class="muted">non suivi</span>' : `<strong class="${p.stock === 0 ? 'neg' : p.stock <= 3 ? 'warn-text' : ''}">${p.stock}</strong>` },
+        { key: 'onOrder', label: 'En commande', cls: 'num', render: (p) => (p.onOrder ? `+${p.onOrder}` : '') },
+        { key: 'cost', label: 'Coût unitaire', cls: 'num', render: (p) => (p.cost != null ? fcfa(p.cost) : '—') },
+        { key: 'value', label: 'Valeur', cls: 'num', render: (p) => fcfa(p.value) },
+        { key: 'act', label: '', sortable: false, render: (p) => `<div class="cell-actions"><a class="ghost" href="#/stock/mouvements">Mouvements</a></div>` },
+      ],
+    });
+  }
+
   // ---------- Colis : étiquettes avec QR code, scan au téléphone, étapes ----------
   const PCL_STAGES = { preparing: 'À préparer', ready: 'Prêt (emballé)', with_courier: 'Chez le livreur', at_relay: 'Au point relais', delivered: 'Remis au client', returned: 'Retour en stock' };
   const PCL_TAG = { preparing: 'warn', ready: '', with_courier: 'info', at_relay: 'info', delivered: 'ok', returned: 'danger' };
@@ -2186,7 +2473,20 @@
   }
 
   function viewFinSuppliers(head, d) {
-    app.innerHTML = head + finTabs('fournisseurs') + `<p class="muted">Ce que Kamwa doit à chaque fournisseur : ses produits vendus (au prix fournisseur, toutes périodes) moins les paiements enregistrés (« Paiement fournisseur »).</p><div id="tbl"></div>`;
+    const pd = d.purchaseDebts || [];
+    app.innerHTML = head + finTabs('fournisseurs') + `<h2 style="margin:0 0 4px">Achats (bons de commande)</h2><p class="muted" style="margin-top:0">Articles reçus ou facturés par bon de commande, moins les paiements « Achat de marchandises » rattachés au bon.</p><div id="tblPo"></div>
+      <h2 style="margin:22px 0 4px">Dépôt-vente</h2><p class="muted" style="margin-top:0">Ce que Kamwa doit à chaque fournisseur partenaire : ses produits vendus (au prix fournisseur, toutes périodes) moins les paiements enregistrés (« Paiement fournisseur »).</p><div id="tbl"></div>`;
+    dataTable($('#tblPo'), {
+      id: 'fin-purchases', rows: pd, defaultSort: 'due', placeholder: 'Fournisseur', empty: 'Aucun achat par bon de commande pour le moment.',
+      searchText: (s) => s.name,
+      columns: [
+        { key: 'name', label: 'Fournisseur', render: (s) => `<strong>${esc(s.name)}</strong><br><span class="muted">${s.purchases.map((b) => `<a href="#/achat/${enc(b.id)}">${esc(b.number)}</a>`).join(', ')}</span>` },
+        { key: 'owed', label: 'Dû (reçu / facturé)', cls: 'num', render: (s) => fcfa(s.owed) },
+        { key: 'paid', label: 'Déjà payé', cls: 'num', render: (s) => fcfa(s.paid) },
+        { key: 'due', label: 'Reste à payer', cls: 'num', render: (s) => `<strong class="${s.due > 0 ? 'neg' : 'pos'}">${fcfa(s.due)}</strong>` },
+        { key: 'act', label: '', sortable: false, render: (s) => { const b = s.purchases.find((x) => x.due > 0); return b ? `<div class="cell-actions"><a class="btn small" href="#/finances/nouvelle?achat=${enc(b.id)}&montant=${b.due}">Payer ${esc(b.number)}</a></div>` : ''; } },
+      ],
+    });
     dataTable($('#tbl'), {
       id: 'fin-suppliers', rows: d.suppliers, defaultSort: 'due', placeholder: 'Fournisseur', empty: 'Aucun produit de fournisseur vendu pour le moment.',
       searchText: (s) => s.name,
@@ -2207,6 +2507,7 @@
     if (id) { try { e = await api('/finance/entries/' + enc(id)); } catch { return; } }
     const qs = new URLSearchParams(location.hash.split('?')[1] || '');
     if (!id && qs.get('fournisseur')) Object.assign(e, { category: 'supplier', supplierId: qs.get('fournisseur'), amount: Number(qs.get('montant')) || '', method: 'momo' });
+    if (!id && qs.get('achat')) Object.assign(e, { category: 'stock', purchaseId: qs.get('achat'), amount: Number(qs.get('montant')) || '', method: 'bank' });
     let suppliers = [];
     try { suppliers = (await api('/staff')).staff.filter((u) => u.role === 'supplier'); } catch {}
     const opts = (obj, cur) => Object.entries(obj).map(([k, l]) => `<option value="${k}" ${k === cur ? 'selected' : ''}>${esc(l)}</option>`).join('');
@@ -2218,6 +2519,7 @@
           <div><label for="fAmount">Montant (FCFA)</label><input id="fAmount" type="number" inputmode="numeric" min="1" step="1" value="${esc(e.amount ?? '')}" placeholder="Ex. 25000"></div>
         </div>
         <div id="catWrap"><label for="fCat">Catégorie</label><select id="fCat"></select></div>
+        ${e.purchaseId ? `<div class="alert ok" style="margin:8px 0">${icon('clipboard-text')} Paiement rattaché au bon de commande (il sera déduit de la dette de ce bon).</div>` : ''}
         <div id="supWrap" hidden><label for="fSup">Fournisseur payé</label><select id="fSup"><option value="">Choisir…</option>${suppliers.map((u) => `<option value="${esc(u.id)}" ${u.id === e.supplierId ? 'selected' : ''}>${esc(u.company || u.name)}</option>`).join('')}</select></div>
         <label for="fLabel">Libellé</label><input id="fLabel" type="text" maxlength="120" value="${esc(id ? e.label : '')}" placeholder="Ex. Loyer octobre, carburant livreur…">
         <div class="grid2">
@@ -2254,7 +2556,7 @@
     });
     $('#entryForm').addEventListener('submit', async (ev) => {
       ev.preventDefault();
-      const body = { type: type(), date: $('#fDate').value, amount: $('#fAmount').value, category: $('#fCat').value, supplierId: $('#fSup').value || null, label: $('#fLabel').value, method: $('#fMethod').value, toMethod: $('#fTo').value, note: $('#fNote').value, receipt };
+      const body = { type: type(), date: $('#fDate').value, amount: $('#fAmount').value, category: $('#fCat').value, supplierId: $('#fSup').value || null, purchaseId: e.purchaseId || null, label: $('#fLabel').value, method: $('#fMethod').value, toMethod: $('#fTo').value, note: $('#fNote').value, receipt };
       try {
         await api(id ? '/finance/entries/' + enc(id) : '/finance/entries', { method: id ? 'PATCH' : 'POST', body });
         toast('Écriture enregistrée ✓');
@@ -2513,11 +2815,11 @@
   // Le serveur signale chaque changement qui concerne ce rôle ; la page affichée se redessine tout de suite,
   // à la même position, sauf pendant une saisie (elle se met alors à jour dès que la saisie est terminée).
   const LIVE_TOPICS = {
-    tableau: ['orders', 'products', 'customers', 'chat', 'imports', 'finance'], commandes: ['orders'], commande: ['orders', 'documents', 'parcels'], documents: ['documents'], colis: ['parcels', 'orders'], clients: ['customers'],
+    tableau: ['orders', 'products', 'customers', 'chat', 'imports', 'finance'], commandes: ['orders'], commande: ['orders', 'documents', 'parcels'], documents: ['documents'], colis: ['parcels', 'orders'], achats: ['purchases'], achat: ['purchases'], stock: ['stock', 'products', 'purchases'], 'bons-de-commande': ['purchases'], clients: ['customers'],
     france: ['imports', 'orders'], envois: ['imports', 'orders'], agent: ['imports', 'orders'], livraisons: ['orders'], fournisseur: ['orders', 'products'],
     produits: ['products'], agences: ['agencies'], tendances: ['trends'], journal: ['orders', 'products', 'customers', 'staff', 'finance'], finances: ['finance', 'orders'], equipe: ['staff'],
   };
-  const NO_LIVE_WITH_ID = ['produit', 'agences', 'equipe', 'finances', 'reglages', 'mot-de-passe'];
+  const NO_LIVE_WITH_ID = ['produit', 'achat', 'agences', 'equipe', 'finances', 'reglages', 'mot-de-passe'];
   const proBusy = () => {
     const a = document.activeElement;
     if (a && app.contains(a) && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) && !['checkbox', 'radio'].includes(a.type)) return true;
@@ -2576,15 +2878,19 @@
       tableau: () => Boolean(state.user),
       commandes: CAN.orders, commande: CAN.orders, produits: CAN.products, produit: CAN.products,
       messagerie: () => Boolean(state.user) && !CAN.supplier(),
-      tendances: CAN.admin, documents: CAN.orders, colis: () => CAN.orders() || CAN.courier(), scanner: () => CAN.orders() || CAN.courier(),
+      tendances: CAN.admin, achats: () => CAN.admin() || state.user?.role === 'catalog', achat: () => CAN.admin() || state.user?.role === 'catalog', stock: () => CAN.admin() || state.user?.role === 'catalog', 'bons-de-commande': CAN.supplier, documents: CAN.orders, colis: () => CAN.orders() || CAN.courier(), scanner: () => CAN.orders() || CAN.courier(),
       fournisseur: CAN.supplier, clients: CAN.admin, agences: CAN.admin, equipe: CAN.admin, journal: CAN.admin, finances: CAN.admin, reglages: CAN.admin, livraisons: CAN.courier, france: CAN.orders, envois: () => CAN.orders() || CAN.agent(), agent: () => CAN.agent() || CAN.admin(), 'mot-de-passe': () => !CAN.admin(),
     };
     if (!allowed[page]?.()) [page, id] = homeHash().slice(2).split('/');
-    const tab = page.startsWith('produit') ? 'produits' : page === 'commande' ? 'commandes' : page;
+    const tab = page.startsWith('produit') ? 'produits' : page === 'commande' ? 'commandes' : page === 'achat' ? 'achats' : page;
     document.querySelectorAll('[data-tab]').forEach((a) => a.classList.toggle('on', a.dataset.tab === tab));
     if (page === 'messagerie') return viewMessaging(id);
     if (page === 'tendances') return viewTrends();
     if (page === 'documents') return viewDocuments();
+    if (page === 'achats') return viewPurchases();
+    if (page === 'achat') return id === 'nouveau' ? viewPurchaseNew() : viewPurchase(id);
+    if (page === 'stock') return viewStock(id);
+    if (page === 'bons-de-commande') return viewSupplierPurchases();
     if (page === 'colis') return id ? viewParcel(id) : viewParcels();
     if (page === 'scanner') return viewScanner();
     if (page === 'clients') return viewCustomers();

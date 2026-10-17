@@ -274,7 +274,7 @@ function settleSuccessfulPayment(payment) {
     // Décrément du stock
     for (const line of order.lines) {
       const p = products.get(line.productId);
-      if (p && p.stock != null) products.update(p.id, { stock: Math.max(0, p.stock - line.qty) });
+      if (p && p.stock != null) require('../stock-moves').moveStock(p.id, -line.qty, { reason: 'sale', ref: order.id });
     }
     notifyPaidOrder(paid); // sans attendre : l'e-mail ne doit pas ralentir le client
     return paid;
