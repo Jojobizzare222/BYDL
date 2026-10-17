@@ -6,9 +6,9 @@
   <script>(function(){var k="kamwa-theme",d="light",m;try{m=localStorage.getItem(k)||d}catch(e){m=d}var q=matchMedia("(prefers-color-scheme: dark)");function a(){var t=m==="auto"?(q.matches?"dark":"light"):m;document.documentElement.setAttribute("data-theme",t);}a();if(q.addEventListener)q.addEventListener("change",function(){if(m==="auto")a()});window.kamwaTheme={mode:function(){return m},set:function(v){m=v;try{localStorage.setItem(k,v)}catch(e){}a();document.dispatchEvent(new CustomEvent("kamwa-theme"))}};})();</script>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#2D1B69">
-  <link rel="icon" href="/brand/favicon.svg" type="image/svg+xml">
-  <link rel="icon" href="/brand/favicon-32.png" sizes="32x32" type="image/png">
-  <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png">
+  <link rel="icon" href="/brand/favicon.svg?v=2" type="image/svg+xml">
+  <link rel="icon" href="/brand/favicon-32.png?v=2" sizes="32x32" type="image/png">
+  <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png?v=2">
   <!-- Application web : installable sur l'écran d'accueil, s'ouvre en plein écran -->
   <link rel="manifest" href="/manifest.webmanifest">
   <meta name="mobile-web-app-capable" content="yes">
@@ -16,7 +16,7 @@
   <meta name="apple-mobile-web-app-title" content="Kamwa">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta property="og:title" content="Kamwa — Laissez-vous surprendre">
-  <meta property="og:image" content="/brand/partage-kamwa.png">
+  <meta property="og:image" content="/brand/partage-kamwa.png?v=2">
   <title>Kamwa — Électronique et mode au meilleur prix</title>
   <meta name="description" content="Kamwa : smartphones, tablettes, ordinateurs, composants, accessoires, mode homme et femme. Paiement en espèces en agence, retrait ou livraison à Pointe-Noire et Brazzaville.">
   <link rel="stylesheet" href="/css/style.css">
@@ -72,7 +72,7 @@
         <button class="hdr-btn menu-btn" id="menuBtn" aria-label="Tous les rayons" aria-expanded="false">
           <svg class="ico" aria-hidden="true"><use href="/icons.svg?v=12#list-bold"></use></svg>
         </button>
-        <a href="#/" class="logo" aria-label="Kamwa, accueil"><img src="/brand/logo-kamwa-clair.svg" alt="Kamwa" width="124" height="30"></a>
+        <a href="#/" class="logo" aria-label="Kamwa, accueil"><img src="/brand/logo-kamwa-clair.svg?v=2" alt="Kamwa" width="124" height="30"></a>
         <label class="hdr-btn deliver" title="Ville de livraison">
           <svg class="ico" aria-hidden="true"><use href="/icons.svg?v=12#map-pin"></use></svg>
           <span class="hdr-two"><small>Livraison</small><strong id="deliverCity">Pointe-Noire</strong></span>
