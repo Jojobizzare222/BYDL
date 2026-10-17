@@ -74,19 +74,6 @@ async function notifyReservation(order) {
   await send(subject, text, order.id);
 }
 
-// Nouvelle demande d'achat en Europe : à chiffrer (devis) dans Kamwa Pro
-async function notifyImportRequest(r) {
-  const subject = `Achat en Europe : nouvelle demande de devis ${r.id}`;
-  const text = [
-    `Demande ${r.id} de ${r.customer.name} (${r.customer.phone}, ${r.customer.city || '-'}) :`,
-    '',
-    ...r.items.map((it) => `- ${it.qty} × ${it.title || 'article'}${it.options ? ' (' + it.options + ')' : ''}${it.priceEur ? ' — ' + it.priceEur + ' €' : ''}\n  ${it.url}`),
-    r.note ? `\nNote du client : ${r.note}` : '',
-    '',
-    `Faire le devis : ${config.publicUrl}/admin/#/france/${encodeURIComponent(r.id)}`,
-  ].join('\n');
-  await send(subject, text, r.id);
-}
 
 // Nouvelle pièce d'identité à vérifier (la photo n'est JAMAIS jointe à l'e-mail : elle reste dans Kamwa Pro)
 async function notifyIdentity(customer) {
@@ -128,4 +115,4 @@ async function notifyRelayChange(order) {
   await send(subject, text, order.id);
 }
 
-module.exports = { notifyPaidOrder, notifyReservation, notifyImportRequest, notifyIdentity, notifyChat, notifyRelayChange };
+module.exports = { notifyPaidOrder, notifyReservation, notifyIdentity, notifyChat, notifyRelayChange };

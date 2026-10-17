@@ -195,18 +195,7 @@
         <p>Les produits neufs bénéficient de la garantie légale contre les défauts cachés et, le cas échéant, de la garantie du fabricant.
         Produits reconditionnés et d'occasion : garantie Kamwa de ${T('durée, ex. 3 mois')}. La garantie ne couvre pas la casse, l'oxydation ou une mauvaise utilisation.</p>
 
-        <h2 id="france">9. Achats en Europe</h2>
-        <p>Les produits marqués « Venu d’Europe » sont achetés en Europe pour vous après votre commande, puis expédiés par avion et livrés au Congo.</p>
-        <ul>
-          <li><strong>Prix</strong> : <strong>tout compris</strong> (article, transport en avion, douane, service Kamwa, livraison) : aucun supplément ne vous sera demandé à l'arrivée.</li>
-          <li><strong>Paiement</strong> : la commande se paie en entier avant l'achat (au point relais), car Kamwa achète l'article pour vous. Si votre panier contient aussi des articles de notre stock, toute la commande vous est livrée en une fois.</li>
-          <li><strong>Délai</strong> : indicatif, annoncé dans le devis. Vous suivez chaque étape (achat, photos de l'article à sa réception, départ, arrivée).</li>
-          <li><strong>Annulation</strong> : possible tant que l'article n'est pas acheté (remboursement intégral). Après l'achat, l'annulation n'est plus possible.</li>
-          <li><strong>Retours</strong> : un article non conforme au devis ou abîmé pendant le transport est remplacé ou remboursé. ${T('conditions de retour pour un article conforme qui ne convient pas')}.</li>
-          <li><strong>Articles exclus</strong> : produits interdits au transport (dangereux, inflammables, certaines batteries seules…), contrefaçons, produits réglementés. Nous vous le signalons dans le devis.</li>
-        </ul>
-
-        <h2>10. Service client</h2>
+        <h2>9. Service client</h2>
         <p>Pour toute question ou réclamation : ${CONTACT}. Nous cherchons toujours d'abord une solution amiable. Voir aussi les
         <a href="#/legal/conditions">conditions d'utilisation</a> (droit applicable).</p>`,
     },

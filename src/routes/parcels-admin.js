@@ -17,7 +17,7 @@ function log(req, action, target, details = '') {
 }
 const actor = (req) => ({ id: req.user.id, role: req.user.role, name: req.user.name });
 const isOrdersRole = (req) => ['admin', 'orders'].includes(req.user.role);
-const readyToDeliver = (o) => ['paid', 'confirmed', 'shipped'].includes(o.status) && (!o.import || o.import.stage === 'arrived');
+const readyToDeliver = (o) => ['paid', 'confirmed', 'shipped'].includes(o.status);
 const HOURS = (iso) => (Date.now() - Date.parse(iso)) / 3600000;
 // Colis qui attend trop longtemps à la même étape
 const STALE_AFTER = { preparing: 24, ready: 24, with_courier: 12, at_relay: 72 };
@@ -135,7 +135,7 @@ router.post('/:id/action', requireRole('orders', 'courier'), (req, res) => {
 router.post('/order/:orderId', requireRole('orders'), (req, res) => {
   const o = orders.get(req.params.orderId);
   if (!o) return res.status(404).json({ error: 'Commande introuvable' });
-  if (!P.eligible(o) || ['delivered', 'cancelled'].includes(o.status)) return res.status(400).json({ error: 'Commande pas encore prête (paiement, arrivée d\'Europe) ou déjà terminée' });
+  if (!P.eligible(o) || ['delivered', 'cancelled'].includes(o.status)) return res.status(400).json({ error: 'Commande pas encore payée ou déjà terminée' });
   const had = P.forOrder(o.id).length;
   const p = had ? P.create(o, { by: actor(req) }) : P.sync(o)[0];
   log(req, 'Colis ajouté', { id: o.id, name: p.number }, `${P.forOrder(o.id).length} colis`);

@@ -7,7 +7,6 @@
 const crypto = require('crypto');
 const { conversations, agencies, orders, settings } = require('./store');
 const { salesSettings } = require('./sales');
-const { importSettings } = require('./imports');
 
 const MAX_MESSAGES = 500;
 const TEAM_ID = 'TEAM';
@@ -43,7 +42,6 @@ const INTENTS = [
   { key: 'payment', words: ['paiement', 'payer', 'paye', 'momo', 'mobile money', 'airtel', 'mtn', 'carte', 'especes', 'cash', 'argent', 'acompte'] },
   { key: 'agency', words: ['agence', 'relais', 'point relais', 'adresse', 'horaire', 'ouvert', 'ou etes', 'magasin', 'boutique physique', 'retrait'] },
   { key: 'delivery', words: ['livraison', 'livrer', 'delai', 'quand', 'combien de temps', 'expedi', 'domicile', 'livreur', 'brazzaville', 'pointe-noire', 'pointe noire', 'dolisie'] },
-  { key: 'europe', words: ['europe', 'france', 'importer', 'commander de', 'venu d', 'avion', 'douane'] },
   { key: 'returns', words: ['retour', 'rembours', 'echange', 'garantie', 'defectueux', 'casse', 'abime', 'annuler'] },
   { key: 'price', words: ['prix', 'promo', 'reduction', 'remise', 'moins cher', 'solde', 'tarif', 'frais'] },
 ];
@@ -69,7 +67,7 @@ function botAnswer(text, { customer, conv }) {
     case 'hello': return { text: `Mbote${customer ? ' ' + customer.name.split(' ')[0] : ''} ! Je suis l'assistant Kamwa. Que puis-je faire pour vous ?`, quick: MENU };
     case 'thanks': return { text: 'Avec plaisir ! Autre chose ?', quick: MENU };
     case 'human': return { handoff: true, text: '' };
-    case 'delivery': return { text: `Livraison en 24 à 48 h à Pointe-Noire et Brazzaville (autres villes : sur demande).\nVous pouvez aussi retirer votre commande dans une de nos agences.\nArticles venus d'Europe : ${importSettings().delay || '10 jours maximum'}.\nÀ la livraison, donnez votre code de livraison au livreur seulement quand vous avez le colis en main.`, quick: ['Paiement', 'Points relais', 'Ma commande', 'Parler à un conseiller'] };
+    case 'delivery': return { text: `Livraison en 24 à 48 h à Pointe-Noire et Brazzaville (autres villes : sur demande).\nVous pouvez aussi retirer votre commande dans une de nos agences.\nÀ la livraison, donnez votre code de livraison au livreur seulement quand vous avez le colis en main.`, quick: ['Paiement', 'Points relais', 'Ma commande', 'Parler à un conseiller'] };
     case 'payment': return { text: cashOnly
       ? `Le paiement se fait en espèces dans nos points relais (à choisir sur la carte au moment de commander). Vous réservez en ligne (articles gardés ${Number(process.env.PICKUP_HOLD_HOURS || 48)} h), vous payez au point relais, puis vous repartez avec votre commande ou nous vous la livrons.\n\nNos points relais :\n${agencyList()}`
       : `Moyens de paiement proposés : ${Object.entries(sales.methods).filter(([, v]) => v).map(([k]) => ({ cash: 'espèces en agence', momo: 'Mobile Money (MTN, Airtel)', card: 'carte bancaire', cod: 'paiement à la réception' })[k]).join(', ')}.`,
@@ -91,7 +89,6 @@ function botAnswer(text, { customer, conv }) {
       return { text: `Vos dernières commandes :\n${mine.map((o) => `• ${o.id} — ${fcfa(o.total)} — ${o.agency && o.status === 'pending_payment' ? 'réservée, à payer en agence' : STATUS[o.status] || o.status}`).join('\n')}`,
         links: mine.map((o) => ({ label: `Suivre ${o.id}`, href: `#/suivi/${o.id}` })), quick: ['Parler à un conseiller', 'Livraison'] };
     }
-    case 'europe': return { text: `Nous achetons pour vous des produits en Europe : prix tout compris en FCFA (article, avion, douane), payé au point relais avant l'achat, disponible en ${importSettings().delay || '10 jours maximum'}. Vous suivez chaque étape dans votre compte.`, links: [{ label: 'Achat en Europe', href: '#/europe' }], quick: ['Paiement', 'Parler à un conseiller'] };
     case 'returns': return { text: "Un article abîmé ou non conforme ? Signalez-le au livreur ou à l'agence à la remise, puis contactez-nous : il est échangé ou remboursé. Les conditions complètes sont dans « Ventes et remboursements ».", links: [{ label: 'Ventes et remboursements', href: '#/legal/vente' }], quick: ['Parler à un conseiller'] };
     case 'price': return { text: 'Nos meilleures offres du moment sont dans « Bonnes affaires » et les ventes flash de la page d\'accueil. Les prix sont en FCFA, sans frais cachés.', links: [{ label: 'Bonnes affaires', href: '#/promos' }], quick: MENU.slice(0, 4) };
     default: {

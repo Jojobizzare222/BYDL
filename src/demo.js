@@ -2,7 +2,7 @@
 // Ces comptes sont PUBLICS (affichés sur la page de connexion de la démo) et n'existent jamais sur la vraie boutique.
 const crypto = require('crypto');
 const config = require('./config');
-const { settings, staff, products, orders, payments, ledger, imports, agencies, trends } = require('./store');
+const { settings, staff, products, orders, payments, ledger, agencies } = require('./store');
 const { hashPassword } = require('./admin/auth');
 
 const DEMO_PASSWORD = 'demo-kamwa';
@@ -12,7 +12,6 @@ const DEMO_ACCOUNTS = [
   { label: 'Employé Catalogue', login: 'demo-catalogue', role: 'catalog', name: 'Clara (démo)' },
   { label: 'Employé Commandes', login: 'demo-commandes', role: 'orders', name: 'Oscar (démo)' },
   { label: 'Livreur', login: 'demo-livreur', role: 'courier', name: 'Junior (démo)' },
-  { label: 'Agent Europe', login: 'demo-agent', role: 'agent', name: 'Agent Paris (démo)' },
 ];
 const isDemoLogin = (login) => config.demo && DEMO_ACCOUNTS.some((a) => a.login === login);
 
@@ -24,17 +23,6 @@ function seed() {
 
   // Administrateur de la démo (mot de passe public, base temporaire)
   settings.set('admin_password', hashPassword(DEMO_PASSWORD));
-
-  // Agent Tendances : quelques propositions d'EXEMPLE (la démo n'a pas de clés AliExpress / IA)
-  const tr = (id, title, image, priceEur, volume, rating, verdict, score, reason, risks) => {
-    const { landed } = require('./trends/analyze');
-    const c = { title, priceEur, category: '' };
-    trends.insert({ id, source: 'aliexpress', sourceId: id, title: `${title} (exemple)`, image, images: [], url: 'https://www.aliexpress.com/', priceEur, volume, rating, keyword: 'exemple', landed: landed(c),
-      review: { verdict, score, reason, risks, suggestedPriceFcfa: null, by: 'exemple de démonstration' }, status: 'new', example: true, createdAt: now });
-  };
-  tr('TR-DEMO-1', 'Écouteurs sans fil Bluetooth 5.3 avec boîtier de charge', '/images/commons/airpodspro-6.jpg', 12.9, 18400, 96.4, 'integrate', 86, 'Très demandé, petit prix final, léger pour l\'avion. Bonne marge possible.', ['batterie lithium : vérifier avec l\'expéditeur']);
-  tr('TR-DEMO-2', 'Montre connectée sport étanche', '/images/commons/watch9-3.jpg', 24.5, 7300, 94.1, 'integrate', 78, 'Tendance forte, cadeau apprécié ; prix Kamwa accessible.', ['qualité variable selon le vendeur']);
-  tr('TR-DEMO-3', 'Batterie externe 20 000 mAh charge rapide', null, 16.0, 25100, 95.2, 'watch', 64, 'Très utile avec les coupures de courant, mais les batteries seules sont souvent refusées en avion.', ['transport aérien des batteries seules']);
 
   // Agences d'exemple : le paiement en espèces en agence est le seul moyen proposé par défaut
   agencies.insert({ id: 'AG-DEMO-PNR', name: 'Agence Kamwa Centre-ville (démo)', city: 'Pointe-Noire', address: 'Avenue Charles de Gaulle (exemple)', hours: 'Lun-Sam 8 h - 18 h', phone: '06 000 00 01', kind: 'agency', lat: -4.7792, lng: 11.8638, active: true, createdAt: now });
@@ -104,39 +92,6 @@ function seed() {
   entry(9, 'expense', 'delivery', 12000, 'cash', 'Carburant livreur');
   entry(6, 'transfer', 'transfer', 200000, 'bank', 'Retrait pour la caisse', { toMethod: 'cash' });
   entry(3, 'expense', 'supplier', 15000, 'momo', 'Acompte Mode Congo', { supplierId: sup });
-
-  // Produit venu d’Europe (catalogue) : prix tout compris calculé depuis le prix en € et le poids, avec choix couleur / pointure
-  products.insert({
-    id: 'pdemo-fr1', name: 'Baskets de running légères (exemple)', brand: 'Exemple', universe: 'Mode', category: 'Chaussures', condition: 'neuf',
-    origin: 'FR', priceEur: 59.99, weightKg: 1.3, sourceUrl: 'https://www.exemple.fr/baskets', price: 69000, costPrice: 58921, stock: 5, active: true, images: [],
-    options: [{ name: 'Couleur', values: ['Noir', 'Blanc'] }, { name: 'Pointure', values: ['40', '41', '42', '43', '44'] }],
-    description: "Produit de démonstration venu d’Europe : acheté pour vous après votre commande, expédié par avion, livré en 10 jours maximum.",
-    specs: [{ label: 'Origine', value: 'Europe' }], createdAt: now, createdBy: 'admin',
-  });
-
-  // Achat en Europe : une demande à chiffrer et une commande payée à acheter
-  imports.insert({
-    id: 'FR-DEMO-0001', accessToken: 'demo-fr-0001-' + crypto.randomBytes(8).toString('hex'), customerId: null,
-    items: [{ url: 'https://www.decathlon.fr/', title: 'Chaussures de running (exemple)', options: 'Pointure 43, noir', qty: 1, priceEur: 59.99 }],
-    note: 'Exemple de démonstration', customer: { name: 'Paul (démo)', phone: '068888888', city: 'Brazzaville', address: 'Bacongo (fictif)' },
-    status: 'requested', createdAt: now, history: [{ status: 'requested', at: now }],
-  });
-  imports.insert({
-    id: 'FR-DEMO-0002', accessToken: 'demo-fr-0002-' + crypto.randomBytes(8).toString('hex'), customerId: null,
-    items: [{ url: 'https://www.fnac.com/', title: 'Liseuse électronique (exemple)', options: 'Noire', qty: 1, priceEur: 129 }],
-    note: '', customer: { name: 'Clarisse (démo)', phone: '067777777', city: 'Pointe-Noire', address: 'Mpita (fictif)' },
-    status: 'accepted', orderId: 'CMD-DEMO-0003', createdAt: now, history: [{ status: 'requested', at: now }, { status: 'quoted', at: now }, { status: 'accepted', at: now }],
-    quote: { items: [{ title: 'Liseuse électronique (exemple)', priceEur: 129, shippingEur: 0, qty: 1 }], weightKg: 0.6, total: 131000, delay: '10 jours maximum', breakdown: { goods: 84618, freight: 5400, customs: 16924, cost: 106942, commission: 24058, total: 131000 }, validUntil: now, by: 'Administrateur', at: now },
-  });
-  orders.insert({
-    id: 'CMD-DEMO-0003', accessToken: crypto.randomBytes(16).toString('hex'), customerId: null,
-    lines: [{ productId: null, name: 'Liseuse électronique (exemple) (achat en Europe)', unitPrice: 131000, qty: 1, total: 131000, unitCost: 106942, supplierId: null }],
-    subtotal: 131000, deliveryFee: 0, total: 131000, currency: 'XAF',
-    customer: { name: 'Clarisse (démo)', phone: '067777777', city: 'Pointe-Noire', address: 'Mpita (fictif)' },
-    status: 'paid', createdAt: now, paidAt: now, paymentId: 'PAY-DEMO-0003', history: [{ status: 'paid', at: now }], fulfillment: 'delivery', deliveryCode: '8642',
-    import: { requestId: 'FR-DEMO-0002', stage: 'to_buy', delay: '10 jours maximum', items: [{ title: 'Liseuse électronique (exemple)', priceEur: 129, shippingEur: 0, qty: 1, url: 'https://www.fnac.com/', options: 'Noire' }] },
-  });
-  payments.insert({ id: 'PAY-DEMO-0003', orderId: 'CMD-DEMO-0003', operator: 'mtn', phone: '067777777', purpose: 'full', amount: 131000, currency: 'XAF', status: 'SUCCESSFUL', providerRef: 'DEMO', reason: null, createdAt: now });
 
   settings.set('demo_seeded', now);
   console.log('[démo] comptes et données d\'exemple créés');

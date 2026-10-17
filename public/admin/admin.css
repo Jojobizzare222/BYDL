@@ -355,16 +355,7 @@ input[type=date] { width: 100%; padding: 10px 12px; border: 1px solid var(--line
 .collect-tag { background: linear-gradient(135deg, #FFB300, #FF9F43); color: #1A2A45; font-weight: 700; border-radius: 999px; padding: 3px 10px; font-size: .85rem; }
 .code-input-pro { font-size: 1.6rem !important; letter-spacing: .5em; text-align: center; font-weight: 700; }
 
-/* ---------- Achat en France ---------- */
-.tag.fr { background: rgba(90,180,255,.15); color: #8CC8FF; }
-.q-item { border: 1px solid var(--line); border-radius: 12px; padding: 4px 14px 12px; margin: 0 0 12px; }
-.q-item legend { font-weight: 700; padding: 0 6px; }
-.calc { margin: 12px 0; padding: 12px 14px; background: var(--bg); border: 1px dashed var(--line); border-radius: 12px; }
-.calc .lines div:last-child { font-size: 1.1rem; }
-.fr-list { margin: 6px 0 10px; padding-left: 18px; }
 .alert.ok a { color: inherit; text-decoration: underline; }
-.link-import { border: 1px solid rgba(90,180,255,.35); background: linear-gradient(135deg, rgba(47,91,211,.12), rgba(71,127,224,.08)); }
-.bookmarklet { cursor: grab; }
 
 /* Vérification des pièces d'identité (Clients) */
 .id-review { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 20px; align-items: start; margin-bottom: 16px; }
@@ -486,26 +477,6 @@ html[data-theme="light"] .install-text b, html[data-theme="light"] .detour-opt b
 html[data-theme="light"] .dash-hero h1, html[data-theme="light"] .dash-hero h2 { color: #fff; }
 /* Logo : version foncée sur fond clair (le logo clair deviendrait invisible) */
 html[data-theme="light"] img[src="/brand/logo-kamwa-clair.svg"] { content: url('/brand/logo-kamwa.svg'); }
-
-/* ---------- Agent Tendances ---------- */
-.tr-status { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 12px; font-size: .82rem; }
-.tr-status span { display: inline-flex; align-items: center; gap: 5px; padding: 5px 11px; border-radius: 999px; background: var(--paper); border: 1px solid var(--line); }
-.tr-status .ok { color: var(--ok); } .tr-status .off { color: var(--muted); }
-.tr-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; }
-.tr-card { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 12px; padding: 12px; border-radius: 16px; background: var(--paper); border: 1px solid var(--line); }
-.tr-card > img, .tr-noimg { width: 110px; height: 110px; object-fit: cover; border-radius: 12px; background: #fff; }
-.tr-noimg { display: grid; place-items: center; font-size: 2.4rem; color: var(--muted); background: var(--paper-2); }
-.tr-body h3 { margin: 8px 0 6px; font-size: .95rem; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.tr-nums { display: flex; flex-wrap: wrap; gap: 6px 14px; margin: 4px 0 8px; }
-.tr-nums span { display: flex; flex-direction: column; } .tr-nums b { font-size: .92rem; } .tr-nums small { color: var(--muted); font-size: .7rem; }
-.tr-why { font-size: .85rem; margin: 6px 0; } .tr-why .ico { color: var(--mango); }
-.tr-card .row { gap: 6px; flex-wrap: wrap; } .tr-card .row .btn, .tr-card .row .ghost { margin: 0; }
-.tr-settings summary { cursor: pointer; list-style: none; } .tr-settings h3 { margin: 16px 0 4px; font-size: .95rem; }
-.chips { display: flex; flex-wrap: wrap; gap: 6px; } .chip-check { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 999px; border: 1px solid var(--line); font-size: .8rem; margin: 0; cursor: pointer; }
-@media (max-width: 520px) { .tr-card { grid-template-columns: 80px minmax(0, 1fr); } .tr-card > img, .tr-noimg { width: 80px; height: 80px; } }
-.tr-grid { grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); }
-.tr-card .row { display: flex; align-items: center; }
-.tr-nums { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
 
 /* Badge « identité vérifiée » (sceau Kamwa, même dessin que la boutique) */
 .vbadge { width: 1.05em; height: 1.05em; flex: none; display: inline-block; vertical-align: -.16em; margin-left: .3em; --vb: #8BB6FF; --vb-check: #122547; }
@@ -689,7 +660,6 @@ html[data-theme="light"] .st-shipped { background: #E6EDFF; color: #2F4FB0; }
 html[data-theme="light"] .st-delivered { background: #E1F5EC; color: #0E7A5A; }
 html[data-theme="light"] .st-cancelled { background: #FDEEEC; color: #C62E1F; }
 html[data-theme="light"] .tag { background: #E9F1FF; color: #2F5EB0; }
-html[data-theme="light"] .tag.fr { background: #E6EDFF; color: #2F4FB0; }
 @media (max-width: 900px) {
   .mobile-top { background: var(--glass); }
   .topbar { border-bottom: 1px solid var(--line); }

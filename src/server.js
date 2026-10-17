@@ -53,7 +53,6 @@ app.use('/api/products', require('./routes/products'));
 app.use('/api/orders', require('./routes/orders'));
 app.use('/api/payments', require('./routes/payments'));
 app.use('/api/account', require('./routes/account'));
-app.use('/api/imports', require('./routes/imports'));
 app.use('/api/chat', require('./routes/chat')); // messagerie (bulle « Aide » de la boutique)
 // Notifications de suivi sur le téléphone (Web Push)
 const push = require('./push');
@@ -65,8 +64,6 @@ parcels.watchOrders(); // colis créés et mis à jour avec la commande
 // Rafraîchissement instantané des écrans ouverts (boutique) : seulement ce qui concerne ce client
 const events = require('./events');
 events.watchStore();
-// Agent Tendances : passages automatiques plusieurs fois par jour (pas sur la démo Vercel)
-require('./trends').startScheduler();
 app.get('/api/events', (req, res) => {
   const { currentCustomer } = require('./customer/auth');
   const me = currentCustomer(req)?.id || null;

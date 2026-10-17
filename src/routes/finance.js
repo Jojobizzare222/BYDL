@@ -12,7 +12,7 @@ const { orders, payments, products, staff, ledger, activity } = require('../stor
 
 const router = express.Router();
 
-const METHODS = { cash: 'Caisse espèces', momo: 'Mobile Money', card: 'Carte (prestataire)', bank: 'Banque', agent: 'Agent Europe (en FCFA)' };
+const METHODS = { cash: 'Caisse espèces', momo: 'Mobile Money', card: 'Carte (prestataire)', bank: 'Banque' };
 // accrual = compte dans la rentabilité. Les achats de stock, paiements fournisseurs et remboursements ne comptent
 // qu'en trésorerie (le coût des produits est déjà compté à la vente ; une vente annulée n'est pas une vente).
 const CATEGORIES = {
@@ -20,9 +20,6 @@ const CATEGORIES = {
     { key: 'stock', label: 'Achat de marchandises', accrual: false },
     { key: 'supplier', label: 'Paiement fournisseur', accrual: false },
     { key: 'refund', label: 'Remboursement client', accrual: false },
-    { key: 'import_purchase', label: 'Achat en Europe (agent)', accrual: false },
-    { key: 'import_freight', label: 'Transport Europe → Congo', accrual: false },
-    { key: 'customs', label: 'Douane (achats en Europe)', accrual: false },
     { key: 'delivery', label: 'Livraison et transport', accrual: true },
     { key: 'rent', label: 'Loyer et agence', accrual: true },
     { key: 'salary', label: 'Salaires et primes', accrual: true },
@@ -40,7 +37,7 @@ const CATEGORIES = {
   ],
   transfer: [{ key: 'transfer', label: 'Transfert entre caisses', accrual: false }],
 };
-const catOf = (type, key) => CATEGORIES[type]?.find((c) => c.key === key);
+const catOf = (type, key) => CATEGORIES[type]?.find((c) => c.key === key) || { key, label: key, accrual: true }; // anciennes catégories (achat en Europe) : affichées telles quelles
 const OPERATOR_METHOD = { mtn: 'momo', airtel: 'momo', card: 'card', cash: 'cash' };
 
 const day = (iso) => String(iso || '').slice(0, 10);
@@ -133,6 +130,7 @@ function balancesUntil(to) {
   for (const r of allReceipts()) if (!to || r.date <= to) bal[r.method] += r.amount;
   for (const e of ledger.all()) {
     if (to && e.date > to) continue;
+    if (!(e.method in bal) || (e.type === 'transfer' && !(e.toMethod in bal))) continue; // ancienne caisse « Agent Europe »
     if (e.type === 'income') bal[e.method] += e.amount;
     if (e.type === 'expense') bal[e.method] -= e.amount;
     if (e.type === 'transfer') { bal[e.method] -= e.amount; bal[e.toMethod] += e.amount; }

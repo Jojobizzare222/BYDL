@@ -70,10 +70,6 @@ router.post('/', async (req, res) => {
     }
   }
 
-  // Achat en Europe : Kamwa achète pour le client, la commande se paie EN ENTIER à l'avance
-  if (order.import && !['momo', 'card', 'cash'].includes(method)) {
-    return res.status(400).json({ error: 'Les achats en Europe se paient en entier avant leur achat (pas de paiement à la réception)' });
-  }
   if (method === 'cash' && cashMode === 'delivery' && !(order.customer?.address && order.customer.address.trim())) {
     return res.status(400).json({ error: "Indiquez votre adresse de livraison (quartier, repère)" });
   }
@@ -108,7 +104,6 @@ router.post('/', async (req, res) => {
 
   // Le stock a pu partir depuis la création de la commande (autre client en train de payer).
   for (const line of order.lines) {
-    if (order.import && !line.productId) continue; // article acheté en Europe : pas de stock Kamwa
     const product = products.get(line.productId);
     if (!product || line.qty > availableStock(product, order.id)) {
       return res.status(409).json({ error: `Stock insuffisant pour ${line.name}. Retirez-le du panier ou réessayez plus tard.` });
@@ -267,7 +262,7 @@ function settleSuccessfulPayment(payment) {
     const paid = orders.update(order.id, {
       status: 'paid',
       paidAt: now,
-      lines: order.lines.map((l) => (l.productId ? { ...l, ...costSnapshot(products.get(l.productId)) } : l)), // achat en Europe : coût du devis
+      lines: order.lines.map((l) => (l.productId ? { ...l, ...costSnapshot(products.get(l.productId)) } : l)),
       paymentId: payment.id,
       history: [...(order.history || []), { status: 'paid', at: now }],
     });

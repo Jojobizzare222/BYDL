@@ -1,6 +1,5 @@
 const crypto = require('crypto');
 const { newDeliveryCode } = require('../delivery');
-const { importSettings } = require('../imports');
 const router = require('express').Router();
 const billing = require('../billing');
 const { products, orders } = require('../store');
@@ -32,14 +31,6 @@ function clientOrder({ accessToken, note, paidAfterCancel, ...order }) {
   if (order.attempts) order.attempts = order.attempts.map(({ at, label }) => ({ at, label }));
   if (order.planned) order.planned = { date: order.planned.date, slot: order.planned.slot, label: require('../delivery').SLOTS[order.planned.slot] || '' };
   if (order.balancePaid) order.balancePaid = { method: order.balancePaid.method, at: order.balancePaid.at };
-  if (order.import) {
-    const i = order.import;
-    order.import = {
-      requestId: i.requestId, stage: i.stage, delay: i.delay, items: (i.items || []).map(({ title, qty, options, url }) => ({ title, qty, options, url })),
-      boughtAt: i.bought?.at || null, receivedAt: i.received?.at || null, photos: i.received?.photos || [],
-      departedAt: i.departedAt || null, eta: i.eta || null, arrivedAt: i.arrivedAt || null,
-    };
-  }
   // Factures / reçus / avoirs de la commande (liens avec la clé secrète de chaque document)
   const docs = order.id ? billing.forOrder(order.id).map(billing.publicDoc) : [];
   return { ...order, lines: clientLines(order.lines), documents: docs, parcels: order.id ? require('../parcels').clientParcels(order.id) : [] };
@@ -109,12 +100,6 @@ router.post('/', (req, res) => {
     }
     lines.push({ productId, name: product.name, unitPrice: product.price, qty: quantity, total: product.price * quantity, ...(chosen ? { variant: chosen } : {}) });
   }
-  // Produits venus de France : la commande suit le circuit d'achat en France (agent, envoi en avion, arrivée)
-  const fr = lines.filter((l) => products.get(l.productId)?.origin === 'FR');
-  const importInfo = fr.length ? {
-    requestId: null, stage: 'to_buy', delay: importSettings().delay,
-    items: fr.map((l) => { const p = products.get(l.productId); return { title: p.name, qty: l.qty, options: l.variant || '', url: p.sourceUrl || '', priceEur: p.priceEur || 0, shippingEur: 0 }; }),
-  } : null;
 
   const subtotal = lines.reduce((s, l) => s + l.total, 0);
   const order = orders.insert({
@@ -136,7 +121,6 @@ router.post('/', (req, res) => {
     },
     status: 'pending_payment', // pending_payment -> paid (ou confirmed si paiement à la réception) -> shipped -> delivered | cancelled
     deliveryCode: newDeliveryCode(), // à donner au livreur (ou à l'agence) seulement à la remise du colis
-    ...(importInfo ? { import: importInfo } : {}),
     createdAt: new Date().toISOString(),
   });
 

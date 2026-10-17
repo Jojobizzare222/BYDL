@@ -71,9 +71,6 @@ const STAGE_TEXT = {
   near: () => ['Votre livreur arrive !', 'Il est à moins de 2 minutes. Préparez votre code de livraison.'],
   delivered: (o) => [o.fulfillment === 'pickup' ? 'Commande retirée ✓' : 'Commande livrée ✓', 'Merci pour votre confiance. À bientôt sur Kamwa !'],
   cancelled: () => ['Commande annulée', 'Ouvrez Kamwa pour voir le détail.'],
-  bought: () => ['Article acheté en Europe ✓', 'Nous avons acheté votre article. Il part avec le prochain envoi.'],
-  shipped_fr: () => ['Votre colis a quitté l\'Europe ✈️', 'Il est en route vers le Congo.'],
-  arrived: (o) => ['Votre colis est arrivé au Congo', o.fulfillment === 'pickup' ? `Il vous attend au point relais ${o.agency?.name || ''}.` : 'Nous vous appelons pour la livraison.'],
 };
 function orderStage(order, stage) {
   const f = STAGE_TEXT[stage];
@@ -93,8 +90,6 @@ function watchOrders() {
     const after = update(id, patch);
     if (before && after) {
       if (patch.status && patch.status !== before.status && STAGE_TEXT[patch.status]) orderStage(after, patch.status);
-      const s0 = before.import?.stage, s1 = after.import?.stage;
-      if (s1 && s1 !== s0 && STAGE_TEXT[s1] && s1 !== 'to_buy') orderStage(after, s1);
     }
     return after;
   };

@@ -1,13 +1,13 @@
 // Messagerie — côté Kamwa Pro (/api/admin/chat)
 //  - conversations des clients : admin + employés Commandes (service client) ;
-//  - salon « Équipe Kamwa » : toute l'équipe interne (admin, catalogue, commandes, livreurs, agent Europe), pas les fournisseurs.
+//  - salon « Équipe Kamwa » : toute l'équipe interne (admin, catalogue, commandes, livreurs), pas les fournisseurs.
 const router = require('express').Router();
 const { conversations, customers, orders } = require('../store');
 const { requireRole } = require('../admin/auth');
 const chat = require('../chat');
 
 const SUPPORT = requireRole('orders');
-const TEAM = requireRole('orders', 'catalog', 'courier', 'agent');
+const TEAM = requireRole('orders', 'catalog', 'courier');
 const canSupport = (u) => ['admin', 'orders'].includes(u.role);
 const staffName = (u) => u.name || (u.role === 'admin' ? 'Administrateur' : u.login);
 

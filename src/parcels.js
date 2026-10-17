@@ -20,8 +20,8 @@ const STAGES = {
 };
 const OPEN = ['preparing', 'ready', 'with_courier', 'at_relay'];
 const isPickup = (o) => o.fulfillment === 'pickup';
-// Commande prête à préparer : payée (ou confirmée à la réception), et arrivée au Congo si achat en Europe
-const eligible = (o) => ['paid', 'confirmed', 'shipped', 'delivered'].includes(o.status) && (!o.import || o.import.stage === 'arrived');
+// Commande prête à préparer : payée (ou confirmée à la réception)
+const eligible = (o) => ['paid', 'confirmed', 'shipped', 'delivered'].includes(o.status);
 
 function nextNumber(at = new Date()) {
   const d = new Date(at.toLocaleString('en-US', { timeZone: 'Africa/Brazzaville' }));

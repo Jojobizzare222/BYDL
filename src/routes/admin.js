@@ -17,8 +17,6 @@ const {
 const { UNIVERSES, universeOf } = require('../catalog');
 const demo = require('../demo');
 const { normalizeLocal, detectOperator } = require('../utils/phone');
-const imp = require('../imports');
-const scrape = require('../scrape');
 const identity = require('../customer/identity');
 const sales = require('../sales');
 
@@ -34,10 +32,7 @@ router.get('/me', (req, res) => {
 router.use(requireStaff);
 // Volet Finances (administrateur uniquement)
 router.use('/finance', requireRole(), require('./finance'));
-// Achat en Europe (devis, agent Europe, envois)
-router.use('/france', require('./import-admin'));
 router.use('/chat', require('./chat-admin')); // messagerie : clients + salon de l'équipe
-router.use('/trends', require('./trends-admin')); // agent Tendances (admin)
 router.use('/documents', require('./documents-admin')); // factures, reçus, avoirs [admin, orders]
 router.use('/parcels', require('./parcels-admin')); // colis, étiquettes, scan [admin, orders, courier]
 router.use('/purchases', require('./purchases-admin')); // bons de commande fournisseurs [admin, catalog ; supplier : les siens]
@@ -53,7 +48,6 @@ router.get('/events', (req, res) => {
       if (!o) return null;
       if (ordersRole) return { topic: 'orders', id: o.id };
       if (role === 'courier' && (o.courierId === u.id || before?.courierId === u.id)) return { topic: 'orders', id: o.id };
-      if (role === 'agent' && o.import) return { topic: 'orders', id: o.id };
       if (role === 'supplier' && o.lines?.some((l) => l.supplierId === u.id || products.get(l.productId)?.supplierId === u.id)) return { topic: 'orders', id: o.id };
       return null;
     }
@@ -61,14 +55,12 @@ router.get('/events', (req, res) => {
     if (col === 'conversations') return doc.kind === 'team' ? (role !== 'supplier' ? { topic: 'team' } : null) : ordersRole ? { topic: 'chat', id: doc.id } : null;
     if (col === 'customers') return role === 'admin' ? { topic: 'customers', id: doc.id } : null;
     if (col === 'agencies') return role === 'admin' ? { topic: 'agencies' } : null;
-    if (col === 'imports' || col === 'shipments') return ordersRole || role === 'agent' ? { topic: 'imports' } : null;
     if (col === 'ledger') return role === 'admin' ? { topic: 'finance' } : null;
     if (col === 'documents') return ordersRole ? { topic: 'documents', id: doc.orderId } : null;
     if (col === 'purchases') return ['admin', 'catalog'].includes(role) || (role === 'supplier' && doc.supplier?.supplierId === u.id) ? { topic: 'purchases', id: doc.id } : null;
     if (col === 'stock_moves') return ['admin', 'catalog'].includes(role) ? { topic: 'stock' } : null;
     if (col === 'parcels') return ordersRole || (role === 'courier' && orders.get(doc.orderId)?.courierId === u.id) ? { topic: 'parcels', id: doc.orderId } : null;
     if (col === 'staff') return role === 'admin' && doc.livePos === before?.livePos ? { topic: 'staff' } : null;
-    if (col === 'trends') return role === 'admin' && doc.status === 'new' ? { topic: 'trends' } : null;
     return null;
   });
 });
@@ -120,8 +112,7 @@ const PICKUP_TRANSITIONS = {
   delivered: ['paid'],
   cancelled: [],
 };
-const IMPORT_WAITING = { pending_payment: ['cancelled'], paid: ['cancelled'], cancelled: [] }; // achat en Europe pas encore arrivé au Congo
-const transitionsFor = (order) => (order.import && order.import.stage !== 'arrived' ? IMPORT_WAITING : order.fulfillment === 'pickup' ? PICKUP_TRANSITIONS : order.paymentPlan === 'cod' ? COD_TRANSITIONS : TRANSITIONS);
+const transitionsFor = (order) => (order.fulfillment === 'pickup' ? PICKUP_TRANSITIONS : order.paymentPlan === 'cod' ? COD_TRANSITIONS : TRANSITIONS);
 
 // Commande vue par l'équipe. Le code de livraison n'est montré qu'à l'admin (jamais aux employés ni aux livreurs).
 function adminOrder({ accessToken, ...order }, user) {
@@ -204,7 +195,7 @@ router.post('/orders/:id/cash-received', requireRole('orders'), (req, res) => {
 
 // ---------- Livraison sécurisée : appel de confirmation, livreur, code de livraison ----------
 const isDeliveryOrder = (o) => o.fulfillment !== 'pickup';
-const readyToDeliver = (o) => ['paid', 'confirmed', 'shipped'].includes(o.status) && (!o.import || o.import.stage === 'arrived');
+const readyToDeliver = (o) => ['paid', 'confirmed', 'shipped'].includes(o.status);
 const actor = (req) => ({ id: req.user.id, role: req.user.role, name: req.user.name });
 
 router.get('/couriers', requireRole('orders'), (req, res) => {
@@ -229,7 +220,7 @@ router.post('/orders/:id/call', requireRole('orders'), (req, res) => {
 router.post('/orders/:id/plan', requireRole('orders'), (req, res) => {
   const o = orders.get(req.params.id);
   if (!o) return res.status(404).json({ error: 'Commande introuvable' });
-  if (!isDeliveryOrder(o) || !readyToDeliver(o)) return res.status(400).json({ error: 'Cette commande ne peut pas être planifiée (retrait en agence, non payée, pas encore arrivée ou déjà livrée)' });
+  if (!isDeliveryOrder(o) || !readyToDeliver(o)) return res.status(400).json({ error: 'Cette commande ne peut pas être planifiée (retrait en agence, non payée ou déjà livrée)' });
   const r = delivery.planDelivery(o, { date: req.body?.date, slot: req.body?.slot, by: actor(req) });
   if (r.error) return res.status(400).json({ error: r.error });
   let updated = r.value;
@@ -251,7 +242,7 @@ router.delete('/orders/:id/plan', requireRole('orders'), (req, res) => {
   log(req, 'Planification retirée', { id: o.id, name: o.id });
   res.json(adminOrder(updated, req.user));
 });
-// Le calendrier : livraisons planifiées (par jour), commandes à planifier, arrivées fournisseurs et envois d'Europe
+// Le calendrier : livraisons planifiées (par jour), commandes à planifier, arrivées fournisseurs
 router.get('/calendar', requireRole('orders', 'courier'), (req, res) => {
   const from = /^\d{4}-\d{2}-\d{2}$/.test(req.query.from) ? req.query.from : delivery.todayCongo();
   const to = /^\d{4}-\d{2}-\d{2}$/.test(req.query.to) ? req.query.to : from;
@@ -265,10 +256,9 @@ router.get('/calendar', requireRole('orders', 'courier'), (req, res) => {
   const planned = all.filter((o) => o.planned && o.planned.date >= from && o.planned.date <= to && o.status !== 'cancelled').map(item);
   const overdue = all.filter((o) => o.planned && o.planned.date < delivery.todayCongo() && !['delivered', 'cancelled'].includes(o.status)).map(item);
   const unplanned = mine ? [] : all.filter((o) => !o.planned && readyToDeliver(o)).sort((a, b) => (a.paidAt || a.createdAt) < (b.paidAt || b.createdAt) ? -1 : 1)
-    .map((o) => ({ id: o.id, status: o.status, paidAt: o.paidAt || o.createdAt, customer: { name: o.customer.name, city: o.customer.city || '' }, items: o.lines.reduce((n, l) => n + l.qty, 0), courierName: delivery.courierName(o.courierId), callConfirmed: Boolean(o.callConfirmedAt), import: Boolean(o.import) }));
+    .map((o) => ({ id: o.id, status: o.status, paidAt: o.paidAt || o.createdAt, customer: { name: o.customer.name, city: o.customer.city || '' }, items: o.lines.reduce((n, l) => n + l.qty, 0), courierName: delivery.courierName(o.courierId), callConfirmed: Boolean(o.callConfirmedAt) }));
   const purchases = !mine && req.user.role === 'admin' ? require('../store').purchases.all().filter((b) => b.expectedAt && b.expectedAt >= from && b.expectedAt <= to && ['sent', 'confirmed', 'partial'].includes(b.status)).map((b) => ({ id: b.id, number: b.number, date: b.expectedAt, supplier: b.supplier.name, status: b.status })) : [];
-  const shipments = mine ? [] : require('../store').shipments.all().filter((s) => s.eta && String(s.eta).slice(0, 10) >= from && String(s.eta).slice(0, 10) <= to && !s.arrivedAt).map((s) => ({ id: s.id, date: String(s.eta).slice(0, 10), orders: (s.orderIds || []).length }));
-  res.json({ from, to, today: delivery.todayCongo(), slots: delivery.SLOTS, planned, overdue, unplanned, purchases, shipments,
+  res.json({ from, to, today: delivery.todayCongo(), slots: delivery.SLOTS, planned, overdue, unplanned, purchases,
     couriers: mine ? [] : staff.all().filter((u) => u.role === 'courier' && u.active !== false).map((u) => ({ id: u.id, name: u.name })) });
 });
 
@@ -583,18 +573,6 @@ function cleanProduct(input, current, { role }) {
     p.options = lines.map((l) => l.split(/\s*:\s*/)).map(([name, ...rest]) => ({ name: str(name, 30), values: [...new Set(rest.join(':').split(/\s*,\s*/).map((v) => str(v, 40)).filter(Boolean))].slice(0, 40) }))
       .filter((o) => o.name && o.values.length).slice(0, 3);
   }
-  // Produit venu d’Europe (expédié par avion) : prix tout compris calculé depuis le prix en € et le poids
-  if ('origin' in input && role !== 'supplier') p.origin = input.origin === 'FR' ? 'FR' : null;
-  if ('sourceUrl' in input && role !== 'supplier') p.sourceUrl = /^https?:\/\//.test(String(input.sourceUrl || '')) ? str(input.sourceUrl, 600) : null;
-  if ('priceEur' in input && role !== 'supplier') p.priceEur = input.priceEur === '' || input.priceEur == null ? null : Math.round(Number(String(input.priceEur).replace(',', '.')) * 100) / 100;
-  if ('weightKg' in input && role !== 'supplier') p.weightKg = input.weightKg === '' || input.weightKg == null ? null : Math.round(Number(String(input.weightKg).replace(',', '.')) * 100) / 100;
-  if (p.origin === 'FR') {
-    if (!(p.priceEur > 0 && p.priceEur < 100000)) return { error: 'Produit venu d’Europe : indiquez son prix en euros' };
-    if (!(p.weightKg > 0 && p.weightKg <= 200)) return { error: 'Produit venu d’Europe : indiquez son poids (kg, emballage compris)' };
-    const q = imp.computeQuote([{ priceEur: p.priceEur, qty: 1 }], p.weightKg);
-    p.costPrice = q.cost; // coût réel estimé (article + transport avion + douane) : sert au calcul de la marge
-    if (!('price' in input) || input.price === '' || input.price == null) p.price = q.total; // prix tout compris automatique
-  }
   // Photos : plusieurs possibles ; la première est la photo principale
   if ('images' in input || 'image' in input) {
     const list = 'images' in input ? (Array.isArray(input.images) ? input.images : []) : [input.image].filter(Boolean);
@@ -768,7 +746,7 @@ router.post('/staff', requireRole(), (req, res) => {
   if (!cleanName) return res.status(400).json({ error: 'Le nom est obligatoire' });
   if (!/^[a-z0-9._@-]{3,40}$/.test(cleanLogin)) return res.status(400).json({ error: 'Identifiant : 3 à 40 caractères, lettres sans accent, chiffres, point, tiret' });
   if (cleanLogin === ADMIN_LOGIN || findStaff(cleanLogin)) return res.status(409).json({ error: 'Cet identifiant est déjà utilisé' });
-  if (!['catalog', 'orders', 'supplier', 'courier', 'agent'].includes(role)) return res.status(400).json({ error: 'Rôle inconnu' });
+  if (!['catalog', 'orders', 'supplier', 'courier'].includes(role)) return res.status(400).json({ error: 'Rôle inconnu' });
   if (role === 'supplier' && !String(company || '').trim()) return res.status(400).json({ error: "Indiquez le nom de l'entreprise du fournisseur" });
   const password = tempPassword();
   const user = staff.insert({
@@ -862,19 +840,6 @@ router.get('/stats', (req, res) => {
     out.series = [{ label: 'Articles vendus', data: perDay((l) => l.qty), type: 'bar' }, { label: 'Montant (FCFA)', data: perDay((l) => l.qty * priceOf(l.productId)), type: 'line', axis: 'y2' }];
     out.top = countBy(lines, (l) => l.name, (l) => l.qty).slice(0, 6);
     out.lowStock = lowStockOf(mine);
-    return res.json(out);
-  }
-
-  if (role === 'agent') {
-    const imp = allOrders.filter((o) => o.import && o.paidAt && o.status !== 'cancelled');
-    const count = (st) => imp.filter((o) => o.import.stage === st).length;
-    out.kpis = [
-      { label: 'À acheter', value: count('to_buy'), icon: 'shopping-cart-duotone' },
-      { label: 'Achetés, en attente de réception', value: count('bought'), icon: 'package-duotone' },
-      { label: 'Reçus, à envoyer', value: count('received'), icon: 'truck-duotone' },
-      { label: 'En route vers le Congo', value: count('shipped_fr'), icon: 'map-pin-duotone' },
-    ];
-    out.series = [{ label: 'Commandes payées', data: labels.map((d) => imp.filter((o) => String(o.paidAt).slice(0, 10) === d).length), type: 'bar' }];
     return res.json(out);
   }
 
@@ -1005,7 +970,7 @@ const SIGNATURES = [
   { ext: 'webp', test: (b) => b.slice(0, 4).toString() === 'RIFF' && b.slice(8, 12).toString() === 'WEBP' },
 ];
 
-router.post('/uploads', requireRole('catalog', 'supplier', 'agent'), express.raw({ type: ['image/jpeg', 'image/png', 'image/webp'], limit: '5mb' }), (req, res) => {
+router.post('/uploads', requireRole('catalog', 'supplier'), express.raw({ type: ['image/jpeg', 'image/png', 'image/webp'], limit: '5mb' }), (req, res) => {
   const buf = req.body;
   const type = Buffer.isBuffer(buf) && buf.length > 12 && SIGNATURES.find((s) => s.test(buf));
   if (!type) return res.status(400).json({ error: 'Photo non reconnue (formats acceptés : JPG, PNG, WebP, 5 Mo max)' });
@@ -1013,47 +978,6 @@ router.post('/uploads', requireRole('catalog', 'supplier', 'agent'), express.raw
   const name = `${Date.now().toString(36)}-${crypto.randomBytes(4).toString('hex')}.${type.ext}`;
   fs.writeFileSync(path.join(UPLOAD_DIR, name), buf);
   res.status(201).json({ url: `/images/uploads/${name}` });
-});
-
-// ---------- Remplir une fiche depuis un lien (site vendeur en Europe) ----------
-// Photos récupérées puis ré-enregistrées sur Kamwa (JPEG, 1600 px max) : plus rapides et indépendantes du site d'origine.
-async function importImages(urls) {
-  const sharp = require('sharp');
-  const out = []; let failed = 0;
-  for (const u of [...new Set((Array.isArray(urls) ? urls : []).filter((x) => /^https?:\/\//.test(String(x))))].slice(0, 6)) {
-    try {
-      const buf = await scrape.fetchImage(u);
-      const jpg = await sharp(buf).rotate().resize(1600, 1600, { fit: 'inside', withoutEnlargement: true }).flatten({ background: '#ffffff' }).jpeg({ quality: 86 }).toBuffer();
-      fs.mkdirSync(UPLOAD_DIR, { recursive: true });
-      const name = `${Date.now().toString(36)}-${crypto.randomBytes(4).toString('hex')}-s.jpg`;
-      fs.writeFileSync(path.join(UPLOAD_DIR, name), jpg);
-      out.push(`/images/uploads/${name}`);
-    } catch { failed++; }
-  }
-  return { images: out, failedImages: failed };
-}
-// Pas plus de 30 lectures de liens / imports de photos par personne et par 10 minutes (usage normal : une fiche à la fois)
-const linkUse = new Map();
-function linkQuota(req, res, next) {
-  const k = req.user?.id || req.user?.login || req.ip; const now = Date.now();
-  const list = (linkUse.get(k) || []).filter((t) => now - t < 10 * 60e3);
-  if (list.length >= 30) return res.status(429).json({ error: 'Trop de lectures de liens en peu de temps. Patientez quelques minutes.' });
-  list.push(now); linkUse.set(k, list); next();
-}
-router.post('/products/scrape', requireRole('catalog'), linkQuota, async (req, res) => {
-  try {
-    const data = await scrape.readProduct(String(req.body?.url || '').trim());
-    const imgs = await importImages(data.images);
-    log(req, 'Fiche remplie depuis un lien', null, data.source.slice(0, 120));
-    res.json({ ...data, sourceImages: data.images, ...imgs });
-  } catch (err) {
-    res.status(422).json({ error: err.message || 'Lecture impossible' });
-  }
-});
-// Données envoyées par le bouton « → Kamwa » (favori) : seules les photos sont récupérées ici
-router.post('/products/import-images', requireRole('catalog'), linkQuota, async (req, res) => {
-  const category = scrape.guessCategory(String(req.body?.name || ''));
-  res.json({ ...(await importImages(req.body?.urls)), category, weightKg: scrape.WEIGHT[category] || 1 });
 });
 
 // ---------- Détourage automatique (retrait de l'arrière-plan) ----------

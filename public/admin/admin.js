@@ -19,7 +19,6 @@
     supplier: () => state.user?.role === 'supplier',
     admin: () => state.user?.role === 'admin',
     courier: () => state.user?.role === 'courier',
-    agent: () => state.user?.role === 'agent',
   };
   const homeHash = () => '#/tableau';
 
@@ -169,8 +168,6 @@
     if (CAN.supplier()) quick.push(`<a class="ghost" href="#/fournisseur">${icon('receipt-duotone')} Mes commandes</a>`);
     if (CAN.courier()) quick.push(`<a class="btn" href="#/livraisons">${icon('truck-duotone')} Mes livraisons</a>`);
     if (CAN.courier()) quick.push(`<a class="ghost" href="#/scanner">${icon('camera-bold')} Scanner un colis</a>`);
-    if (CAN.agent()) quick.push(`<a class="btn" href="#/agent">${icon('airplane-tilt')} Achats à traiter</a>`);
-    if (CAN.orders()) quick.push(`<a class="ghost" href="#/france">${icon('airplane-tilt')} Devis Europe</a>`);
     const today = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
     app.innerHTML = `
       <section class="dash-top">
@@ -358,7 +355,6 @@
   const FILTERS = [
     ['paid', 'À livrer / remettre'],
     ['collect', 'À encaisser en agence'],
-    ['france', 'Achats Europe en cours'],
     ['shipped', 'En livraison'],
     ['delivered', 'Livrées'],
     ['cancelled', 'Annulées'],
@@ -369,8 +365,7 @@
 
   function viewOrders() {
     const f = state.orderFilter;
-    const waitingFr = (o) => o.import && o.paidAt && o.status === 'paid' && o.import.stage !== 'arrived';
-    const matches = (o, k) => k === 'all' || (k === 'france' ? waitingFr(o) : k === 'collect' ? toCollect(o) : o.status === k && !(k === 'paid' && waitingFr(o))) || (k === 'paid' && (o.paidAfterCancel || o.status === 'confirmed'));
+    const matches = (o, k) => k === 'all' || (k === 'collect' ? toCollect(o) : o.status === k) || (k === 'paid' && (o.paidAfterCancel || o.status === 'confirmed'));
     const list = state.orders.filter((o) => matches(o, f));
     const qty = (o) => o.lines.reduce((s, l) => s + l.qty, 0);
     app.innerHTML = pageHead({ title: 'Commandes', desc: 'Suivez chaque commande, du paiement à la livraison. Cliquez sur une ligne pour la gérer.', actions: exportBtn('orders') })
@@ -383,7 +378,7 @@
       placeholder: 'N° de commande, client, téléphone ou ville', empty: 'Aucune commande ici.',
       searchText: (o) => `${o.id} ${o.customer.name} ${o.customer.phone} ${o.customer.city}`,
       columns: [
-        { key: 'id', label: 'Commande', render: (o) => `<strong class="mono">${esc(o.id)}</strong>${o.paidAfterCancel ? '<br><span class="tag danger">À rembourser</span>' : ''}${isPickup(o) ? `<br><span class="tag">Retrait ${esc(o.agency?.name || '')}</span>` : o.agency ? `<br><span class="tag">Payé à ${esc(o.agency.name || 'l\'agence')} · livré</span>` : ''}${o.paymentPlan === 'cod' ? `<br><span class="tag warn">À la réception</span>` : ''}${o.import ? `<br><span class="tag fr">${icon('airplane-tilt')} Europe : ${esc(FR_STAGES[o.import.stage] || o.import.stage)}</span>` : ''}${!isPickup(o) && ['paid', 'confirmed'].includes(o.status) && !o.callConfirmedAt ? ' <span class="tag danger">À appeler</span>' : ''}${o.courierName && o.status === 'shipped' ? `<br><span class="muted">${icon('truck-duotone')} ${esc(o.courierName)}</span>` : ''}` },
+        { key: 'id', label: 'Commande', render: (o) => `<strong class="mono">${esc(o.id)}</strong>${o.paidAfterCancel ? '<br><span class="tag danger">À rembourser</span>' : ''}${isPickup(o) ? `<br><span class="tag">Retrait ${esc(o.agency?.name || '')}</span>` : o.agency ? `<br><span class="tag">Payé à ${esc(o.agency.name || 'l\'agence')} · livré</span>` : ''}${o.paymentPlan === 'cod' ? `<br><span class="tag warn">À la réception</span>` : ''}${!isPickup(o) && ['paid', 'confirmed'].includes(o.status) && !o.callConfirmedAt ? ' <span class="tag danger">À appeler</span>' : ''}${o.courierName && o.status === 'shipped' ? `<br><span class="muted">${icon('truck-duotone')} ${esc(o.courierName)}</span>` : ''}` },
         { key: 'client', label: 'Client', sortValue: (o) => norm(o.customer.name), render: (o) => `${esc(o.customer.name)}${vb(o.account?.idStatus)}<br><span class="muted">${esc(o.customer.phone)}</span>` },
         { key: 'city', label: 'Ville', sortValue: (o) => o.customer.city || '', render: (o) => esc(o.customer.city || '—') },
         { key: 'qty', label: 'Articles', cls: 'num', sortValue: qty, render: qty },
@@ -445,8 +440,7 @@
         </form>
       </div>
 
-      ${o.import ? importPanel(o) : ''}
-      ${o.import && o.import.stage !== 'arrived' ? '' : deliveryPanel(o)}
+      ${deliveryPanel(o)}
 
       <div class="panel">
         <h2>Suivi</h2>
@@ -511,253 +505,6 @@
         toast('❌ ' + err.message);
       }
     });
-  }
-
-  // Bouton « → Kamwa » (favori) : copie les informations publiques de la page produit ouverte et ouvre une fiche pré-remplie.
-  // Fonction AUTONOME (convertie en texte) : elle s'exécute sur la page du site vendeur, pas dans Kamwa.
-  function KAMWA_BM(origin) {
-    // Outils « propres » pris dans une page vierge : certains sites modifient JSON, encodeURIComponent… et cassaient les données
-    var J = JSON, E = encodeURIComponent, frame = null;
-    try { frame = document.createElement('iframe'); frame.style.display = 'none'; document.documentElement.appendChild(frame); J = frame.contentWindow.JSON; E = frame.contentWindow.encodeURIComponent; } catch (e) { J = JSON; E = encodeURIComponent; }
-    // Texte coupé sans jamais casser un caractère (émojis…) et sans caractère invalide
-    var cut = function (x, n) { var t = String(x || '').slice(0, n); if (/[\uD800-\uDBFF]$/.test(t)) t = t.slice(0, -1); return t.toWellFormed ? t.toWellFormed() : t.replace(/[\uD800-\uDFFF]/g, ''); };
-    var d = { u: location.href, n: '', b: '', de: '', im: [], p: null, c: null, co: [], si: [] };
-    var A = function (x) { return x == null ? [] : Array.isArray(x) ? x : [x]; };
-    var T = function (x) { return (new DOMParser().parseFromString(String(x || ''), 'text/html').body.textContent || '').replace(/\s+/g, ' ').trim(); }; // analyse inerte (aucun script exécuté)
-    var N = [];
-    document.querySelectorAll('script[type="application/ld+json"]').forEach(function (s) {
-      try { (function w(n) { A(n).forEach(function (x) { if (x && typeof x === 'object') { N.push(x); if (x['@graph']) w(x['@graph']); } }); })(J.parse(s.textContent)); } catch (e) { /* ignoré */ }
-    });
-    var isT = function (x, t) { return A(x['@type']).join(',').toLowerCase().indexOf(t.toLowerCase()) >= 0; }; // « product » en minuscules (ex. Cdiscount)
-    var P = N.filter(function (x) { return isT(x, 'ProductGroup'); })[0] || N.filter(function (x) { return isT(x, 'Product'); })[0];
-    if (P) {
-      d.n = T(P.name); d.b = T(P.brand && P.brand.name || P.brand); d.de = T(P.description);
-      A(P.image).forEach(function (i) { d.im.push(i && i.url || i); });
-      var gid = P['@id'];
-      var V = A(P.hasVariant).concat(N.filter(function (x) { return x !== P && isT(x, 'Product') && gid && x.isVariantOf && x.isVariantOf['@id'] === gid; })); // variantes séparées (ex. Decathlon)
-      A(P.offers).concat(V.map(function (v) { return v.offers; })).forEach(function (o) {
-        A(o).forEach(function (o) { var ps = o && A(o.priceSpecification)[0]; var p = parseFloat(String(o && (o.price || o.lowPrice || (ps && ps.price)) || '').replace(',', '.')); if (p && (!d.p || p < d.p)) { d.p = p; d.c = o.priceCurrency || (ps && ps.priceCurrency); } });
-      });
-      [P].concat(V).forEach(function (v) {
-        A(v.color).forEach(function (c) { c = T(c); if (c && d.co.indexOf(c) < 0) d.co.push(c); });
-        A(v.size).forEach(function (c) { c = T(c && c.name || c); if (c && d.si.indexOf(c) < 0) d.si.push(c); });
-        if (V.length) A(v.image).forEach(function (i) { d.im.push(i && i.url || i); });
-      });
-    }
-    var M = function (k) { var m = document.querySelector('meta[property="' + k + '"],meta[name="' + k + '"]'); return m && m.content; };
-    d.n = d.n || M('og:title') || document.title; d.de = d.de || M('og:description') || M('description') || '';
-    if (!d.im.length && M('og:image')) d.im.push(M('og:image'));
-    // Grandes photos affichées sur la page (souvent plus nombreuses que dans les données structurées)
-    Array.prototype.slice.call(document.images).filter(function (i) { return i.naturalWidth >= 500 && i.naturalHeight >= 400 && /^https?:/.test(i.currentSrc || i.src); })
-      .forEach(function (i) { var u = i.currentSrc || i.src; if (d.im.indexOf(u) < 0) d.im.push(u); });
-    if (!d.p) { d.p = parseFloat(String(M('product:price:amount') || '').replace(',', '.')) || null; d.c = M('product:price:currency'); }
-    d.im = d.im.filter(Boolean).map(function (u) { try { return new URL(u, location.href).href; } catch (e) { return null; } }).filter(Boolean).slice(0, 6);
-    d.u = cut(d.u, 600); d.n = cut(d.n, 160); d.b = cut(d.b, 60); d.de = cut(d.de, 1200);
-    d.im = d.im.map(function (u) { return cut(u, 500); });
-    d.co = d.co.slice(0, 20).map(function (x) { return cut(x, 40); }); d.si = d.si.slice(0, 30).map(function (x) { return cut(x, 30); });
-    var s = E(J.stringify(d));
-    if (frame) frame.remove();
-    window.open(origin + '/admin/#/produit/nouveau?kamwa2=' + s, '_blank');
-  }
-  const bookmarklet = () => 'javascript:' + encodeURIComponent(`(${KAMWA_BM.toString()})(${JSON.stringify(location.origin)})`);
-
-  // ---------- Achat en Europe ----------
-  const FR_STAGES = { to_buy: 'à acheter', bought: 'acheté', received: "reçu par l'agent", shipped_fr: 'parti d’Europe', arrived: 'arrivé au Congo' };
-  const eur = (n) => `${Number(n || 0).toFixed(2).replace('.', ',')} €`;
-  const importPanel = (o) => {
-    const i = o.import;
-    return `<div class="panel">
-      <h2>${icon('airplane-tilt')} Achat en Europe — ${esc(FR_STAGES[i.stage] || i.stage)}</h2>
-      ${(i.items || []).map((it) => `<p style="margin:4px 0">${it.qty} × <a href="${esc(it.url)}" target="_blank" rel="noopener">${esc(it.title)}</a>${it.options ? ` <span class="muted">(${esc(it.options)})</span>` : ''} <span class="muted">— devis : ${eur(it.priceEur)}</span></p>`).join('')}
-      ${i.bought ? `<p class="muted">Acheté ${eur(i.bought.eur)} par ${esc(i.bought.by)} le ${date(i.bought.at)}${i.bought.ref ? ' · réf. ' + esc(i.bought.ref) : ''}${i.bought.receipt ? ` · <a href="${esc(i.bought.receipt)}" target="_blank">facture</a>` : ''}</p>` : ''}
-      ${i.received ? `<div class="gallery" style="margin-top:8px">${i.received.photos.map((src) => `<div class="gal-item"><img src="${esc(src)}" alt=""></div>`).join('')}</div>` : ''}
-      ${i.shipmentId ? `<p class="muted">Envoi ${esc(i.shipmentId)}${i.eta ? ` · arrivée prévue ${esc(i.eta.split('-').reverse().join('/'))}` : ''}</p>` : ''}
-      ${i.stage !== 'arrived' ? '<p class="muted">La livraison au client sera possible quand l\'envoi sera marqué « arrivé au Congo » (page Envois).</p>' : ''}
-    </div>`;
-  };
-
-  async function viewFrance(id) {
-    if (id) return viewFranceRequest(decodeURIComponent(id));
-    let list = [];
-    try { list = await api('/france/requests'); } catch { return; }
-    const f = state.frFilter || 'requested';
-    const TABS = [['requested', 'À chiffrer'], ['quoted', 'Devis envoyés'], ['accepted', 'Acceptés'], ['closed', 'Expirés / refusés'], ['all', 'Toutes']];
-    const ST = { requested: ['À chiffrer', 'warn'], quoted: ['Devis envoyé', ''], accepted: ['Accepté', 'ok'], expired: ['Expiré', 'danger'], declined: ['Refusé', 'danger'], cancelled: ['Annulé par le client', 'danger'] };
-    const match = (r, k) => k === 'all' || r.status === k || (k === 'closed' && ['expired', 'declined', 'cancelled'].includes(r.status));
-    app.innerHTML = pageHead({ title: 'Achat en Europe', desc: 'Les demandes de devis des clients. Chiffrez-les (prix en €, port, poids) : le prix tout compris en FCFA se calcule tout seul, puis envoyez le lien au client par WhatsApp.', actions: `<a class="btn ghost" href="#/envois">${icon('truck-duotone')} Envois</a><a class="btn ghost" href="#/reglages">Tarifs</a>` })
-      + tabsBar(TABS.map(([k, l]) => [k, l, list.filter((r) => match(r, k)).length]), f, 'frf') + '<div id="tbl"></div>';
-    dataTable($('#tbl'), {
-      id: 'france', rows: list.filter((r) => match(r, f)), defaultSort: 'createdAt', rowHref: (r) => '#/france/' + enc(r.id), placeholder: 'N°, client, article', empty: 'Aucune demande ici.',
-      searchText: (r) => `${r.id} ${r.customer.name} ${r.customer.phone} ${r.items.map((it) => it.title + ' ' + it.url).join(' ')}`,
-      columns: [
-        { key: 'id', label: 'Demande', render: (r) => `<strong class="mono">${esc(r.id)}</strong>` },
-        { key: 'client', label: 'Client', sortValue: (r) => r.customer.name, render: (r) => `${esc(r.customer.name)}<br><span class="muted">${esc(r.customer.city || '')}</span>` },
-        { key: 'items', label: 'Articles', sortable: false, render: (r) => r.items.map((it) => `${it.qty} × ${esc(it.title || new URL(it.url).hostname)}`).join('<br>') },
-        { key: 'total', label: 'Devis', cls: 'num', sortValue: (r) => r.quote?.total || 0, render: (r) => (r.quote ? fcfa(r.quote.total) : '—') },
-        { key: 'status', label: 'Statut', render: (r) => `<span class="tag ${ST[r.status]?.[1] || ''}">${esc(ST[r.status]?.[0] || r.status)}</span>${r.order?.stage ? `<br><span class="muted">${esc(FR_STAGES[r.order.stage] || '')}</span>` : ''}` },
-        { key: 'createdAt', label: 'Date', render: (r) => date(r.createdAt) },
-      ],
-    });
-    app.querySelectorAll('[data-frf]').forEach((b) => b.addEventListener('click', () => { state.frFilter = b.dataset.frf; viewFrance(); }));
-  }
-
-  async function viewFranceRequest(id) {
-    let r, s;
-    try { [r, s] = await Promise.all([api('/france/requests/' + enc(id)), api('/france/settings')]); } catch { return; }
-    const q = r.quote;
-    const link = `${location.origin}/#/devis/${enc(r.id)}/${enc(r.shareToken)}`;
-    const intl = '242' + r.customer.phone;
-    const waText = (txt) => `https://wa.me/${intl}?text=${encodeURIComponent(txt)}`;
-    const editable = ['requested', 'quoted', 'expired'].includes(r.status);
-    app.innerHTML = pageHead({ crumb: 'Achat en Europe', title: `Demande ${r.id}`, desc: `${esc(r.customer.name)} · ${esc(r.customer.phone)} · ${esc(r.customer.city || '')}${r.customer.address ? ' · ' + esc(r.customer.address) : ''}`, actions: `<a class="btn green" href="https://wa.me/${intl}" target="_blank" rel="noopener">WhatsApp</a>` })
-      + (r.note ? `<div class="alert warn">Note du client : ${esc(r.note)}</div>` : '')
-      + (r.status === 'accepted' && r.order ? `<div class="alert ok">Devis accepté : commande <a href="#/commande/${enc(r.order.id)}">${esc(r.order.id)}</a> (${esc(state.labels?.[r.order.status] || r.order.status)}${r.order.stage ? ', ' + esc(FR_STAGES[r.order.stage]) : ''}).</div>` : '')
-      + (r.status === 'declined' ? `<div class="alert err">Refusée : ${esc(r.declineReason || '')}</div>` : '')
-      + `<form class="panel" id="quoteForm" novalidate>
-        <h2>Chiffrage</h2>
-        ${r.items.map((it, i) => `<fieldset class="q-item" data-i="${i}">
-          <legend>Article ${i + 1} · <a href="${esc(it.url)}" target="_blank" rel="noopener">ouvrir le lien ${icon('arrow-square-out-bold')}</a></legend>
-          <p class="muted" style="margin:0 0 6px">${it.qty} × ${esc(it.title || '(sans nom)')}${it.options ? ' · ' + esc(it.options) : ''}${it.priceEur ? ` · prix indiqué par le client : ${eur(it.priceEur)}` : ''}</p>
-          <div class="grid2">
-            <div><label>Nom de l'article</label><input name="title" type="text" value="${esc(q?.items[i]?.title || it.title)}" ${editable ? '' : 'disabled'}></div>
-            <div><label>Quantité</label><input name="qty" type="number" min="1" value="${esc(q?.items[i]?.qty || it.qty)}" ${editable ? '' : 'disabled'}></div>
-            <div><label>Prix unitaire en Europe (€)</label><input name="priceEur" type="text" inputmode="decimal" value="${esc(q?.items[i]?.priceEur ?? it.priceEur ?? '')}" ${editable ? '' : 'disabled'}></div>
-            <div><label>Port jusqu'à l'agent (€)</label><input name="shippingEur" type="text" inputmode="decimal" value="${esc(q?.items[i]?.shippingEur ?? 0)}" ${editable ? '' : 'disabled'}></div>
-          </div>
-        </fieldset>`).join('')}
-        <div class="grid2">
-          <div><label for="qWeight">Poids total estimé (kg, emballage compris)</label><input id="qWeight" type="text" inputmode="decimal" value="${esc(q?.weightKg ?? '')}" placeholder="Ex. 1,2" ${editable ? '' : 'disabled'}></div>
-          <div><label for="qTotal">Prix final (FCFA) — vide = calcul automatique</label><input id="qTotal" type="number" step="500" value="" placeholder="${q ? q.total : ''}" ${editable ? '' : 'disabled'}></div>
-        </div>
-        <div class="calc" id="calc"></div>
-        <label for="qMsg">Message au client (facultatif)</label><textarea id="qMsg" rows="2" maxlength="500" ${editable ? '' : 'disabled'}>${esc(q?.message || '')}</textarea>
-        <div id="qErr"></div>
-        ${editable ? `<div class="row" style="margin-top:14px"><button class="btn">${r.status === 'requested' ? 'Envoyer le devis' : 'Mettre à jour le devis'}</button><button type="button" class="ghost" id="declineBtn">Impossible à faire venir</button></div>` : ''}
-      </form>
-      ${q ? `<div class="panel"><h2>Envoyer au client</h2>
-        <p class="muted">Lien personnel du devis (valable jusqu'au ${date(q.validUntil)}) :</p>
-        <input type="text" readonly value="${esc(link)}" id="shareLink">
-        <div class="row" style="margin-top:10px">
-          <a class="btn green" target="_blank" rel="noopener" href="${esc(waText(`Bonjour ${r.customer.name.split(' ')[0]}, voici votre devis Kamwa pour votre achat en Europe : ${fcfa(q.total)} tout compris, livré à ${r.customer.city || 'domicile'} (${q.delay}). Pour accepter et payer : ${link}`))}">Envoyer par WhatsApp</a>
-          <button type="button" class="ghost" id="copyLink">Copier le lien</button>
-        </div></div>` : ''}`;
-    const read = () => ({
-      items: [...app.querySelectorAll('.q-item')].map((f) => { const v = (n) => f.querySelector(`[name="${n}"]`).value; return { title: v('title'), qty: v('qty'), priceEur: v('priceEur'), shippingEur: v('shippingEur') }; }),
-      weightKg: $('#qWeight').value, total: $('#qTotal').value || undefined, message: $('#qMsg').value,
-    });
-    const num = (v) => Number(String(v ?? '').replace(',', '.')) || 0;
-    // Même calcul que le serveur (src/imports.js), pour voir le prix pendant la saisie
-    const calc = () => {
-      const b = read();
-      const e = b.items.reduce((n, it) => n + num(it.priceEur) * (num(it.qty) || 1) + num(it.shippingEur), 0);
-      const goods = Math.round(e * s.rate);
-      const w = Math.max(num(b.weightKg), s.minWeightKg);
-      const freight = Math.round(w * s.freightPerKg);
-      const customs = Math.round((goods * s.customsPercent) / 100);
-      const cost = goods + freight + customs;
-      const total = Math.ceil((cost + Math.round((cost * s.commissionPercent) / 100) + s.fixedFee) / s.roundTo) * s.roundTo;
-      const finalT = b.total ? num(b.total) : total;
-      $('#calc').innerHTML = e ? `<div class="lines">
-        <div><span>Articles + port en Europe (${eur(e)} × ${s.rate})</span><span>${fcfa(goods)}</span></div>
-        <div><span>Transport (${String(w).replace('.', ',')} kg × ${fcfa(s.freightPerKg)})</span><span>${fcfa(freight)}</span></div>
-        <div><span>Douane estimée (${s.customsPercent} %)</span><span>${fcfa(customs)}</span></div>
-        <div><span>Coût total pour Kamwa</span><span>${fcfa(cost)}</span></div>
-        <div><span>Marge Kamwa</span><span class="${finalT - cost < 0 ? 'neg' : 'pos'}">${fcfa(finalT - cost)}</span></div>
-        <div><span>Prix tout compris pour le client</span><span class="price">${fcfa(finalT)}</span></div></div>` : '<p class="muted">Saisissez les prix en euros pour voir le calcul.</p>';
-    };
-    app.querySelectorAll('#quoteForm input').forEach((i) => i.addEventListener('input', calc));
-    calc();
-    $('#quoteForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      try { await api('/france/requests/' + enc(r.id) + '/quote', { method: 'POST', body: read() }); toast('Devis enregistré ✓ Envoyez-le au client par WhatsApp'); viewFranceRequest(r.id); } catch (err) { $('#qErr').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; }
-    });
-    $('#declineBtn')?.addEventListener('click', async () => {
-      const reason = prompt('Raison donnée au client :', "Cet article ne peut pas être expédié vers le Congo (produit interdit au transport ou indisponible).");
-      if (reason === null) return;
-      try { await api('/france/requests/' + enc(r.id) + '/decline', { method: 'POST', body: { reason } }); toast('Demande refusée'); viewFranceRequest(r.id); } catch (err) { toast('❌ ' + err.message); }
-    });
-    $('#copyLink')?.addEventListener('click', () => { $('#shareLink').select(); navigator.clipboard?.writeText(link).then(() => toast('Lien copié ✓'), () => {}); });
-  }
-
-  // Espace de l'agent en Europe : acheter, recevoir (photos), préparer et faire partir les envois
-  async function viewAgent() {
-    let list = [], ships = [];
-    try { [list, ships] = await Promise.all([api('/france/orders'), api('/france/shipments')]); } catch { return; }
-    const by = (st) => list.filter((o) => o.import.stage === st);
-    const uploadPhoto = async (file) => { const blob = await shrinkImage(file, 1400); return (await api('/uploads', { method: 'POST', body: blob, headers: { 'Content-Type': blob.type } })).url; };
-    const itemsHtml = (o) => o.import.items.map((it) => `<li>${it.qty} × <a href="${esc(it.url)}" target="_blank" rel="noopener">${esc(it.title)}</a>${it.options ? ` — <strong>${esc(it.options)}</strong>` : ''} <span class="muted">(budget ${eur(it.priceEur)}${it.shippingEur ? ' + port ' + eur(it.shippingEur) : ''})</span></li>`).join('');
-    const card = (o, form) => `<article class="deliv" data-id="${esc(o.id)}"><div class="row between"><strong class="mono">${esc(o.id)}</strong><span class="muted">payée le ${date(o.paidAt)}</span></div>
-      <p class="muted" style="margin:4px 0">Pour ${esc(o.customer.name)} (${esc(o.customer.city || '')})</p><ul class="fr-list">${itemsHtml(o)}</ul>${form}</article>`;
-    app.innerHTML = pageHead({ title: 'Achats Europe à traiter', desc: "Achetez les articles des commandes payées, prenez-les en photo à la réception, puis regroupez-les dans un envoi vers le Congo." })
-      + `<h2>1. À acheter (${by('to_buy').length})</h2><div class="deliv-list">${by('to_buy').map((o) => card(o, `
-        <form class="deliver-form" data-act="bought"><label>Montant payé (€, port compris)</label><input name="eur" type="text" inputmode="decimal" placeholder="Ex. 64,98"><label>N° de commande du site (facultatif)</label><input name="ref" type="text">
-        <label class="btn ghost" style="margin:0">${icon('camera')} Photo de la facture<input name="receiptFile" type="file" accept="image/*" capture="environment" hidden></label><span class="muted rcpt"></span>
-        <div class="msg"></div><button class="btn">Acheté ✓</button></form>`)).join('') || '<p class="muted">Rien à acheter.</p>'}</div>
-      <h2 style="margin-top:22px">2. Achetés, en attente de réception (${by('bought').length})</h2><div class="deliv-list">${by('bought').map((o) => card(o, `
-        <form class="deliver-form" data-act="received"><label class="btn ghost" style="margin:0">${icon('camera')} Photos de l'article reçu<input name="photos" type="file" accept="image/*" multiple hidden></label><span class="muted ph"></span>
-        <div class="msg"></div><button class="btn">Reçu ✓</button></form>`)).join('') || '<p class="muted">Rien en attente.</p>'}</div>
-      <h2 style="margin-top:22px">3. Reçus, à envoyer (${by('received').filter((o) => !o.import.shipmentId).length})</h2>
-      ${by('received').filter((o) => !o.import.shipmentId).length ? `<form class="panel" id="shipForm">
-        ${by('received').filter((o) => !o.import.shipmentId).map((o) => `<label class="check"><input type="checkbox" name="o" value="${esc(o.id)}" checked> ${esc(o.id)} — ${o.import.items.map((it) => `${it.qty} × ${esc(it.title)}`).join(', ')}</label>`).join('')}
-        <div class="grid2">
-          <div><label>Expéditeur</label><input name="carrier" type="text" placeholder="Nom du transitaire"></div>
-          <div><label>Mode</label><select name="mode"><option value="avion">Avion</option><option value="bateau">Bateau</option></select></div>
-          <div><label>N° de suivi / bordereau</label><input name="tracking" type="text"></div>
-          <div><label>Arrivée prévue au Congo</label><input name="eta" type="date"></div>
-          <div><label>Poids total (kg)</label><input name="weightKg" type="text" inputmode="decimal"></div>
-          <div><label>Coût du transport (€)</label><input name="costEur" type="text" inputmode="decimal"></div>
-        </div><div class="msg"></div><button class="btn" style="margin-top:10px">Préparer l'envoi</button></form>` : '<p class="muted">Aucun colis en attente d\'envoi.</p>'}
-      <h2 style="margin-top:22px">Envois</h2>${shipmentsTable(ships, true)}`;
-    app.querySelectorAll('input[name=receiptFile]').forEach((inp) => inp.addEventListener('change', async () => {
-      const f = inp.closest('form'); const span = f.querySelector('.rcpt'); span.textContent = 'Envoi…';
-      try { f.dataset.receipt = await uploadPhoto(inp.files[0]); span.textContent = 'Facture ajoutée ✓'; } catch (err) { span.textContent = '❌ ' + err.message; }
-    }));
-    app.querySelectorAll('input[name=photos]').forEach((inp) => inp.addEventListener('change', async () => {
-      const f = inp.closest('form'); const span = f.querySelector('.ph'); span.textContent = 'Envoi…';
-      try { const urls = []; for (const file of [...inp.files].slice(0, 6)) urls.push(await uploadPhoto(file)); f.dataset.photos = JSON.stringify(urls); span.textContent = `${urls.length} photo(s) ajoutée(s) ✓`; } catch (err) { span.textContent = '❌ ' + err.message; }
-    }));
-    app.querySelectorAll('form[data-act]').forEach((f) => f.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const id = f.closest('[data-id]').dataset.id;
-      const body = f.dataset.act === 'bought' ? { eur: f.eur.value, ref: f.ref.value, receipt: f.dataset.receipt } : { photos: JSON.parse(f.dataset.photos || '[]') };
-      try { await api('/france/orders/' + enc(id) + '/' + f.dataset.act, { method: 'POST', body }); toast('Enregistré ✓'); viewAgent(); } catch (err) { f.querySelector('.msg').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; }
-    }));
-    $('#shipForm')?.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const f = e.target;
-      const body = { orderIds: [...f.querySelectorAll('input[name=o]:checked')].map((x) => x.value), carrier: f.carrier.value, mode: f.mode.value, tracking: f.tracking.value, eta: f.eta.value, weightKg: f.weightKg.value, costEur: f.costEur.value };
-      try { await api('/france/shipments', { method: 'POST', body }); toast('Envoi préparé ✓'); viewAgent(); } catch (err) { f.querySelector('.msg').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; }
-    });
-    bindShipments();
-  }
-
-  const SHIP_ST = { preparing: ['En préparation', 'warn'], departed: ['Parti d’Europe', ''], arrived: ['Arrivé au Congo', 'ok'] };
-  function shipmentsTable(ships, agentSide) {
-    if (!ships.length) return '<p class="muted">Aucun envoi pour le moment.</p>';
-    return `<div class="table-wrap"><table class="dt"><thead><tr><th>Envoi</th><th>Colis</th><th>Transport</th><th>Statut</th><th></th></tr></thead><tbody>${ships.map((x) => `<tr>
-      <td data-label="Envoi"><strong class="mono">${esc(x.id)}</strong><br><span class="muted">${esc(x.carrier || '')} · ${esc(x.mode)}${x.tracking ? ' · ' + esc(x.tracking) : ''}</span></td>
-      <td data-label="Colis">${x.orders.map((o) => `${esc(o.id)} <span class="muted">(${esc(o.name || '')}, ${esc(o.city || '')})</span>`).join('<br>')}</td>
-      <td data-label="Transport">${String(x.weightKg).replace('.', ',')} kg · ${eur(x.costEur)}${x.eta ? `<br><span class="muted">arrivée prévue ${esc(x.eta.split('-').reverse().join('/'))}</span>` : ''}</td>
-      <td data-label="Statut"><span class="tag ${SHIP_ST[x.status][1]}">${SHIP_ST[x.status][0]}</span></td>
-      <td>${x.status === 'preparing' && (CAN.agent() || CAN.admin()) ? `<button class="btn small" data-depart="${esc(x.id)}">Parti ✈</button>` : ''}${x.status === 'departed' && !agentSide && CAN.orders() ? `<button class="btn small green" data-arrive="${esc(x.id)}">Arrivé au Congo</button>` : ''}</td>
-    </tr>`).join('')}</tbody></table></div>`;
-  }
-  function bindShipments() {
-    app.querySelectorAll('[data-depart]').forEach((b) => b.addEventListener('click', async () => {
-      if (!confirm("Confirmer que l'envoi est parti ? Les clients verront « Parti d’Europe » et la date d'arrivée prévue.")) return;
-      try { await api('/france/shipments/' + enc(b.dataset.depart) + '/depart', { method: 'POST', body: {} }); toast('Envoi parti ✓'); route(); } catch (err) { toast('❌ ' + err.message); }
-    }));
-    app.querySelectorAll('[data-arrive]').forEach((b) => b.addEventListener('click', async () => {
-      const customs = prompt("Envoi arrivé au Congo. Douane payée (FCFA, 0 si aucune) :", '0');
-      if (customs === null) return;
-      try { await api('/france/shipments/' + enc(b.dataset.arrive) + '/arrive', { method: 'POST', body: { customs: Number(customs) || 0, method: 'cash' } }); toast('Arrivé ✓ Les commandes sont « à livrer »'); await loadOrders().catch(() => {}); route(); } catch (err) { toast('❌ ' + err.message); }
-    }));
-  }
-  async function viewShipments() {
-    let ships = [];
-    try { ships = await api('/france/shipments'); } catch { return; }
-    app.innerHTML = pageHead({ crumb: 'Achat en Europe', title: 'Envois Europe → Congo', desc: "Les envois préparés par l'agent en Europe. Quand un envoi arrive, cliquez « Arrivé au Congo » : ses commandes passent « à livrer » (livreur + code de livraison)." }) + shipmentsTable(ships, false);
-    bindShipments();
   }
 
   // ---------- Livraison sécurisée (fiche commande) ----------
@@ -987,12 +734,12 @@
 
   // ---------- Réglages du paiement à la réception (admin) ----------
   async function viewSettings() {
-    let c, fr, sl, co;
-    try { [c, fr, sl, co] = await Promise.all([api('/settings/cod'), api('/france/settings'), api('/settings/sales'), api('/documents/company')]); } catch { return; }
+    let c, sl, co;
+    try { [c, sl, co] = await Promise.all([api('/settings/cod'), api('/settings/sales'), api('/documents/company')]); } catch { return; }
     const cp = co.company;
     const coField = (k, label, ph = '', wide = false) => `<div${wide ? ' style="grid-column:1/-1"' : ''}><label for="co_${k}">${label}${co.missing.includes(k) ? ' <span class="tag warn">à compléter</span>' : ''}</label><input id="co_${k}" type="text" data-co="${k}" value="${esc(cp[k] || '')}" placeholder="${esc(ph)}"></div>`;
     const PAY = [['cash', 'Espèces en agence (retrait ou livraison)'], ['momo', 'Mobile Money (MTN, Airtel)'], ['card', 'Carte bancaire (prestataire à brancher)'], ['cod', 'Paiement à la réception']];
-    app.innerHTML = pageHead({ crumb: 'Gestion', title: 'Réglages', desc: 'Règles de vente, société (factures et reçus), paiement à la réception et tarifs des achats en Europe.' }) + `
+    app.innerHTML = pageHead({ crumb: 'Gestion', title: 'Réglages', desc: 'Règles de vente, société (factures et reçus) et paiement à la réception.' }) + `
       <form class="panel" id="salesForm" style="max-width:640px">
         <h2>${icon('identification-card')} Règles de vente</h2>
         <label class="check"><input type="checkbox" id="slAccount" ${sl.accountRequired ? 'checked' : ''}> Compte avec pièce d'identité <b>vérifiée</b> obligatoire pour commander</label>
@@ -1041,29 +788,7 @@
         </ul>
         <div id="sMsg"></div>
         <button class="btn" style="margin-top:14px">Enregistrer</button>
-      </form>
-      <form class="panel" id="frSet" style="max-width:640px">
-        <h2>${icon('airplane-tilt')} Achat en Europe — tarifs du devis</h2>
-        <label class="check"><input type="checkbox" id="fEnabled" ${fr.enabled ? 'checked' : ''}> Proposer « Achat en Europe » aux clients</label>
-        <div class="grid2">
-          <div><label for="fFreight">Transport Europe → Congo (FCFA par kg)</label><input id="fFreight" type="number" min="0" value="${fr.freightPerKg}"></div>
-          <div><label for="fMinW">Poids minimum facturé (kg)</label><input id="fMinW" type="number" min="0" step="0.1" value="${fr.minWeightKg}"></div>
-          <div><label for="fCustoms">Douane et taxes estimées (%)</label><input id="fCustoms" type="number" min="0" value="${fr.customsPercent}"></div>
-          <div><label for="fComm">Commission Kamwa (%)</label><input id="fComm" type="number" min="0" value="${fr.commissionPercent}"></div>
-          <div><label for="fFixed">Frais fixes par commande (FCFA)</label><input id="fFixed" type="number" min="0" value="${fr.fixedFee}"></div>
-          <div><label for="fRound">Arrondi du prix (FCFA)</label><input id="fRound" type="number" min="1" value="${fr.roundTo}"></div>
-          <div><label for="fValid">Validité d'un devis (heures)</label><input id="fValid" type="number" min="1" value="${fr.validityHours}"></div>
-          <div><label for="fDelay">Délai annoncé au client</label><input id="fDelay" type="text" value="${esc(fr.delay)}"></div>
-        </div>
-        <p class="muted">Taux euro fixe : 1 € = ${fr.rate} FCFA. Prix = (articles + port en Europe) × taux + transport au kilo + douane + commission + frais fixes, arrondi.</p>
-        <div id="fMsg"></div>
-        <button class="btn" style="margin-top:10px">Enregistrer</button>
       </form>`;
-    $('#frSet').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const body = { enabled: $('#fEnabled').checked, freightPerKg: Number($('#fFreight').value), minWeightKg: Number($('#fMinW').value), customsPercent: Number($('#fCustoms').value), commissionPercent: Number($('#fComm').value), fixedFee: Number($('#fFixed').value), roundTo: Number($('#fRound').value), validityHours: Number($('#fValid').value), delay: $('#fDelay').value };
-      try { await api('/france/settings', { method: 'PUT', body }); toast('Tarifs Europe enregistrés ✓'); } catch (err) { $('#fMsg').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; }
-    });
     $('#coVat').addEventListener('change', () => { $('#coVatBox').hidden = !$('#coVat').checked; });
     $('#companyForm').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -1502,7 +1227,6 @@
     const push = (day, it) => { (byDay[day] = byDay[day] || []).push(it); };
     d.planned.forEach((o) => push(o.date, { kind: 'order', ...o }));
     d.purchases.forEach((b) => push(b.date, { kind: 'purchase', ...b }));
-    d.shipments.forEach((x) => push(x.date, { kind: 'shipment', ...x }));
     const sel = state.calDay && state.calDay.startsWith(monthKey) ? state.calDay : (d.today.startsWith(monthKey) ? d.today : first);
     state.calDay = sel;
     const prev = m === 1 ? `${y - 1}-12` : `${y}-${String(m - 1).padStart(2, '0')}`, next = m === 12 ? `${y + 1}-01` : `${y}-${String(m + 1).padStart(2, '0')}`;
@@ -1518,7 +1242,7 @@
       cells.push(`<button type="button" class="cal-cell ${key === d.today ? 'today' : ''} ${key === sel ? 'sel' : ''} ${key < d.today ? 'past' : ''}" data-day="${key}">
         <span class="cal-n">${day}</span>
         ${orders.length ? `<span class="cal-count ${late ? 'late' : ''}">${orders.length} livr.</span>` : ''}
-        <span class="cal-dots">${['morning', 'afternoon', 'evening'].map((sl) => orders.filter((x) => x.slot === sl).length ? `<i class="sl-${sl}" title="${SLOT_SHORT[sl]}"></i>` : '').join('')}${items.some((x) => x.kind === 'purchase') ? '<i class="sl-purchase" title="Arrivée fournisseur"></i>' : ''}${items.some((x) => x.kind === 'shipment') ? '<i class="sl-ship" title="Envoi d\'Europe"></i>' : ''}</span>
+        <span class="cal-dots">${['morning', 'afternoon', 'evening'].map((sl) => orders.filter((x) => x.slot === sl).length ? `<i class="sl-${sl}" title="${SLOT_SHORT[sl]}"></i>` : '').join('')}${items.some((x) => x.kind === 'purchase') ? '<i class="sl-purchase" title="Arrivée fournisseur"></i>' : ''}</span>
       </button>`);
     }
     const dayItems = (byDay[sel] || []);
@@ -1538,19 +1262,19 @@
     const others = dayItems.filter((x) => x.kind !== 'order');
     app.innerHTML = pageHead({
       title: 'Calendrier de livraison',
-      desc: CAN.courier() ? 'Vos livraisons, jour par jour et par créneau.' : "Planifiez chaque livraison (jour + créneau : matin, après-midi, soir) : le client reçoit une notification, le livreur voit l'ordre de sa tournée. Les arrivées fournisseurs et les envois d'Europe apparaissent aussi.",
+      desc: CAN.courier() ? 'Vos livraisons, jour par jour et par créneau.' : "Planifiez chaque livraison (jour + créneau : matin, après-midi, soir) : le client reçoit une notification, le livreur voit l'ordre de sa tournée. Les arrivées des fournisseurs (bons de commande) apparaissent aussi.",
       actions: `<div class="row" style="gap:6px"><a class="ghost" href="#/calendrier/${prev}">${icon('caret-left')}</a><strong style="min-width:150px;text-align:center;text-transform:capitalize">${esc(monthName)}</strong><a class="ghost" href="#/calendrier/${next}">${icon('caret-right')}</a><a class="btn ghost" href="#/calendrier/${d.today.slice(0, 7)}" data-today>Aujourd'hui</a></div>`,
     })
       + (d.overdue.length && CAN.orders() ? `<div class="alert warn">${icon('clock-countdown-duotone')} ${d.overdue.length} livraison(s) planifiée(s) à une date passée et pas encore livrée(s) : ${d.overdue.slice(0, 5).map((o) => `<a href="#/commande/${enc(o.id)}">${esc(o.id)}</a> (${frDate(o.date)})`).join(', ')}. Déplacez-les.</div>` : '')
       + `<div class="cal-layout">
         <div class="panel cal-month"><div class="cal-head">${['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map((x) => `<span>${x}</span>`).join('')}</div><div class="cal-grid">${cells.join('')}</div>
-          <p class="cal-legend"><i class="sl-morning"></i> matin <i class="sl-afternoon"></i> après-midi <i class="sl-evening"></i> soir${CAN.admin() ? ' <i class="sl-purchase"></i> arrivée fournisseur' : ''}${CAN.orders() ? ' <i class="sl-ship"></i> envoi d\'Europe' : ''}</p></div>
+          <p class="cal-legend"><i class="sl-morning"></i> matin <i class="sl-afternoon"></i> après-midi <i class="sl-evening"></i> soir${CAN.admin() ? ' <i class="sl-purchase"></i> arrivée fournisseur' : ''}</p></div>
         <div class="panel cal-day" id="calDay"><h2>${icon('clock-bold')} ${new Date(sel + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}${sel === d.today ? ' <span class="tag ok">aujourd\'hui</span>' : ''}</h2>
           ${dayOrders.length ? ['morning', 'afternoon', 'evening'].map(slotBlock).join('') : '<p class="muted">Aucune livraison ce jour-là.</p>'}
-          ${others.length ? `<h3 style="margin-top:14px">Autres arrivées</h3><ul class="mini-list">${others.map((x) => x.kind === 'purchase' ? `<li><span><i class="sl-purchase"></i> Fournisseur : <a href="#/achat/${enc(x.id)}">${esc(x.number)}</a> — ${esc(x.supplier)}</span></li>` : `<li><span><i class="sl-ship"></i> Envoi d'Europe <a href="#/envois">${esc(x.id)}</a> — ${x.orders} commande(s)</span></li>`).join('')}</ul>` : ''}
+          ${others.length ? `<h3 style="margin-top:14px">Autres arrivées</h3><ul class="mini-list">${others.map((x) => x.kind === 'purchase' ? `<li><span><i class="sl-purchase"></i> Fournisseur : <a href="#/achat/${enc(x.id)}">${esc(x.number)}</a> — ${esc(x.supplier)}</span></li>` : '').join('')}</ul>` : ''}
         </div></div>`
       + (CAN.orders() ? `<div class="panel"><h2>${icon('package')} À planifier <span class="muted" style="font-weight:400">· ${d.unplanned.length} commande(s) payée(s) sans date de livraison</span></h2>
-          ${d.unplanned.length ? `<div class="cal-unplanned">${d.unplanned.map((o) => `<div class="cal-item"><div><a href="#/commande/${enc(o.id)}"><strong class="mono">${esc(o.id)}</strong></a> ${badge(o.status)}${o.import ? ' <span class="tag fr">Europe</span>' : ''}<br><strong>${esc(o.customer.name)}</strong> · ${esc(o.customer.city)} · ${o.items} article(s)<br><span class="muted">payée le ${date(o.paidAt).split(' ')[0]}${o.courierName ? ` · ${esc(o.courierName)}` : ''}${!o.callConfirmed ? ' · <span class="tag danger">à appeler</span>' : ''}</span></div>${planForm(o, d.couriers, { compact: true })}</div>`).join('')}</div>` : '<p class="muted" style="margin:0">Tout est planifié.</p>'}</div>` : '');
+          ${d.unplanned.length ? `<div class="cal-unplanned">${d.unplanned.map((o) => `<div class="cal-item"><div><a href="#/commande/${enc(o.id)}"><strong class="mono">${esc(o.id)}</strong></a> ${badge(o.status)}<br><strong>${esc(o.customer.name)}</strong> · ${esc(o.customer.city)} · ${o.items} article(s)<br><span class="muted">payée le ${date(o.paidAt).split(' ')[0]}${o.courierName ? ` · ${esc(o.courierName)}` : ''}${!o.callConfirmed ? ' · <span class="tag danger">à appeler</span>' : ''}</span></div>${planForm(o, d.couriers, { compact: true })}</div>`).join('')}</div>` : '<p class="muted" style="margin:0">Tout est planifié.</p>'}</div>` : '');
     app.querySelectorAll('[data-day]').forEach((b) => b.addEventListener('click', () => { state.calDay = b.dataset.day; viewCalendar(monthKey); $('#calDay')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }));
     app.querySelector('[data-today]')?.addEventListener('click', () => { state.calDay = d.today; });
     bindPlanForms(app, () => viewCalendar(monthKey));
@@ -1660,7 +1384,7 @@
   // Bloc « Colis » de la fiche commande
   function parcelsPanel(o) {
     const list = o.parcels || [];
-    const ready = ['paid', 'confirmed', 'shipped'].includes(o.status) && (!o.import || o.import.stage === 'arrived');
+    const ready = ['paid', 'confirmed', 'shipped'].includes(o.status);
     if (!list.length && !ready) return '';
     return `<div class="panel">
       <h2>${icon('package')} Colis</h2>
@@ -2012,21 +1736,6 @@
       ${p.pending ? `<div class="alert warn">⏳ En attente de validation : ce produit n'est pas encore visible des clients.${isAdmin() ? ' Vérifiez la fiche, fixez le prix de vente, enregistrez, puis cliquez « Valider et publier ».' : " L'administrateur doit le valider."}</div>` : ''}
       ${isNew && !isAdmin() ? '<div class="alert warn">Le produit sera visible des clients après validation par l\'administrateur.</div>' : ''}
       ${limited ? '<div class="alert warn">Produit publié : vous pouvez modifier le <strong>stock</strong> et <strong>votre prix</strong>. Pour le reste, contactez Kamwa.</div>' : ''}
-      ${isSupplier() ? '' : `<div class="panel link-import">
-        <h2>${icon('airplane-tilt')} Remplir depuis un lien</h2>
-        <p class="muted">Collez le lien de la page du produit (site européen) : nom, photos, description, couleurs et tailles, prix en euros se remplissent tout seuls. Vérifiez, puis indiquez la <strong>quantité</strong>.</p>
-        <div class="row"><input id="srcUrl" type="text" inputmode="url" placeholder="https://www.site.fr/produit…" value="${esc(p.sourceUrl || '')}" style="flex:1;min-width:220px"><button type="button" class="btn" id="scrapeBtn">Remplir</button></div>
-        <div id="scrapeMsg"></div>
-        <details class="deliver-box"><summary>Le site refuse la lecture ? Utilisez le bouton « → Kamwa »</summary>
-          <p class="muted">Les grands sites (Decathlon, Boulanger, Amazon…) bloquent la lecture automatique. Solution : sur ordinateur, <strong>glissez ce bouton dans votre barre de favoris</strong> :</p>
-          <p><a class="btn small bookmarklet" href="${esc(bookmarklet())}" onclick="event.preventDefault(); alert('Ne cliquez pas ici : glissez ce bouton dans votre barre de favoris, puis utilisez-le sur la page du produit.')">→ Kamwa</a></p>
-          <p class="muted">Ensuite, ouvrez la page du produit sur le site, cliquez sur le favori « → Kamwa » : une fiche Kamwa pré-remplie s'ouvre. C'est comme un copier-coller, mais en un clic.</p>
-        </details>
-        <details class="deliver-box"><summary>Règles de bonne conduite (respect des sites)</summary>
-          <p class="muted">Kamwa se présente honnêtement aux sites, respecte leurs consignes aux robots (robots.txt), lit une page à la fois et espace ses demandes. Il ne se connecte jamais à un compte et ne contourne aucun blocage ni vérification « êtes-vous un robot ».</p>
-          <p class="muted">De votre côté : <strong>une fiche par produit que nous vendons vraiment</strong>, jamais de copie en masse d'un catalogue. Réécrivez la description avec vos mots si possible, et préférez nos propres photos : les photos du site vendeur lui appartiennent.</p>
-        </details>
-      </div>`}
       <form class="panel" id="pform" novalidate>
         <h2>Photos</h2>
         <div class="gallery" id="gallery"></div>
@@ -2059,16 +1768,6 @@
         <label for="options">Choix proposés au client (une ligne par choix)</label>
         <textarea id="options" rows="2" placeholder="Couleur : Noir, Bleu, Rouge&#10;Taille : 40, 41, 42, 43" ${dis}>${esc((p.options || []).map((o) => `${o.name} : ${o.values.join(', ')}`).join('\n'))}</textarea>
         <p class="muted" style="margin-top:4px">Le client devra choisir avant d'ajouter au panier.</p>
-        ${isSupplier() ? '' : `
-        <label class="check" style="margin-top:14px"><input id="originFr" type="checkbox" ${p.origin === 'FR' ? 'checked' : ''}> ${icon('airplane-tilt')} Produit venu d’Europe (expédié par avion, payé à la commande)</label>
-        <div id="frFields" ${p.origin === 'FR' ? '' : 'hidden'}>
-          <div class="grid2">
-            <div><label for="priceEur">Prix en Europe (€)</label><input id="priceEur" type="text" inputmode="decimal" value="${esc(p.priceEur ?? '')}"></div>
-            <div><label for="weightKg">Poids avec emballage (kg)</label><input id="weightKg" type="text" inputmode="decimal" value="${esc(p.weightKg ?? '')}"></div>
-          </div>
-          <div class="calc" id="frCalc"></div>
-          <button type="button" class="ghost" id="frPriceBtn">Mettre ce prix tout compris comme prix de vente</button>
-        </div>`}
         <label for="specs">Caractéristiques (une par ligne)</label>
         <textarea id="specs" rows="4" placeholder="Couleur : Noir&#10;Capacité : 128 Go&#10;Taille : M" ${dis}>${esc((p.specs || []).map((x) => `${x.label} : ${x.value}`).join('\n'))}</textarea>
 
@@ -2155,67 +1854,6 @@
     };
     $('#camera')?.addEventListener('change', (e) => { addFiles(e.target.files); e.target.value = ''; });
 
-    // --- Produit venu d’Europe : prix tout compris (même calcul que le serveur) ---
-    let frConf = null;
-    const num = (v) => Number(String(v ?? '').replace(',', '.')) || 0;
-    const frCalc = async () => {
-      if (!$('#frCalc') || $('#frFields').hidden) return null;
-      if (!frConf) { try { frConf = await api('/france/settings'); } catch { return null; } }
-      const e = num($('#priceEur').value); const w = Math.max(num($('#weightKg').value), frConf.minWeightKg);
-      if (!e) { $('#frCalc').innerHTML = '<p class="muted">Indiquez le prix en euros et le poids.</p>'; return null; }
-      const goods = Math.round(e * frConf.rate); const freight = Math.round(w * frConf.freightPerKg); const customs = Math.round((goods * frConf.customsPercent) / 100);
-      const cost = goods + freight + customs;
-      const total = Math.ceil((cost + Math.round((cost * frConf.commissionPercent) / 100) + frConf.fixedFee) / frConf.roundTo) * frConf.roundTo;
-      const priceNow = num($('#price')?.value);
-      $('#frCalc').innerHTML = `<div class="lines"><div><span>Article (${String(e).replace('.', ',')} € × ${frConf.rate})</span><span>${fcfa(goods)}</span></div><div><span>Avion (${String(w).replace('.', ',')} kg × ${fcfa(frConf.freightPerKg)})</span><span>${fcfa(freight)}</span></div><div><span>Douane estimée (${frConf.customsPercent} %)</span><span>${fcfa(customs)}</span></div><div><span>Coût pour Kamwa</span><span>${fcfa(cost)}</span></div><div><span>Prix tout compris conseillé</span><span class="price">${fcfa(total)}</span></div>${priceNow ? `<div><span>Marge avec le prix de vente actuel</span><span class="${priceNow - cost < 0 ? 'neg' : 'pos'}">${fcfa(priceNow - cost)}</span></div>` : ''}</div>`;
-      return total;
-    };
-    $('#originFr')?.addEventListener('change', () => { $('#frFields').hidden = !$('#originFr').checked; frCalc(); });
-    ['#priceEur', '#weightKg', '#price'].forEach((sel) => $(sel)?.addEventListener('input', frCalc));
-    $('#frPriceBtn')?.addEventListener('click', async () => { const t = await frCalc(); if (t && $('#price')) { $('#price').value = t; frCalc(); toast('Prix de vente mis à jour'); } });
-    frCalc();
-
-    // --- Remplissage automatique (lien lu par le serveur, ou données envoyées par le favori « → Kamwa ») ---
-    const applyImport = (d) => {
-      const set = (sel, v) => { if (v != null && v !== '' && $(sel)) $(sel).value = v; };
-      set('#name', d.name); set('#brand', d.brand); set('#description', d.description);
-      if (d.specs?.length) set('#specs', d.specs.map((x) => `${x.label} : ${x.value}`).join('\n'));
-      if (d.options?.length) set('#options', d.options.map((o) => `${o.name} : ${o.values.join(', ')}`).join('\n'));
-      if (d.category && [...$('#category').options].some((o) => o.value === d.category || o.text === d.category)) $('#category').value = d.category;
-      if ($('#originFr')) { $('#originFr').checked = true; $('#frFields').hidden = false; }
-      set('#priceEur', d.priceEur); set('#weightKg', d.weightKg); set('#srcUrl', d.source || d.url);
-      for (const u of d.images || []) if (images.length < 8 && !images.includes(u)) images.push(u);
-      renderGallery();
-      if ($('#price') && !$('#price').value) frCalc().then((t) => { if (t) { $('#price').value = t; frCalc(); } });
-      else frCalc();
-    };
-    const importNotice = (d) => `<div class="alert ok">Fiche remplie ✓ ${d.images?.length ? `${d.images.length} photo(s) récupérée(s)` : 'aucune photo récupérée'}${d.failedImages ? `, ${d.failedImages} impossible(s)` : ''}. Vérifiez les informations, choisissez la catégorie si besoin, puis indiquez la <strong>quantité</strong> (stock).${d.priceEur ? '' : ' Prix en euros introuvable : saisissez-le.'}</div>
-      <div class="alert warn">Photos du site vendeur : assurez-vous d'avoir le droit de les utiliser, ou remplacez-les par les photos de votre agent.</div>`;
-    $('#scrapeBtn')?.addEventListener('click', async () => {
-      const url = $('#srcUrl').value.trim();
-      if (!/^https?:\/\//.test(url)) { $('#scrapeMsg').innerHTML = '<div class="alert err">Collez un lien complet (commençant par https://)</div>'; return; }
-      const b = $('#scrapeBtn'); b.disabled = true; b.innerHTML = '<span class="spin"></span> Lecture…';
-      $('#scrapeMsg').innerHTML = '<p class="muted">Lecture de la page et récupération des photos (quelques secondes)…</p>';
-      try { const d = await api('/products/scrape', { method: 'POST', body: { url } }); applyImport(d); $('#scrapeMsg').innerHTML = importNotice(d); }
-      catch (err) { $('#scrapeMsg').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; }
-      b.disabled = false; b.textContent = 'Remplir';
-    });
-    const qs = new URLSearchParams(location.hash.split('?').slice(1).join('?'));
-    const fromBookmark = qs.get('kamwa2') || qs.get('kamwa');
-    if (isNew && fromBookmark) {
-      try {
-        // kamwa2 = texte JSON (nouveau favori) ; kamwa = ancien favori (base64)
-        const raw = qs.get('kamwa2') ? JSON.parse(fromBookmark) : JSON.parse(decodeURIComponent(escape(atob(fromBookmark.replace(/-/g, '+').replace(/_/g, '/')))));
-        const d = { name: raw.n, brand: raw.b, description: raw.de, url: raw.u, priceEur: !raw.c || String(raw.c).toUpperCase() === 'EUR' ? raw.p : null, options: [raw.co?.length && { name: 'Couleur', values: raw.co }, raw.si?.length && { name: 'Taille', values: raw.si }].filter(Boolean) };
-        $('#scrapeMsg').innerHTML = '<p class="muted">Récupération des photos…</p>';
-        api('/products/import-images', { method: 'POST', body: { urls: raw.im || [], name: raw.n } }).then((r) => { applyImport({ ...d, ...r }); $('#scrapeMsg').innerHTML = importNotice({ ...d, ...r }); })
-          .catch(() => { applyImport(d); $('#scrapeMsg').innerHTML = importNotice({ ...d, images: [] }); });
-        history.replaceState(null, '', '#/produit/nouveau');
-      } catch (err) {
-        console.error('[favori → Kamwa]', err, fromBookmark.slice(0, 200));
-        $('#scrapeMsg').innerHTML = `<div class="alert err">Données du favori illisibles (${esc(err.message)}, ${fromBookmark.length} caractères reçus). Remettez le bouton « → Kamwa » à jour (glissez-le de nouveau dans vos favoris) puis réessayez. Si cela continue, dites-nous sur quel site.</div>`;
-      }
-    }
     $('#files')?.addEventListener('change', (e) => { addFiles(e.target.files); e.target.value = ''; });
 
     const val = (sel) => $(sel)?.value;
@@ -2233,8 +1871,6 @@
         if (showSupplierPrice) body.supplierPrice = val('#supplierPrice');
         if (isAdmin()) Object.assign(body, { supplierId: val('#supplierId'), costPrice: val('#costPrice') });
         body.options = val('#options');
-        if (!isSupplier()) Object.assign(body, { origin: $('#originFr').checked ? 'FR' : null, sourceUrl: val('#srcUrl'), priceEur: val('#priceEur'), weightKg: val('#weightKg') });
-        if (body.origin === 'FR') delete body.costPrice; // calculé par le serveur (article + avion + douane)
         if (!isSupplier()) Object.assign(body, { active: $('#active').checked, featured: $('#featured').checked });
       }
       const btn = e.target.querySelector('button.btn');
@@ -2314,7 +1950,6 @@
             <option value="catalog">Employé Catalogue — ajout et modification des produits</option>
             <option value="orders">Employé Commandes — suivi et statut des commandes</option>
             <option value="courier">Livreur — ses livraisons, validées avec le code du client</option>
-            <option value="agent">Agent Europe — achète, reçoit et envoie les achats en Europe</option>
           </select>
           <div id="companyField"><label for="sCompany">Entreprise du fournisseur *</label><input id="sCompany" type="text" placeholder="Ex. Tech Import Pointe-Noire"></div>
           <label for="sName">Nom de la personne *</label><input id="sName" type="text">
@@ -2801,8 +2436,8 @@
   });
 
   // ---------- Rail des modules + onglets du module (structure ERP : menu à gauche, pages du module en haut) ----------
-  const MODULE_ICONS = { 'Ventes': 'receipt-duotone', 'Achat en Europe': 'airplane-tilt-duotone', 'Catalogue': 'package-duotone', 'Livraison': 'truck-duotone', 'Gestion': 'wallet-duotone', 'Équipe': 'users-three-duotone' };
-  const ROLE_LABELS = { admin: 'Administrateur', catalog: 'Catalogue', orders: 'Commandes', supplier: 'Fournisseur', courier: 'Livreur', agent: 'Agent Europe' };
+  const MODULE_ICONS = { 'Ventes': 'receipt-duotone', 'Catalogue': 'package-duotone', 'Livraison': 'truck-duotone', 'Gestion': 'wallet-duotone', 'Équipe': 'users-three-duotone' };
+  const ROLE_LABELS = { admin: 'Administrateur', catalog: 'Catalogue', orders: 'Commandes', supplier: 'Fournisseur', courier: 'Livreur' };
   const linkInfo = (a) => {
     const c = a.cloneNode(true); c.querySelectorAll('.count').forEach((x) => x.remove());
     const use = a.querySelector('use'); const cnt = a.querySelector('.count');
@@ -2867,126 +2502,13 @@
     $('#gsearchInput').value = '';
   });
 
-  // ---------- Agent Tendances (admin) ----------
-  const VERDICT = { integrate: ['À intégrer', 'ok'], watch: ['À surveiller', 'warn'], avoid: ['À éviter', 'danger'] };
-  const TR_TABS = [['new', 'Nouvelles'], ['kept', 'Gardées'], ['integrated', 'Intégrées'], ['ignored', 'Ignorées']];
-  async function viewTrends() {
-    let d; try { d = await api('/trends'); } catch { return; }
-    const f = state.trFilter || 'new';
-    const list = d.proposals.filter((t) => t.status === f);
-    const k = d.keys, last = d.runs[0];
-    const nowH = new Date(Date.now() + 3600e3).getUTCHours();
-    const next = d.settings.hours.find((h) => h > nowH) ?? d.settings.hours[0];
-    app.innerHTML = pageHead({ title: 'Tendances', desc: "L'agent repère plusieurs fois par jour les produits qui se vendent le mieux (sources officielles) et ce que vos clients cherchent sans le trouver, puis vous propose ceux à intégrer. Vous décidez.", actions: `<button class="btn" id="trRun">${icon('magic-wand-duotone')} Analyser maintenant</button>` }) + `
-      <div class="tr-status">
-        <span class="${k.aliexpress ? 'ok' : 'off'}">${icon(k.aliexpress ? 'check-bold' : 'x-bold')} AliExpress ${k.aliexpress ? 'connecté' : 'à connecter'}</span>
-        <span class="off">${icon('x-bold')} Amazon : en attente d'accès</span>
-        <span class="ok">${icon('check-bold')} Recherches Kamwa</span>
-        <span class="${k.ai ? 'ok' : 'off'}">${icon(k.ai ? 'check-bold' : 'x-bold')} Analyse ${k.ai ? 'IA Claude' : 'intégrée (sans IA)'}</span>
-        <span class="muted">${d.settings.enabled ? `Prochain passage : ${next} h` : 'Passages automatiques arrêtés'}${last ? ` · dernier : ${date(last.at)} (${last.proposed} proposition(s))` : ''}</span>
-      </div>
-      ${last?.errors?.length ? `<div class="alert warn">Dernier passage : ${esc(last.errors.join(' · '))}</div>` : ''}
-      ${!k.aliexpress ? `<div class="alert warn">Pour recevoir les produits tendance, saisissez vos clés AliExpress dans « Réglages de l'agent » ci-dessous (en attendant, l'agent analyse les recherches de vos clients).</div>` : ''}
-      ${tabsBar(TR_TABS.map(([key, l]) => [key, l, d.proposals.filter((t) => t.status === key).length]), f, 'trf')}
-      <div class="tr-grid">${list.length ? list.map(trendCard).join('') : `<p class="muted" style="padding:20px">${f === 'new' ? 'Pas de nouvelle proposition pour le moment. Elles arrivent à chaque passage de l\'agent.' : 'Rien ici.'}</p>`}</div>
-      <div class="panel" style="margin-top:16px"><h2>${icon('magnifying-glass')} Ce que vos clients cherchent (7 jours)</h2>
-        ${d.demand.length ? `<ul class="mini-list">${d.demand.map((x) => `<li><span>« ${esc(x.q)} »</span><span>${x.n} fois · ${x.results ? `${x.results} résultat(s)` : '<strong style="color:var(--accent)">aucun produit</strong>'}</span></li>`).join('')}</ul>` : '<p class="muted">Pas encore de recherche enregistrée.</p>'}
-      </div>
-      <details class="panel tr-settings"><summary><h2 style="display:inline">${icon('key-bold')} Réglages de l'agent</h2></summary>
-        <form id="trKeys" autocomplete="off">
-          <h3>AliExpress (programme d'affiliation, gratuit)</h3>
-          <p class="muted">1. Créez un compte sur <a href="https://portals.aliexpress.com" target="_blank" rel="noopener">portals.aliexpress.com</a> (récupérez votre « Tracking ID »). 2. Sur <a href="https://openservice.aliexpress.com" target="_blank" rel="noopener">openservice.aliexpress.com</a>, créez une application « Affiliate » : vous obtenez une App Key et une App Secret.</p>
-          <div class="grid2">
-            <div><label>App Key</label><input name="aliAppKey" type="password" placeholder="${esc(k.aliAppKey || 'à saisir')}"></div>
-            <div><label>App Secret</label><input name="aliAppSecret" type="password" placeholder="${esc(k.aliAppSecret || 'à saisir')}"></div>
-            <div><label>Tracking ID</label><input name="aliTrackingId" type="password" placeholder="${esc(k.aliTrackingId || 'à saisir')}"></div>
-          </div>
-          <h3>IA Claude (analyse des produits)</h3>
-          <p class="muted">Créez une clé sur <a href="https://console.anthropic.com" target="_blank" rel="noopener">console.anthropic.com</a> (paiement à l'usage : quelques centimes par analyse avec le modèle ${esc(k.model)}).</p>
-          <div class="grid2"><div><label>Clé Anthropic</label><input name="anthropicKey" type="password" placeholder="${esc(k.anthropicKey || 'à saisir')}"></div></div>
-          <p class="muted">Les clés restent sur le serveur Kamwa : elles ne sont plus jamais affichées en entier.</p>
-          <div class="row"><button class="btn">Enregistrer les clés</button><button type="button" class="ghost" id="trTest">Vérifier les clés</button></div>
-          <div id="trKeyMsg"></div>
-        </form>
-        <form id="trConf">
-          <h3>Passages et recherche</h3>
-          <label class="check"><input type="checkbox" id="trOn" ${d.settings.enabled ? 'checked' : ''}> Passages automatiques</label>
-          <label>Heures de passage (heure du Congo)</label>
-          <div class="chips">${Array.from({ length: 17 }, (_, i) => i + 6).map((h) => `<label class="chip-check"><input type="checkbox" data-h="${h}" ${d.settings.hours.includes(h) ? 'checked' : ''}> ${h} h</label>`).join('')}</div>
-          <label>Produits à surveiller (un par ligne)</label>
-          <textarea id="trKw" rows="6">${esc(d.settings.keywords.join('\n'))}</textarea>
-          <div class="grid2">
-            <div><label>Propositions par passage</label><input id="trPer" type="number" min="1" max="20" value="${d.settings.perRun}"></div>
-            <div><label>Prix maximum de l'article (€)</label><input id="trMax" type="number" min="5" max="2000" value="${d.settings.maxPriceEur}"></div>
-          </div>
-          <button class="btn" style="margin-top:10px">Enregistrer</button>
-        </form>
-      </details>`;
-    app.querySelectorAll('[data-trf]').forEach((b) => b.addEventListener('click', () => { state.trFilter = b.dataset.trf; viewTrends(); }));
-    $('#trRun').addEventListener('click', async (e) => {
-      e.target.disabled = true; e.target.textContent = 'Analyse en cours…';
-      try { const r = await api('/trends/run', { method: 'POST' }); toast(`Analyse terminée : ${r.proposed} proposition(s)`); state.trFilter = 'new'; viewTrends(); }
-      catch (err) { toast(err.message); e.target.disabled = false; }
-    });
-    app.querySelector('.tr-grid').addEventListener('click', async (e) => {
-      const b = e.target.closest('[data-tr]'); if (!b) return;
-      const t = d.proposals.find((x) => x.id === b.dataset.id);
-      if (b.dataset.tr === 'integrate') {
-        await api('/trends/' + enc(t.id) + '/decision', { method: 'POST', body: { status: 'integrated' } }).catch(() => {});
-        // Fiche produit pré-remplie (même mécanisme que le bouton « → Kamwa »)
-        const data = t.source === 'kamwa' ? { u: '', n: t.keyword, im: [], p: null, c: null, de: '' }
-          : { u: t.url || '', n: t.title, b: '', de: (t.review?.reason || ''), im: [t.image, ...(t.images || [])].filter(Boolean).slice(0, 6), p: t.priceEur, c: 'EUR', co: [], si: [] };
-        location.hash = '#/produit/nouveau?kamwa2=' + encodeURIComponent(JSON.stringify(data));
-        return;
-      }
-      await api('/trends/' + enc(t.id) + '/decision', { method: 'POST', body: { status: b.dataset.tr } });
-      toast(b.dataset.tr === 'kept' ? 'Gardée dans « Gardées »' : b.dataset.tr === 'ignored' ? 'Ignorée' : 'Remise dans les nouvelles');
-      viewTrends();
-    });
-    $('#trKeys').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const body = {}; for (const i of e.target.querySelectorAll('input')) if (i.value.trim()) body[i.name] = i.value.trim();
-      try { await api('/trends/keys', { method: 'PUT', body }); toast('Clés enregistrées ✓'); viewTrends(); } catch (err) { $('#trKeyMsg').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; }
-    });
-    $('#trTest').addEventListener('click', async () => {
-      $('#trKeyMsg').innerHTML = '<p class="muted">Vérification…</p>';
-      const r = await api('/trends/test', { method: 'POST' }).catch((err) => ({ err: err.message }));
-      $('#trKeyMsg').innerHTML = r.err ? `<div class="alert err">${esc(r.err)}</div>` : `<div class="alert ${r.aliexpress.ok && r.ai.ok ? 'ok' : 'warn'}">AliExpress : ${r.aliexpress.ok ? 'OK ✓' : esc(r.aliexpress.error)}<br>IA Claude : ${r.ai.ok ? 'OK ✓' : esc(r.ai.error)}</div>`;
-    });
-    $('#trConf').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const body = { enabled: $('#trOn').checked, hours: [...app.querySelectorAll('[data-h]:checked')].map((i) => Number(i.dataset.h)), keywords: $('#trKw').value.split('\n'), perRun: Number($('#trPer').value), maxPriceEur: Number($('#trMax').value) };
-      try { await api('/trends/settings', { method: 'PUT', body }); toast('Réglages enregistrés ✓'); viewTrends(); } catch (err) { toast(err.message); }
-    });
-  }
-  function trendCard(t) {
-    const v = VERDICT[t.review?.verdict] || ['', ''];
-    const L = t.landed;
-    return `<article class="tr-card">
-      ${t.image ? `<img src="${esc(t.image)}" alt="" loading="lazy">` : `<div class="tr-noimg">${icon(t.source === 'kamwa' ? 'magnifying-glass' : 'package')}</div>`}
-      <div class="tr-body">
-        <div class="row between"><span class="tag">${t.source === 'aliexpress' ? 'AliExpress' : t.source === 'kamwa' ? 'Clients Kamwa' : esc(t.source)}</span><span class="tag ${v[1]}">${v[0]} · ${t.review?.score ?? '—'}/100</span></div>
-        <h3>${esc(t.title)}</h3>
-        ${L ? `<div class="tr-nums"><span><b>${t.priceEur != null ? String(t.priceEur).replace('.', ',') + ' €' : '—'}</b><small>prix d'achat</small></span><span><b>${fcfa(t.review?.suggestedPriceFcfa || L.priceFcfa)}</b><small>prix Kamwa${t.review?.suggestedPriceFcfa ? ' conseillé' : ' (tout compris)'}</small></span><span><b>${fcfa(L.marginFcfa)}</b><small>marge</small></span>${t.volume ? `<span><b>${Number(t.volume).toLocaleString('fr-FR')}</b><small>ventes récentes</small></span>` : ''}${t.rating ? `<span><b>${t.rating} %</b><small>avis positifs</small></span>` : ''}</div>` : `<p class="muted">${t.searches} recherche(s) cette semaine, aucun produit.</p>`}
-        <p class="tr-why">${icon('magic-wand-duotone')} ${esc(t.review?.reason || '')} <span class="muted">(${esc(t.review?.by || '')})</span></p>
-        ${(t.review?.risks || []).length ? `<p class="muted">Attention : ${t.review.risks.map(esc).join(' · ')}</p>` : ''}
-        <div class="row">
-          ${t.status !== 'integrated' ? `<button class="btn small" data-tr="integrate" data-id="${esc(t.id)}">${icon('plus-bold')} ${t.source === 'kamwa' ? 'Créer la fiche' : 'Intégrer'}</button>` : ''}
-          ${t.status !== 'kept' ? `<button class="ghost" data-tr="kept" data-id="${esc(t.id)}">Garder</button>` : ''}
-          ${t.status !== 'ignored' ? `<button class="ghost" data-tr="ignored" data-id="${esc(t.id)}">Ignorer</button>` : `<button class="ghost" data-tr="new" data-id="${esc(t.id)}">Remettre</button>`}
-          ${t.url ? `<a class="ghost" href="${esc(t.url)}" target="_blank" rel="noopener">${icon('arrow-square-out-bold')} Voir</a>` : ''}
-        </div>
-      </div>
-    </article>`;
-  }
-
   // ---------- Rafraîchissement instantané (signal du serveur) ----------
   // Le serveur signale chaque changement qui concerne ce rôle ; la page affichée se redessine tout de suite,
   // à la même position, sauf pendant une saisie (elle se met alors à jour dès que la saisie est terminée).
   const LIVE_TOPICS = {
-    tableau: ['orders', 'products', 'customers', 'chat', 'imports', 'finance'], commandes: ['orders'], commande: ['orders', 'documents', 'parcels'], documents: ['documents'], colis: ['parcels', 'orders'], calendrier: ['orders', 'purchases', 'imports'], achats: ['purchases'], achat: ['purchases'], stock: ['stock', 'products', 'purchases'], 'bons-de-commande': ['purchases'], clients: ['customers'],
-    france: ['imports', 'orders'], envois: ['imports', 'orders'], agent: ['imports', 'orders'], livraisons: ['orders'], fournisseur: ['orders', 'products'],
-    produits: ['products'], agences: ['agencies'], tendances: ['trends'], journal: ['orders', 'products', 'customers', 'staff', 'finance'], finances: ['finance', 'orders'], equipe: ['staff'],
+    tableau: ['orders', 'products', 'customers', 'chat', 'finance'], commandes: ['orders'], commande: ['orders', 'documents', 'parcels'], documents: ['documents'], colis: ['parcels', 'orders'], calendrier: ['orders', 'purchases'], achats: ['purchases'], achat: ['purchases'], stock: ['stock', 'products', 'purchases'], 'bons-de-commande': ['purchases'], clients: ['customers'],
+    livraisons: ['orders'], fournisseur: ['orders', 'products'],
+    produits: ['products'], agences: ['agencies'], journal: ['orders', 'products', 'customers', 'staff', 'finance'], finances: ['finance', 'orders'], equipe: ['staff'],
   };
   const NO_LIVE_WITH_ID = ['produit', 'achat', 'calendrier', 'agences', 'equipe', 'finances', 'reglages', 'mot-de-passe'];
   const proBusy = () => {
@@ -3036,7 +2558,7 @@
     clearInterval(state.msgTimer);
     if (!/^#\/scanner/.test(location.hash)) stopScanner(); // caméra coupée en quittant le scanner
     let [page, id] = (location.hash || homeHash()).slice(2).split('/').map(decodeURIComponent);
-    if (id && id.includes('?') && page !== 'finances') id = id.split('?')[0]; // ex. #/produit/nouveau?kamwa=… (bouton « → Kamwa »)
+    if (id && id.includes('?') && page !== 'finances') id = id.split('?')[0];
     const keepY = opts.keep ? window.scrollY : 0;
     if (opts.keep) [0, 150, 450].forEach((ms) => setTimeout(() => { if (Math.abs(window.scrollY - keepY) > 2) window.scrollTo(0, keepY); }, ms)); // les pages se chargent en un instant : on garde la position
     else window.scrollTo(0, 0);
@@ -3047,15 +2569,14 @@
       tableau: () => Boolean(state.user),
       commandes: CAN.orders, commande: CAN.orders, produits: CAN.products, produit: CAN.products,
       messagerie: () => Boolean(state.user) && !CAN.supplier(),
-      calendrier: () => CAN.orders() || CAN.courier(), tendances: CAN.admin, achats: () => CAN.admin() || state.user?.role === 'catalog', achat: () => CAN.admin() || state.user?.role === 'catalog', stock: () => CAN.admin() || state.user?.role === 'catalog', 'bons-de-commande': CAN.supplier, documents: CAN.orders, colis: () => CAN.orders() || CAN.courier(), scanner: () => CAN.orders() || CAN.courier(),
-      fournisseur: CAN.supplier, clients: CAN.admin, agences: CAN.admin, equipe: CAN.admin, journal: CAN.admin, finances: CAN.admin, reglages: CAN.admin, livraisons: CAN.courier, france: CAN.orders, envois: () => CAN.orders() || CAN.agent(), agent: () => CAN.agent() || CAN.admin(), 'mot-de-passe': () => !CAN.admin(),
+      calendrier: () => CAN.orders() || CAN.courier(), achats: () => CAN.admin() || state.user?.role === 'catalog', achat: () => CAN.admin() || state.user?.role === 'catalog', stock: () => CAN.admin() || state.user?.role === 'catalog', 'bons-de-commande': CAN.supplier, documents: CAN.orders, colis: () => CAN.orders() || CAN.courier(), scanner: () => CAN.orders() || CAN.courier(),
+      fournisseur: CAN.supplier, clients: CAN.admin, agences: CAN.admin, equipe: CAN.admin, journal: CAN.admin, finances: CAN.admin, reglages: CAN.admin, livraisons: CAN.courier, 'mot-de-passe': () => !CAN.admin(),
     };
     if (!allowed[page]?.()) [page, id] = homeHash().slice(2).split('/');
     const tab = page.startsWith('produit') ? 'produits' : page === 'commande' ? 'commandes' : page === 'achat' ? 'achats' : page;
     document.querySelectorAll('[data-tab]').forEach((a) => a.classList.toggle('on', a.dataset.tab === tab));
     if (state.user) renderRail();
     if (page === 'messagerie') return viewMessaging(id);
-    if (page === 'tendances') return viewTrends();
     if (page === 'documents') return viewDocuments();
     if (page === 'achats') return viewPurchases();
     if (page === 'achat') return id === 'nouveau' ? viewPurchaseNew() : viewPurchase(id);
@@ -3071,9 +2592,6 @@
     if (page === 'finances') return viewFinances(id);
     if (page === 'livraisons') return viewDeliveries();
     if (page === 'reglages') return viewSettings();
-    if (page === 'france') return viewFrance(id);
-    if (page === 'envois') return viewShipments();
-    if (page === 'agent') return viewAgent();
     if (page === 'fournisseur') return viewSupplierOrders();
     if (page === 'mot-de-passe') return viewPassword();
     if (page === 'commande') return viewOrder(id);
