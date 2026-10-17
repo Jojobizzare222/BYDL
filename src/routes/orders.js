@@ -186,6 +186,33 @@ router.post('/:id/relay', (req, res) => {
   res.json(publicOrder(updated));
 });
 
+// Coordonnées corrigées entre deux tentatives (ex. adresse oubliée, retrait → livraison) : on met à jour la MÊME commande
+// au lieu d'en créer une nouvelle (plus de commandes fantômes). Seulement tant qu'elle n'est pas payée.
+router.patch('/:id/customer', (req, res) => {
+  const order = orders.get(req.params.id);
+  if (!order || !(hasAccess(order, req.get('X-Order-Token')) || isOwner(req, order))) return res.status(404).json({ error: 'Commande introuvable' });
+  if (order.status !== 'pending_payment') return res.status(409).json({ error: 'Commande déjà payée ou annulée' });
+  const c = req.body?.customer || {};
+  if (!String(c.name || '').trim()) return res.status(400).json({ error: 'Nom obligatoire' });
+  const phone = normalizeLocal(c.phone);
+  if (!phone) return res.status(400).json({ error: 'Numéro de téléphone invalide (ex. 06 123 45 67)' });
+  const customer = {
+    name: String(c.name).trim().slice(0, 120), phone,
+    city: String(c.city || '').trim().slice(0, 60), address: String(c.address || '').trim().slice(0, 300),
+    ...(validPoint(c.location) ? { location: validPoint(c.location) } : {}),
+  };
+  res.json(clientOrder(orders.update(order.id, { customer })));
+});
+
+// Le client annule lui-même sa commande tant qu'elle n'est pas payée (clé de la commande ou compte propriétaire)
+router.post('/:id/cancel', (req, res) => {
+  const order = orders.get(req.params.id);
+  if (!order || !(hasAccess(order, req.get('X-Order-Token')) || isOwner(req, order))) return res.status(404).json({ error: 'Commande introuvable' });
+  const r = require('../abandon').cancelByCustomer(order);
+  if (r.error) return res.status(409).json({ error: r.error });
+  res.json(clientOrder(r.value));
+});
+
 module.exports = router;
 module.exports.hasAccess = hasAccess;
 module.exports.clientLines = clientLines;

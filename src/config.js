@@ -15,6 +15,9 @@ module.exports = {
   paymentPendingMinutes: Number(env('PAYMENT_PENDING_MINUTES', 10)),
   // Retrait en agence : durée de réservation de l'article avant paiement en espèces.
   pickupHoldHours: Number(env('PICKUP_HOLD_HOURS', 48)),
+  // Commandes jamais payées : annulées après 2 h sans demande de paiement, ou 24 h après une réservation / tentative expirée
+  abandonNoPaymentHours: Number(env('ABANDON_NO_PAYMENT_HOURS', 2)),
+  abandonGraceHours: Number(env('ABANDON_GRACE_HOURS', 24)),
   // Paiement par carte : prestataire à brancher (CinetPay, Moneroo…). Vide = carte indisponible en mode live.
   cardProvider: env('CARD_PROVIDER'),
   // Délai maximal d'attente d'une réponse de MTN / Airtel.

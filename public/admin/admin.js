@@ -448,10 +448,17 @@
         ${isPickup(o) ? `<p style="margin:0 0 10px"><span class="tag">🏪 Retrait en agence</span> <strong>${esc(o.agency?.name)}</strong> (${esc(o.agency?.city)})${o.status === 'pending_payment' && o.pickupDeadline ? `<br><span class="muted">Réservé jusqu'au ${date(o.pickupDeadline)}${Date.now() > Date.parse(o.pickupDeadline) ? ' — <strong style="color:var(--err)">délai dépassé</strong>' : ''}</span>` : ''}</p>` : ''}
         <div class="row">
           ${paysAtAgency(o) ? `<button class="btn green" id="cashBtn">💵 Paiement reçu en agence (${fcfa(o.total)})</button>` : ''}
-          ${(o.transitions || []).map((s) => {
+          ${(o.transitions || []).filter((s) => !(s === 'shipped' && o.status !== 'delivered')).map((s) => { // mise en livraison : « Confier au livreur » (bloc Livraison)
             const [label, cls] = ACTIONS[isPickup(o) && s === 'delivered' ? 'handed' : s];
             return `<button class="${cls}" data-status="${s}">${label}</button>`;
-          }).join('') || '<span class="muted">Aucune action possible.</span>'}
+          }).join('') || '<span class="muted">Aucune action possible ici.</span>'}
+        </div>
+        <div id="handoverBox" hidden>
+          <form class="deliver-form" id="handoverForm" style="max-width:360px">
+            <label for="hCode">Code de retrait donné par le client</label><input id="hCode" class="code-input-pro" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="off">
+            ${CAN.admin() ? '<label class="check"><input type="checkbox" id="hForce"> Remettre sans code (client vérifié autrement)</label>' : ''}
+            <div class="row"><button class="btn green">${icon('check-bold')} Valider la remise</button><button type="button" class="ghost" id="hCancel">Annuler</button></div>
+          </form>
         </div>
         <ul class="history" style="margin-top:12px">
           <li>Créée le ${date(o.createdAt)}</li>
@@ -477,6 +484,7 @@
 
     app.querySelectorAll('[data-status]').forEach((b) => b.addEventListener('click', () => {
       const s = b.dataset.status;
+      if (s === 'delivered' && isPickup(o)) { $('#handoverBox').hidden = false; $('#hCode').focus(); return; } // code du client obligatoire
       if (s === 'cancelled') {
         const msg = o.status === 'pending_payment'
           ? 'Annuler cette commande non payée ?'
@@ -485,6 +493,8 @@
       }
       save({ status: s }, `Commande : ${state.labels[s]}`);
     }));
+    $('#hCancel')?.addEventListener('click', () => { $('#handoverBox').hidden = true; });
+    $('#handoverForm')?.addEventListener('submit', (e) => { e.preventDefault(); save({ status: 'delivered', code: $('#hCode').value.trim(), force: Boolean($('#hForce')?.checked) }, 'Commande remise au client ✓'); });
     $('#editCustomer').addEventListener('click', () => { $('#customerForm').hidden = !$('#customerForm').hidden; });
     $('#customerForm').addEventListener('submit', (e) => {
       e.preventDefault();
@@ -923,25 +933,27 @@
     let r;
     try { r = await loadPoMeta(); } catch { return; }
     const list = r.purchases;
+    const admin = r.canEdit; // prix d'achat : administrateur seulement
     const f = state.poFilter || 'open';
-    const TABS = [['open', 'En cours'], ['draft', 'Brouillons'], ['toReceive', 'À recevoir'], ['received', 'Reçus'], ['unpaid', 'À payer'], ['all', 'Tous']];
+    const TABS = admin ? [['open', 'En cours'], ['draft', 'Brouillons'], ['toReceive', 'À recevoir'], ['received', 'Reçus'], ['unpaid', 'À payer'], ['all', 'Tous']]
+      : [['toReceive', 'À recevoir'], ['received', 'Reçus'], ['all', 'Tous']];
     const match = (b, k) => k === 'all' || (k === 'open' && ['sent', 'confirmed', 'partial'].includes(b.status)) || (k === 'toReceive' && ['sent', 'confirmed', 'partial'].includes(b.status)) || (k === 'unpaid' && b.due > 0 && b.status !== 'cancelled') || b.status === k;
     const due = list.filter((b) => b.due > 0 && b.status !== 'cancelled').reduce((n, b) => n + b.due, 0);
     const late = list.filter((b) => b.late);
     app.innerHTML = pageHead({
-      title: 'Achats', desc: "Commandez vos articles aux fournisseurs avec un <strong>bon de commande</strong> (PDF ou WhatsApp). À la livraison, notez les quantités reçues : le <strong>stock monte tout seul</strong> et le coût d'achat du produit est mis à jour. La facture du fournisseur, saisie sur le bon, apparaît dans Finances → Fournisseurs jusqu'à son paiement.",
-      actions: `<a class="btn green" href="#/achat/nouveau">${icon('plus-bold')} Nouveau bon</a>`,
+      title: 'Achats', desc: admin ? "Commandez vos articles aux fournisseurs avec un <strong>bon de commande</strong> (PDF ou WhatsApp). À la livraison, notez les quantités reçues : le <strong>stock monte tout seul</strong> et le coût d'achat du produit est mis à jour. La facture du fournisseur, saisie sur le bon, apparaît dans Finances → Fournisseurs jusqu'à son paiement." : "Les livraisons attendues des fournisseurs. Quand les articles arrivent, ouvrez le bon et notez les quantités reçues : le stock monte tout seul.",
+      actions: admin ? `<a class="btn green" href="#/achat/nouveau">${icon('plus-bold')} Nouveau bon</a>` : '',
     })
-      + `<div class="kpis">
+      + (admin ? `<div class="kpis">
           <div class="kpi kc0"><span class="kpi-ico">${icon('clipboard-text')}</span><span class="kpi-label">Bons en cours</span><span class="kpi-value">${list.filter((b) => match(b, 'open')).length}</span><span class="kpi-hint">${fcfa(list.filter((b) => match(b, 'open')).reduce((n, b) => n + b.total - b.receivedTotal, 0))} attendus</span></div>
           <div class="kpi kc1"><span class="kpi-ico">${icon('package')}</span><span class="kpi-label">Reçus ce mois</span><span class="kpi-value">${fcfa(list.filter((b) => b.receivedAt && b.receivedAt.slice(0, 7) === today().slice(0, 7)).reduce((n, b) => n + b.receivedTotal, 0))}</span></div>
           <div class="kpi kc2"><span class="kpi-ico">${icon('wallet-duotone')}</span><span class="kpi-label">Reste à payer</span><span class="kpi-value">${fcfa(due)}</span><span class="kpi-hint">${list.filter((b) => match(b, 'unpaid')).length} bon(s)</span></div>
-        </div>`
+        </div>` : '')
       + (late.length ? `<div class="alert warn">${icon('clock-countdown-duotone')} ${late.length} bon(s) en retard de livraison : ${late.map((b) => `<a href="#/achat/${enc(b.id)}">${esc(b.number)}</a> (${esc(b.supplier.name)}, prévu le ${esc(b.expectedAt.split('-').reverse().join('/'))})`).join(', ')}</div>` : '')
       + tabsBar(TABS.map(([k, l]) => [k, l, list.filter((b) => match(b, k)).length]), f, 'pof') + '<div id="tbl"></div>';
     app.querySelectorAll('[data-pof]').forEach((b) => b.addEventListener('click', () => { state.poFilter = b.dataset.pof; viewPurchases(); }));
     dataTable($('#tbl'), {
-      id: 'purchases', rows: list.filter((b) => match(b, f)), defaultSort: 'createdAt', placeholder: 'Numéro, fournisseur, article', empty: 'Aucun bon de commande ici. Cliquez sur « Nouveau bon ».',
+      id: 'purchases', rows: list.filter((b) => match(b, f)), defaultSort: 'createdAt', placeholder: 'Numéro, fournisseur, article', empty: admin ? 'Aucun bon de commande ici. Cliquez sur « Nouveau bon ».' : 'Aucune livraison attendue.',
       searchText: (b) => `${b.number} ${b.supplier.name} ${b.lines.map((l) => l.name).join(' ')}`,
       columns: [
         { key: 'number', label: 'Bon', render: (b) => `<a href="#/achat/${enc(b.id)}"><strong class="mono">${esc(b.number)}</strong></a><br>${poTag(b)}${b.late ? ' <span class="tag danger">en retard</span>' : ''}` },
@@ -949,8 +961,8 @@
         { key: 'supplier', label: 'Fournisseur', sortValue: (b) => norm(b.supplier.name), render: (b) => `${esc(b.supplier.name)}${b.supplier.supplierId ? '<br><span class="muted">compte Kamwa Pro</span>' : ''}` },
         { key: 'lines', label: 'Articles', sortable: false, render: (b) => b.lines.slice(0, 3).map((l) => `${l.qty} × ${esc(l.name)}`).join('<br>') + (b.lines.length > 3 ? `<br><span class="muted">+ ${b.lines.length - 3} autre(s)</span>` : '') },
         { key: 'receivedQty', label: 'Reçu', cls: 'num', render: (b) => `${b.receivedQty}/${b.qty}` },
-        { key: 'total', label: 'Total', cls: 'num', render: (b) => `<strong>${fcfa(b.total)}</strong>${b.due > 0 && b.status !== 'cancelled' ? `<br><span class="tag warn">à payer ${fcfa(b.due)}</span>` : ''}` },
-        { key: 'act', label: '', sortable: false, render: (b) => `<div class="cell-actions"><a class="ghost" href="#/achat/${enc(b.id)}">Ouvrir</a></div>` },
+        ...(admin ? [{ key: 'total', label: 'Total', cls: 'num', render: (b) => `<strong>${fcfa(b.total)}</strong>${b.due > 0 && b.status !== 'cancelled' ? `<br><span class="tag warn">à payer ${fcfa(b.due)}</span>` : ''}` }] : []),
+        { key: 'act', label: '', sortable: false, render: (b) => `<div class="cell-actions"><a class="ghost" href="#/achat/${enc(b.id)}">${admin ? 'Ouvrir' : 'Recevoir'}</a></div>` },
       ],
     });
   }
@@ -1025,17 +1037,18 @@
   async function viewPurchase(id) {
     let bc;
     try { if (!poMeta) await loadPoMeta(); bc = await api('/purchases/' + enc(id)); } catch (err) { app.innerHTML = `<p><a href="#/achats">‹ Achats</a></p><div class="alert err">${esc(err.message)}</div>`; return; }
-    const open = ['sent', 'confirmed', 'partial'].includes(bc.status);
+    const admin = !bc.pricesHidden; // l'employé Catalogue : quantités et réception seulement
+    const open = ['sent', 'confirmed', 'partial'].includes(bc.status) || (admin && bc.status === 'draft');
     const left = (l) => l.qty - (l.received || 0);
-    const wa = poWa(bc);
+    const wa = admin ? poWa(bc) : '';
     app.innerHTML = `<p><a href="#/achats">‹ Achats</a></p>
       <div class="row between" style="flex-wrap:wrap;gap:8px"><h1 class="mono" style="margin:0">${esc(bc.number)}</h1><span class="row" style="gap:6px">${poTag(bc)}${bc.late ? '<span class="tag danger">en retard</span>' : ''}</span></div>
       <div class="row" style="gap:8px;flex-wrap:wrap;margin:10px 0 14px">
-        <a class="btn ghost" target="_blank" rel="noopener" href="/api/admin/purchases/${enc(bc.id)}/print">${icon('download-simple-bold')} Bon en PDF</a>
+        ${admin ? `<a class="btn ghost" target="_blank" rel="noopener" href="/api/admin/purchases/${enc(bc.id)}/print">${icon('download-simple-bold')} Bon en PDF</a>` : ''}
         ${wa ? `<a class="btn green" target="_blank" rel="noopener" href="${wa}">${icon('chat-circle')} Envoyer par WhatsApp</a>` : ''}
-        ${bc.status === 'draft' ? `<button class="btn" data-po-st="sent">${icon('paper-plane-right-fill')} Marquer envoyé</button>` : ''}
-        ${['draft', 'sent'].includes(bc.status) ? `<button class="btn ghost" data-po-st="confirmed">${icon('check-bold')} Confirmé par le fournisseur</button>` : ''}
-        ${['draft', 'sent', 'confirmed'].includes(bc.status) && (CAN.admin() || bc.status === 'draft') ? `<button class="ghost" data-po-st="cancelled" style="margin-left:auto">${icon('x-bold')} Annuler le bon</button>` : ''}
+        ${admin && bc.status === 'draft' ? `<button class="btn" data-po-st="sent">${icon('paper-plane-right-fill')} Marquer envoyé</button>` : ''}
+        ${admin && ['draft', 'sent'].includes(bc.status) ? `<button class="btn ghost" data-po-st="confirmed">${icon('check-bold')} Confirmé par le fournisseur</button>` : ''}
+        ${admin && ['draft', 'sent', 'confirmed'].includes(bc.status) ? `<button class="ghost" data-po-st="cancelled" style="margin-left:auto">${icon('x-bold')} Annuler le bon</button>` : ''}
       </div>
       <div id="poMsg"></div>
       <div class="grid2 po-grid">
@@ -1044,19 +1057,19 @@
           ${bc.confirmedAt ? `<p class="muted" style="margin:8px 0 0">Confirmé le ${date(bc.confirmedAt)}${bc.confirmedBy ? ` par ${esc(bc.confirmedBy)}` : ''}</p>` : ''}
         </div>
         <form class="panel" id="poInfo"><h2>${icon('clock-bold')} Livraison</h2>
-          <label for="poDate">Date prévue</label><input id="poDate" type="date" value="${esc(bc.expectedAt || '')}" ${['received', 'cancelled'].includes(bc.status) ? 'disabled' : ''}>
-          <label for="poNote">Note</label><textarea id="poNote" rows="2" maxlength="1000" ${['received', 'cancelled'].includes(bc.status) ? 'disabled' : ''}>${esc(bc.note || '')}</textarea>
-          ${['received', 'cancelled'].includes(bc.status) ? '' : '<button class="ghost" style="margin-top:8px">Enregistrer</button>'}
+          <label for="poDate">Date prévue</label><input id="poDate" type="date" value="${esc(bc.expectedAt || '')}" ${!admin || ['received', 'cancelled'].includes(bc.status) ? 'disabled' : ''}>
+          <label for="poNote">Note</label><textarea id="poNote" rows="2" maxlength="1000" ${!admin || ['received', 'cancelled'].includes(bc.status) ? 'disabled' : ''}>${esc(bc.note || '')}</textarea>
+          ${!admin || ['received', 'cancelled'].includes(bc.status) ? '' : '<button class="ghost" style="margin-top:8px">Enregistrer</button>'}
         </form>
       </div>
-      <div class="panel"><h2>${icon('package')} Articles ${open || bc.status === 'draft' ? '<span class="muted" style="font-weight:400;font-size:.9rem">— notez ce qui arrive, même en plusieurs fois</span>' : ''}</h2>
-        <form id="poReceive"><table class="po-lines"><thead><tr><th>Article</th><th class="num">Commandé</th><th class="num">Prix unitaire</th><th class="num">Reçu</th>${open || bc.status === 'draft' ? '<th class="num">Reçu aujourd\'hui</th>' : ''}</tr></thead><tbody>
-          ${bc.lines.map((l) => `<tr><td><strong>${esc(l.name)}</strong>${bc.consigned && poMeta.products.find((p) => p.id === l.productId)?.supplierId ? '<br><span class="muted">dépôt-vente : réglé à la vente</span>' : ''}</td><td class="num">${l.qty}</td><td class="num">${fcfa(l.unitPrice)}</td><td class="num">${l.received || 0}${(l.received || 0) >= l.qty ? ' ✓' : ''}</td>
-            ${open || bc.status === 'draft' ? `<td class="num">${left(l) > 0 ? `<input type="number" min="0" max="${left(l)}" step="1" placeholder="0" data-rcv="${esc(l.productId)}" inputmode="numeric" style="width:90px;margin:0">` : '<span class="muted">complet</span>'}</td>` : ''}</tr>`).join('')}
-          <tr class="po-total"><td colspan="${open || bc.status === 'draft' ? 4 : 3}">Total du bon · reçu ${fcfa(bc.receivedTotal)}</td><td class="num"><strong>${fcfa(bc.total)}</strong></td></tr></tbody></table>
-          ${open || bc.status === 'draft' ? `<div class="row" style="gap:8px;margin-top:10px;flex-wrap:wrap"><input type="text" id="rcvNote" placeholder="Note de réception (facultatif)" maxlength="300" style="flex:1;min-width:200px;margin:0"><button class="btn green" type="button" id="rcvAll">${icon('check-bold')} Tout reçu</button><button class="btn" type="submit">${icon('package')} Enregistrer la réception</button></div><p class="muted" style="margin:8px 0 0">À chaque réception, le stock des articles augmente et le coût d'achat est recalculé (coût moyen).</p>` : ''}
+      <div class="panel"><h2>${icon('package')} Articles ${open ? '<span class="muted" style="font-weight:400;font-size:.9rem">— notez ce qui arrive, même en plusieurs fois</span>' : ''}</h2>
+        <form id="poReceive"><table class="po-lines"><thead><tr><th>Article</th><th class="num">Commandé</th>${admin ? '<th class="num">Prix unitaire</th>' : ''}<th class="num">Reçu</th>${open ? '<th class="num">Reçu aujourd\'hui</th>' : ''}</tr></thead><tbody>
+          ${bc.lines.map((l) => `<tr><td><strong>${esc(l.name)}</strong>${admin && bc.consigned && poMeta.products.find((p) => p.id === l.productId)?.supplierId ? '<br><span class="muted">dépôt-vente : réglé à la vente</span>' : ''}</td><td class="num">${l.qty}</td>${admin ? `<td class="num">${fcfa(l.unitPrice)}</td>` : ''}<td class="num">${l.received || 0}${(l.received || 0) >= l.qty ? ' ✓' : ''}</td>
+            ${open ? `<td class="num">${left(l) > 0 ? `<input type="number" min="0" max="${left(l)}" step="1" placeholder="0" data-rcv="${esc(l.productId)}" inputmode="numeric" style="width:90px;margin:0">` : '<span class="muted">complet</span>'}</td>` : ''}</tr>`).join('')}
+          ${admin ? `<tr class="po-total"><td colspan="${open ? 4 : 3}">Total du bon · reçu ${fcfa(bc.receivedTotal)}</td><td class="num"><strong>${fcfa(bc.total)}</strong></td></tr>` : ''}</tbody></table>
+          ${open ? `<div class="row" style="gap:8px;margin-top:10px;flex-wrap:wrap"><input type="text" id="rcvNote" placeholder="Note de réception (facultatif)" maxlength="300" style="flex:1;min-width:200px;margin:0"><button class="btn green" type="button" id="rcvAll">${icon('check-bold')} Tout reçu</button><button class="btn" type="submit">${icon('package')} Enregistrer la réception</button></div><p class="muted" style="margin:8px 0 0">À chaque réception, le stock des articles augmente${admin ? " et le coût d'achat est recalculé (coût moyen)" : ''}.</p>` : ''}
         </form></div>
-      ${bc.status !== 'cancelled' ? `<div class="grid2 po-grid">
+      ${admin && bc.status !== 'cancelled' ? `<div class="grid2 po-grid">
         <form class="panel" id="poInvoice"><h2>${icon('receipt')} Facture du fournisseur</h2>
           ${bc.invoice ? `<p style="margin:0 0 10px"><strong>${esc(bc.invoice.number || 'Sans numéro')}</strong> · ${fcfa(bc.invoice.amount)} · du ${esc(bc.invoice.date.split('-').reverse().join('/'))}${bc.invoice.dueAt ? ` · à payer avant le ${esc(bc.invoice.dueAt.split('-').reverse().join('/'))}` : ''}</p>` : '<p class="muted" style="margin:0 0 10px">Pas encore de facture : la dette est la valeur des articles reçus.</p>'}
           ${CAN.admin() ? `<div class="grid2"><div><label for="invNum">N° de facture</label><input id="invNum" type="text" maxlength="60" value="${esc(bc.invoice?.number || '')}"></div><div><label for="invAmt">Montant (FCFA)</label><input id="invAmt" type="number" min="0" step="1" value="${bc.invoice?.amount ?? (bc.receivedTotal || bc.total)}" inputmode="numeric"></div>
@@ -1135,7 +1148,7 @@
   async function viewStock(sub) {
     const tab = ['mouvements', 'inventaire'].includes(sub) ? sub : '';
     const tabs = `<div class="tabbar">${[['', 'État du stock'], ['mouvements', 'Mouvements'], ['inventaire', 'Inventaire']].map(([k, l]) => `<a class="tab ${k === tab ? 'on' : ''}" href="#/stock${k ? '/' + k : ''}">${l}</a>`).join('')}</div>`;
-    const head = pageHead({ title: 'Stock', desc: 'Ce que Kamwa a en rayon, ce qui est en commande chez les fournisseurs, et chaque entrée ou sortie (réception, vente, annulation, correction, inventaire).', actions: `<a class="btn" href="#/achat/nouveau">${icon('plus-bold')} Commander au fournisseur</a>` });
+    const head = pageHead({ title: 'Stock', desc: 'Ce que Kamwa a en rayon, ce qui est en commande chez les fournisseurs, et chaque entrée ou sortie (réception, vente, annulation, correction, inventaire).', actions: CAN.admin() ? `<a class="btn" href="#/achat/nouveau">${icon('plus-bold')} Commander au fournisseur</a>` : '' });
     if (tab === 'mouvements') {
       let r; try { r = await api('/stock/moves'); } catch { return; }
       app.innerHTML = head + tabs + '<div id="tbl"></div>';
@@ -1175,7 +1188,7 @@
       return;
     }
     app.innerHTML = head + tabs + `<div class="kpis">
-        <div class="kpi kc0"><span class="kpi-ico">${icon('package')}</span><span class="kpi-label">Valeur du stock</span><span class="kpi-value">${fcfa(r.totalValue)}</span><span class="kpi-hint">au coût d'achat</span></div>
+        ${r.pricesHidden ? '' : `<div class="kpi kc0"><span class="kpi-ico">${icon('package')}</span><span class="kpi-label">Valeur du stock</span><span class="kpi-value">${fcfa(r.totalValue)}</span><span class="kpi-hint">au coût d'achat${r.noCost ? ` · ${r.noCost} produit(s) sans coût` : ''}</span></div>`}
         <div class="kpi kc1"><span class="kpi-ico">${icon('warning-duotone')}</span><span class="kpi-label">Stock bas (≤ 3)</span><span class="kpi-value">${r.low}</span><span class="kpi-hint">${r.products.filter((p) => p.active && p.stock === 0).length} en rupture</span></div>
         <div class="kpi kc2"><span class="kpi-ico">${icon('clipboard-text')}</span><span class="kpi-label">En commande</span><span class="kpi-value">${r.products.reduce((n, p) => n + p.onOrder, 0)}</span><span class="kpi-hint">articles attendus des fournisseurs</span></div>
       </div><div id="tbl"></div>`;
@@ -1186,8 +1199,10 @@
         { key: 'name', label: 'Article', sortValue: (p) => norm(p.name), render: (p) => `<a href="#/produit/${enc(p.id)}">${esc(p.name)}</a>${p.active ? '' : ' <span class="tag">masqué</span>'}<br><span class="muted">${esc(p.category || '')}${p.supplierId ? ' · dépôt-vente' : ''}</span>` },
         { key: 'stock', label: 'Stock', cls: 'num', sortValue: (p) => (p.stock == null ? -1e9 : -p.stock), render: (p) => p.stock == null ? '<span class="muted">non suivi</span>' : `<strong class="${p.stock === 0 ? 'neg' : p.stock <= 3 ? 'warn-text' : ''}">${p.stock}</strong>` },
         { key: 'onOrder', label: 'En commande', cls: 'num', render: (p) => (p.onOrder ? `+${p.onOrder}` : '') },
-        { key: 'cost', label: 'Coût unitaire', cls: 'num', render: (p) => (p.cost != null ? fcfa(p.cost) : '—') },
-        { key: 'value', label: 'Valeur', cls: 'num', render: (p) => fcfa(p.value) },
+        ...(r.pricesHidden ? [] : [
+          { key: 'cost', label: 'Coût unitaire', cls: 'num', render: (p) => (p.cost != null ? fcfa(p.cost) : '<span class="tag warn">à renseigner</span>') },
+          { key: 'value', label: 'Valeur', cls: 'num', render: (p) => fcfa(p.value) },
+        ]),
         { key: 'act', label: '', sortable: false, render: (p) => `<div class="cell-actions"><a class="ghost" href="#/stock/mouvements">Mouvements</a></div>` },
       ],
     });
@@ -2579,7 +2594,7 @@
     if (page === 'messagerie') return viewMessaging(id);
     if (page === 'documents') return viewDocuments();
     if (page === 'achats') return viewPurchases();
-    if (page === 'achat') return id === 'nouveau' ? viewPurchaseNew() : viewPurchase(id);
+    if (page === 'achat') return id === 'nouveau' ? (CAN.admin() ? viewPurchaseNew() : (location.hash = '#/achats')) : viewPurchase(id);
     if (page === 'stock') return viewStock(id);
     if (page === 'bons-de-commande') return viewSupplierPurchases();
     if (page === 'colis') return id ? viewParcel(id) : viewParcels();

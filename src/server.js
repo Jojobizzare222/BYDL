@@ -61,6 +61,7 @@ const billing = require('./billing');
 billing.watchOrders(); // factures, reçus, avoirs créés automatiquement à chaque étape d'une commande
 const parcels = require('./parcels');
 parcels.watchOrders(); // colis créés et mis à jour avec la commande
+require('./abandon').start(); // commandes jamais payées annulées automatiquement (toutes les 10 min ; sur Vercel : à la lecture)
 // Rafraîchissement instantané des écrans ouverts (boutique) : seulement ce qui concerne ce client
 const events = require('./events');
 events.watchStore();

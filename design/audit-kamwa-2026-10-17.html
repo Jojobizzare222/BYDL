@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Audit Kamwa</title>
+<style>
+  :root { --ink: #171C30; --muted: #5d6478; --line: #e3e6ef; --bg: #f5f6fa; --navy: #10264A; --blue: #1E56C2; --red: #C62E1F; --red-bg: #FDEEEC; --orange: #8A5A00; --orange-bg: #FFF1CC; --yellow-bg: #FFF8E1; --grey-bg: #EEF0F5; --green: #0E7A5A; --green-bg: #E1F5EC; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; color: var(--ink); background: var(--bg); line-height: 1.5; font-size: 15px; }
+  header { background: var(--navy); color: #fff; padding: 28px 16px 22px; }
+  header .in, main { max-width: 980px; margin: 0 auto; }
+  header h1 { margin: 0 0 4px; font-size: 1.6rem; } header p { margin: 0; color: #C6D2EA; }
+  main { padding: 18px 16px 60px; }
+  h2 { font-size: 1.25rem; margin: 30px 0 10px; } h3 { font-size: 1.02rem; margin: 18px 0 8px; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; margin: 12px 0; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; }
+  .kpi { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+  .kpi b { display: block; font-size: 1.5rem; } .kpi span { color: var(--muted); font-size: .88rem; }
+  table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+  .sev { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: .74rem; font-weight: 700; white-space: nowrap; }
+  .s1 { background: var(--red-bg); color: var(--red); } .s2 { background: var(--orange-bg); color: var(--orange); } .s3 { background: var(--grey-bg); color: var(--muted); } .ok { background: var(--green-bg); color: var(--green); }
+  .f { border-left: 4px solid var(--line); padding: 10px 14px; margin: 10px 0; background: #fff; border-radius: 0 12px 12px 0; }
+  .f.b1 { border-left-color: var(--red); } .f.b2 { border-left-color: #E3A008; } .f.b3 { border-left-color: #AEB4C4; }
+  .f h4 { margin: 0 0 4px; font-size: .98rem; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+  .f p { margin: 4px 0; } .f .fix { color: var(--blue); }
+  .muted { color: var(--muted); }
+  .stars { letter-spacing: 1px; color: #E3A008; white-space: nowrap; }
+  ul { padding-left: 20px; } li { margin: 4px 0; }
+  .note { background: var(--yellow-bg); border: 1px solid #F2DFA0; border-radius: 12px; padding: 12px 14px; }
+  @media (max-width: 640px) { table, thead, tbody, tr, td, th { display: block; } thead { display: none; } tr { border-bottom: 1px solid var(--line); padding: 6px 0; } td { border: 0; padding: 3px 4px; } }
+</style>
+</head>
+<body>
+<header><div class="in">
+  <h1>Audit complet de Kamwa</h1>
+  <p>Boutique, Kamwa Pro, fournisseur, livreur, commandes et catalogue · 17 octobre 2026</p>
+</div></header>
+<main>
+
+<h2>En résumé</h2>
+<div class="grid">
+  <div class="kpi"><b>≈ 420</b><span>vérifications automatiques, toutes réussies (17 séries)</span></div>
+  <div class="kpi"><b>6</b><span>rôles parcourus à la main, sur téléphone et ordinateur</span></div>
+  <div class="kpi"><b style="color:var(--red)">9</b><span>failles importantes</span></div>
+  <div class="kpi"><b style="color:var(--orange)">16</b><span>points moyens</span></div>
+  <div class="kpi"><b>15</b><span>points mineurs</span></div>
+</div>
+<div class="card">
+  <p><strong>Verdict :</strong> les fondations sont solides. Paiement, sécurité des comptes, droits des rôles, colis, factures et stock fonctionnent, et la protection contre les textes piégés est en place. Les vrais risques sont ailleurs, à trois endroits :</p>
+  <ul>
+    <li><strong>Le parcours d'achat du client</strong> : le compte vérifié n'est découvert qu'au moment de commander, la recherche est trop stricte, et une tentative ratée laisse une commande fantôme.</li>
+    <li><strong>Le traitement d'une commande dans Kamwa Pro</strong> : il est éclaté sur 4 écrans, sans « prochaine étape » mise en avant.</li>
+    <li><strong>Le catalogue de démonstration</strong> : il fausse l'expérience et les chiffres (rayons vides, variantes en double, prix d'achat absents).</li>
+  </ul>
+  <p>J'ai aussi trouvé une <strong>fuite de droits</strong> introduite avec les Achats : l'employé Catalogue voit les prix fournisseurs. Elle est à corriger en priorité.</p>
+</div>
+
+<h2>Comment j'ai testé</h2>
+<div class="card">
+  <ul>
+    <li><strong>Tests fonctionnels automatiques</strong> : paiements (32), achat (14), livraison sécurisée (39), finances (26), points relais (7), rôles et droits (58), suppression (16), statistiques (13), comptes clients (28), pièces d'identité (34), messagerie (20), temps réel (12), suivi en direct (12), notifications (10), réglages client (14), factures et reçus (22), colis (25), achats et stock (37), calendrier (18), Kamwa Pro (28). Deux alertes relevées pendant la série se sont révélées être des erreurs de préparation des tests, pas des défauts du site (revérifié).</li>
+    <li><strong>Parcours à la main</strong> sur une copie de démonstration :
+      <ul>
+        <li><strong>Client</strong> (téléphone 375 px et ordinateur) : accueil, recherche, rayon, fiche, panier, création de compte, commande, suivi, compte, assistant.</li>
+        <li><strong>Les autres rôles</strong> : administrateur, employés Commandes et Catalogue, fournisseur, livreur.</li>
+      </ul>
+    </li>
+    <li><strong>Contrôles techniques</strong> : poids des pages, compression, en-têtes de sécurité, protection contre les textes piégés (nom de client contenant du code : neutralisé ✓), accessibilité (taille des zones à toucher, libellés).</li>
+  </ul>
+  <p class="note"><strong>Limites honnêtes.</strong> La « satisfaction client » ci-dessous est une <strong>évaluation d'expert</strong> (grille d'ergonomie reconnue), pas un sondage auprès de vrais clients : rien ne remplace 5 vrais clients à Pointe-Noire qu'on observe commander. Non testés en conditions réelles : la caméra d'un vrai téléphone (scan des colis, photo de pièce), un vrai paiement Mobile Money, une vraie connexion 3G.</p>
+</div>
+
+<h2>Satisfaction client estimée, étape par étape</h2>
+<div class="card">
+<table>
+  <thead><tr><th>Étape</th><th>Note</th><th>Ce qui plaît</th><th>Ce qui gêne</th></tr></thead>
+  <tbody>
+    <tr><td>Découverte (accueil)</td><td class="stars">★★★½</td><td>Belle vitrine, ventes flash, rayons en bulles, rassurant (paiement en agence, 24-48 h)</td><td>En-tête très haut sur téléphone, vente flash avec icônes au lieu de photos</td></tr>
+    <tr><td>Recherche</td><td class="stars">★★</td><td>Rapide, tri</td><td>« iphne », « chemises », « chaussures », « baskets » → 0 résultat, sans suggestion</td></tr>
+    <tr><td>Fiche produit</td><td class="stars">★★★½</td><td>Photos, caractéristiques, remise visible</td><td>Prix et bouton d'achat sous l'écran sur téléphone ; même iPhone en 4 fiches (une par couleur)</td></tr>
+    <tr><td>Panier</td><td class="stars">★★★</td><td>Économie affichée</td><td>Ajout peu visible, pas de photo, bulle « Aide » qui cache le total</td></tr>
+    <tr><td>Création de compte</td><td class="stars">★★½</td><td>Explications claires, caméra intégrée</td><td>Découverte tardive, attente de vérification jusqu'à 24 h avant de pouvoir commander</td></tr>
+    <tr><td>Commande et paiement</td><td class="stars">★★★</td><td>Carte des points relais, « les plus proches »</td><td>Page très longue, livraison à domicile qui oblige quand même à passer en agence, frais de livraison absents, commande fantôme en cas d'erreur</td></tr>
+    <tr><td>Suivi de commande</td><td class="stars">★★★★½</td><td>Étapes, colis, point relais, factures, suivi du livreur en direct, notifications</td><td>Numéro de commande long à dicter ; impossible d'annuler soi-même</td></tr>
+    <tr><td>Espace client</td><td class="stars">★★★★</td><td>Vue d'ensemble, badge vérifié, réglages personnels</td><td>Commandes fantômes affichées « en cours »</td></tr>
+    <tr><td>Aide (assistant)</td><td class="stars">★★★</td><td>Réponses immédiates, suivi des commandes, passage à un conseiller</td><td>Ne répond pas aux questions produit, ne donne pas de prix de livraison</td></tr>
+  </tbody>
+</table>
+<p class="muted">Estimation globale : ≈ 3,3 / 5, soit un client qui achète s'il est déjà décidé mais qui abandonne facilement s'il hésite. Les points ci-dessous visent surtout la recherche, le compte et la commande.</p>
+</div>
+
+<h2>1. Boutique (client)</h2>
+
+<div class="f b1"><h4><span class="sev s1">Important</span> Une tentative de commande ratée crée une commande fantôme</h4>
+<p>Si le client clique « Réserver » avec un champ manquant (ex. adresse), la commande est quand même créée « en attente de paiement », puis une deuxième au nouvel essai. Constaté : 2 commandes de 620 000 FCFA pour un seul achat. Elles apparaissent « en cours » chez le client et dans « Non payées » chez l'équipe, et ne disparaissent jamais.</p>
+<p class="fix">→ Vérifier tous les champs avant de créer la commande ; annuler automatiquement une commande jamais payée (ex. après 48 h) ; reprendre la commande existante au lieu d'en créer une nouvelle.</p></div>
+
+<div class="f b1"><h4><span class="sev s1">Important</span> Le compte vérifié n'est découvert qu'à la fin, puis il faut attendre</h4>
+<p>Le client remplit son panier, puis apprend à la validation qu'il lui faut un compte avec pièce d'identité, et jusqu'à 24 h de vérification avant de pouvoir commander. C'est le moment où l'on perd le plus de clients.</p>
+<p class="fix">→ Le dire tôt (accueil, fiche produit, panier : « Première commande ? Créez votre compte vérifié ») et permettre de réserver pendant la vérification. Le paiement se faisant en espèces au point relais, <strong>la pièce peut être contrôlée au guichet</strong> au moment de payer. Cette décision te revient.</p></div>
+
+<div class="f b1"><h4><span class="sev s1">Important</span> Le client ne peut pas annuler sa réservation</h4>
+<p>Aucun bouton « Annuler » sur la page de suivi : le client doit écrire à l'Aide ou laisser la réservation expirer.</p>
+<p class="fix">→ Bouton « Annuler ma réservation » tant que rien n'est payé.</p></div>
+
+<div class="f b1"><h4><span class="sev s1">Important</span> La recherche trouve trop peu</h4>
+<p>« iphne » (faute) → 0 ; « chemises » (pluriel) → 0 alors que « chemise » → 1 ; « chaussures » (nom d'un rayon) → 0 ; « baskets », l'exemple affiché dans la barre de recherche → 0. La page « Aucun produit trouvé » ne propose rien.</p>
+<p class="fix">→ Recherche tolérante (fautes, pluriels, noms de rayon), suggestions pendant la frappe, produits populaires quand rien n'est trouvé.</p></div>
+
+<div class="f b2"><h4><span class="sev s2">Moyen</span> Catalogue de démonstration déséquilibré</h4>
+<p>90 produits sur 91 sont des Apple. Le rayon Mode n'a qu'un seul produit, et les rayons Femme et Chaussures sont vides mais affichés dans le menu. 35 produits n'ont pas de photo, dont ceux des Ventes flash en haut de l'accueil.</p>
+<p class="fix">→ Masquer automatiquement les rayons vides ; remplacer par le vrai catalogue avec de vraies photos.</p></div>
+
+<div class="f b2"><h4><span class="sev s2">Moyen</span> Une fiche par couleur</h4>
+<p>19 produits existent en plusieurs fiches identiques qui ne diffèrent que par la couleur (iPhone 15 Noir / Bleu / Rose / Vert = 4 cartes au même prix). Les listes deviennent répétitives.</p>
+<p class="fix">→ Une seule fiche avec le choix « Couleur » (déjà possible dans la fiche produit).</p></div>
+
+<div class="f b2"><h4><span class="sev s2">Moyen</span> Sur téléphone, l'essentiel est sous l'écran</h4>
+<ul>
+  <li>L'en-tête fixe occupe ≈ 190 px, soit un quart de l'écran (plus le bandeau démo).</li>
+  <li>Sur la fiche produit, le prix est à 820 px et « Ajouter au panier » à 990 px : il faut défiler pour acheter.</li>
+  <li>La page de commande fait ≈ 2 900 px, et la liste des points relais défile à l'intérieur d'une page qui défile.</li>
+</ul>
+<p class="fix">→ En-tête qui se réduit au défilement ; barre « Prix + Ajouter au panier » fixée en bas de la fiche ; commande en 2-3 étapes courtes.</p></div>
+
+<div class="f b2"><h4><span class="sev s2">Moyen</span> La bulle « Aide » cache des éléments</h4>
+<p>Sur téléphone, elle recouvre le total du panier, des libellés de formulaire (« Point relais ») et des boutons de cartes produits.</p>
+<p class="fix">→ La décaler au-dessus des zones d'action, ou la réduire en simple icône sur les pages panier et commande.</p></div>
+
+<div class="f b2"><h4><span class="sev s2">Moyen</span> L'ajout au panier passe inaperçu</h4>
+<p>Seule la petite pastille du panier change. Le panier n'affiche pas les photos des articles, et les boutons + / − sont petits.</p>
+<p class="fix">→ Message « Ajouté ✓ · Voir le panier », photo de chaque article, boutons plus grands.</p></div>
+
+<div class="f b2"><h4><span class="sev s2">Moyen</span> Livraison à domicile peu intéressante, frais absents</h4>
+<p>Choisir la livraison oblige quand même à aller payer au point relais : deux démarches pour le client. Les frais de livraison sont toujours à 0 FCFA, et « Dolisie » / « Autre » sont acceptés sans tarif ni délai.</p>
+<p class="fix">→ Grille de frais par ville ou quartier ; à terme, Mobile Money pour que la livraison ait du sens (décision business).</p></div>
+
+<div class="f b2"><h4><span class="sev s2">Moyen</span> Numéro de commande difficile à dicter</h4>
+<p>« CMD-261017-01E32E6F » est long et mêle chiffres et lettres, alors que le client doit le présenter au guichet ou le dicter au téléphone.</p>
+<p class="fix">→ Numéro court et lisible (ex. KW-4821).</p></div>
+
+<div class="f b2"><h4><span class="sev s2">Moyen</span> Formulaire de création de compte : erreurs mal guidées</h4>
+<p>Une seule erreur s'affiche à la fois, en bas du formulaire (parfois sous la bulle Aide), sans amener au champ fautif. Avec un nom et un téléphone vides, le message parle du type de pièce.</p>
+<p class="fix">→ Signaler toutes les erreurs à côté de chaque champ et placer le curseur sur la première.</p></div>
+
+<div class="f b3"><h4><span class="sev s3">Mineur</span> Autres points boutique</h4>
+<ul>
+  <li><strong>Assistant</strong> : ne répond pas aux questions produit (« vous avez des Samsung ? ») ; la réponse « livraison » ne donne pas de prix.</li>
+  <li><strong>Pages de rayon</strong> : seulement un tri, sans filtre (prix, marque, capacité).</li>
+  <li><strong>Pas d'avis clients</strong> ni de bouton « Partager sur WhatsApp ».</li>
+  <li><strong>Partage d'un produit sur WhatsApp</strong> : l'aperçu montre l'image générique de Kamwa, pas le produit. Google ne peut pas lister les produits (adresses en #/), et il n'y a ni robots.txt ni plan du site.</li>
+  <li><strong>Petites zones à toucher dans l'en-tête</strong> : ≈ 28 px de haut (Rayons, Accueil, Électronique, choix de la ville) pour 44 px recommandés.</li>
+  <li><strong>Code oublié</strong> : seul un conseiller peut en redonner un, pas de solution autonome.</li>
+  <li><strong>Bandeau cookies</strong> : il couvre la moitié de l'écran du téléphone à la première visite.</li>
+</ul></div>
+
+<h2>2. Kamwa Pro : administrateur et commandes</h2>
+
+<div class="f b1"><h4><span class="sev s1">Important</span> Une commande se traite sur 4 écrans différents</h4>
+<p>Appel du client, encaissement, colis et étiquette, date de livraison, livreur, facture… sont répartis entre Commandes, Colis, Calendrier et Factures. Sur la fiche commande, l'action principale (« Paiement reçu en agence ») est tout en bas. Une fois la commande payée, 16 boutons s'affichent en même temps, sans indication de ce qu'il faut faire ensuite.</p>
+<p class="fix">→ Un bandeau « Prochaine étape » en haut de chaque commande (1 bouton principal à la fois) et une liste « À faire aujourd'hui » qui enchaîne les commandes.</p></div>
+
+<div class="f b1"><h4><span class="sev s1">Important</span> Deux façons de mettre en livraison</h4>
+<p>« Confier au livreur » et « Marquer en livraison » coexistent. Le second met la commande « en livraison » sans livreur : elle n'apparaît alors dans les « Mes livraisons » de personne, et le colis n'est pas suivi.</p>
+<p class="fix">→ Garder uniquement « Confier au livreur ».</p></div>
+
+<div class="f b2"><h4><span class="sev s2">Moyen</span> Les commandes jamais payées s'accumulent</h4>
+<p>Abandons et commandes fantômes restent pour toujours dans « Non payées ».</p>
+<p class="fix">→ Annulation automatique après un délai, avec le stock libéré.</p></div>
+
+<div class="f b2"><h4><span class="sev s2">Moyen</span> Marges et valeur du stock fausses</h4>
+<p>106 produits sur 109 n'ont pas de prix d'achat. La marge, le résultat dans Finances et la valeur du stock sont donc faux ou incomplets.</p>
+<p class="fix">→ Rendre le prix d'achat obligatoire pour les produits Kamwa (ou le remplir via les bons de commande) ; alerte « produits sans coût ».</p></div>
+
+<div class="f b2"><h4><span class="sev s2">Moyen</span> Tableau de bord incomplet</h4>
+<p>Le vocabulaire varie (« à expédier » sur le tableau de bord, « À livrer / remettre » dans Commandes), et il manque « colis à préparer », « livraisons à planifier » et « messages en attente ».</p>
+<p class="fix">→ Une seule liste « À faire » avec les mêmes mots partout.</p></div>
+
+<div class="f b3"><h4><span class="sev s3">Mineur</span> Autres points administrateur</h4>
+<ul>
+  <li><strong>Page de connexion de la démo</strong> : l'encadré des comptes démo est illisible en thème clair (texte sombre sur fond sombre). La mention « npm run admin:password dans le Terminal » est visible par tout le personnel.</li>
+  <li><strong>Émojis</strong> dans quelques boutons (📞 💵 🚚), alors que tout le reste utilise des icônes.</li>
+  <li><strong>Onglet du navigateur</strong> : il affiche « Kamwa Admin » au lieu de « Kamwa Pro ».</li>
+</ul></div>
+
+<h2>3. Employés (Commandes, Catalogue)</h2>
+<div class="f b1"><h4><span class="sev s1">Important</span> L'employé Catalogue voit les prix fournisseurs</h4>
+<p>Ta règle : « Catalogue ne voit pas les prix fournisseur ». Elle est respectée dans Produits, mais pas dans <strong>Achats</strong> (prix d'achat pré-rempli sur les bons de commande) ni dans <strong>Stock</strong> (coût unitaire et valeur). Vérifié avec le compte démo Catalogue : il voit le prix fournisseur de la chemise wax (8 500 FCFA).</p>
+<p class="fix">→ Masquer ces prix pour Catalogue, ou réserver Achats et Stock à l'administrateur. Cette fuite vient de l'étape 3 de l'ERP, à corriger en premier.</p></div>
+<div class="f b3"><h4><span class="sev s3">Mineur</span></h4>
+<ul><li>L'employé Commandes ne voit pas la page Clients : pour un client bloqué (pièce en attente), il doit demander à l'administrateur.</li></ul></div>
+
+<h2>4. Fournisseur</h2>
+<div class="f b2"><h4><span class="sev s2">Moyen</span> Le fournisseur ne peut pas dire « c'est prêt »</h4>
+<p>Il voit les commandes de ses produits mais ne peut pas indiquer « articles prêts » ou « remis à Kamwa », et rien ne lui dit où ni quand les déposer.</p>
+<p class="fix">→ Bouton « Prêt à récupérer », avec le lieu et l'heure de dépôt.</p></div>
+<div class="f b2"><h4><span class="sev s2">Moyen</span> Pas de messagerie avec Kamwa</h4>
+<p>Les fournisseurs sont exclus de la Messagerie : tout passe par WhatsApp, en dehors de l'outil, sans trace.</p>
+<p class="fix">→ Une conversation privée « Kamwa ↔ fournisseur ».</p></div>
+<div class="f b2"><h4><span class="sev s2">Moyen</span> Sur téléphone, un onglet est caché</h4>
+<p>Le 3e onglet (« Bons de commande ») est coupé à droite, sans indication qu'on peut faire défiler.</p>
+<p class="fix">→ Onglets qui passent à la ligne, ou flèche / dégradé qui indique la suite.</p></div>
+<div class="f b3"><h4><span class="sev s3">Mineur</span></h4>
+<ul><li>Aucun relevé « ce que Kamwa me doit / m'a payé » côté fournisseur (visible seulement par l'administrateur).</li></ul></div>
+
+<h2>5. Livreur</h2>
+<div class="f b2"><h4><span class="sev s2">Moyen</span> Pas d'itinéraire sans point GPS</h4>
+<p>Si le client n'a pas placé son adresse sur la carte, aucun lien d'itinéraire, même pas une recherche de l'adresse écrite dans Google Maps.</p>
+<p class="fix">→ Lien « Ouvrir dans Maps » à partir de l'adresse écrite.</p></div>
+<div class="f b3"><h4><span class="sev s3">Mineur</span> Autres points livreur</h4>
+<ul>
+  <li><strong>Pas de résumé de la journée</strong> : nombre de livraisons, espèces à encaisser, espèces encaissées à remettre.</li>
+  <li><strong>Onglets du haut coupés sur téléphone</strong> (« Scan… »).</li>
+  <li><strong>Scanner</strong> : vérifié avec une caméra simulée, à essayer sur un vrai téléphone.</li>
+</ul></div>
+
+<h2>6. Commandes et catalogue (fonctionnement)</h2>
+<div class="card">
+<p><span class="sev ok">Solide</span> Le cœur fonctionne :</p>
+<ul>
+  <li><strong>Paiement</strong> : stock réservé pendant le paiement, pas de double paiement, paiement revérifié auprès de l'opérateur.</li>
+  <li><strong>Remise et colis</strong> : code de livraison obligatoire, colis et étiquettes, scan, factures, reçus et avoirs numérotés.</li>
+  <li><strong>Achats et stock</strong> : réceptions qui montent le stock, journal des mouvements, inventaire.</li>
+  <li><strong>Produits</strong> : validation des produits proposés par les fournisseurs et les employés.</li>
+</ul>
+<p>Points d'attention déjà cités plus haut :</p>
+<ul>
+  <li>Commandes fantômes et pas d'annulation automatique.</li>
+  <li>Prix d'achat manquants.</li>
+  <li>Variantes en plusieurs fiches.</li>
+  <li>Rayons vides affichés.</li>
+  <li>Double chemin « en livraison ».</li>
+  <li>Frais de livraison absents.</li>
+</ul>
+</div>
+
+<h2>7. Technique (à faire avant la mise en ligne)</h2>
+<div class="f b1"><h4><span class="sev s1">Important</span> Pages non compressées</h4>
+<p>Le serveur envoie la boutique sans compression : ≈ 390 Ko de texte à la première visite (app.js 127 Ko, style.css 85 Ko, icônes 73 Ko…), là où ≈ 110 Ko suffiraient. Sur une connexion mobile lente au Congo, c'est plusieurs secondes de plus. Kamwa Pro charge aussi ≈ 430 Ko de JavaScript d'un coup (dont 206 Ko pour les graphiques).</p>
+<p class="fix">→ Activer la compression sur le serveur ; charger les graphiques seulement sur le tableau de bord.</p></div>
+<div class="f b1"><h4><span class="sev s1">Important</span> En-têtes de sécurité absents</h4>
+<p>Il n'y a pas de protection contre l'affichage du site dans une page piégée (clickjacking), ni de règle stricte sur les scripts autorisés, ni de HTTPS forcé.</p>
+<p class="fix">→ Ajouter ces en-têtes au moment de la mise en ligne. C'est faisable en une session.</p></div>
+<div class="f b2"><h4><span class="sev s2">Moyen</span> Limite de requêtes partielle</h4>
+<p>Elle existe pour la connexion, les codes et la messagerie, mais pas pour l'ensemble du site (création de commandes en masse, par exemple).</p></div>
+<div class="card"><p><span class="sev ok">OK</span> Ces points ont été vérifiés et sont bons :</p>
+<ul>
+  <li>Textes piégés neutralisés.</li>
+  <li>Les données d'une commande ne s'ouvrent qu'avec sa clé ou par son propriétaire.</li>
+  <li>Sessions protégées, et blocage après plusieurs codes faux.</li>
+  <li>Aucun mot de passe renvoyé par le serveur.</li>
+  <li>Pièces d'identité privées, sans métadonnées.</li>
+  <li>Aucun défilement horizontal sur téléphone.</li>
+  <li>Images avec description, champs avec libellé.</li>
+</ul></div>
+
+<h2>Ce que je propose de corriger, dans l'ordre</h2>
+<div class="card">
+<h3>Priorité 1 : sécurité et données (rapide, 1 session)</h3>
+<ol>
+  <li>Fuite des prix fournisseurs vers l'employé Catalogue (Achats, Stock).</li>
+  <li>Commandes fantômes : vérifier avant de créer ; annulation automatique des commandes jamais payées ; bouton « Annuler ma réservation » pour le client.</li>
+  <li>Retirer « Marquer en livraison » sans livreur.</li>
+  <li>Bulle « Aide » qui cache le total et les boutons.</li>
+</ol>
+<h3>Priorité 2 : ventes (1 à 2 sessions)</h3>
+<ol start="5">
+  <li>Annoncer le compte vérifié dès le début.</li>
+  <li>Recherche tolérante avec suggestions.</li>
+  <li>Barre d'achat fixe sur la fiche produit ; en-tête plus compact ; message « Ajouté au panier ».</li>
+  <li>Rayons vides masqués ; regroupement des couleurs en une fiche ; numéro de commande court.</li>
+  <li>Bandeau « Prochaine étape » sur la fiche commande ; liste « À faire » unique.</li>
+</ol>
+<h3>Priorité 3 : confort et croissance</h3>
+<ol start="10">
+  <li>Frais de livraison par ville ou quartier.</li>
+  <li>Côté fournisseur : bouton « prêt » et messagerie avec Kamwa.</li>
+  <li>Côté livreur : résumé de la journée et itinéraire par adresse.</li>
+  <li>Avis clients ; partage WhatsApp avec l'aperçu du produit ; filtres.</li>
+  <li>Compression, en-têtes de sécurité, limite de requêtes (avec la mise en ligne).</li>
+</ol>
+<h3>Ce qui dépend de toi</h3>
+<ul>
+  <li>Vérification de la pièce au guichet plutôt qu'en ligne avant la première commande ?</li>
+  <li>Mobile Money pour la livraison à domicile ?</li>
+  <li>Vrai catalogue, avec prix d'achat et photos réelles.</li>
+  <li>Tarifs de livraison.</li>
+  <li>Informations légales de la société.</li>
+</ul>
+</div>
+
+</main>
+</body>
+</html>

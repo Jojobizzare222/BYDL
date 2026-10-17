@@ -986,3 +986,25 @@ html[data-theme="dark"] .acc-head { background: radial-gradient(120% 180% at 0% 
 html[data-theme="dark"] .doc-ico.receipt { background: #123426; color: #6BE0A8; } html[data-theme="dark"] .doc-ico.credit { background: #3A1B16; color: #FF9A85; }
 html[data-theme="dark"] .vbadge { --vb: #A08BFF; --vb-check: #1E1247; }
 html[data-theme="dark"] .code-reveal { box-shadow: 0 18px 40px rgba(0,0,0,.45); }
+
+/* Message bref (ajout au panier, annulation…) et erreurs sous les champs — audit 17/10/2026 */
+.shop-toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom)); transform: translate(-50%, 140%); z-index: 90; display: flex; align-items: center; gap: 12px; max-width: calc(100% - 24px); padding: 12px 14px 12px 18px; border-radius: 14px; background: #1B1530; color: #fff; box-shadow: 0 12px 30px rgba(0,0,0,.3); font-weight: 600; transition: transform .25s ease, opacity .25s; opacity: 0; pointer-events: none; }
+.shop-toast.show { transform: translate(-50%, 0); opacity: 1; pointer-events: auto; }
+.shop-toast button { border: 0; border-radius: 999px; padding: 8px 14px; background: var(--mango); color: #1B1530; font: inherit; font-weight: 700; cursor: pointer; white-space: nowrap; }
+@media (max-width: 900px) { .shop-toast { bottom: calc(78px + env(safe-area-inset-bottom)); } }
+.field-err { display: flex; align-items: flex-start; gap: 6px; margin: 6px 0 0; color: var(--err); font-size: .88rem; font-weight: 600; }
+.field-err .ico { flex: none; margin-top: 2px; }
+.has-err { border-color: var(--err) !important; box-shadow: 0 0 0 3px rgba(198,46,31,.12) !important; }
+.cancel-box { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 14px 0 0; }
+.cancel-box .btn { width: auto; margin: 0; display: inline-flex; align-items: center; gap: 6px; }
+html[data-theme="dark"] .shop-toast { background: #EEEAF7; color: #1B1530; }
+
+/* Bulle « Aide » : jamais par-dessus le total ou les boutons d'achat (audit 17/10/2026) */
+body.drawer-open .chat-fab { opacity: 0; pointer-events: none; }
+body[data-route="commande"] .chat-fab span, body[data-route="p"] .chat-fab span, body[data-route="compte"] .chat-fab span { display: none; }
+body[data-route="commande"] .chat-fab, body[data-route="p"] .chat-fab, body[data-route="compte"] .chat-fab { width: 48px; height: 48px; padding: 0; justify-content: center; }
+@media (max-width: 900px) {
+  body[data-route="p"] .chat-fab { bottom: calc(148px + env(safe-area-inset-bottom)); } /* au-dessus de la barre d'achat */
+  body[data-route="commande"] .chat-fab { opacity: .92; }
+  #app { padding-bottom: 72px; }
+}

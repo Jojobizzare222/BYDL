@@ -135,6 +135,7 @@ function adminOrder({ accessToken, ...order }, user) {
 }
 
 router.get('/orders', requireRole('orders'), (req, res) => {
+  try { require('../abandon').sweep(); } catch {}
   const list = orders.all().sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
   res.json({ orders: list.map((o) => adminOrder(o, req.user)), statusLabels: STATUS_LABELS, transitions: TRANSITIONS, pickupTransitions: PICKUP_TRANSITIONS, failReasons: delivery.FAIL_REASONS });
 });
@@ -148,6 +149,21 @@ router.patch('/orders/:id', requireRole('orders'), (req, res) => {
   if (status && status !== order.status) {
     if (!transitionsFor(order)[order.status]?.includes(status)) {
       return res.status(400).json({ error: `Impossible de passer de « ${STATUS_LABELS[order.status]} » à « ${STATUS_LABELS[status] || status} »` });
+    }
+    // Mise en livraison : toujours avec un livreur (sinon la commande n'apparaît chez personne) — audit 17/10/2026
+    if (status === 'shipped' && order.status !== 'delivered') {
+      return res.status(400).json({ error: 'Pour mettre en livraison, choisissez le livreur : « Confier au livreur »' });
+    }
+    // Remise au point relais : code du client obligatoire, comme pour une livraison (l'admin peut forcer)
+    if (status === 'delivered' && order.fulfillment === 'pickup') {
+      const forced = Boolean(req.body?.force) && req.user.role === 'admin';
+      if (!forced) {
+        const check = delivery.checkCode(order, req.body?.code);
+        if (check.error) { log(req, 'Code de retrait faux', { id: order.id, name: order.id }, check.error); return res.status(400).json({ error: check.error }); }
+      }
+      const done = delivery.finishDelivery(orders.get(order.id), { by: { id: req.user.id, role: req.user.role, name: req.user.name }, forced });
+      log(req, 'Commande remise au client (point relais)', { id: order.id, name: order.id }, forced ? 'sans code (forcé par l\'admin)' : 'code du client vérifié');
+      return res.json(adminOrder(done, req.user));
     }
     const now = new Date().toISOString();
     patch.status = status;

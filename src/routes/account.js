@@ -135,6 +135,7 @@ router.post('/code', (req, res) => {
 router.get('/orders', (req, res) => {
   const customer = auth.currentCustomer(req);
   if (!customer) return res.status(401).json({ error: 'Connectez-vous pour voir vos commandes' });
+  try { require('../abandon').sweep(); } catch {}
   const list = orders
     .all()
     .filter((o) => o.customerId === customer.id)

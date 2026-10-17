@@ -37,6 +37,32 @@
   const cartKey = () => JSON.stringify(Object.entries(state.cart).sort());
   const loadJSON = (key) => { try { return JSON.parse(localStorage.getItem(key)) || null; } catch { return null; } };
   const saveJSON = (key, value) => { try { value ? localStorage.setItem(key, JSON.stringify(value)) : localStorage.removeItem(key); } catch {} };
+  // Message bref en bas de l'écran (ex. « Ajouté au panier ✓ »), avec un bouton d'action facultatif
+  let toastTimer = null;
+  function toast(msg, action) {
+    let t = document.getElementById('shopToast');
+    if (!t) { t = document.createElement('div'); t.id = 'shopToast'; t.className = 'shop-toast'; t.setAttribute('role', 'status'); t.setAttribute('aria-live', 'polite'); document.body.appendChild(t); }
+    t.innerHTML = `<span>${esc(msg)}</span>${action ? `<button type="button">${esc(action.label)}</button>` : ''}`;
+    if (action) t.querySelector('button').addEventListener('click', () => { t.classList.remove('show'); action.run(); });
+    t.classList.add('show');
+    clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), action ? 4500 : 2800);
+  }
+  // Numéro congolais (9 chiffres commençant par 0, avec ou sans +242), comme le serveur
+  const localPhone = (v) => { let d = String(v || '').replace(/\D/g, ''); if (d.startsWith('00')) d = d.slice(2); if (d.startsWith('242') && d.length === 12) d = d.slice(3); return /^0\d{8}$/.test(d) ? d : null; };
+  // Erreurs de formulaire : message SOUS chaque champ fautif, curseur placé sur le premier (audit 17/10/2026)
+  function fieldErrors(form, list) {
+    form.querySelectorAll('.field-err').forEach((e) => e.remove());
+    form.querySelectorAll('.has-err').forEach((e) => e.classList.remove('has-err'));
+    for (const [el, msg] of list) {
+      if (!el) continue;
+      const anchor = el.closest('.kmap, .relay-picker, .methods, .id-pick') || el;
+      el.classList.add('has-err');
+      anchor.insertAdjacentHTML('afterend', `<p class="field-err" role="alert">${icon('warning-duotone')} ${esc(msg)}</p>`);
+    }
+    const first = list.find(([el]) => el)?.[0];
+    if (first) { first.scrollIntoView({ behavior: 'smooth', block: 'center' }); if (first.focus && first.type !== 'hidden') setTimeout(() => first.focus({ preventScroll: true }), 300); }
+    return list.length === 0;
+  }
   const loadCheckout = () => loadJSON('kamwa-checkout');
   const saveCheckout = (c) => saveJSON('kamwa-checkout', c);
   const orderHeaders = (token) => ({ 'X-Order-Token': token });
@@ -140,8 +166,8 @@
 
   // ---------- Tiroir panier ----------
   const drawer = $('#drawer');
-  const openDrawer = () => { drawer.classList.add('open'); drawer.setAttribute('aria-hidden', 'false'); };
-  const closeDrawer = () => { drawer.classList.remove('open'); drawer.setAttribute('aria-hidden', 'true'); };
+  const openDrawer = () => { drawer.classList.add('open'); drawer.setAttribute('aria-hidden', 'false'); document.body.classList.add('drawer-open'); };
+  const closeDrawer = () => { drawer.classList.remove('open'); drawer.setAttribute('aria-hidden', 'true'); document.body.classList.remove('drawer-open'); };
   $('#cartBtn').addEventListener('click', openDrawer);
   $('#closeDrawer').addEventListener('click', closeDrawer);
   drawer.addEventListener('click', (e) => { if (e.target === drawer) closeDrawer(); });
@@ -642,6 +668,20 @@
     }));
   }
 
+  // Bouton « Annuler ma réservation » (page de suivi) : tant que rien n'est payé
+  document.addEventListener('click', async (e) => {
+    const b = e.target.closest('#orderCancel'); if (!b) return;
+    const id = currentParts()[1];
+    if (!confirm('Annuler cette commande ? Les articles ne seront plus réservés pour vous.')) return;
+    b.disabled = true;
+    try {
+      await api('/orders/' + enc(id) + '/cancel', { method: 'POST', headers: orderHeaders(tokenOf(id) || ''), body: {} });
+      const c = loadCheckout(); if (c?.orderId === id) saveCheckout(null);
+      toast('Commande annulée');
+      route({ keep: true });
+    } catch (err) { alert(err.message); b.disabled = false; }
+  });
+
   // Bouton « Changer de point relais » (page de suivi)
   document.addEventListener('click', async (e) => {
     if (!e.target.closest('#relayChange')) return;
@@ -711,7 +751,7 @@
       e.target.disabled = false;
     });
   }
-  const toastMsg = (m) => alert(m);
+  const toastMsg = (m) => toast(m);
 
   async function viewCheckout() {
     renderNav(null);
@@ -905,22 +945,36 @@
       e.preventDefault();
       const m = method();
       const err = $('#formError'); err.innerHTML = '';
-      const btn = $('#payBtn'); btn.disabled = true; btn.textContent = 'Envoi de la demande…';
       const agency = methods.agencies.find((x) => x.id === form.agency?.value);
       const pickup = m === 'cash' && receive() === 'pickup';
+      // Tout est vérifié AVANT d'envoyer quoi que ce soit : plus de commande créée pour rien
+      const problems = [];
+      if (!form.name.value.trim()) problems.push([form.name, 'Indiquez votre nom complet']);
+      if (!localPhone(form.phone.value)) problems.push([form.phone, 'Numéro invalide : 9 chiffres, ex. 06 123 45 67']);
+      if (!m) problems.push([form.querySelector('[name=method]'), 'Choisissez comment payer']);
+      if (m === 'cash' && !agency) problems.push([form.agency, 'Choisissez le point relais sur la carte ou dans la liste']);
+      if (!pickup && !form.address.value.trim()) problems.push([form.address, 'Indiquez votre quartier, votre rue ou un repère pour le livreur']);
+      if ((m === 'momo' || m === 'cod') && !localPhone(form.momo?.value)) problems.push([form.momo, 'Numéro Mobile Money invalide']);
+      if (!fieldErrors(form, problems)) return;
+      const btn = $('#payBtn'); btn.disabled = true; btn.textContent = 'Envoi de la demande…';
       const customer = pickup
         ? { name: form.name.value, phone: form.phone.value, city: agency?.city || '', address: `Retrait au point relais : ${agency?.name || ''}` }
         : { name: form.name.value, phone: form.phone.value, city: form.city.value, address: form.address.value, ...(homePos ? { location: homePos } : {}) };
       if (!pickup) { try { localStorage.setItem('kamwa-customer', JSON.stringify(customer)); } catch {} }
       try {
-        // Même panier qu'une tentative précédente non payée : on réutilise la commande.
+        // Même panier qu'une tentative précédente non payée : on réutilise la MÊME commande
+        // (coordonnées changées, ex. adresse ajoutée ou retrait → livraison : elles sont mises à jour, pas de nouvelle commande).
         let checkout = loadCheckout();
         let order = null;
-        const sig = JSON.stringify(customer); // coordonnées changées (ex. retrait → livraison) : nouvelle commande
-        if (checkout?.cartKey === cartKey() && (!checkout.sig || checkout.sig === sig)) {
+        const sig = JSON.stringify(customer);
+        if (checkout?.cartKey === cartKey()) {
           try { order = await api('/orders/' + enc(checkout.orderId), { headers: orderHeaders(checkout.token) }); } catch {}
           if (['paid', 'confirmed'].includes(order?.status)) return finishPaid(checkout);
           if (order?.status !== 'pending_payment') order = null;
+          if (order && checkout.sig !== sig) {
+            await api('/orders/' + enc(checkout.orderId) + '/customer', { method: 'PATCH', headers: orderHeaders(checkout.token), body: { customer } });
+            checkout = { ...checkout, sig }; saveCheckout(checkout);
+          }
         }
         if (!order) {
           const created = await api('/orders', { method: 'POST', body: { customer, items: items.map(({ product, qty, variant }) => ({ productId: product.id, qty, variant: variant || undefined })) } });
@@ -1558,6 +1612,7 @@
           ${docsBlock(o.documents)}
           ${(o.attempts || []).length && !['delivered', 'cancelled'].includes(o.status) ? `<div class="alert warn">${o.attempts.map((a) => `Tentative de livraison le ${longDate(a.at)} : ${esc(a.label)}.`).join('<br>')} Nous vous recontactons.</div>` : ''}
           ${o.status === 'pending_payment' && !payAg ? '<div class="alert err">Paiement pas encore reçu. Si vous venez de valider sur votre téléphone, patientez quelques minutes.</div>' : ''}
+          ${o.status === 'cancelled' && o.cancelReason ? `<div class="alert warn">${icon('warning-duotone')} ${esc(o.cancelReason === 'Non payée dans les délais' ? "Cette commande a été annulée car elle n'a pas été payée à temps. Vos articles ne sont plus réservés : vous pouvez repasser commande." : o.cancelReason)}</div>` : ''}
           ${payAg && (isPickup(o) ? ['pending_payment', 'paid', 'confirmed'].includes(o.status) : o.status === 'pending_payment') ? `<div class="relay-change">
             ${kamwaMap.hasPos(ag) ? `<a class="btn ghost small" href="${kamwaMap.directions(ag)}" target="_blank" rel="noopener">${icon('map-pin-bold')} Itinéraire</a>` : ''}
             <button type="button" class="btn ghost small" id="relayChange">${icon('storefront')} Changer de point relais</button>
@@ -1565,7 +1620,8 @@
           ${payAg && o.status === 'pending_payment' && !expired ? `<div class="panel pay-here">
             <strong>${icon('map-pin-bold')} ${esc(ag.name)} — ${esc(ag.city)}</strong>
             <p class="hint" style="margin:4px 0 0">${esc(ag.address || 'Adresse communiquée par téléphone')}${ag.hours ? `<br>${icon('clock-bold')} ` + esc(ag.hours) : ''}${ag.phone ? `<br>${icon('phone-bold')} ` + esc(ag.phone) : ''}</p>
-            <p class="hint">Présentez le numéro de commande <strong>${esc(o.id)}</strong> au point relais.</p></div>` : ''}`}
+            <p class="hint">Présentez le numéro de commande <strong>${esc(o.id)}</strong> au point relais.</p></div>` : ''}
+          ${o.status === 'pending_payment' ? `<div class="cancel-box"><button type="button" class="btn ghost small" id="orderCancel">${icon('x-bold')} ${payAg ? 'Annuler ma réservation' : 'Annuler ma commande'}</button><span class="hint">Possible tant que vous n'avez pas payé.</span></div>` : ''}`}
         </div>
         <div class="panel">
           <h2>Récapitulatif</h2>
@@ -1767,6 +1823,7 @@
   function route(opts = {}) {
     state.timers.forEach(clearInterval); state.timers = [];
     const parts = currentParts();
+    document.body.dataset.route = parts[0] || 'accueil'; // sert au style (ex. bulle « Aide » réduite sur les pages d'achat)
     if (parts[0] !== 'recherche') $('.header').classList.remove('search-open');
     if (parts[0] !== 'recherche') $('#searchInput').value = '';
     markTab(parts[0]);

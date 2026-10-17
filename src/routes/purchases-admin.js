@@ -19,18 +19,27 @@ const actor = (req) => ({ id: req.user.id, role: req.user.role, name: req.user.n
 const reply = (req, res, r, action, bc, details = '') => {
   if (r.error) return res.status(400).json({ error: r.error });
   if (action) log(req, action, { id: r.value.id, name: r.value.number }, details);
-  res.json(P.view(r.value));
+  res.json(forRole(req, P.view(r.value)));
 };
+// Règle Kamwa : les prix d'achat (fournisseur ou Kamwa) ne sont visibles que par l'administrateur.
+// L'employé Catalogue voit les bons (articles, quantités, dates) et enregistre les réceptions, sans aucun montant.
+const isAdmin = (req) => req.user.role === 'admin';
+function forRole(req, v) {
+  if (isAdmin(req)) return v;
+  const { total, receivedTotal, paid, owed, due, invoice, ...rest } = v;
+  return { ...rest, lines: v.lines.map(({ unitPrice, ...l }) => l), pricesHidden: true };
+}
 const find = (req, res) => {
   const bc = store.get(req.params.id) || store.find((x) => x.number === String(req.params.id).toUpperCase());
   if (!bc) { res.status(404).json({ error: 'Bon de commande introuvable' }); return null; }
   return bc;
 };
 
-// ---------- Espace fournisseur : ses bons ----------
+// ---------- Espace fournisseur : ses bons (ses prix, mais jamais ce que Kamwa a payé ni la facture) ----------
+const supplierView = (b) => { const { paid, owed, due, invoice, ...v } = P.view(b); return v; };
 router.get('/mine', requireRole('supplier'), (req, res) => {
   const list = store.all().filter((b) => b.supplier.supplierId === req.user.id && b.status !== 'draft').sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
-  res.json({ purchases: list.map((b) => { const v = P.view(b); delete v.paid; delete v.owed; delete v.due; return v; }), statuses: P.STATUS });
+  res.json({ purchases: list.map(supplierView), statuses: P.STATUS });
 });
 router.post('/mine/:id/confirm', requireRole('supplier'), (req, res) => {
   const bc = find(req, res); if (!bc) return;
@@ -40,30 +49,29 @@ router.post('/mine/:id/confirm', requireRole('supplier'), (req, res) => {
   if (r.error) return res.status(400).json({ error: r.error });
   if (req.body?.expectedAt) P.update(r.value, { expectedAt: req.body.expectedAt }, actor(req));
   log(req, 'Bon de commande confirmé par le fournisseur', { id: bc.id, name: bc.number });
-  res.json(P.view(store.get(bc.id)));
+  res.json(supplierView(store.get(bc.id)));
 });
 
 // ---------- Kamwa : bons de commande ----------
 router.get('/', requireRole('catalog'), (req, res) => {
-  const list = store.all().sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1)).map(P.view);
+  const list = store.all().sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1)).map((b) => forRole(req, P.view(b)));
   res.json({
-    purchases: list, statuses: P.STATUS,
-    suppliers: staff.all().filter((u) => u.role === 'supplier' && u.active !== false).map((u) => ({ id: u.id, name: u.company || u.name, phone: u.phone || '' })),
-    products: products.all().filter((p) => !p.pending).map((p) => ({ id: p.id, name: p.name, stock: p.stock, costPrice: p.costPrice ?? null, supplierPrice: p.supplierPrice ?? null, supplierId: p.supplierId || null, lastPurchasePrice: p.lastPurchasePrice ?? null, image: p.image || null })),
+    purchases: list, statuses: P.STATUS, canEdit: isAdmin(req),
+    suppliers: isAdmin(req) ? staff.all().filter((u) => u.role === 'supplier' && u.active !== false).map((u) => ({ id: u.id, name: u.company || u.name, phone: u.phone || '' })) : [],
+    products: isAdmin(req) ? products.all().filter((p) => !p.pending).map((p) => ({ id: p.id, name: p.name, stock: p.stock, costPrice: p.costPrice ?? null, supplierPrice: p.supplierPrice ?? null, supplierId: p.supplierId || null, lastPurchasePrice: p.lastPurchasePrice ?? null, image: p.image || null })) : [],
   });
 });
-router.post('/', requireRole('catalog'), (req, res) => {
+router.post('/', requireRole(), (req, res) => {
   const r = P.create(req.body || {}, actor(req));
   if (r.error) return res.status(400).json({ error: r.error });
   log(req, 'Bon de commande créé', { id: r.value.id, name: r.value.number }, `${r.value.supplier.name} · ${P.total(r.value.lines)} FCFA`);
-  res.status(201).json(P.view(r.value));
+  res.status(201).json(forRole(req, P.view(r.value)));
 });
-router.get('/:id', requireRole('catalog'), (req, res) => { const bc = find(req, res); if (bc) res.json(P.view(bc)); });
-router.patch('/:id', requireRole('catalog'), (req, res) => { const bc = find(req, res); if (bc) reply(req, res, P.update(bc, req.body || {}, actor(req)), 'Bon de commande modifié', bc); });
-router.post('/:id/status', requireRole('catalog'), (req, res) => {
+router.get('/:id', requireRole('catalog'), (req, res) => { const bc = find(req, res); if (bc) res.json(forRole(req, P.view(bc))); });
+router.patch('/:id', requireRole(), (req, res) => { const bc = find(req, res); if (bc) reply(req, res, P.update(bc, req.body || {}, actor(req)), 'Bon de commande modifié', bc); });
+router.post('/:id/status', requireRole(), (req, res) => {
   const bc = find(req, res); if (!bc) return;
   const status = req.body?.status;
-  if (status === 'cancelled' && req.user.role !== 'admin' && bc.status !== 'draft') return res.status(403).json({ error: "Seul l'administrateur peut annuler un bon déjà envoyé" });
   reply(req, res, P.setStatus(bc, status, actor(req), String(req.body?.note || '').slice(0, 300)), `Bon de commande : ${P.STATUS[status] || status}`, bc);
 });
 router.post('/:id/receive', requireRole('catalog'), (req, res) => {
@@ -72,10 +80,10 @@ router.post('/:id/receive', requireRole('catalog'), (req, res) => {
   if (r.error) return res.status(400).json({ error: r.error });
   const last = r.value.receipts[r.value.receipts.length - 1];
   log(req, 'Réception fournisseur', { id: bc.id, name: bc.number }, last.lines.map((l) => `${l.qty} × ${l.name}`).join(', '));
-  res.json(P.view(r.value));
+  res.json(forRole(req, P.view(r.value)));
 });
 router.put('/:id/invoice', requireRole(), (req, res) => { const bc = find(req, res); if (bc) reply(req, res, P.setInvoice(bc, req.body?.remove ? null : req.body || {}, actor(req)), 'Facture fournisseur', bc); });
-router.get('/:id/print', requireRole('catalog'), (req, res) => {
+router.get('/:id/print', requireRole(), (req, res) => {
   const bc = find(req, res); if (!bc) return;
   res.set({ 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex' });
   res.type('html').send(P.render(bc, billing.company()));
@@ -96,7 +104,13 @@ stockRouter.get('/overview', requireRole('catalog'), (req, res) => {
     active: p.active !== false,
     onOrder: store.all().filter((b) => P.OPEN.includes(b.status) && b.status !== 'draft').reduce((n, b) => n + (b.lines.find((l) => l.productId === p.id) || { qty: 0, received: 0 }).qty - (b.lines.find((l) => l.productId === p.id)?.received || 0), 0),
   }));
-  res.json({ products: list, totalValue: list.reduce((s, p) => s + p.value, 0), low: list.filter((p) => p.active && p.stock != null && p.stock <= 3).length });
+  const admin = req.user.role === 'admin';
+  res.json({
+    products: admin ? list : list.map(({ cost, value, ...p }) => p), pricesHidden: !admin,
+    totalValue: admin ? list.reduce((s, p) => s + p.value, 0) : null,
+    noCost: admin ? list.filter((p) => p.active && !p.supplierId && p.cost == null).length : null,
+    low: list.filter((p) => p.active && p.stock != null && p.stock <= 3).length,
+  });
 });
 stockRouter.post('/count', requireRole('catalog'), (req, res) => {
   const items = Array.isArray(req.body?.items) ? req.body.items : [];
