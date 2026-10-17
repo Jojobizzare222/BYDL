@@ -521,3 +521,28 @@ html[data-theme="light"] .vbadge { --vb: #5B3FE0; --vb-check: #fff; }
 .doc-list .cell-actions, #tbl .cell-actions { flex-wrap: wrap; }
 .doc-list .cell-actions a, .dt .cell-actions a.ghost { display: inline-flex; align-items: center; gap: 5px; text-decoration: none; }
 .dt .mono, .doc-list .mono { white-space: nowrap; }
+
+/* Colis : fiche, actions, scanner */
+.tag.info { background: #1F2B52; color: #9DB8FF; }
+html[data-theme="light"] .tag.info { background: #E6EDFF; color: #2F4FB0; }
+.pcl-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.pcl-top h2 { margin: 2px 0 0; font-size: 1.5rem; letter-spacing: .02em; }
+.pcl-dest { display: flex; flex-direction: column; gap: 4px; margin: 12px 0; padding: 12px 14px; border-radius: 14px; background: var(--soft, rgba(255,255,255,.04)); border: 1px solid var(--line); }
+.pcl-dest strong { display: flex; align-items: center; gap: 6px; }
+.pcl-dest .tag { align-self: flex-start; }
+.pcl-acts { display: grid; gap: 8px; }
+.pcl-act { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.pcl-act select, .pcl-act input { flex: 1 1 180px; min-width: 0; margin: 0; }
+.pcl-act .btn { margin: 0; display: inline-flex; align-items: center; gap: 6px; }
+.pcl-hist { list-style: none; margin: 0; padding: 0 0 0 14px; border-left: 2px solid var(--line); display: grid; gap: 10px; }
+.pcl-hist li { position: relative; } .pcl-hist li::before { content: ""; position: absolute; left: -20px; top: 5px; width: 10px; height: 10px; border-radius: 50%; background: #7357F0; }
+.scan-modes { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.scan-opts label { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; } .scan-opts select { flex: 1; margin: 0; }
+.scan-cam { position: relative; width: 100%; max-width: 520px; aspect-ratio: 4 / 3; margin: 0 auto 10px; border-radius: 18px; overflow: hidden; background: #000; }
+.scan-cam video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.scan-frame { position: absolute; inset: 18% 22%; border: 3px solid #FFB300; border-radius: 16px; box-shadow: 0 0 0 999px rgba(0,0,0,.35); pointer-events: none; }
+.scan-hint { position: absolute; left: 0; right: 0; bottom: 8px; margin: 0; text-align: center; color: #fff; font-size: .85rem; text-shadow: 0 1px 3px #000; padding: 0 12px; }
+.scan-manual { display: flex; gap: 8px; max-width: 520px; margin: 0 auto 10px; } .scan-manual input { flex: 1; margin: 0; } .scan-manual .btn { margin: 0; }
+#scanResult { max-width: 520px; margin: 0 auto; } .scan-card { margin: 0; }
+.scan-log { list-style: none; max-width: 520px; margin: 10px auto 0; padding: 0; display: grid; gap: 6px; }
+.scan-log li { display: flex; gap: 8px; align-items: center; padding: 6px 10px; border-radius: 10px; background: var(--soft, rgba(255,255,255,.04)); }

@@ -60,6 +60,8 @@ const push = require('./push');
 push.watchOrders();
 const billing = require('./billing');
 billing.watchOrders(); // factures, reçus, avoirs créés automatiquement à chaque étape d'une commande
+const parcels = require('./parcels');
+parcels.watchOrders(); // colis créés et mis à jour avec la commande
 // Rafraîchissement instantané des écrans ouverts (boutique) : seulement ce qui concerne ce client
 const events = require('./events');
 events.watchStore();
@@ -101,6 +103,7 @@ app.use('/api/admin', require('./routes/admin'));
 // Vitrine de démo (Vercel) : comptes et données d'exemple, créés une fois par démarrage de la base temporaire
 require('./demo').seed();
 billing.syncAll(); // documents manquants (anciennes commandes, données de démo), dans l'ordre des ventes
+parcels.syncAll(); // colis des commandes prêtes
 
 // Facture / reçu / avoir ouvert par le client depuis son compte, son suivi ou un lien WhatsApp : clé secrète du document obligatoire
 app.get('/api/documents/:id', (req, res) => {

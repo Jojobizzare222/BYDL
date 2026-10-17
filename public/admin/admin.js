@@ -419,6 +419,7 @@
           <div><span>Total</span><span>${fcfa(o.total)}</span></div>
         </div>
       </div>
+      ${CAN.orders() ? parcelsPanel(o) : ''}
       ${CAN.orders() ? docsPanel(o) : ''}
 
       <div class="panel">
@@ -1172,6 +1173,217 @@
         .bindPopup(`<b>${esc(a.name)}</b><br>${esc(a.address || '')}<br><a href="#/agences/${enc(a.id)}">Modifier</a>`));
       if (ms.length) map.fitBounds(L.featureGroup(ms).getBounds().pad(0.2), { maxZoom: 15 });
     }).catch(() => {});
+  }
+
+  // ---------- Colis : étiquettes avec QR code, scan au téléphone, étapes ----------
+  const PCL_STAGES = { preparing: 'À préparer', ready: 'Prêt (emballé)', with_courier: 'Chez le livreur', at_relay: 'Au point relais', delivered: 'Remis au client', returned: 'Retour en stock' };
+  const PCL_TAG = { preparing: 'warn', ready: '', with_courier: 'info', at_relay: 'info', delivered: 'ok', returned: 'danger' };
+  const pclTag = (st) => `<span class="tag ${PCL_TAG[st] || ''}">${esc(PCL_STAGES[st] || st)}</span>`;
+  const PCL_ACTIONS = {
+    prepare: ['Préparé (emballé)', 'check-bold'], to_courier: ['Remis au livreur', 'truck'], take: ['Je prends le colis', 'truck'],
+    at_relay: ['Arrivé au point relais', 'storefront'], handover: ['Remis au client', 'hand-coins-duotone'], back: ["Revenu à l'entrepôt", 'arrow-counter-clockwise'],
+  };
+  const labelsUrl = (q) => `/api/admin/parcels/labels?${q}`;
+  const pclNumber = (text) => (String(text || '').match(/KM-\d{6}-\d{3,}/i) || [String(text || '').trim()])[0].toUpperCase();
+  const since = (iso) => { const h = (Date.now() - Date.parse(iso)) / 3600000; return h < 1 ? `${Math.max(1, Math.round(h * 60))} min` : h < 48 ? `${Math.round(h)} h` : `${Math.round(h / 24)} j`; };
+  const pclDest = (p) => p.order ? (p.order.fulfillment === 'pickup'
+    ? `${icon('storefront')} ${esc(p.order.relay?.name || 'Point relais')}<br><span class="muted">${esc(p.order.customer.name)}</span>`
+    : `${icon('house')} ${esc(p.order.customer.city || 'Livraison')}<br><span class="muted">${esc(p.order.customer.name)}</span>`) : '—';
+  let pclMeta = { couriers: [], relays: [] };
+  async function loadPclMeta() { try { const r = await api('/parcels'); pclMeta = { couriers: r.couriers, relays: r.relays }; return r; } catch { return null; } }
+
+  async function viewParcels() {
+    const r = await loadPclMeta();
+    if (!r) return;
+    const list = r.parcels;
+    const f = state.pclFilter || (CAN.courier() ? 'all' : 'preparing');
+    const TABS = [['preparing', 'À préparer'], ['ready', 'Prêts'], ['with_courier', 'Chez le livreur'], ['at_relay', 'Au point relais'], ['done', 'Terminés (7 j)'], ['all', 'Tous']];
+    const match = (p, k) => k === 'all' || p.stage === k || (k === 'done' && ['delivered', 'returned'].includes(p.stage));
+    const shown = list.filter((p) => match(p, f));
+    const late = list.filter((p) => p.stale);
+    app.innerHTML = pageHead({
+      title: 'Colis',
+      desc: CAN.courier() ? 'Les colis de vos livraisons. Scannez le QR code de l\'étiquette quand vous prenez un colis.' : "Un colis est créé automatiquement pour chaque commande payée. Imprimez l'étiquette (QR code), collez-la, puis <strong>scannez</strong> à chaque étape : préparé, remis au livreur, arrivé au point relais, remis au client (avec son code). Le client est prévenu quand son colis l'attend au point relais.",
+      actions: `<a class="btn" href="#/scanner">${icon('camera-bold')} Scanner</a>${CAN.orders() && shown.some((p) => p.stage === 'preparing' || p.stage === 'ready') ? `<a class="btn ghost" target="_blank" rel="noopener" href="${labelsUrl('ids=' + shown.filter((p) => ['preparing', 'ready'].includes(p.stage)).map((p) => enc(p.id)).join(','))}">${icon('download-simple-bold')} Étiquettes de cet onglet</a>` : ''}`,
+    })
+      + (late.length ? `<div class="alert warn">${icon('clock-countdown-duotone')} ${late.length} colis attend${late.length > 1 ? 'ent' : ''} depuis trop longtemps à la même étape : ${late.slice(0, 6).map((p) => `<a href="#/colis/${enc(p.number)}">${esc(p.number)}</a> (${esc(PCL_STAGES[p.stage]).toLowerCase()} depuis ${p.stale} h)`).join(', ')}${late.length > 6 ? '…' : ''}</div>` : '')
+      + tabsBar(TABS.map(([k, l]) => [k, l, list.filter((p) => match(p, k)).length]), f, 'pf')
+      + '<div id="tbl"></div>';
+    app.querySelectorAll('[data-pf]').forEach((b) => b.addEventListener('click', () => { state.pclFilter = b.dataset.pf; viewParcels(); }));
+    dataTable($('#tbl'), {
+      id: 'parcels', rows: shown, defaultSort: 'stageAt', placeholder: 'Numéro, commande, client', empty: 'Aucun colis ici.',
+      searchText: (p) => `${p.number} ${p.orderId} ${p.order?.customer.name} ${p.order?.customer.phone} ${p.order?.relay?.name || ''}`,
+      columns: [
+        { key: 'number', label: 'Colis', render: (p) => `<a href="#/colis/${enc(p.number)}"><strong class="mono">${esc(p.number)}</strong></a><br><span class="muted">${p.index}/${p.count}</span>${p.stale ? ` <span class="tag danger">${p.stale} h</span>` : ''}` },
+        { key: 'stageAt', label: 'Étape', render: (p) => `${pclTag(p.stage)}<br><span class="muted">depuis ${since(p.stageAt)}${p.place?.type === 'courier' ? ` · ${esc(p.place.name)}` : ''}</span>` },
+        { key: 'dest', label: 'Destination', sortable: false, render: pclDest },
+        { key: 'orderId', label: 'Commande', render: (p) => (CAN.orders() ? `<a href="#/commande/${enc(p.orderId)}">${esc(p.orderId)}</a>` : esc(p.orderId)) + (p.order?.toCollect ? `<br><span class="tag warn">à encaisser ${fcfa(p.order.toCollect)}</span>` : '') },
+        { key: 'act', label: '', sortable: false, render: (p) => `<div class="cell-actions"><a class="ghost" href="#/colis/${enc(p.number)}">Ouvrir</a>${CAN.orders() ? `<a class="ghost" target="_blank" rel="noopener" href="${labelsUrl('ids=' + enc(p.id))}">${icon('download-simple-bold')} Étiquette</a>` : ''}</div>` },
+      ],
+    });
+  }
+
+  // Formulaire d'une action (choix du livreur, du point relais, code du client)
+  function pclActionForm(p, a) {
+    const [label, ic] = PCL_ACTIONS[a];
+    if (a === 'to_courier') return `<div class="pcl-act"><select data-pcl-courier>${pclMeta.couriers.map((c) => `<option value="${esc(c.id)}" ${c.id === p.order?.courierId ? 'selected' : ''}>${esc(c.name)}</option>`).join('') || '<option value="">Aucun livreur actif</option>'}</select><button class="btn" data-pcl-do="to_courier">${icon(ic)} ${label}</button></div>`;
+    if (a === 'at_relay') return `<div class="pcl-act"><select data-pcl-relay>${pclMeta.relays.map((r) => `<option value="${esc(r.id)}" ${r.id === p.order?.relay?.id ? 'selected' : ''}>${esc(r.name)}${r.id === p.order?.relay?.id ? ' (choisi par le client)' : ''}</option>`).join('')}</select><button class="btn" data-pcl-do="at_relay">${icon(ic)} ${label}</button></div>`;
+    if (a === 'handover') return `<div class="pcl-act"><input type="text" inputmode="numeric" maxlength="4" placeholder="Code du client (4 chiffres)" data-pcl-code autocomplete="off"><button class="btn green" data-pcl-do="handover">${icon(ic)} ${label}</button></div>`;
+    return `<div class="pcl-act"><button class="btn ${a === 'back' ? 'ghost' : ''}" data-pcl-do="${a}">${icon(ic)} ${label}</button></div>`;
+  }
+  async function doParcelAction(p, a, host) {
+    const body = { action: a };
+    if (a === 'to_courier') body.courierId = host.querySelector('[data-pcl-courier]')?.value;
+    if (a === 'at_relay') body.agencyId = host.querySelector('[data-pcl-relay]')?.value;
+    if (a === 'handover') body.code = host.querySelector('[data-pcl-code]')?.value;
+    return api(`/parcels/${enc(p.id)}/action`, { method: 'POST', body });
+  }
+  function pclCard(p, { compact = false } = {}) {
+    const o = p.order;
+    return `<div class="pcl-card">
+      <div class="pcl-top"><div><span class="muted">Colis ${p.index}/${p.count}</span><h2 class="mono">${esc(p.number)}</h2></div>${pclTag(p.stage)}</div>
+      ${o ? `<div class="pcl-dest ${o.fulfillment}">
+        <strong>${o.fulfillment === 'pickup' ? `${icon('storefront')} Retrait : ${esc(o.relay?.name || 'Point relais')}` : `${icon('house')} Livraison à domicile`}</strong>
+        <span>${esc(o.customer.name)} · ${esc(o.customer.phone)}${o.customer.address ? ` · ${esc(o.customer.address)}` : ''}${o.customer.city ? ` · ${esc(o.customer.city)}` : ''}</span>
+        <span class="muted">Commande ${CAN.orders() ? `<a href="#/commande/${enc(p.orderId)}">${esc(p.orderId)}</a>` : esc(p.orderId)} · ${o.items} article(s)${o.courierName ? ` · livreur : ${esc(o.courierName)}` : ''}</span>
+        ${o.toCollect ? `<span class="tag warn">À encaisser à la remise : ${fcfa(o.toCollect)}</span>` : ''}
+        ${p.relay && o.relay && p.relay.id !== o.relay.id ? `<span class="tag danger">Déposé à ${esc(p.relay.name)} au lieu de ${esc(o.relay.name)}</span>` : ''}
+      </div>` : ''}
+      ${p.actions.length ? `<div class="pcl-acts">${p.actions.map((a) => pclActionForm(p, a)).join('')}</div>` : `<p class="muted" style="margin:8px 0 0">${p.stage === 'with_courier' && CAN.courier() ? 'Remise au client : depuis « Mes livraisons » (code du client).' : p.stage === 'with_courier' ? 'Remise au client : par le livreur (« Mes livraisons ») ou depuis la commande, avec le code du client.' : 'Aucune action à faire.'}</p>`}
+      <div class="pcl-msg"></div>
+      ${compact ? '' : `<h3>Historique</h3><ol class="pcl-hist">${[...(p.history || [])].reverse().map((h) => `<li><b>${esc(PCL_STAGES[h.stage] || h.stage)}</b>${h.place ? ` — ${esc(h.place)}` : ''}<br><span class="muted">${date(h.at)} · ${esc(h.byName || '')}${h.note ? ` · ${esc(h.note)}` : ''}</span></li>`).join('')}</ol>`}
+    </div>`;
+  }
+  function bindPclCard(host, p, after) {
+    host.querySelectorAll('[data-pcl-do]').forEach((b) => b.addEventListener('click', async () => {
+      b.disabled = true;
+      try { const np = await doParcelAction(p, b.dataset.pclDo, host); toast(`${np.number} : ${PCL_STAGES[np.stage]} ✓`); after(np); }
+      catch (err) { host.querySelector('.pcl-msg').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; b.disabled = false; }
+    }));
+  }
+  async function viewParcel(number) {
+    let p;
+    if (!pclMeta.couriers.length && !pclMeta.relays.length && CAN.orders()) await loadPclMeta();
+    try { p = await api('/parcels/lookup?code=' + enc(number)); }
+    catch (err) { app.innerHTML = `<p><a href="#/colis">‹ Tous les colis</a></p><div class="alert err">${esc(err.message)}</div>`; return; }
+    app.innerHTML = `<p><a href="#/colis">‹ Tous les colis</a></p>
+      <div class="row between" style="gap:8px;flex-wrap:wrap;margin-bottom:10px"><span></span><span class="row" style="gap:8px">
+        <a class="btn ghost" href="#/scanner">${icon('camera-bold')} Scanner</a>
+        ${CAN.orders() ? `<a class="btn ghost" target="_blank" rel="noopener" href="${labelsUrl('ids=' + enc(p.id))}">${icon('download-simple-bold')} Étiquette</a>` : ''}</span></div>
+      <div class="panel" id="pclHost">${pclCard(p)}</div>`;
+    bindPclCard($('#pclHost'), p, () => route({ keep: true }));
+  }
+
+  // Bloc « Colis » de la fiche commande
+  function parcelsPanel(o) {
+    const list = o.parcels || [];
+    const ready = ['paid', 'confirmed', 'shipped'].includes(o.status) && (!o.import || o.import.stage === 'arrived');
+    if (!list.length && !ready) return '';
+    return `<div class="panel">
+      <h2>${icon('package')} Colis</h2>
+      ${list.length ? `<ul class="doc-list">${list.map((p) => `<li><span><a href="#/colis/${enc(p.number)}"><strong class="mono">${esc(p.number)}</strong></a> ${pclTag(p.stage)}<br><span class="muted">Colis ${p.index}/${list.length} · ${esc(p.place?.name || '')} · depuis ${since(p.stageAt)}</span></span>
+        <div class="cell-actions"><a class="ghost" href="#/colis/${enc(p.number)}">Ouvrir</a></div></li>`).join('')}</ul>` : '<p class="muted" style="margin:0">Aucun colis pour le moment.</p>'}
+      <div class="row" style="gap:8px;margin-top:10px;flex-wrap:wrap">
+        ${list.length ? `<a class="btn" target="_blank" rel="noopener" href="${labelsUrl('order=' + enc(o.id))}">${icon('download-simple-bold')} Imprimer ${list.length > 1 ? 'les étiquettes' : "l'étiquette"}</a>` : ''}
+        ${ready ? `<button class="ghost" data-pcl-add="${esc(o.id)}">${icon('plus-bold')} ${list.length ? 'Ajouter un colis (plusieurs cartons)' : 'Créer le colis'}</button>` : ''}
+      </div></div>`;
+  }
+  app.addEventListener('click', async (e) => {
+    const b = e.target.closest('[data-pcl-add]');
+    if (!b) return;
+    b.disabled = true;
+    try { await api(`/parcels/order/${enc(b.dataset.pclAdd)}`, { method: 'POST', body: {} }); await loadOrders(); route({ keep: true }); }
+    catch (err) { alert(err.message); b.disabled = false; }
+  });
+
+  // ---------- Scanner : caméra du téléphone (BarcodeDetector, sinon jsQR, Apache 2.0) ----------
+  let scan = null;
+  function stopScanner() {
+    if (!scan) return;
+    scan.stop = true;
+    scan.stream?.getTracks().forEach((t) => t.stop());
+    scan = null;
+  }
+  const loadJsQR = () => window.jsQR ? Promise.resolve() : new Promise((ok, ko) => { const s = document.createElement('script'); s.src = '/admin/vendor/jsqr/jsQR.js'; s.onload = ok; s.onerror = ko; document.head.appendChild(s); });
+  function beep(good) {
+    try { navigator.vibrate?.(good ? 70 : [60, 60, 60]); } catch {}
+    try { const ac = new (window.AudioContext || window.webkitAudioContext)(); const o = ac.createOscillator(); const g = ac.createGain(); o.frequency.value = good ? 1046 : 220; g.gain.value = .08; o.connect(g); g.connect(ac.destination); o.start(); o.stop(ac.currentTime + (good ? .12 : .3)); setTimeout(() => ac.close(), 500); } catch {}
+  }
+  async function viewScanner() {
+    if (CAN.orders() && !pclMeta.couriers.length && !pclMeta.relays.length) await loadPclMeta();
+    const MODES = CAN.courier() ? [['look', 'Consulter'], ['take', 'Je prends le colis']]
+      : [['look', 'Consulter'], ['prepare', 'Préparé'], ['to_courier', 'Remis au livreur'], ['at_relay', 'Au point relais']];
+    const mode = MODES.some(([k]) => k === state.scanMode) ? state.scanMode : 'look';
+    app.innerHTML = pageHead({ crumb: 'Colis', title: 'Scanner', desc: "Visez le QR code de l'étiquette. En mode « Consulter », le colis s'ouvre ; dans les autres modes, l'étape est enregistrée à chaque scan (pratique pour une pile de colis)." })
+      + `<div class="scan-modes">${MODES.map(([k, l]) => `<button class="tab ${k === mode ? 'on' : ''}" data-smode="${k}">${esc(l)}</button>`).join('')}</div>
+      <div class="scan-opts">
+        ${mode === 'to_courier' ? `<label>Livreur <select id="scanCourier">${pclMeta.couriers.map((c) => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('') || '<option value="">Aucun livreur actif</option>'}</select></label>` : ''}
+        ${mode === 'at_relay' ? `<label>Point relais <select id="scanRelay"><option value="">Celui choisi par le client</option>${pclMeta.relays.map((r) => `<option value="${esc(r.id)}">${esc(r.name)}</option>`).join('')}</select></label>` : ''}
+      </div>
+      <div class="scan-cam"><video id="scanVideo" playsinline muted></video><div class="scan-frame"></div><p class="scan-hint" id="scanHint">Ouverture de la caméra…</p></div>
+      <form class="scan-manual" id="scanManual"><input type="text" id="scanInput" placeholder="Ou tapez le numéro : KM-…" autocomplete="off" autocapitalize="characters"><button class="btn">OK</button></form>
+      <div id="scanResult"></div>
+      <ul class="scan-log" id="scanLog"></ul>`;
+    app.querySelectorAll('[data-smode]').forEach((b) => b.addEventListener('click', () => { state.scanMode = b.dataset.smode; stopScanner(); viewScanner(); }));
+    const handle = async (raw) => {
+      const number = pclNumber(raw);
+      const out = $('#scanResult');
+      if (!out) return;
+      const m = state.scanMode && MODES.some(([k]) => k === state.scanMode) ? state.scanMode : 'look';
+      try {
+        if (m === 'look') {
+          const p = await api('/parcels/lookup?code=' + enc(number));
+          beep(true);
+          out.innerHTML = `<div class="panel scan-card">${pclCard(p, { compact: true })}<a class="btn ghost" href="#/colis/${enc(p.number)}" style="margin-top:8px">Ouvrir la fiche</a></div>`;
+          bindPclCard(out, p, (np) => { out.innerHTML = `<div class="alert ok">${esc(np.number)} : ${esc(PCL_STAGES[np.stage])} ✓</div>`; });
+        } else {
+          const body = { action: m, courierId: $('#scanCourier')?.value, agencyId: $('#scanRelay')?.value || undefined };
+          const p = await api(`/parcels/${enc(number)}/action`, { method: 'POST', body });
+          beep(true);
+          out.innerHTML = `<div class="alert ok">${icon('check-bold')} <strong>${esc(p.number)}</strong> : ${esc(PCL_STAGES[p.stage])}${p.order ? ` — ${esc(p.order.customer.name)}` : ''}</div>`;
+          $('#scanLog')?.insertAdjacentHTML('afterbegin', `<li><span class="mono">${esc(p.number)}</span> ${pclTag(p.stage)} <span class="muted">${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span></li>`);
+        }
+      } catch (err) {
+        beep(false);
+        out.innerHTML = `<div class="alert err"><strong>${esc(number)}</strong> : ${esc(err.message)}</div>`;
+      }
+    };
+    $('#scanManual').addEventListener('submit', (e) => { e.preventDefault(); const v = $('#scanInput').value; if (v.trim()) { handle(v); $('#scanInput').value = ''; } });
+    // Caméra arrière ; analyse ~4 images par seconde
+    stopScanner();
+    const me = scan = { stop: false, last: '', lastAt: 0 };
+    const video = $('#scanVideo');
+    try {
+      me.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 } }, audio: false });
+    } catch {
+      $('#scanHint').textContent = "Caméra indisponible (autorisez-la dans le navigateur) : tapez le numéro ci-dessous, ou scannez avec l'appareil photo du téléphone (le QR ouvre la fiche du colis).";
+      return;
+    }
+    if (me.stop) { me.stream.getTracks().forEach((t) => t.stop()); return; }
+    video.srcObject = me.stream; await video.play().catch(() => {});
+    $('#scanHint').textContent = 'Visez le QR code du colis';
+    let detector = null;
+    try { if ('BarcodeDetector' in window && (await BarcodeDetector.getSupportedFormats()).includes('qr_code')) detector = new BarcodeDetector({ formats: ['qr_code'] }); } catch {}
+    if (!detector) { try { await loadJsQR(); } catch { $('#scanHint').textContent = 'Lecteur de QR indisponible : tapez le numéro.'; return; } }
+    const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    const tick = async () => {
+      if (me.stop || scan !== me) return;
+      if (video.readyState >= 2) {
+        let text = null;
+        try {
+          if (detector) { const r = await detector.detect(video); text = r[0]?.rawValue || null; }
+          else {
+            const w = Math.min(640, video.videoWidth), h = Math.round(video.videoHeight * (w / video.videoWidth));
+            canvas.width = w; canvas.height = h; ctx.drawImage(video, 0, 0, w, h);
+            const r = window.jsQR(ctx.getImageData(0, 0, w, h).data, w, h, { inversionAttempts: 'dontInvert' });
+            text = r?.data || null;
+          }
+        } catch {}
+        if (text && /KM-\d{6}-\d{3,}/i.test(text) && !(text === me.last && Date.now() - me.lastAt < 3000)) { me.last = text; me.lastAt = Date.now(); await handle(text); }
+      }
+      setTimeout(tick, 250);
+    };
+    tick();
   }
 
   // ---------- Factures, reçus, avoirs (créés automatiquement, jamais modifiés ni supprimés) ----------
@@ -2301,7 +2513,7 @@
   // Le serveur signale chaque changement qui concerne ce rôle ; la page affichée se redessine tout de suite,
   // à la même position, sauf pendant une saisie (elle se met alors à jour dès que la saisie est terminée).
   const LIVE_TOPICS = {
-    tableau: ['orders', 'products', 'customers', 'chat', 'imports', 'finance'], commandes: ['orders'], commande: ['orders', 'documents'], documents: ['documents'], clients: ['customers'],
+    tableau: ['orders', 'products', 'customers', 'chat', 'imports', 'finance'], commandes: ['orders'], commande: ['orders', 'documents', 'parcels'], documents: ['documents'], colis: ['parcels', 'orders'], clients: ['customers'],
     france: ['imports', 'orders'], envois: ['imports', 'orders'], agent: ['imports', 'orders'], livraisons: ['orders'], fournisseur: ['orders', 'products'],
     produits: ['products'], agences: ['agencies'], tendances: ['trends'], journal: ['orders', 'products', 'customers', 'staff', 'finance'], finances: ['finance', 'orders'], equipe: ['staff'],
   };
@@ -2351,6 +2563,7 @@
 
   function route(opts = {}) {
     clearInterval(state.msgTimer);
+    if (!/^#\/scanner/.test(location.hash)) stopScanner(); // caméra coupée en quittant le scanner
     let [page, id] = (location.hash || homeHash()).slice(2).split('/').map(decodeURIComponent);
     if (id && id.includes('?') && page !== 'finances') id = id.split('?')[0]; // ex. #/produit/nouveau?kamwa=… (bouton « → Kamwa »)
     const keepY = opts.keep ? window.scrollY : 0;
@@ -2363,7 +2576,7 @@
       tableau: () => Boolean(state.user),
       commandes: CAN.orders, commande: CAN.orders, produits: CAN.products, produit: CAN.products,
       messagerie: () => Boolean(state.user) && !CAN.supplier(),
-      tendances: CAN.admin, documents: CAN.orders,
+      tendances: CAN.admin, documents: CAN.orders, colis: () => CAN.orders() || CAN.courier(), scanner: () => CAN.orders() || CAN.courier(),
       fournisseur: CAN.supplier, clients: CAN.admin, agences: CAN.admin, equipe: CAN.admin, journal: CAN.admin, finances: CAN.admin, reglages: CAN.admin, livraisons: CAN.courier, france: CAN.orders, envois: () => CAN.orders() || CAN.agent(), agent: () => CAN.agent() || CAN.admin(), 'mot-de-passe': () => !CAN.admin(),
     };
     if (!allowed[page]?.()) [page, id] = homeHash().slice(2).split('/');
@@ -2372,6 +2585,8 @@
     if (page === 'messagerie') return viewMessaging(id);
     if (page === 'tendances') return viewTrends();
     if (page === 'documents') return viewDocuments();
+    if (page === 'colis') return id ? viewParcel(id) : viewParcels();
+    if (page === 'scanner') return viewScanner();
     if (page === 'clients') return viewCustomers();
     if (page === 'agences') return viewAgencies(id);
     if (page === 'equipe') return viewStaff(id);

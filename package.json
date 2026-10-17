@@ -19,6 +19,7 @@
     "express": "^4.21.2",
     "nodemailer": "^10.1.1",
     "onnxruntime-web": "^1.30.0",
+    "qrcode-generator": "2.0.4",
     "sharp": "^0.35.5",
     "tesseract.js": "^7.0.0",
     "web-push": "^3.6.7"

@@ -39,6 +39,7 @@ router.use('/france', require('./import-admin'));
 router.use('/chat', require('./chat-admin')); // messagerie : clients + salon de l'équipe
 router.use('/trends', require('./trends-admin')); // agent Tendances (admin)
 router.use('/documents', require('./documents-admin')); // factures, reçus, avoirs [admin, orders]
+router.use('/parcels', require('./parcels-admin')); // colis, étiquettes, scan [admin, orders, courier]
 
 // Rafraîchissement instantané de Kamwa Pro : signaux filtrés selon le rôle (jamais de données dans le signal)
 router.get('/events', (req, res) => {
@@ -61,6 +62,7 @@ router.get('/events', (req, res) => {
     if (col === 'imports' || col === 'shipments') return ordersRole || role === 'agent' ? { topic: 'imports' } : null;
     if (col === 'ledger') return role === 'admin' ? { topic: 'finance' } : null;
     if (col === 'documents') return ordersRole ? { topic: 'documents', id: doc.orderId } : null;
+    if (col === 'parcels') return ordersRole || (role === 'courier' && orders.get(doc.orderId)?.courierId === u.id) ? { topic: 'parcels', id: doc.orderId } : null;
     if (col === 'staff') return role === 'admin' && doc.livePos === before?.livePos ? { topic: 'staff' } : null;
     if (col === 'trends') return role === 'admin' && doc.status === 'new' ? { topic: 'trends' } : null;
     return null;
@@ -132,6 +134,7 @@ function adminOrder({ accessToken, ...order }, user) {
     ...order,
     payment: payment ? { operator: payment.operator, phone: payment.phone, status: payment.status, reason: payment.reason, expiresAt: payment.expiresAt || null } : null,
     account: account ? customerAuth.publicCustomer(account) : null,
+    parcels: ['admin', 'orders'].includes(user?.role) ? require('../parcels').forOrder(order.id).map((p) => ({ id: p.id, number: p.number, index: p.index, stage: p.stage, stageAt: p.stageAt, place: p.place })) : [],
     documents: ['admin', 'orders'].includes(user?.role) ? require('../billing').forOrder(order.id).map(require('./documents-admin').summary) : [],
   };
 }

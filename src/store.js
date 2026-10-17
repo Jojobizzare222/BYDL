@@ -102,6 +102,7 @@ module.exports = {
   searches: createCollection('searches'), // recherches de la boutique, comptées par jour (anonymes : aucun client, aucune adresse IP)
   pushSubs: createCollection('push_subs'), // notifications sur le téléphone : abonnements des clients (aucune donnée personnelle hors lien compte / commandes)
   conversations: createCollection('conversations'), // messagerie : conversations clients (assistant + équipe) et salon « Équipe Kamwa »
+  parcels: createCollection('parcels'), // colis : numéro KM-…, étapes (préparé, livreur, point relais, remis), historique des scans
   documents: createCollection('documents'), // factures (FA-), reçus (RC-), avoirs (AV-) : numérotés, jamais modifiés ni supprimés
   ledger: createCollection('ledger'), // finances : dépenses, autres entrées, transferts entre caisses (les ventes viennent des commandes)
 };

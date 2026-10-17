@@ -909,6 +909,13 @@ html[data-motion="reduce"] .bg-shapes, html[data-saver="on"] .bg-shapes { displa
 .acc-avatar { width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 1.4rem; background: linear-gradient(135deg, var(--mango), var(--accent)); color: #2D1B69; }
 .acc-id { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; font-size: .8rem; font-weight: 700; background: rgba(255,255,255,.12); }
 .acc-id.ok { color: #7EF0B8; } .acc-id.warn { color: #FFD27A; }
+/* Colis sur la page de suivi */
+.parcels-box { margin: 12px 0; padding: 12px 14px; border-radius: 18px; background: var(--violet-soft); display: grid; gap: 8px; }
+.parcels-box.wait { background: var(--mango-soft); border: 2px solid var(--mango); }
+.pcl-row { display: flex; gap: 12px; align-items: center; }
+.pcl-row b { display: block; } .pcl-row small { color: var(--muted); }
+.pcl-ico { width: 38px; height: 38px; flex: none; border-radius: 12px; display: grid; place-items: center; font-size: 1.25rem; background: var(--paper); color: var(--brand-2); }
+.parcels-box .hint { margin: 2px 0 0; display: flex; gap: 6px; align-items: center; color: var(--ink); }
 /* Factures et reçus (suivi de commande, Mon compte) */
 .docs-box { margin: 14px 0; padding: 14px; border-radius: 18px; background: var(--paper); border: 1px solid var(--line-soft); }
 .docs-box h3 { margin: 0 0 8px; font-size: 1rem; display: flex; align-items: center; gap: 8px; }

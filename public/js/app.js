@@ -1087,6 +1087,20 @@
       <p class="hint">Ouvrez un document pour l'imprimer ou l'enregistrer en PDF.</p></div>`;
   }
 
+  // Colis de la commande (page de suivi) : étape de chaque colis, point relais où il attend
+  const PCL_ICON = { preparing: 'package', ready: 'package', with_courier: 'truck', at_relay: 'storefront', delivered: 'check-circle-duotone', returned: 'arrow-counter-clockwise' };
+  function parcelsBlock(o) {
+    const list = (o.parcels || []).filter((p) => p.stage !== 'returned');
+    if (!list.length || o.status === 'delivered') return '';
+    const waiting = list.some((p) => p.stage === 'at_relay');
+    return `<div class="parcels-box ${waiting ? 'wait' : ''}">
+      ${list.map((p) => `<div class="pcl-row"><span class="pcl-ico">${icon(PCL_ICON[p.stage] || 'package')}</span>
+        <span><b>${list.length > 1 ? `Colis ${p.index}/${list.length} · ` : 'Votre colis · '}${esc(p.label)}${p.place ? ` : ${esc(p.place)}` : ''}</b>
+        <small>N° ${esc(p.number)} · depuis ${shortDate(p.at)} à ${new Date(p.at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</small></span></div>`).join('')}
+      ${waiting ? `<p class="hint">${icon('key-bold')}<span>Présentez votre <b>code de retrait</b> au point relais pour récupérer votre colis.</span></p>` : ''}
+    </div>`;
+  }
+
   function orderCard(o) {
     const step = stepIndex(o);
     const items = o.lines.reduce((n, l) => n + l.qty, 0);
@@ -1571,6 +1585,7 @@
           ${im && im.requestId && !payAg && o.status === 'pending_payment' ? `<p><a class="btn cta" href="#/devis/${enc(im.requestId || '')}">Payer ma commande</a></p>` : ''}
           ${!['delivered', 'cancelled'].includes(o.status) ? pushCard(o.id) : ''}
           ${o.status === 'shipped' && !isPickup(o) ? '<div class="live-box" id="liveBox"></div>' : ''}
+          ${parcelsBlock(o)}
           ${im && im.stage !== 'arrived' ? '' : codeCard(o)}
           ${docsBlock(o.documents)}
           ${(o.attempts || []).length && !['delivered', 'cancelled'].includes(o.status) ? `<div class="alert warn">${o.attempts.map((a) => `Tentative de livraison le ${longDate(a.at)} : ${esc(a.label)}.`).join('<br>')} Nous vous recontactons.</div>` : ''}

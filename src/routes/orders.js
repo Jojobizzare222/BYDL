@@ -41,7 +41,7 @@ function clientOrder({ accessToken, note, paidAfterCancel, ...order }) {
   }
   // Factures / reçus / avoirs de la commande (liens avec la clé secrète de chaque document)
   const docs = order.id ? billing.forOrder(order.id).map(billing.publicDoc) : [];
-  return { ...order, lines: clientLines(order.lines), documents: docs };
+  return { ...order, lines: clientLines(order.lines), documents: docs, parcels: order.id ? require('../parcels').clientParcels(order.id) : [] };
 }
 const publicOrder = clientOrder;
 
