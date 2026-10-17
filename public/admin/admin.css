@@ -778,3 +778,6 @@ html[data-theme="light"] .demo-box .ghost { background: #fff; color: #171C30; bo
 .day-sum .ok b { color: var(--ok); } .day-sum .ko b { color: var(--err); }
 @media (max-width: 640px) { .day-sum { grid-template-columns: 1fr 1fr; } }
 .rv-stars { color: #FFB300; letter-spacing: 1px; white-space: nowrap; } .rv-stars.r1, .rv-stars.r2 { color: var(--err); }
+@media (max-width: 900px) { .msg-layout.solo .msg-conv { height: calc(100dvh - 250px); min-height: 380px; } }
+.cell-stack { display: inline-block; text-align: inherit; }
+@media (min-width: 701px) { .fee-del span { display: none; } }

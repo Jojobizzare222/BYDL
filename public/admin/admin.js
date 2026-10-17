@@ -827,8 +827,8 @@
     const cityRow = (ct = { city: '', fee: 0, zones: [] }) => `<div class="fee-city">
         <div><label>Ville</label><input type="text" data-fc="city" value="${esc(ct.city)}" placeholder="Pointe-Noire" maxlength="40"></div>
         <div><label>Tarif (FCFA)</label><input type="number" data-fc="fee" min="0" step="100" value="${ct.fee}"></div>
-        <div class="fee-zones"><label>Quartiers à tarif différent <span class="muted">(un par ligne : « Quartier : montant »)</span></label><textarea data-fc="zones" rows="2" placeholder="Ngoyo : 2000">${esc(zonesText(ct.zones))}</textarea></div>
-        <button type="button" class="ghost fee-del" title="Retirer cette ville">${icon('trash-bold')}</button>
+        <div class="fee-zones"><label>Quartiers à tarif différent <span class="muted">(un par ligne : « Quartier : montant »)</span></label><textarea data-fc="zones" rows="2" placeholder="Exemple : Ngoyo : 2000">${esc(zonesText(ct.zones))}</textarea></div>
+        <button type="button" class="ghost fee-del" title="Retirer cette ville">${icon('trash-bold')} <span>Retirer</span></button>
       </div>`;
     const cp = co.company;
     const coField = (k, label, ph = '', wide = false) => `<div${wide ? ' style="grid-column:1/-1"' : ''}><label for="co_${k}">${label}${co.missing.includes(k) ? ' <span class="tag warn">à compléter</span>' : ''}</label><input id="co_${k}" type="text" data-co="${k}" value="${esc(cp[k] || '')}" placeholder="${esc(ph)}"></div>`;
@@ -2056,7 +2056,7 @@
         { key: 'mode', label: 'Mode', sortValue: (o) => o.fulfillment, render: (o) => (o.fulfillment === 'pickup' ? 'Retrait en agence' : o.agency ? 'Payé en agence, livré' : 'Livraison') },
         { key: 'status', label: 'Statut', render: (o) => badge(o.status) },
         { key: 'ready', label: 'Préparation', sortValue: (o) => (active(o) ? (o.ready ? 1 : 0) : 2), render: (o) => !active(o) ? '<span class="muted">—</span>'
-          : o.ready ? `<span class="tag ok">${icon('check-bold')} Prêt le ${date(o.ready.at)}</span>${o.ready.note ? `<br><span class="muted">${esc(o.ready.note)}</span>` : ''}<br><button class="linkish" data-unready="${esc(o.id)}">Annuler</button>`
+          : o.ready ? `<span class="cell-stack"><span class="tag ok">${icon('check-bold')} Prêt le ${date(o.ready.at)}</span>${o.ready.note ? `<br><span class="muted">${esc(o.ready.note)}</span>` : ''}<br><button class="linkish" data-unready="${esc(o.id)}">Annuler</button></span>`
           : `<button class="btn small" data-ready="${esc(o.id)}">${icon('check-bold')} Prêt à récupérer</button>` },
       ],
     });
@@ -2087,11 +2087,11 @@
       id: 'reviews', rows: list.filter((r) => match(r, f)), defaultSort: 'date', placeholder: 'Produit, client ou mot du commentaire', empty: 'Aucun avis ici.',
       searchText: (r) => `${r.productName} ${r.name} ${r.text}`,
       columns: [
-        { key: 'product', label: 'Produit', sortValue: (r) => norm(r.productName), render: (r) => `<a href="#/produit/${enc(r.productId)}">${esc(r.productName)}</a><br><span class="muted mono">${esc(r.orderId || '')}</span>` },
+        { key: 'product', label: 'Produit', sortValue: (r) => norm(r.productName), render: (r) => `<span class="cell-stack"><a href="#/produit/${enc(r.productId)}">${esc(r.productName)}</a><br><span class="muted mono">${esc(r.orderId || '')}</span></span>` },
         { key: 'rating', label: 'Note', cls: 'num', render: (r) => `<span class="rv-stars r${r.rating}" title="${r.rating} sur 5">${starsTxt(r.rating)}</span>` },
-        { key: 'text', label: 'Avis', sortable: false, render: (r) => `<strong>${esc(r.name)}</strong><br>${r.text ? esc(r.text) : '<span class="muted">(sans commentaire)</span>'}` },
+        { key: 'text', label: 'Avis', sortable: false, render: (r) => `<span class="cell-stack"><strong>${esc(r.name)}</strong><br>${r.text ? esc(r.text) : '<span class="muted">(sans commentaire)</span>'}</span>` },
         { key: 'date', label: 'Date', sortValue: (r) => r.createdAt, render: (r) => date(r.createdAt) },
-        { key: 'state', label: 'État', sortValue: (r) => (r.hidden ? 1 : 0), render: (r) => (r.hidden ? `<span class="tag warn">Masqué</span><br><span class="muted">par ${esc(r.hiddenBy || '')}</span><br><button class="linkish" data-rv="${esc(r.id)}" data-h="0">Réafficher</button>` : `<span class="tag ok">Publié</span><br><button class="linkish" data-rv="${esc(r.id)}" data-h="1">Masquer</button>`) },
+        { key: 'state', label: 'État', sortValue: (r) => (r.hidden ? 1 : 0), render: (r) => `<span class="cell-stack">${r.hidden ? `<span class="tag warn">Masqué</span><br><span class="muted">par ${esc(r.hiddenBy || '')}</span><br><button class="linkish" data-rv="${esc(r.id)}" data-h="0">Réafficher</button>` : `<span class="tag ok">Publié</span><br><button class="linkish" data-rv="${esc(r.id)}" data-h="1">Masquer</button>`}</span>` },
       ],
     });
     app.querySelectorAll('[data-rf]').forEach((b) => b.addEventListener('click', () => { state.reviewFilter = b.dataset.rf; viewReviews(); }));
