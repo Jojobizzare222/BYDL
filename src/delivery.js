@@ -40,6 +40,19 @@ const FAIL_REASONS = {
 
 const newDeliveryCode = () => String(crypto.randomInt(1000, 10000));
 
+// Calendrier de livraison (17/10/2026) : jour + créneau choisis par l'équipe, montrés au client et au livreur
+const SLOTS = { morning: 'Matin (8h – 12h)', afternoon: 'Après-midi (12h – 17h)', evening: 'Soir (17h – 20h)' };
+const todayCongo = () => new Date(new Date().toLocaleString('en-US', { timeZone: 'Africa/Brazzaville' })).toLocaleDateString('en-CA');
+function planDelivery(order, { date, slot, by }) {
+  const d = String(date || '').slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(d) || Number.isNaN(Date.parse(d))) return { error: 'Choisissez une date' };
+  if (d < todayCongo()) return { error: 'La date est déjà passée' };
+  if (!SLOTS[slot]) return { error: 'Choisissez un créneau (matin, après-midi, soir)' };
+  const planned = { date: d, slot, at: new Date().toISOString(), by: by?.id || null, byName: by?.name || '' };
+  return { value: orders.update(order.id, { planned, history: [...(order.history || []), { status: order.status, at: planned.at, note: `Livraison prévue le ${d.split('-').reverse().join('/')}, ${SLOTS[slot].toLowerCase()}` }] }) };
+}
+const unplanDelivery = (order) => orders.update(order.id, { planned: null });
+
 // Historique du client, par numéro de téléphone (le numéro n'est pas vérifié : simple indicateur de confiance)
 function reliability(phone) {
   const p = normalizeLocal(phone) || phone;
@@ -151,6 +164,7 @@ function failDelivery(order, { by, reason, note }) {
 const courierName = (id) => { const u = id && staff.get(id); return u ? u.name : null; };
 
 module.exports = {
+  SLOTS, todayCongo, planDelivery, unplanDelivery,
   FAIL_REASONS, codSettings, saveCodSettings, reliability, codQuote, newDeliveryCode,
   confirmCod, finishDelivery, checkCode, failDelivery, amountToCollect, restoreStock, courierName,
 };

@@ -225,6 +225,53 @@ router.post('/orders/:id/call', requireRole('orders'), (req, res) => {
 });
 
 // Confier la commande à un livreur : elle passe « En livraison »
+// Calendrier : planifier (ou déplacer) une livraison — le client reçoit une notification, le livreur la voit dans sa liste
+router.post('/orders/:id/plan', requireRole('orders'), (req, res) => {
+  const o = orders.get(req.params.id);
+  if (!o) return res.status(404).json({ error: 'Commande introuvable' });
+  if (!isDeliveryOrder(o) || !readyToDeliver(o)) return res.status(400).json({ error: 'Cette commande ne peut pas être planifiée (retrait en agence, non payée, pas encore arrivée ou déjà livrée)' });
+  const r = delivery.planDelivery(o, { date: req.body?.date, slot: req.body?.slot, by: actor(req) });
+  if (r.error) return res.status(400).json({ error: r.error });
+  let updated = r.value;
+  const courier = req.body?.courierId ? staff.get(req.body.courierId) : null;
+  if (courier && courier.role === 'courier' && courier.active !== false && updated.courierId !== courier.id) {
+    const now = new Date().toISOString();
+    updated = orders.update(o.id, { courierId: courier.id, assignedAt: now, status: 'shipped', history: updated.status === 'shipped' ? updated.history : [...(updated.history || []), { status: 'shipped', at: now }] });
+  }
+  const when = `${updated.planned.date.split('-').reverse().join('/')}, ${delivery.SLOTS[updated.planned.slot].toLowerCase()}`;
+  log(req, o.planned ? 'Livraison déplacée' : 'Livraison planifiée', { id: o.id, name: o.id }, when + (courier ? ` · ${courier.name}` : ''));
+  require('../push').notifyOrder(updated, o.planned ? 'Votre livraison a été déplacée' : 'Votre livraison est planifiée', `Rendez-vous le ${when}. Gardez votre code de livraison à portée de main.`);
+  res.json(adminOrder(updated, req.user));
+});
+router.delete('/orders/:id/plan', requireRole('orders'), (req, res) => {
+  const o = orders.get(req.params.id);
+  if (!o) return res.status(404).json({ error: 'Commande introuvable' });
+  if (!o.planned) return res.status(400).json({ error: 'Aucune livraison planifiée' });
+  const updated = delivery.unplanDelivery(o);
+  log(req, 'Planification retirée', { id: o.id, name: o.id });
+  res.json(adminOrder(updated, req.user));
+});
+// Le calendrier : livraisons planifiées (par jour), commandes à planifier, arrivées fournisseurs et envois d'Europe
+router.get('/calendar', requireRole('orders', 'courier'), (req, res) => {
+  const from = /^\d{4}-\d{2}-\d{2}$/.test(req.query.from) ? req.query.from : delivery.todayCongo();
+  const to = /^\d{4}-\d{2}-\d{2}$/.test(req.query.to) ? req.query.to : from;
+  const mine = req.user.role === 'courier';
+  const all = orders.all().filter((o) => isDeliveryOrder(o) && (!mine || o.courierId === req.user.id));
+  const item = (o) => ({
+    id: o.id, date: o.planned.date, slot: o.planned.slot, status: o.status, courierId: o.courierId || null, courierName: delivery.courierName(o.courierId),
+    customer: { name: o.customer.name, city: o.customer.city || '', address: o.customer.address || '', phone: mine && o.status !== 'shipped' ? '' : o.customer.phone },
+    items: o.lines.reduce((n, l) => n + l.qty, 0), toCollect: delivery.amountToCollect(o), callConfirmed: Boolean(o.callConfirmedAt), late: o.planned.date < delivery.todayCongo() && !['delivered', 'cancelled'].includes(o.status),
+  });
+  const planned = all.filter((o) => o.planned && o.planned.date >= from && o.planned.date <= to && o.status !== 'cancelled').map(item);
+  const overdue = all.filter((o) => o.planned && o.planned.date < delivery.todayCongo() && !['delivered', 'cancelled'].includes(o.status)).map(item);
+  const unplanned = mine ? [] : all.filter((o) => !o.planned && readyToDeliver(o)).sort((a, b) => (a.paidAt || a.createdAt) < (b.paidAt || b.createdAt) ? -1 : 1)
+    .map((o) => ({ id: o.id, status: o.status, paidAt: o.paidAt || o.createdAt, customer: { name: o.customer.name, city: o.customer.city || '' }, items: o.lines.reduce((n, l) => n + l.qty, 0), courierName: delivery.courierName(o.courierId), callConfirmed: Boolean(o.callConfirmedAt), import: Boolean(o.import) }));
+  const purchases = !mine && req.user.role === 'admin' ? require('../store').purchases.all().filter((b) => b.expectedAt && b.expectedAt >= from && b.expectedAt <= to && ['sent', 'confirmed', 'partial'].includes(b.status)).map((b) => ({ id: b.id, number: b.number, date: b.expectedAt, supplier: b.supplier.name, status: b.status })) : [];
+  const shipments = mine ? [] : require('../store').shipments.all().filter((s) => s.eta && String(s.eta).slice(0, 10) >= from && String(s.eta).slice(0, 10) <= to && !s.arrivedAt).map((s) => ({ id: s.id, date: String(s.eta).slice(0, 10), orders: (s.orderIds || []).length }));
+  res.json({ from, to, today: delivery.todayCongo(), slots: delivery.SLOTS, planned, overdue, unplanned, purchases, shipments,
+    couriers: mine ? [] : staff.all().filter((u) => u.role === 'courier' && u.active !== false).map((u) => ({ id: u.id, name: u.name })) });
+});
+
 router.post('/orders/:id/assign', requireRole('orders'), (req, res) => {
   const o = orders.get(req.params.id);
   if (!o) return res.status(404).json({ error: 'Commande introuvable' });
@@ -322,7 +369,7 @@ router.get('/orders/payments/:pid', requireRole('orders'), balanceStatus);
 
 // ---------- Espace livreur : ses livraisons du moment (coordonnées du client UNIQUEMENT pour les livraisons en cours) ----------
 const courierView = (o) => ({
-  id: o.id, status: o.status, assignedAt: o.assignedAt || null, createdAt: o.createdAt,
+  id: o.id, status: o.status, assignedAt: o.assignedAt || null, createdAt: o.createdAt, planned: o.planned ? { date: o.planned.date, slot: o.planned.slot, label: delivery.SLOTS[o.planned.slot] } : null,
   customer: o.status === 'shipped' ? { name: o.customer.name, phone: o.customer.phone, city: o.customer.city, address: o.customer.address, location: o.customer.location || null } : { name: o.customer.name, city: o.customer.city },
   lines: o.lines.map((l) => ({ name: l.name, qty: l.qty })),
   paymentPlan: o.paymentPlan === 'cod' ? 'cod' : 'prepaid', toCollect: delivery.amountToCollect(o),
@@ -353,7 +400,7 @@ router.delete('/courier/position', requireRole('courier'), (req, res) => { staff
 
 router.get('/courier/deliveries', requireRole('courier'), (req, res) => {
   const mine = orders.all().filter((o) => o.courierId === req.user.id);
-  const current = mine.filter((o) => o.status === 'shipped').sort((a, b) => (a.assignedAt < b.assignedAt ? -1 : 1));
+  const current = mine.filter((o) => o.status === 'shipped').sort((a, b) => ((a.planned?.date || '9') + (a.planned?.slot === 'morning' ? 'a' : a.planned?.slot === 'afternoon' ? 'b' : 'c') + a.assignedAt).localeCompare((b.planned?.date || '9') + (b.planned?.slot === 'morning' ? 'a' : b.planned?.slot === 'afternoon' ? 'b' : 'c') + b.assignedAt));
   const done = mine.filter((o) => o.status === 'delivered' && o.deliveredBy === req.user.id).sort((a, b) => (a.deliveredAt < b.deliveredAt ? 1 : -1)).slice(0, 20);
   const cashHeld = mine.filter((o) => o.cashHeldBy === req.user.id && !o.cashRemittedAt).reduce((n, o) => n + (o.balance || 0), 0);
   res.json({ current: current.map(courierView), done: done.map(courierView), cashHeld, failReasons: delivery.FAIL_REASONS });
@@ -868,6 +915,7 @@ router.get('/stats', (req, res) => {
     inTransit: allOrders.filter((o) => o.status === 'shipped').length,
     refunds: allOrders.filter((o) => o.paidAfterCancel).length,
     ...(role === 'admin' ? { idToCheck: customers.all().filter((c) => c.idStatus === 'pending').length } : {}),
+    todayDeliveries: orders.all().filter((o) => o.planned?.date === delivery.todayCongo() && !['delivered', 'cancelled'].includes(o.status)).length,
   };
   out.todo = todo;
   out.byStatus = countBy(allOrders.filter((o) => Date.parse(o.createdAt) >= since), (o) => STATUS_LABELS[o.status] || o.status);

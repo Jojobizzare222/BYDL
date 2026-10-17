@@ -1585,6 +1585,7 @@
           ${im && im.requestId && !payAg && o.status === 'pending_payment' ? `<p><a class="btn cta" href="#/devis/${enc(im.requestId || '')}">Payer ma commande</a></p>` : ''}
           ${!['delivered', 'cancelled'].includes(o.status) ? pushCard(o.id) : ''}
           ${o.status === 'shipped' && !isPickup(o) ? '<div class="live-box" id="liveBox"></div>' : ''}
+          ${o.planned && !['delivered', 'cancelled'].includes(o.status) && !isPickup(o) ? `<div class="plan-box">${icon('clock-bold')}<span><b>Livraison prévue le ${new Date(o.planned.date + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</b><small>${esc(o.planned.label)} · nous vous appelons avant de passer. Gardez votre code de livraison.</small></span></div>` : ''}
           ${parcelsBlock(o)}
           ${im && im.stage !== 'arrived' ? '' : codeCard(o)}
           ${docsBlock(o.documents)}

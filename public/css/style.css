@@ -909,6 +909,10 @@ html[data-motion="reduce"] .bg-shapes, html[data-saver="on"] .bg-shapes { displa
 .acc-avatar { width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 1.4rem; background: linear-gradient(135deg, var(--mango), var(--accent)); color: #2D1B69; }
 .acc-id { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; font-size: .8rem; font-weight: 700; background: rgba(255,255,255,.12); }
 .acc-id.ok { color: #7EF0B8; } .acc-id.warn { color: #FFD27A; }
+/* Livraison planifiée (page de suivi) */
+.plan-box { display: flex; align-items: center; gap: 12px; margin: 12px 0; padding: 12px 14px; border-radius: 18px; background: var(--violet-soft); color: var(--ink); }
+.plan-box > .ico { font-size: 1.5rem; color: var(--brand-2); flex: none; }
+.plan-box b { display: block; } .plan-box small { color: var(--muted); }
 /* Colis sur la page de suivi */
 .parcels-box { margin: 12px 0; padding: 12px 14px; border-radius: 18px; background: var(--violet-soft); display: grid; gap: 8px; }
 .parcels-box.wait { background: var(--mango-soft); border: 2px solid var(--mango); }

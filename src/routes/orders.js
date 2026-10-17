@@ -30,6 +30,7 @@ const INTERNAL = ['courierId', 'cashHeldBy', 'cashRemittedAt', 'cashRemittedTo',
 function clientOrder({ accessToken, note, paidAfterCancel, ...order }) {
   for (const k of INTERNAL) delete order[k];
   if (order.attempts) order.attempts = order.attempts.map(({ at, label }) => ({ at, label }));
+  if (order.planned) order.planned = { date: order.planned.date, slot: order.planned.slot, label: require('../delivery').SLOTS[order.planned.slot] || '' };
   if (order.balancePaid) order.balancePaid = { method: order.balancePaid.method, at: order.balancePaid.at };
   if (order.import) {
     const i = order.import;

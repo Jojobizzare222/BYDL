@@ -139,6 +139,7 @@
     const who = state.user.role === 'supplier' ? state.user.company || state.user.name : state.user.name;
     const period = d.role === 'catalog' ? '' : `<div class="period">${[7, 30, 90].map((n) => `<button data-days="${n}" class="${n === days ? 'on' : ''}">${n} jours</button>`).join('')}</div>`;
     const todo = [];
+    if (d.todo?.todayDeliveries) todo.push(`<a href="#/calendrier">${icon('clock-bold')} ${d.todo.todayDeliveries} livraison(s) aujourd'hui</a>`);
     if (d.todo?.toShip) todo.push(`<a href="#/commandes" data-f="paid">${icon('package-duotone')} ${d.todo.toShip} à expédier</a>`);
     if (d.todo?.idToCheck) todo.push(`<a class="warn" href="#/clients">${icon('identification-card')} ${d.todo.idToCheck} pièce(s) d'identité à vérifier</a>`);
     if (d.todo?.toCollect) todo.push(`<a class="warn" href="#/commandes" data-f="collect">${icon('storefront-duotone')} ${d.todo.toCollect} à encaisser en agence</a>`);
@@ -784,6 +785,8 @@
           <div class="row" style="margin:8px 0 14px">${o.callConfirmedAt
             ? `<span class="tag ok">✓ Confirmée par téléphone (${esc(o.callConfirmedBy || '')}, ${date(o.callConfirmedAt)})</span>`
             : `<button class="btn" id="callOk">${icon('phone-bold')} Client joint : commande confirmée</button><button class="ghost" id="callKo">Injoignable</button>${(o.callAttempts || []).length ? `<span class="muted">${o.callAttempts.length} appel(s) sans réponse</span>` : ''}`}</div>
+          <label>Date de livraison${o.planned ? ` — <span class="tag ok">prévue le ${frDate(o.planned.date)}, ${esc(SLOT_SHORT[o.planned.slot] || '').toLowerCase()}</span>` : ' <span class="tag warn">à planifier</span>'}</label>
+          <div id="planBox">${planForm(o, [], { withCourier: false })}</div>
           <label for="courierSel">Livreur</label>
           <div class="row"><select id="courierSel" style="max-width:280px"><option value="">Chargement…</option></select><button class="btn dark" id="assignBtn">${o.status === 'shipped' ? 'Changer de livreur' : 'Confier au livreur'}</button></div>
           ${o.courierName ? `<p class="muted">Actuellement : ${esc(o.courierName)}${o.assignedAt ? ' depuis le ' + date(o.assignedAt) : ''}</p>` : ''}
@@ -827,6 +830,7 @@
           ? list.map((u) => `<option value="${esc(u.id)}" ${u.id === o.courierId ? 'selected' : ''}>${esc(u.name)}</option>`).join('')
           : '<option value="">Aucun livreur : créez-en un dans Équipe</option>';
       }).catch(() => {});
+      bindPlanForms($('#planBox'), () => route({ keep: true }));
       $('#assignBtn').addEventListener('click', () => {
         const id = $('#courierSel').value;
         if (!id) return toast('Choisissez un livreur (Équipe → Ajouter → Livreur)');
@@ -920,6 +924,7 @@
       return `
       <article class="deliv" data-id="${esc(x.id)}">
         <div class="row between"><strong class="mono">${esc(x.id)}</strong>${x.paymentPlan === 'cod' ? `<span class="collect-tag">À encaisser : ${fcfa(x.toCollect)}</span>` : '<span class="tag ok">Déjà payée</span>'}</div>
+        ${x.planned ? `<p class="plan-when ${x.planned.date < today() ? 'late' : x.planned.date === today() ? 'now' : ''}">${icon('clock-bold')} ${x.planned.date === today() ? "Aujourd'hui" : frDate(x.planned.date)} · ${esc(x.planned.label)}</p>` : ''}
         <h3>${esc(x.customer.name)}</h3>
         <p class="deliv-addr">${icon('map-pin-duotone')} ${esc(x.customer.city || '')} · ${esc(x.customer.address || '')}${x.customer.location ? `<br><a href="${kamwaMap.directions(x.customer.location)}" target="_blank" rel="noopener">${icon('arrow-square-out-bold')} Itinéraire jusqu'au point placé par le client</a>` : ''}</p>
         <p class="muted">${x.lines.map((l) => `${l.qty} × ${esc(l.name)}`).join('<br>')}</p>
@@ -1461,6 +1466,96 @@
         { key: 'act', label: '', sortable: false, render: (p) => `<div class="cell-actions"><a class="ghost" href="#/stock/mouvements">Mouvements</a></div>` },
       ],
     });
+  }
+
+  // ---------- Calendrier de livraison : mois en un coup d'œil, livraisons du jour, commandes à planifier ----------
+  const SLOT_SHORT = { morning: 'Matin', afternoon: 'Après-midi', evening: 'Soir' };
+  const frDate = (ymd) => ymd ? ymd.split('-').reverse().join('/') : '';
+  const addDays = (ymd, n) => { const x = new Date(ymd + 'T12:00:00'); x.setDate(x.getDate() + n); return x.toISOString().slice(0, 10); };
+  const planForm = (o, couriers, { withCourier = true, compact = false } = {}) => `<form class="plan-form ${compact ? 'compact' : ''}" data-plan="${esc(o.id)}">
+      <input type="date" name="date" value="${esc(o.planned?.date || '')}" min="${today()}" required>
+      <select name="slot">${Object.entries(SLOT_SHORT).map(([k, l]) => `<option value="${k}" ${o.planned?.slot === k ? 'selected' : ''}>${l}</option>`).join('')}</select>
+      ${withCourier ? `<select name="courierId"><option value="">${o.courierName ? 'Livreur : ' + esc(o.courierName) : 'Livreur (plus tard)'}</option>${couriers.map((c) => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('')}</select>` : ''}
+      <button class="btn small">${icon('clock-bold')} ${o.planned ? 'Déplacer' : 'Planifier'}</button>${o.planned ? `<button type="button" class="ghost small" data-unplan="${esc(o.id)}" title="Retirer la planification">${icon('x-bold')}</button>` : ''}
+      <span class="plan-msg"></span></form>`;
+  function bindPlanForms(host, after) {
+    host.querySelectorAll('[data-plan]').forEach((f) => f.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const body = { date: f.date.value, slot: f.slot.value, courierId: f.courierId?.value || undefined };
+      try { await api(`/orders/${enc(f.dataset.plan)}/plan`, { method: 'POST', body }); toast('Livraison planifiée ✓ Le client est prévenu.'); await loadOrders(); after(); }
+      catch (err) { f.querySelector('.plan-msg').textContent = err.message; }
+    }));
+    host.querySelectorAll('[data-unplan]').forEach((b) => b.addEventListener('click', async () => {
+      try { await api(`/orders/${enc(b.dataset.unplan)}/plan`, { method: 'DELETE' }); toast('Planification retirée'); await loadOrders(); after(); } catch (err) { alert(err.message); }
+    }));
+  }
+  async function viewCalendar(sub) {
+    const monthKey = /^\d{4}-\d{2}$/.test(sub) ? sub : (state.calMonth || today().slice(0, 7));
+    state.calMonth = monthKey;
+    const [y, m] = monthKey.split('-').map(Number);
+    const first = `${monthKey}-01`;
+    const daysIn = new Date(y, m, 0).getDate();
+    const last = `${monthKey}-${String(daysIn).padStart(2, '0')}`;
+    let d;
+    try { d = await api(`/calendar?from=${first}&to=${last}`); } catch { return; }
+    const byDay = {};
+    const push = (day, it) => { (byDay[day] = byDay[day] || []).push(it); };
+    d.planned.forEach((o) => push(o.date, { kind: 'order', ...o }));
+    d.purchases.forEach((b) => push(b.date, { kind: 'purchase', ...b }));
+    d.shipments.forEach((x) => push(x.date, { kind: 'shipment', ...x }));
+    const sel = state.calDay && state.calDay.startsWith(monthKey) ? state.calDay : (d.today.startsWith(monthKey) ? d.today : first);
+    state.calDay = sel;
+    const prev = m === 1 ? `${y - 1}-12` : `${y}-${String(m - 1).padStart(2, '0')}`, next = m === 12 ? `${y + 1}-01` : `${y}-${String(m + 1).padStart(2, '0')}`;
+    const monthName = new Date(y, m - 1, 1).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+    const startDow = (new Date(y, m - 1, 1).getDay() + 6) % 7; // lundi = 0
+    const cells = [];
+    for (let i = 0; i < startDow; i++) cells.push('<div class="cal-cell off"></div>');
+    for (let day = 1; day <= daysIn; day++) {
+      const key = `${monthKey}-${String(day).padStart(2, '0')}`;
+      const items = byDay[key] || [];
+      const orders = items.filter((x) => x.kind === 'order');
+      const late = orders.some((x) => x.late);
+      cells.push(`<button type="button" class="cal-cell ${key === d.today ? 'today' : ''} ${key === sel ? 'sel' : ''} ${key < d.today ? 'past' : ''}" data-day="${key}">
+        <span class="cal-n">${day}</span>
+        ${orders.length ? `<span class="cal-count ${late ? 'late' : ''}">${orders.length} livr.</span>` : ''}
+        <span class="cal-dots">${['morning', 'afternoon', 'evening'].map((sl) => orders.filter((x) => x.slot === sl).length ? `<i class="sl-${sl}" title="${SLOT_SHORT[sl]}"></i>` : '').join('')}${items.some((x) => x.kind === 'purchase') ? '<i class="sl-purchase" title="Arrivée fournisseur"></i>' : ''}${items.some((x) => x.kind === 'shipment') ? '<i class="sl-ship" title="Envoi d\'Europe"></i>' : ''}</span>
+      </button>`);
+    }
+    const dayItems = (byDay[sel] || []);
+    const dayOrders = dayItems.filter((x) => x.kind === 'order');
+    const slotBlock = (sl) => {
+      const list = dayOrders.filter((x) => x.slot === sl);
+      if (!list.length) return '';
+      return `<div class="cal-slot"><h3><i class="sl-${sl}"></i> ${d.slots[sl]} <span class="muted">· ${list.length}</span></h3>
+        ${list.map((o) => `<div class="cal-item ${o.status === 'delivered' ? 'done' : ''}">
+          <div><a href="#/commande/${enc(o.id)}"><strong class="mono">${esc(o.id)}</strong></a> ${badge(o.status)}${o.late ? ' <span class="tag danger">en retard</span>' : ''}<br>
+            <strong>${esc(o.customer.name)}</strong>${o.customer.phone ? ` · <a href="tel:${esc(o.customer.phone)}">${esc(o.customer.phone)}</a>` : ''}<br>
+            <span class="muted">${esc(o.customer.city)}${o.customer.address ? ' · ' + esc(o.customer.address) : ''} · ${o.items} article(s)${o.toCollect ? ` · <b>à encaisser ${fcfa(o.toCollect)}</b>` : ''}</span><br>
+            <span class="muted">${o.courierName ? `${icon('truck-duotone')} ${esc(o.courierName)}` : '<span class="tag warn">livreur à choisir</span>'}${!o.callConfirmed && o.status !== 'delivered' ? ' <span class="tag danger">à appeler</span>' : ''}</span></div>
+          ${CAN.orders() && o.status !== 'delivered' ? planForm({ id: o.id, planned: { date: o.date, slot: o.slot }, courierName: o.courierName }, d.couriers, { compact: true }) : ''}
+        </div>`).join('')}</div>`;
+    };
+    const others = dayItems.filter((x) => x.kind !== 'order');
+    app.innerHTML = pageHead({
+      title: 'Calendrier de livraison',
+      desc: CAN.courier() ? 'Vos livraisons, jour par jour et par créneau.' : "Planifiez chaque livraison (jour + créneau : matin, après-midi, soir) : le client reçoit une notification, le livreur voit l'ordre de sa tournée. Les arrivées fournisseurs et les envois d'Europe apparaissent aussi.",
+      actions: `<div class="row" style="gap:6px"><a class="ghost" href="#/calendrier/${prev}">${icon('caret-left')}</a><strong style="min-width:150px;text-align:center;text-transform:capitalize">${esc(monthName)}</strong><a class="ghost" href="#/calendrier/${next}">${icon('caret-right')}</a><a class="btn ghost" href="#/calendrier/${d.today.slice(0, 7)}" data-today>Aujourd'hui</a></div>`,
+    })
+      + (d.overdue.length && CAN.orders() ? `<div class="alert warn">${icon('clock-countdown-duotone')} ${d.overdue.length} livraison(s) planifiée(s) à une date passée et pas encore livrée(s) : ${d.overdue.slice(0, 5).map((o) => `<a href="#/commande/${enc(o.id)}">${esc(o.id)}</a> (${frDate(o.date)})`).join(', ')}. Déplacez-les.</div>` : '')
+      + `<div class="cal-layout">
+        <div class="panel cal-month"><div class="cal-head">${['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map((x) => `<span>${x}</span>`).join('')}</div><div class="cal-grid">${cells.join('')}</div>
+          <p class="cal-legend"><i class="sl-morning"></i> matin <i class="sl-afternoon"></i> après-midi <i class="sl-evening"></i> soir${CAN.admin() ? ' <i class="sl-purchase"></i> arrivée fournisseur' : ''}${CAN.orders() ? ' <i class="sl-ship"></i> envoi d\'Europe' : ''}</p></div>
+        <div class="panel cal-day" id="calDay"><h2>${icon('clock-bold')} ${new Date(sel + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}${sel === d.today ? ' <span class="tag ok">aujourd\'hui</span>' : ''}</h2>
+          ${dayOrders.length ? ['morning', 'afternoon', 'evening'].map(slotBlock).join('') : '<p class="muted">Aucune livraison ce jour-là.</p>'}
+          ${others.length ? `<h3 style="margin-top:14px">Autres arrivées</h3><ul class="mini-list">${others.map((x) => x.kind === 'purchase' ? `<li><span><i class="sl-purchase"></i> Fournisseur : <a href="#/achat/${enc(x.id)}">${esc(x.number)}</a> — ${esc(x.supplier)}</span></li>` : `<li><span><i class="sl-ship"></i> Envoi d'Europe <a href="#/envois">${esc(x.id)}</a> — ${x.orders} commande(s)</span></li>`).join('')}</ul>` : ''}
+        </div></div>`
+      + (CAN.orders() ? `<div class="panel"><h2>${icon('package')} À planifier <span class="muted" style="font-weight:400">· ${d.unplanned.length} commande(s) payée(s) sans date de livraison</span></h2>
+          ${d.unplanned.length ? `<div class="cal-unplanned">${d.unplanned.map((o) => `<div class="cal-item"><div><a href="#/commande/${enc(o.id)}"><strong class="mono">${esc(o.id)}</strong></a> ${badge(o.status)}${o.import ? ' <span class="tag fr">Europe</span>' : ''}<br><strong>${esc(o.customer.name)}</strong> · ${esc(o.customer.city)} · ${o.items} article(s)<br><span class="muted">payée le ${date(o.paidAt).split(' ')[0]}${o.courierName ? ` · ${esc(o.courierName)}` : ''}${!o.callConfirmed ? ' · <span class="tag danger">à appeler</span>' : ''}</span></div>${planForm(o, d.couriers, { compact: true })}</div>`).join('')}</div>` : '<p class="muted" style="margin:0">Tout est planifié.</p>'}</div>` : '');
+    app.querySelectorAll('[data-day]').forEach((b) => b.addEventListener('click', () => { state.calDay = b.dataset.day; viewCalendar(monthKey); $('#calDay')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); }));
+    app.querySelector('[data-today]')?.addEventListener('click', () => { state.calDay = d.today; });
+    bindPlanForms(app, () => viewCalendar(monthKey));
+    // Date par défaut des formulaires « à planifier » : le jour sélectionné (s'il n'est pas passé), sinon demain
+    app.querySelectorAll('.cal-unplanned input[type=date]').forEach((i) => { if (!i.value) i.value = sel >= d.today ? sel : addDays(d.today, 1); });
   }
 
   // ---------- Colis : étiquettes avec QR code, scan au téléphone, étapes ----------
@@ -2889,11 +2984,11 @@
   // Le serveur signale chaque changement qui concerne ce rôle ; la page affichée se redessine tout de suite,
   // à la même position, sauf pendant une saisie (elle se met alors à jour dès que la saisie est terminée).
   const LIVE_TOPICS = {
-    tableau: ['orders', 'products', 'customers', 'chat', 'imports', 'finance'], commandes: ['orders'], commande: ['orders', 'documents', 'parcels'], documents: ['documents'], colis: ['parcels', 'orders'], achats: ['purchases'], achat: ['purchases'], stock: ['stock', 'products', 'purchases'], 'bons-de-commande': ['purchases'], clients: ['customers'],
+    tableau: ['orders', 'products', 'customers', 'chat', 'imports', 'finance'], commandes: ['orders'], commande: ['orders', 'documents', 'parcels'], documents: ['documents'], colis: ['parcels', 'orders'], calendrier: ['orders', 'purchases', 'imports'], achats: ['purchases'], achat: ['purchases'], stock: ['stock', 'products', 'purchases'], 'bons-de-commande': ['purchases'], clients: ['customers'],
     france: ['imports', 'orders'], envois: ['imports', 'orders'], agent: ['imports', 'orders'], livraisons: ['orders'], fournisseur: ['orders', 'products'],
     produits: ['products'], agences: ['agencies'], tendances: ['trends'], journal: ['orders', 'products', 'customers', 'staff', 'finance'], finances: ['finance', 'orders'], equipe: ['staff'],
   };
-  const NO_LIVE_WITH_ID = ['produit', 'achat', 'agences', 'equipe', 'finances', 'reglages', 'mot-de-passe'];
+  const NO_LIVE_WITH_ID = ['produit', 'achat', 'calendrier', 'agences', 'equipe', 'finances', 'reglages', 'mot-de-passe'];
   const proBusy = () => {
     const a = document.activeElement;
     if (a && app.contains(a) && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) && !['checkbox', 'radio'].includes(a.type)) return true;
@@ -2952,7 +3047,7 @@
       tableau: () => Boolean(state.user),
       commandes: CAN.orders, commande: CAN.orders, produits: CAN.products, produit: CAN.products,
       messagerie: () => Boolean(state.user) && !CAN.supplier(),
-      tendances: CAN.admin, achats: () => CAN.admin() || state.user?.role === 'catalog', achat: () => CAN.admin() || state.user?.role === 'catalog', stock: () => CAN.admin() || state.user?.role === 'catalog', 'bons-de-commande': CAN.supplier, documents: CAN.orders, colis: () => CAN.orders() || CAN.courier(), scanner: () => CAN.orders() || CAN.courier(),
+      calendrier: () => CAN.orders() || CAN.courier(), tendances: CAN.admin, achats: () => CAN.admin() || state.user?.role === 'catalog', achat: () => CAN.admin() || state.user?.role === 'catalog', stock: () => CAN.admin() || state.user?.role === 'catalog', 'bons-de-commande': CAN.supplier, documents: CAN.orders, colis: () => CAN.orders() || CAN.courier(), scanner: () => CAN.orders() || CAN.courier(),
       fournisseur: CAN.supplier, clients: CAN.admin, agences: CAN.admin, equipe: CAN.admin, journal: CAN.admin, finances: CAN.admin, reglages: CAN.admin, livraisons: CAN.courier, france: CAN.orders, envois: () => CAN.orders() || CAN.agent(), agent: () => CAN.agent() || CAN.admin(), 'mot-de-passe': () => !CAN.admin(),
     };
     if (!allowed[page]?.()) [page, id] = homeHash().slice(2).split('/');
@@ -2967,6 +3062,7 @@
     if (page === 'stock') return viewStock(id);
     if (page === 'bons-de-commande') return viewSupplierPurchases();
     if (page === 'colis') return id ? viewParcel(id) : viewParcels();
+    if (page === 'calendrier') return viewCalendar(id);
     if (page === 'scanner') return viewScanner();
     if (page === 'clients') return viewCustomers();
     if (page === 'agences') return viewAgencies(id);
