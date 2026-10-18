@@ -605,14 +605,14 @@
       </section>` : ''}
 
       <section class="duo">
-        <a class="promo-card pc-violet" href="#/compte/creer">
-          <span class="ic">${icon('gift')}</span>
-          <span><b>Créez votre compte Kamwa</b><small>Gratuit, avec la photo de votre pièce d'identité (vérifiée sous 24 h) : il est nécessaire pour commander.</small></span>
+        <a class="promo-card pc-violet" href="#/promos">
+          <span class="ic">${icon('tag')}</span>
+          <span><b>Bonnes affaires</b><small>Des remises toute l'année sur l'électronique et la mode.</small></span>
           <span class="go">${icon('arrow-right')}</span>
         </a>
         <a class="promo-card pc-mango" href="#/legal/vente">
           <span class="ic">${icon('truck')}</span>
-          <span><b>Livré en 24-48 h</b><small>À Pointe-Noire et Brazzaville, ou retrait en point relais.</small></span>
+          <span><b>Livraison rapide</b><small>En 24-48 h à Pointe-Noire et Brazzaville, ou retrait en point relais.</small></span>
           <span class="go">${icon('arrow-right')}</span>
         </a>
       </section>
