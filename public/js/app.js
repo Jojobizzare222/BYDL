@@ -57,7 +57,7 @@
   // Numéro congolais (9 chiffres commençant par 0, avec ou sans +242), comme le serveur
   const localPhone = (v) => { let d = String(v || '').replace(/\D/g, ''); if (d.startsWith('00')) d = d.slice(2); if (d.startsWith('242') && d.length === 12) d = d.slice(3); return /^0\d{8}$/.test(d) ? d : null; };
   // Frais de livraison (réglés dans Kamwa Pro, envoyés par /api/config) : villes, quartiers, livraison offerte
-  const feeCfg = () => state.config?.deliveryFees || { cities: [{ city: 'Pointe-Noire', fee: 0, zones: [] }, { city: 'Brazzaville', fee: 0, zones: [] }], other: { allowed: true, fee: 0 }, freeFrom: 0 };
+  const feeCfg = () => state.config?.deliveryFees || { cities: [{ city: 'Pointe-Noire', fee: 0, zones: [] }], other: { allowed: false, fee: 0 }, freeFrom: 0 };
   const normCity = (s) => String(s || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   const cityFees = (city) => feeCfg().cities.find((c) => normCity(c.city) === normCity(city));
   const deliveryCities = () => [...feeCfg().cities.map((c) => c.city), ...(feeCfg().other.allowed ? ['Autre ville'] : [])];
@@ -612,7 +612,7 @@
         </a>
         <a class="promo-card pc-mango" href="#/legal/vente">
           <span class="ic">${icon('truck')}</span>
-          <span><b>Livraison rapide</b><small>À Pointe-Noire et Brazzaville, ou retrait en point relais.</small></span>
+          <span><b>Livraison rapide</b><small>À Pointe-Noire, ou retrait en point relais.</small></span>
           <span class="go">${icon('arrow-right')}</span>
         </a>
       </section>
@@ -630,7 +630,7 @@
         <div class="shelf-head"><div><p class="kicker">${icon('seal-check-duotone')} Acheter en confiance</p><h2>Pourquoi choisir Kamwa</h2></div></div>
         <div class="reassure">
           <div class="r-violet"><span class="ic">${icon('credit-card')}</span><b>Paiement simple</b><p>En espèces dans nos points relais, sans carte ni frais cachés. Retrait sur place ou livraison.</p></div>
-          <div class="r-mango"><span class="ic">${icon('truck')}</span><b>Livraison rapide</b><p>À Pointe-Noire et Brazzaville. Autres villes sur demande.</p></div>
+          <div class="r-mango"><span class="ic">${icon('truck')}</span><b>Livraison rapide</b><p>Partout à Pointe-Noire, à l'adresse ou au repère que vous indiquez.</p></div>
           <div class="r-coral"><span class="ic">${icon('storefront')}</span><b>Points relais</b><p>Choisissez le plus proche sur la carte, payez et repartez avec votre commande.</p></div>
           <div class="r-green"><span class="ic">${icon('chat-circle')}</span><b>Service client</b><p>Nous vous appelons après chaque commande.</p></div>
         </div>
@@ -822,7 +822,7 @@
             <span class="price">${fcfa(p.price)}</span>
             ${(p.options || []).map((o, i) => `<label class="opt-label" for="opt${i}">${esc(o.name)}</label><div class="opt-choices" id="opt${i}" data-opt="${esc(o.name)}">${o.values.map((v) => `<button type="button" class="opt" data-v="${esc(v)}">${esc(v)}</button>`).join('')}</div>`).join('')}
             <span class="momo-note">${icon('check-circle-duotone')} Payable en espèces au point relais · retrait ou livraison</span>
-            <span class="hint">${icon('truck-duotone')} Livraison rapide à Pointe-Noire et Brazzaville</span>
+            <span class="hint">${icon('truck-duotone')} Livraison rapide à Pointe-Noire</span>
             ${p.stock === 0 ? '<span class="stock-low">Épuisé</span>' : p.stock <= 6 ? `<span class="stock-low">Plus que ${p.stock} en stock</span>` : '<span class="momo-note">En stock</span>'}
             <div id="optErr"></div>
             <button class="btn cta block" ${(p.options || []).length ? 'id="addOpt"' : `data-add="${p.id}"`} ${p.stock === 0 ? 'disabled' : ''}>Ajouter au panier</button>
@@ -1039,6 +1039,7 @@
               ${deliveryCities().map((c) => `<option ${saved.city === c ? 'selected' : ''}>${esc(c)}</option>`).join('')}
             </select>
             <div id="zoneBox" hidden><label for="zone">Quartier</label><select id="zone" name="zone"></select></div>
+            ${feeCfg().other.allowed ? '' : `<p class="hint">Livraison à ${esc(deliveryCities().join(', '))} uniquement pour le moment. Ailleurs, choisissez le retrait au point relais.</p>`}
             <label for="address">Quartier / adresse / repère</label>
             <textarea id="address" name="address" rows="2" placeholder="Ex. Quartier Tié-Tié, près de la pharmacie…">${esc(saved.address)}</textarea>
             <label>Votre adresse sur la carte <span class="hint">(conseillé)</span></label>

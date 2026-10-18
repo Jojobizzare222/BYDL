@@ -51,7 +51,7 @@ app.get('/p/:id', (req, res) => {
   const img = ok && p.image ? (/^https?:/.test(p.image) ? p.image : host + p.image) : `${host}/brand/partage-kamwa.png?v=2`;
   const price = ok ? new Intl.NumberFormat('fr-FR').format(p.price).replace(/\u202f/g, ' ') + ' FCFA' : '';
   const title = ok ? `${p.name} — ${price}` : 'Kamwa';
-  const desc = ok ? `${p.description ? String(p.description).slice(0, 150) + ' · ' : ''}Payez au point relais · livraison rapide à Pointe-Noire et Brazzaville.` : 'Électronique et mode au meilleur prix, livrées au Congo.';
+  const desc = ok ? `${p.description ? String(p.description).slice(0, 150) + ' · ' : ''}Payez au point relais · livraison rapide à Pointe-Noire.` : 'Électronique et mode au meilleur prix, livrées au Congo.';
   res.set('Cache-Control', 'public, max-age=300');
   res.status(ok ? 200 : 404).type('html').send(`<!doctype html><html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1"><title>${esc(title)}</title>

@@ -171,8 +171,8 @@
         <p>Un seul paiement est demandé par commande : si vous réessayez, la demande en cours est reprise, sans double paiement.</p>
 
         <h2>5. Livraison et retrait</h2>
-        <p>Livraison rapide à Pointe-Noire et Brazzaville, à l'adresse ou au repère indiqué, dans un délai de ${T('délai maximal de livraison, ex. 3 jours ouvrés')}. Autres villes : sur demande, délai et frais
-        communiqués avant l'envoi. Frais de livraison : ${T('montant par ville')}. Vous pouvez suivre votre commande dans « Mon compte ».</p>
+        <p>Livraison rapide à Pointe-Noire uniquement pour le moment, à l'adresse ou au repère indiqué, dans un délai de ${T('délai maximal de livraison, ex. 3 jours ouvrés')}.
+        Les autres villes ne sont pas encore livrées ; la commande peut y être retirée dans un point relais Kamwa s'il en existe un. Frais de livraison : ${T('montant par quartier')}. Vous pouvez suivre votre commande dans « Mon compte ».</p>
         <p><strong>Code de livraison</strong> : à la commande, vous recevez un code à 4 chiffres (visible dans « Mon compte » et sur la page de suivi). Donnez-le au livreur <strong>seulement quand vous avez votre colis en main</strong> : c'est votre preuve de réception. Ne le communiquez à personne d'autre, même au téléphone.</p>
         <p>À la réception, vérifiez l'état du colis devant le livreur et signalez tout problème (colis abîmé, article manquant) dans les ${T('délai, ex. 48 heures')}.</p>
 

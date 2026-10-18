@@ -4,16 +4,15 @@
 //  - livraison offerte à partir d'un montant d'achat (0 = jamais) ;
 //  - retrait au point relais : toujours gratuit.
 // Le montant est TOUJOURS calculé ici, côté serveur, au moment du paiement (jamais repris du navigateur).
-// Par défaut, tout est à 0 FCFA (comme avant) : Joseph fixe les vrais montants.
+// Par défaut (décision Joseph 18/10/2026) : livraison à POINTE-NOIRE SEULEMENT, autres villes refusées (retrait au point
+// relais possible partout où il y en a) ; 0 FCFA en attendant les vrais montants. Nouvelles villes : Kamwa Pro → Réglages.
 const { settings } = require('./store');
 
 const DEFAULTS = {
   cities: [
     { city: 'Pointe-Noire', fee: 0, zones: [] },
-    { city: 'Brazzaville', fee: 0, zones: [] },
-    { city: 'Dolisie', fee: 0, zones: [] },
   ],
-  other: { allowed: true, fee: 0 },
+  other: { allowed: false, fee: 0 },
   freeFrom: 0,
 };
 const MAX_FEE = 200000;
