@@ -8,7 +8,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const qrcode = require('qrcode-generator');
-const { settings, transaction, orders, staff, agencies, parcels } = require('./store');
+const { settings, transaction, orders, staff, agencies, parcels, products } = require('./store');
 
 const STAGES = {
   preparing: 'À préparer',
@@ -124,6 +124,9 @@ const logo = () => {
 const scanUrl = (origin, p) => `${origin}/admin/#/colis/${p.number}`;
 
 function labels(list, origin) {
+  const delivery = require('./delivery');
+  const support = require('./billing').company().phone || '';
+  const day = (ymd) => new Date(ymd + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'short', day: '2-digit', month: '2-digit' });
   const one = (p) => {
     const o = orders.get(p.orderId) || { customer: {}, lines: [] };
     const count = forOrder(p.orderId).length;
@@ -131,15 +134,32 @@ function labels(list, origin) {
     const pickup = isPickup(o);
     const relay = pickup ? p.relay || relayPlace(o) : null; // point relais où le colis a été déposé, sinon celui choisi par le client
     const toCollect = o.paymentPlan === 'cod' && !o.balancePaid ? (o.balance ?? o.total - (o.deposit || 0)) : 0;
+    // Informations utiles au préparateur et au livreur (18/10/2026, demande Joseph : « un peu plus d'information »)
+    const fragile = (o.lines || []).some((l) => products.get(l.productId)?.universe === 'Électronique');
+    const courier = !pickup && delivery.courierName(o.courierId);
+    const when = !pickup && o.planned ? `${day(o.planned.date)} · ${(delivery.SLOTS[o.planned.slot] || '').replace(/\s*\(.*\)/, '')}` : '';
+    const paidAt = !pickup && o.agency ? o.agency.name : '';
+    const shown = (o.lines || []).slice(0, 5);
+    const more = (o.lines || []).length - shown.length;
+    const info = [
+      when && ['Livraison prévue', when],
+      courier && ['Livreur', courier.split(' ')[0]],
+      paidAt && ['Payé au point relais', paidAt],
+      ['Colis préparé le', new Date(p.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: '2-digit' })],
+    ].filter(Boolean);
     return `<section class="label">
       <header><div class="logo">${logo()}</div><div class="num"><small>Colis ${p.index}/${count}</small><strong>${esc(p.number)}</strong></div></header>
       <div class="mode ${pickup ? 'pickup' : 'home'}">${pickup ? 'RETRAIT AU POINT RELAIS' : 'LIVRAISON À DOMICILE'}</div>
-      <div class="mid"><div class="qr">${qrSvg(scanUrl(origin, p))}</div>
+      <div class="mid"><div class="qr">${qrSvg(scanUrl(origin, p))}<small>Scanner pour ouvrir le colis</small></div>
         <div class="dest">${pickup ? `<span class="k">Point relais</span><strong>${esc(relay.name)}</strong>${relay.city ? `<span>${esc(relay.city)}</span>` : ''}<span class="k">Client</span>` : '<span class="k">Destinataire</span>'}
-          <strong>${esc(o.customer.name)}</strong><span>${esc(o.customer.phone)}</span>${!pickup ? `<span>${esc(o.customer.address)}</span><span>${esc(o.customer.city)}</span>` : ''}</div></div>
-      <footer><span>Commande <b>${esc(o.id || p.orderId)}</b> · ${items} article${items > 1 ? 's' : ''}</span>
+          <strong>${esc(o.customer.name)}</strong><span class="tel">${esc(o.customer.phone)}</span>
+          ${!pickup ? `${o.customer.zone ? `<span><b>Quartier :</b> ${esc(o.customer.zone)}</span>` : ''}<span>${esc(o.customer.address)}</span><span>${esc(o.customer.city)}</span>${o.customer.location ? '<span class="gps">● Point placé sur la carte (voir Kamwa Pro)</span>' : ''}` : ''}</div></div>
+      ${info.length ? `<dl class="info">${info.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>` : ''}
+      <div class="items"><div class="ih"><span>Contenu · ${items} article${items > 1 ? 's' : ''}${count > 1 ? ` (commande en ${count} colis)` : ''}</span>${fragile ? '<b class="fragile">FRAGILE</b>' : ''}</div>
+        <ul>${shown.map((l) => `<li><b>${l.qty} ×</b> ${esc(l.name)}${l.variant ? ` <i>(${esc(l.variant)})</i>` : ''}</li>`).join('')}${more > 0 ? `<li><i>+ ${more} autre${more > 1 ? 's' : ''} article${more > 1 ? 's' : ''}</i></li>` : ''}</ul></div>
+      <footer><span>Commande <b>${esc(o.id || p.orderId)}</b></span>
         <span class="pay ${toCollect ? 'due' : ''}">${toCollect ? `À ENCAISSER : ${fcfa(toCollect)}` : 'PAYÉ'}</span></footer>
-      <p class="hint">Remise uniquement contre le code de retrait du client.</p>
+      <p class="hint">${pickup ? 'Remise au client uniquement contre son code de retrait.' : 'Remise uniquement contre le code de livraison du client, colis en main.'}${support ? ` · Problème : Kamwa ${esc(support)}` : ''}</p>
     </section>`;
   };
   return `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
@@ -165,6 +185,14 @@ header { display: flex; justify-content: space-between; align-items: center; bor
 footer { display: flex; justify-content: space-between; gap: 3mm; align-items: center; border-top: 2px solid #111; padding-top: 2mm; font-size: 9.5pt; }
 .pay { font-weight: 700; padding: 1mm 2.5mm; border: 2px solid #111; border-radius: 2mm; white-space: nowrap; } .pay.due { background: #111; color: #fff; }
 .hint { margin: 0; font-size: 8pt; color: #555; text-align: center; }
+.mid { flex: none; } .qr small { display: block; text-align: center; font-size: 6.5pt; color: #555; margin-top: .5mm; }
+.dest .tel { font-weight: 700; font-size: 11.5pt; letter-spacing: .02em; } .dest .gps { font-size: 7.5pt; color: #333; margin-top: 1mm; }
+.info { margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 1.5mm 3mm; padding: 2mm 0; border-top: 1px solid #ccc; }
+.info div { min-width: 0; } .info dt { font-size: 7pt; text-transform: uppercase; letter-spacing: .06em; color: #555; } .info dd { margin: 0; font-size: 9.5pt; font-weight: 600; overflow-wrap: anywhere; }
+.items { flex: 1; min-height: 0; overflow: hidden; border: 1px solid #111; border-radius: 2mm; padding: 1.5mm 2.5mm; }
+.items .ih { display: flex; justify-content: space-between; align-items: center; font-size: 7.5pt; text-transform: uppercase; letter-spacing: .05em; color: #333; margin-bottom: 1mm; }
+.items ul { margin: 0; padding: 0; list-style: none; font-size: 9pt; line-height: 1.3; } .items li { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .items i { color: #555; }
+.fragile { background: #111; color: #fff; padding: .3mm 2mm; border-radius: 1mm; font-size: 7.5pt; letter-spacing: .08em; }
 @media print { body { background: #fff; } .bar { display: none; } .label { margin: 0; border: 0; } @page { size: 100mm 150mm; margin: 0; } }
 </style></head><body>
 <div class="bar"><button onclick="window.print()">Imprimer ${list.length > 1 ? `les ${list.length} étiquettes` : "l'étiquette"}</button><span>Format 100 × 150 mm (imprimante d'étiquettes, ou A4 à découper)</span></div>
