@@ -1,6 +1,6 @@
 // Rafraîchissement instantané (décision Joseph 16/10/2026 : « pas de latence dans les retours ») :
 // chaque modification dans la base (commande, produit, client, message…) est signalée tout de suite aux écrans
-// ouverts (boutique et Kamwa Pro) par un flux « Server-Sent Events » (/api/events et /api/admin/events).
+// ouverts (boutique et Zado Pro) par un flux « Server-Sent Events » (/api/events et /api/admin/events).
 // Le signal ne contient AUCUNE donnée : seulement « tel sujet a changé » ; l'écran recharge lui-même ce qu'il a le
 // droit de voir. Chaque écran ne reçoit que les signaux qui le concernent (son compte, ses commandes, son rôle).
 // Sans connexion au flux (réseau, démo Vercel), les vérifications régulières continuent de fonctionner.

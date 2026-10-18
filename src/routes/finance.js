@@ -1,4 +1,4 @@
-// Volet Finances de l'espace pro (administrateur uniquement) : suivre l'argent de Kamwa sans outil externe.
+// Volet Finances de l'espace pro (administrateur uniquement) : suivre l'argent de Zado sans outil externe.
 //  - les VENTES viennent automatiquement des commandes payées (rien à ressaisir) ;
 //  - les DÉPENSES, AUTRES ENTRÉES et TRANSFERTS entre caisses sont saisis à la main (collection « ledger ») ;
 //  - deux lectures :
@@ -72,7 +72,7 @@ const paymentMethod = (id) => OPERATOR_METHOD[payments.get(id)?.operator || ''] 
 
 // Argent réellement ENTRÉ pour une commande, avec sa date et sa caisse (y compris commandes annulées ensuite :
 // l'argent est bien entré, le remboursement sort à part). Paiement à la réception : acompte, puis reste
-// (Mobile Money à la livraison, ou espèces le jour où le livreur les REMET à Kamwa).
+// (Mobile Money à la livraison, ou espèces le jour où le livreur les REMET à Zado).
 function receipts(o) {
   if (o.paymentPlan !== 'cod') {
     const at = cashedAt(o);
@@ -92,7 +92,7 @@ function refundAmount(o) {
   if (o.paymentPlan === 'cod') return o.depositRetained ? 0 : sum(receipts(o), (r) => r.amount);
   return cashedAt(o) ? o.total : 0;
 }
-// Espèces encaissées à la livraison mais pas encore remises à Kamwa, par personne
+// Espèces encaissées à la livraison mais pas encore remises à Zado, par personne
 function cashHeld() {
   const by = new Map();
   for (const o of orders.all().filter((x) => x.balancePaid?.method === 'cash' && !x.cashRemittedAt)) {
@@ -239,7 +239,7 @@ router.get('/journal.csv', (req, res) => {
     .map((r) => r.map(cell).join(';')).join('\r\n');
   log(req, 'Export du journal financier', null, `${rows.length} lignes`);
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-  res.setHeader('Content-Disposition', `attachment; filename="kamwa-finances-${new Date().toISOString().slice(0, 10)}.csv"`);
+  res.setHeader('Content-Disposition', `attachment; filename="zado-finances-${new Date().toISOString().slice(0, 10)}.csv"`);
   res.send('﻿' + body);
 });
 

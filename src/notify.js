@@ -75,7 +75,7 @@ async function notifyReservation(order) {
 }
 
 
-// Nouvelle pièce d'identité à vérifier (la photo n'est JAMAIS jointe à l'e-mail : elle reste dans Kamwa Pro)
+// Nouvelle pièce d'identité à vérifier (la photo n'est JAMAIS jointe à l'e-mail : elle reste dans Zado Pro)
 async function notifyIdentity(customer) {
   const subject = `Pièce d'identité à vérifier : ${customer.name}`;
   const text = [

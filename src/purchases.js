@@ -1,6 +1,6 @@
 // Bons de commande fournisseurs (ERP, étape 3 — décision Joseph 17/10/2026).
-// Kamwa commande des articles à un fournisseur (compte fournisseur de Kamwa Pro, ou fournisseur extérieur saisi à la main) :
-//   brouillon (draft) → envoyé (sent : PDF / WhatsApp) → confirmé (confirmed : par le fournisseur dans son espace, ou par Kamwa)
+// Zado commande des articles à un fournisseur (compte fournisseur de Zado Pro, ou fournisseur extérieur saisi à la main) :
+//   brouillon (draft) → envoyé (sent : PDF / WhatsApp) → confirmé (confirmed : par le fournisseur dans son espace, ou par Zado)
 //   → reçu en partie (partial) → reçu (received) ; annulé (cancelled) tant que rien n'est reçu.
 // Chaque réception AUGMENTE le stock (mouvement « Réception fournisseur ») et met à jour le coût d'achat du produit
 // (coût moyen pondéré). La facture du fournisseur, saisie sur le bon, crée une dette réglée par les écritures Finances
@@ -25,7 +25,7 @@ const sum = (lines, fn) => lines.reduce((s, l) => s + fn(l), 0);
 const total = (lines) => sum(lines, (l) => l.qty * l.unitPrice);
 const receivedTotal = (lines) => sum(lines, (l) => (l.received || 0) * l.unitPrice);
 
-/** Fournisseur du bon : compte Kamwa Pro (supplierId) ou extérieur (nom + téléphone). */
+/** Fournisseur du bon : compte Zado Pro (supplierId) ou extérieur (nom + téléphone). */
 function cleanSupplier(input = {}) {
   if (input.supplierId) {
     const u = staff.get(input.supplierId);
@@ -33,7 +33,7 @@ function cleanSupplier(input = {}) {
     return { value: { supplierId: u.id, name: u.company || u.name, contact: u.name, phone: u.phone || '' } };
   }
   const name = String(input.name || '').trim().slice(0, 100);
-  if (!name) return { error: 'Indiquez le fournisseur (compte Kamwa Pro ou nom)' };
+  if (!name) return { error: 'Indiquez le fournisseur (compte Zado Pro ou nom)' };
   return { value: { supplierId: null, name, contact: String(input.contact || '').trim().slice(0, 100), phone: String(input.phone || '').replace(/[^\d+ ]/g, '').trim().slice(0, 30) } };
 }
 function cleanLines(input, supplierId) {
@@ -124,7 +124,7 @@ function receive(bc, input, by) {
       l.received = (l.received || 0) + qty;
       const p = products.get(l.productId);
       if (p) {
-        // Coût moyen pondéré (produits achetés par Kamwa ; un produit en dépôt-vente garde son prix fournisseur)
+        // Coût moyen pondéré (produits achetés par Zado ; un produit en dépôt-vente garde son prix fournisseur)
         const patch = {};
         if (!p.supplierId) {
           const oldQty = Math.max(0, p.stock || 0), oldCost = Number.isInteger(p.costPrice) ? p.costPrice : l.unitPrice;
@@ -145,7 +145,7 @@ function receive(bc, input, by) {
   return { value };
 }
 
-/** Facture du fournisseur (numéro, montant, date, échéance) : ce que Kamwa doit pour ce bon. */
+/** Facture du fournisseur (numéro, montant, date, échéance) : ce que Zado doit pour ce bon. */
 function setInvoice(bc, input, by) {
   if (bc.status === 'cancelled') return { error: 'Bon annulé' };
   if (input === null) return { value: purchases.update(bc.id, { invoice: null, history: hist(bc, 'Facture fournisseur retirée', by) }) };
@@ -160,7 +160,7 @@ function setInvoice(bc, input, by) {
 
 /** Payé pour ce bon : écritures Finances « Achat de marchandises » rattachées (purchaseId). */
 const paidFor = (bc) => ledger.all().filter((e) => e.type === 'expense' && e.purchaseId === bc.id).reduce((s, e) => s + e.amount, 0);
-/** Dette d'un bon : facture si saisie, sinon valeur reçue (produits achetés par Kamwa seulement : le dépôt-vente se règle à la vente). */
+/** Dette d'un bon : facture si saisie, sinon valeur reçue (produits achetés par Zado seulement : le dépôt-vente se règle à la vente). */
 function owedFor(bc) {
   if (bc.status === 'cancelled') return 0;
   if (bc.invoice) return bc.invoice.amount;
@@ -196,7 +196,7 @@ const fcfa = (n) => `${Math.round(n || 0).toLocaleString('fr-FR').replace(/[ �
 const dateFr = (iso) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { timeZone: 'Africa/Brazzaville', day: '2-digit', month: '2-digit', year: 'numeric' }) : '');
 let LOGO = null;
 const logo = () => {
-  if (LOGO === null) { try { LOGO = fs.readFileSync(path.join(__dirname, '..', 'public', 'brand', 'logo-kamwa.svg'), 'utf8').replace(/<\?xml[^>]*>/, ''); } catch { LOGO = '<strong>Kamwa</strong>'; } }
+  if (LOGO === null) { try { LOGO = fs.readFileSync(path.join(__dirname, '..', 'public', 'brand', 'logo-zado.svg'), 'utf8').replace(/<\?xml[^>]*>/, ''); } catch { LOGO = '<strong>Zado</strong>'; } }
   return LOGO;
 };
 function render(bc, company) {

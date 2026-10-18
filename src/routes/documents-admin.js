@@ -1,4 +1,4 @@
-// Kamwa Pro → Factures & reçus (/api/admin/documents) [admin, orders] ; société sur les documents [admin].
+// Zado Pro → Factures & reçus (/api/admin/documents) [admin, orders] ; société sur les documents [admin].
 // Les documents ne se modifient pas et ne se suppriment pas : seule la création (automatique, ou « Établir les documents ») existe.
 const crypto = require('crypto');
 const router = require('express').Router();
@@ -43,7 +43,7 @@ router.get('/export.csv', requireRole('orders'), (req, res) => {
       d.type === 'credit' ? -d.total : d.type === 'receipt' ? d.amount : d.total, d.methodLabel || d.paymentLabel || '', d.invoiceNumber || '', d.collectedBy || '', d.agency?.name || '']));
   log(req, 'Export des factures et reçus', null, `${list.length} documents`);
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-  res.setHeader('Content-Disposition', `attachment; filename="kamwa-factures-recus-${new Date().toISOString().slice(0, 10)}.csv"`);
+  res.setHeader('Content-Disposition', `attachment; filename="zado-factures-recus-${new Date().toISOString().slice(0, 10)}.csv"`);
   res.send('﻿' + rows.map((r) => r.map(cell).join(';')).join('\r\n'));
 });
 

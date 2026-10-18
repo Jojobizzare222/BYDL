@@ -27,7 +27,7 @@ function seed() {
   settings.set('admin_password', hashPassword(DEMO_PASSWORD));
 
   // Agences d'exemple : le paiement en espèces en agence est le seul moyen proposé par défaut
-  agencies.insert({ id: 'AG-DEMO-PNR', name: 'Agence Kamwa Centre-ville (démo)', city: 'Pointe-Noire', address: 'Avenue Charles de Gaulle (exemple)', hours: 'Lun-Sam 8 h - 18 h', phone: '06 000 00 01', kind: 'agency', lat: -4.7792, lng: 11.8638, active: true, createdAt: now });
+  agencies.insert({ id: 'AG-DEMO-PNR', name: 'Agence Zado Centre-ville (démo)', city: 'Pointe-Noire', address: 'Avenue Charles de Gaulle (exemple)', hours: 'Lun-Sam 8 h - 18 h', phone: '06 000 00 01', kind: 'agency', lat: -4.7792, lng: 11.8638, active: true, createdAt: now });
   agencies.insert({ id: 'AG-DEMO-TIE', name: 'Relais Tié-Tié — Boutique Mavoungou (démo)', city: 'Pointe-Noire', address: 'Marché de Tié-Tié (exemple)', hours: 'Lun-Dim 7 h - 20 h', phone: '06 000 00 03', kind: 'partner', lat: -4.7905, lng: 11.8843, active: true, createdAt: now });
   agencies.insert({ id: 'AG-DEMO-LOA', name: 'Relais Loandjili — Pharmacie partenaire (démo)', city: 'Pointe-Noire', address: 'Rond-point Loandjili (exemple)', hours: 'Lun-Sam 8 h - 19 h', phone: '06 000 00 04', kind: 'partner', lat: -4.7569, lng: 11.8857, active: true, createdAt: now });
 
@@ -57,7 +57,7 @@ function seed() {
     specs: [{ label: 'Tailles', value: 'S à XXL' }], createdAt: now, createdBy: sup,
   });
 
-  // Une commande payée contenant le produit du fournisseur et un produit Kamwa
+  // Une commande payée contenant le produit du fournisseur et un produit Zado
   const iphone = products.get('a002');
   const lines = [{ productId: chemise.id, name: chemise.name, unitPrice: chemise.price, qty: 3, total: chemise.price * 3 }];
   if (iphone) lines.push({ productId: iphone.id, name: iphone.name, unitPrice: iphone.price, qty: 1, total: iphone.price });
@@ -83,7 +83,7 @@ function seed() {
   payments.insert({ id: 'PAY-DEMO-0002', orderId: 'CMD-DEMO-0002', operator: 'mtn', phone: '069999999', purpose: 'deposit', amount: 2000, currency: 'XAF', status: 'SUCCESSFUL', providerRef: 'DEMO', reason: null, createdAt: now });
   payments.insert({ id: paymentId, orderId, operator: 'mtn', phone: '060000000', amount: total, currency: 'XAF', status: 'SUCCESSFUL', providerRef: 'DEMO', reason: null, createdAt: now });
 
-  // Volet Finances : prix d'achat du produit Kamwa vendu + quelques écritures d'exemple
+  // Volet Finances : prix d'achat du produit Zado vendu + quelques écritures d'exemple
   if (iphone) products.update(iphone.id, { costPrice: Math.round(iphone.price * 0.86) });
   const d = (n) => new Date(Date.now() - n * 864e5).toISOString().slice(0, 10);
   let seq = 0;
@@ -99,7 +99,7 @@ function seed() {
   const rv = (id, productId, rating, name, text, n) => products.get(productId) && reviews.insert({ id, productId, customerId: 'C-DEMO', orderId: 'CMD-DEMO-0000', rating, text, name, hidden: false, createdAt: new Date(Date.now() - n * 864e5).toISOString(), demo: true });
   rv('AV-DEMO-01', 'a020', 5, 'Grâce M.', 'Reçu en 24 h à Pointe-Noire, téléphone neuf et bien emballé. Le livreur a appelé avant de passer.', 6);
   rv('AV-DEMO-02', 'a020', 4, 'Junior K.', 'Bon rapport qualité-prix. Retrait au point relais très simple.', 3);
-  rv('AV-DEMO-03', 'a018', 5, 'Prisca N.', 'Conforme à la description. Je recommande Kamwa.', 2);
+  rv('AV-DEMO-03', 'a018', 5, 'Prisca N.', 'Conforme à la description. Je recommande Zado.', 2);
 
   settings.set('demo_seeded', now);
   console.log('[démo] comptes et données d\'exemple créés');

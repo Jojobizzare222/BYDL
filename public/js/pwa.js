@@ -1,4 +1,4 @@
-// Kamwa — application web (PWA) : enregistrement du service worker, proposition d'installation, mode hors ligne.
+// Zado — application web (PWA) : enregistrement du service worker, proposition d'installation, mode hors ligne.
 // Utilisé par la boutique (/) et par l'espace pro (/admin/). Aucune donnée personnelle n'est utilisée ici.
 (() => {
   const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
@@ -62,8 +62,8 @@
         ? `<p class="install-how">Touchez ${ico('export')} <b>Partager</b>, puis <b>« Sur l'écran d'accueil »</b>.</p>`
         : `<p class="install-how">Dans le menu du navigateur ${ico('dots-three-vertical')}, choisissez <b>« Installer l'application »</b> ou <b>« Ajouter à l'écran d'accueil »</b>.</p>`;
     el.innerHTML = `
-      <img src="${isAdmin ? "/brand/pro-192.png?v=2" : "/brand/icone-192.png?v=2"}" alt="" width="48" height="48">
-      <div class="install-text"><b>Installez l'application ${isAdmin ? 'Kamwa Pro' : 'Kamwa'}</b><span>S'ouvre en plein écran depuis votre téléphone, plus rapide, même avec peu de réseau. Gratuit, sans Play Store.</span>${deferred ? '' : how}</div>
+      <img src="${isAdmin ? "/brand/pro-192.png?v=3" : "/brand/icone-192.png?v=3"}" alt="" width="48" height="48">
+      <div class="install-text"><b>Installez l'application ${isAdmin ? 'Zado Pro' : 'Zado'}</b><span>S'ouvre en plein écran depuis votre téléphone, plus rapide, même avec peu de réseau. Gratuit, sans Play Store.</span>${deferred ? '' : how}</div>
       ${deferred ? how : ''}
       <button type="button" class="install-close" data-install="later" aria-label="Plus tard">${ico('x')}</button>`;
     el.hidden = false;

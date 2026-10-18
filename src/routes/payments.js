@@ -19,7 +19,7 @@ router.get('/operators', (req, res) => {
 // Moyens de paiement proposés sur la page commande (les espèces seulement s'il existe une agence active).
 router.get('/methods', (req, res) => {
   const active = agencies.all().filter((a) => a.active !== false);
-  const allowed = salesSettings().methods; // réglé dans Kamwa Pro → Réglages (par défaut : espèces en agence seulement)
+  const allowed = salesSettings().methods; // réglé dans Zado Pro → Réglages (par défaut : espèces en agence seulement)
   const cod = delivery.codSettings();
   res.json({
     mode: config.paymentMode,

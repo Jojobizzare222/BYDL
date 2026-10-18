@@ -1,5 +1,5 @@
-// Kamwa — consentement aux cookies.
-// Aujourd'hui, Kamwa n'utilise QUE des traceurs indispensables (connexion au compte, panier, commande en cours) :
+// Zado — consentement aux cookies.
+// Aujourd'hui, Zado n'utilise QUE des traceurs indispensables (connexion au compte, panier, commande en cours) :
 // ils sont exemptés de consentement. Les catégories « mesure d'audience » et « publicité » sont prêtes pour plus tard :
 // tout futur outil (statistiques, publicité…) doit être chargé UNIQUEMENT si kamwaConsent.has('audience' | 'marketing').
 // Le choix est gardé 6 mois dans le navigateur (clé « kamwa-consent »), puis redemandé.
@@ -9,7 +9,7 @@
   const MAX_AGE_MS = 182 * 24 * 3600 * 1000; // environ 6 mois
   const OPTIONAL = [
     { key: 'audience', title: "Mesure d'audience", text: "Compter les visites et les pages vues, de façon anonyme, pour améliorer le site. Aucun outil de ce type n'est utilisé pour le moment." },
-    { key: 'marketing', title: 'Publicité et réseaux sociaux', text: "Vous montrer des offres Kamwa sur d'autres sites ou réseaux sociaux. Aucun outil de ce type n'est utilisé pour le moment." },
+    { key: 'marketing', title: 'Publicité et réseaux sociaux', text: "Vous montrer des offres Zado sur d'autres sites ou réseaux sociaux. Aucun outil de ce type n'est utilisé pour le moment." },
   ];
   // Ce que le site enregistre réellement dans votre navigateur (tous indispensables)
   const ESSENTIAL = [
@@ -49,7 +49,7 @@
     b.innerHTML = `
       <button type="button" class="skip" data-c="none">Continuer sans accepter</button>
       <h2><svg class="ico" aria-hidden="true"><use href="/icons.svg?v=12#cookie"></use></svg>Vos choix en matière de cookies</h2>
-      <p>Kamwa utilise des cookies indispensables au fonctionnement du site (panier, connexion à votre compte, commande en cours).
+      <p>Zado utilise des cookies indispensables au fonctionnement du site (panier, connexion à votre compte, commande en cours).
       Avec votre accord, nous pourrons aussi en utiliser pour mesurer l'audience et améliorer le site. Vous pouvez changer d'avis à tout moment
       via « Gérer les cookies » en bas de page. <a href="#/legal/confidentialite">Politique de confidentialité</a></p>
       <div class="cookie-actions">

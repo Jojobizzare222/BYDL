@@ -1,4 +1,4 @@
-// Kamwa Pro → Achats (/api/admin/purchases) [admin, catalog] et Stock (/api/admin/stock) [admin, catalog] ;
+// Zado Pro → Achats (/api/admin/purchases) [admin, catalog] et Stock (/api/admin/stock) [admin, catalog] ;
 // espace fournisseur : ses bons de commande à confirmer (/api/admin/purchases/mine) [supplier].
 const crypto = require('crypto');
 const router = require('express').Router();
@@ -21,7 +21,7 @@ const reply = (req, res, r, action, bc, details = '') => {
   if (action) log(req, action, { id: r.value.id, name: r.value.number }, details);
   res.json(forRole(req, P.view(r.value)));
 };
-// Règle Kamwa : les prix d'achat (fournisseur ou Kamwa) ne sont visibles que par l'administrateur.
+// Règle Zado : les prix d'achat (fournisseur ou Zado) ne sont visibles que par l'administrateur.
 // L'employé Catalogue voit les bons (articles, quantités, dates) et enregistre les réceptions, sans aucun montant.
 const isAdmin = (req) => req.user.role === 'admin';
 function forRole(req, v) {
@@ -35,7 +35,7 @@ const find = (req, res) => {
   return bc;
 };
 
-// ---------- Espace fournisseur : ses bons (ses prix, mais jamais ce que Kamwa a payé ni la facture) ----------
+// ---------- Espace fournisseur : ses bons (ses prix, mais jamais ce que Zado a payé ni la facture) ----------
 const supplierView = (b) => { const { paid, owed, due, invoice, ...v } = P.view(b); return v; };
 router.get('/mine', requireRole('supplier'), (req, res) => {
   const list = store.all().filter((b) => b.supplier.supplierId === req.user.id && b.status !== 'draft').sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
@@ -52,7 +52,7 @@ router.post('/mine/:id/confirm', requireRole('supplier'), (req, res) => {
   res.json(supplierView(store.get(bc.id)));
 });
 
-// ---------- Kamwa : bons de commande ----------
+// ---------- Zado : bons de commande ----------
 router.get('/', requireRole('catalog'), (req, res) => {
   const list = store.all().sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1)).map((b) => forRole(req, P.view(b)));
   res.json({

@@ -2,10 +2,10 @@
 //  - en-têtes de sécurité (CSP, anti-iframe, nosniff, HSTS en HTTPS…) ;
 //  - limite de requêtes par adresse IP, GÉNÉREUSE : au Congo, beaucoup de téléphones sortent sur Internet par la même
 //    adresse (opérateur mobile), il ne faut pas bloquer des clients honnêtes. Les connexions et codes ont déjà leurs
-//    propres limites plus strictes (comptes, Kamwa Pro, messagerie).
+//    propres limites plus strictes (comptes, Zado Pro, messagerie).
 //  - Sur Vercel, ces en-têtes valent pour les réponses du serveur ; les fichiers de public/ reçoivent les mêmes via vercel.json.
 
-// Sources autorisées : tout vient de Kamwa, sauf les fonds de carte OpenStreetMap.
+// Sources autorisées : tout vient de Zado, sauf les fonds de carte OpenStreetMap.
 // 'unsafe-inline' reste nécessaire pour les scripts (petits scripts du thème et de l'animation d'ouverture dans les pages)
 // et les styles (attributs style=) : à durcir plus tard avec des empreintes (hash).
 const CSP = [

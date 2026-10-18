@@ -38,7 +38,7 @@ router.use('/parcels', require('./parcels-admin')); // colis, étiquettes, scan 
 router.use('/purchases', require('./purchases-admin')); // bons de commande fournisseurs [admin, catalog ; supplier : les siens]
 router.use('/stock', require('./purchases-admin').stockRouter); // mouvements de stock, inventaire [admin, catalog]
 
-// Rafraîchissement instantané de Kamwa Pro : signaux filtrés selon le rôle (jamais de données dans le signal)
+// Rafraîchissement instantané de Zado Pro : signaux filtrés selon le rôle (jamais de données dans le signal)
 router.get('/events', (req, res) => {
   const u = req.user; const role = u.role;
   const ordersRole = ['admin', 'orders'].includes(role);
@@ -209,7 +209,7 @@ router.post('/orders/:id/cash-received', requireRole('orders'), (req, res) => {
   // Dernière réservation en espèces (même expirée : si le client vient quand même et paie, on encaisse)
   const cash = payments.all().filter((p) => p.orderId === order.id && p.operator === 'cash' && p.status !== 'CANCELLED').pop();
   if (!cash) return res.status(400).json({ error: "Cette commande n'est pas une réservation en agence" });
-  payments.update(cash.id, { status: 'SUCCESSFUL', reason: null, confirmedAt: new Date().toISOString(), confirmedBy: req.user.name || 'Kamwa' });
+  payments.update(cash.id, { status: 'SUCCESSFUL', reason: null, confirmedAt: new Date().toISOString(), confirmedBy: req.user.name || 'Zado' });
   settleSuccessfulPayment(payments.get(cash.id));
   log(req, 'Paiement en espèces encaissé', { id: order.id, name: order.id }, `${order.total} FCFA`);
   res.json(adminOrder(orders.get(order.id), req.user));
@@ -473,7 +473,7 @@ function cleanAgency(input, current = {}) {
     if (key in input) a[key] = str(input[key], max);
   }
   if ('active' in input) a.active = Boolean(input.active);
-  // Point relais : agence Kamwa ou commerce partenaire ; position sur la carte (choisie dans Kamwa Pro)
+  // Point relais : agence Zado ou commerce partenaire ; position sur la carte (choisie dans Zado Pro)
   if ('kind' in input) a.kind = input.kind === 'partner' ? 'partner' : 'agency';
   if ('lat' in input || 'lng' in input) {
     const lat = input.lat === '' || input.lat == null ? null : Number(input.lat), lng = input.lng === '' || input.lng == null ? null : Number(input.lng);
@@ -525,7 +525,7 @@ router.get('/customers/:id/identity-photo', requireRole(), (req, res) => {
   const customer = customers.get(req.params.id);
   const file = customer && identity.photoPath(customer.idPhoto);
   if (!file) return res.status(404).json({ error: 'Pas de pièce enregistrée' });
-  // PDF : ouvert par la visionneuse intégrée du navigateur (isolée de Kamwa Pro)
+  // PDF : ouvert par la visionneuse intégrée du navigateur (isolée de Zado Pro)
   res.set({ 'Cache-Control': 'no-store, private', 'X-Content-Type-Options': 'nosniff', 'Content-Disposition': 'inline' });
   res.sendFile(file, (err) => { if (err && !res.headersSent) res.sendStatus(404); });
 });
@@ -551,7 +551,7 @@ router.post('/customers/:id/identity', requireRole(), (req, res) => {
     idCheckedAt: new Date().toISOString(),
     idCheckedBy: req.user.name || req.user.login,
   });
-  require('../push').notifyCustomer(customer.id, decision === 'verify' ? 'Identité vérifiée ✓' : 'Pièce d\'identité refusée', decision === 'verify' ? 'Votre compte Kamwa est vérifié : vous pouvez commander.' : `Motif : ${reason}. Envoyez une nouvelle photo depuis votre compte.`);
+  require('../push').notifyCustomer(customer.id, decision === 'verify' ? 'Identité vérifiée ✓' : 'Pièce d\'identité refusée', decision === 'verify' ? 'Votre compte Zado est vérifié : vous pouvez commander.' : `Motif : ${reason}. Envoyez une nouvelle photo depuis votre compte.`);
   log(req, decision === 'verify' ? "Pièce d'identité vérifiée" : "Pièce d'identité refusée", { id: customer.id, name: customer.name }, decision === 'reject' ? reason : identity.ID_TYPES[customer.idType]);
   res.json({ ...customerAuth.publicCustomer(updated), idCheckedBy: updated.idCheckedBy });
 });
@@ -689,11 +689,11 @@ function cleanProduct(input, current, { role }) {
   return { value: p };
 }
 
-// Ce que chaque rôle voit d'un produit (le prix fournisseur reste entre Kamwa et le fournisseur)
+// Ce que chaque rôle voit d'un produit (le prix fournisseur reste entre Zado et le fournisseur)
 function productFor(user, p) {
   const out = { ...p, supplierName: p.supplierId ? staff.get(p.supplierId)?.company || staff.get(p.supplierId)?.name || null : null };
   if (user.role === 'catalog') delete out.supplierPrice;
-  if (user.role !== 'admin') delete out.costPrice; // prix d'achat Kamwa : admin seulement
+  if (user.role !== 'admin') delete out.costPrice; // prix d'achat Zado : admin seulement
   return out;
 }
 const canSee = (user, p) => user.role !== 'supplier' || p.supplierId === user.id;
@@ -788,7 +788,7 @@ router.delete('/products/:id', requireRole('catalog', 'supplier'), (req, res) =>
 });
 
 // ---------- Espace fournisseur : commandes contenant ses produits ----------
-// Kamwa livre : le fournisseur voit les articles, quantités et statuts, JAMAIS les coordonnées des clients.
+// Zado livre : le fournisseur voit les articles, quantités et statuts, JAMAIS les coordonnées des clients.
 router.get('/supplier/orders', requireRole('supplier'), (req, res) => {
   const mine = new Set(products.all().filter((p) => p.supplierId === req.user.id || req.user.role === 'admin').map((p) => p.id));
   const list = orders
@@ -810,8 +810,8 @@ router.get('/supplier/orders', requireRole('supplier'), (req, res) => {
   res.json({ orders: list, statusLabels: STATUS_LABELS });
 });
 
-// Le fournisseur signale que SES articles d'une commande sont prêts à être récupérés par Kamwa (ou annule le signal).
-// Message automatique dans son fil avec Kamwa ; affiché sur la fiche commande et dans « À faire ».
+// Le fournisseur signale que SES articles d'une commande sont prêts à être récupérés par Zado (ou annule le signal).
+// Message automatique dans son fil avec Zado ; affiché sur la fiche commande et dans « À faire ».
 router.post('/supplier/orders/:id/ready', requireRole('supplier'), (req, res) => {
   if (req.user.role !== 'supplier') return res.status(403).json({ error: 'Réservé aux fournisseurs' });
   const o = orders.get(req.params.id);
@@ -959,7 +959,7 @@ router.get('/stats', (req, res) => {
       { label: 'À livrer maintenant', value: mine.filter((o) => o.status === 'shipped').length, icon: 'truck-duotone' },
       { label: "Livrées aujourd'hui", value: doneIn.filter((o) => String(o.deliveredAt).startsWith(today)).length, icon: 'package-duotone' },
       { label: `Livrées (${days} j)`, value: doneIn.length, icon: 'receipt-duotone' },
-      { label: 'Espèces à remettre à Kamwa', value: cashHeld, format: 'fcfa', icon: 'wallet-duotone' },
+      { label: 'Espèces à remettre à Zado', value: cashHeld, format: 'fcfa', icon: 'wallet-duotone' },
     ];
     out.series = [{ label: 'Livraisons', data: labels.map((d) => doneIn.filter((o) => String(o.deliveredAt).slice(0, 10) === d).length), type: 'bar' }];
     return res.json(out);
@@ -1047,7 +1047,7 @@ const stamp = () => new Date().toISOString().slice(0, 10);
 router.get('/export/orders.csv', requireRole('orders'), (req, res) => {
   const list = orders.all().sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
   log(req, 'Export des commandes', null, `${list.length} commandes`);
-  sendCsv(res, `kamwa-commandes-${stamp()}.csv`,
+  sendCsv(res, `zado-commandes-${stamp()}.csv`,
     ['Commande', 'Date', 'Statut', 'Client', 'Téléphone', 'Ville', 'Adresse', 'Articles', 'Total (FCFA)', 'Paiement', 'Retrait/Livraison'],
     list.map((o) => [o.id, o.createdAt.slice(0, 16).replace('T', ' '), STATUS_LABELS[o.status], o.customer?.name, o.customer?.phone, o.customer?.city, o.customer?.address,
       o.lines.map((l) => `${l.qty} x ${l.name}`).join(' | '), o.total, PAY_NAMES[(o.paymentId && payments.get(o.paymentId)?.operator) || ''] || '', o.fulfillment === 'pickup' ? 'Retrait en agence' : 'Livraison']));
@@ -1057,16 +1057,16 @@ router.get('/export/products.csv', requireRole('catalog', 'supplier'), (req, res
   const role = req.user.role;
   const list = products.all().filter((p) => canSee(req.user, p));
   const withSupplierPrice = role !== 'catalog';
-  sendCsv(res, `kamwa-produits-${stamp()}.csv`,
+  sendCsv(res, `zado-produits-${stamp()}.csv`,
     ['Réf', 'Nom', 'Marque', 'Catégorie', 'Prix de vente', 'Prix barré', ...(withSupplierPrice ? ['Prix fournisseur'] : []), 'Stock', 'Visible', 'En attente', 'Fournisseur'],
     list.map((p) => [p.id, p.name, p.brand, p.category, p.price, p.oldPrice, ...(withSupplierPrice ? [p.supplierPrice] : []), p.stock, p.active !== false ? 'oui' : 'non', p.pending ? 'oui' : 'non',
-      p.supplierId ? staff.get(p.supplierId)?.company || '' : 'Kamwa']));
+      p.supplierId ? staff.get(p.supplierId)?.company || '' : 'Zado']));
 });
 
 router.get('/export/customers.csv', requireRole(), (req, res) => {
   const all = orders.all();
   log(req, 'Export des clients', null, `${customers.all().length} clients`);
-  sendCsv(res, `kamwa-clients-${stamp()}.csv`, ['Client', 'Nom', 'Téléphone', 'E-mail', 'Inscrit le', 'Commandes'],
+  sendCsv(res, `zado-clients-${stamp()}.csv`, ['Client', 'Nom', 'Téléphone', 'E-mail', 'Inscrit le', 'Commandes'],
     customers.all().map((c) => [c.id, c.name, c.phone, c.email, String(c.createdAt).slice(0, 10), all.filter((o) => o.customerId === c.id).length]));
 });
 
@@ -1115,7 +1115,7 @@ router.post('/uploads/detoure', requireRole('catalog', 'supplier'), express.raw(
   if (!(Buffer.isBuffer(buf) && buf.length > 12 && SIGNATURES.find((x) => x.test(buf)))) return res.status(400).json({ error: 'Photo non reconnue (formats acceptés : JPG, PNG, WebP)' });
   saveDetoured(req, res, buf);
 });
-// Photo déjà envoyée sur Kamwa : on en crée une version détourée (l'originale est gardée)
+// Photo déjà envoyée sur Zado : on en crée une version détourée (l'originale est gardée)
 router.post('/uploads/detoure-existante', requireRole('catalog', 'supplier'), (req, res) => {
   const m = /^\/images\/uploads\/([\w.-]+\.(jpg|png|webp))$/.exec(String(req.body?.src || ''));
   if (!m) return res.status(400).json({ error: 'Seules les photos envoyées depuis l\'espace pro peuvent être détourées' });

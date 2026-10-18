@@ -1,4 +1,4 @@
-// Kamwa — espace admin (aucune dépendance). Routes : #/commandes, #/commande/<id>, #/produits, #/produit/<id|nouveau>
+// Zado — espace admin (aucune dépendance). Routes : #/commandes, #/commande/<id>, #/produits, #/produit/<id|nouveau>
 (() => {
   const $ = (sel, el = document) => el.querySelector(sel);
   const app = $('#app');
@@ -105,7 +105,7 @@
 
   // ---------- Tableau de bord (graphiques Chart.js, adaptés au rôle) ----------
   const charts = [];
-  const PALETTE = ['#FFB300', '#2D66D6', '#FF6B4F', '#2BC48A', '#14B8A6', '#94A3B8'] // mangue, bleu Kamwa Pro, corail, vert, bleu-vert, ardoise;
+  const PALETTE = ['#FFB300', '#2D66D6', '#FF6B4F', '#2BC48A', '#14B8A6', '#94A3B8'] // mangue, bleu Zado Pro, corail, vert, bleu-vert, ardoise;
   // Couleurs des graphiques selon l'apparence (recalculées à chaque affichage du tableau de bord)
   function chartTheme() {
     if (!window.Chart) return;
@@ -124,7 +124,7 @@
     return `<section class="card ${cls}"><h2>${icon(ico)} ${esc(title)}</h2>${body}</section>`;
   }
   const chartSlot = (id, data) => (isEmpty(data) ? '<p class="nodata">Pas encore de données</p>' : `<div class="chart-box"><canvas id="${id}"></canvas></div>`);
-  // Chart.js (200 Ko) n'est chargé qu'au premier graphique affiché (tableau de bord, finances) : ouverture plus rapide de Kamwa Pro
+  // Chart.js (200 Ko) n'est chargé qu'au premier graphique affiché (tableau de bord, finances) : ouverture plus rapide de Zado Pro
   let chartLib = null;
   const loadChart = () => chartLib || (chartLib = new Promise((resolve, reject) => {
     const sc = document.createElement('script'); sc.src = '/admin/vendor/chart.umd.min.js';
@@ -251,8 +251,8 @@
     document.body.classList.remove('logged', 'menu-open');
     app.innerHTML = `
       <form class="panel login" id="loginForm">
-        <span class="logo"><img src="/brand/logo-kamwa-clair.svg?v=2" alt="Kamwa" width="183" height="44"></span>
-        <h1>Espace Kamwa</h1>
+        <span class="logo"><img src="/brand/logo-zado-clair.svg?v=3" alt="Zado" width="106" height="44"></span>
+        <h1>Espace Zado</h1>
         <p class="muted" style="margin-top:-6px">Administration, équipe et fournisseurs</p>
         ${message ? `<div class="alert err">${esc(message)}</div>` : ''}
         <label for="login">Identifiant</label>
@@ -296,7 +296,7 @@
     location.hash = '';
     // On vide tout : la personne suivante (autre rôle) recharge ses propres données
     Object.assign(state, { user: null, seenPaid: null, orders: [], products: [], universes: [], suppliers: [], productFilter: 'all', productQuery: '', demoAccounts: state.demoAccounts });
-    document.title = 'Kamwa Pro';
+    document.title = 'Zado Pro';
     showLogin();
   });
 
@@ -357,7 +357,7 @@
     state.seenPaid = new Set(paidIds);
     const todo = state.orders.filter((o) => ['paid', 'confirmed'].includes(o.status) || o.paidAfterCancel).length;
     for (const el of [$('#todoCount'), $('#todoCountMobile')]) { el.hidden = !todo; el.textContent = todo; }
-    document.title = todo ? `(${todo}) Kamwa Pro` : 'Kamwa Pro';
+    document.title = todo ? `(${todo}) Zado Pro` : 'Zado Pro';
   }
 
   async function loadProducts() {
@@ -699,7 +699,7 @@
   // ---------- Espace livreur : mes livraisons ----------
   // ---------- Suivi en direct : le livreur partage sa position pendant ses livraisons (façon Grab) ----------
   // Position envoyée toutes les 5 s (15 s à l'arrêt), seulement quand il a une livraison en cours ; écran gardé allumé
-  // (sinon le téléphone met la page en pause). Reprend tout seul à la réouverture de Kamwa Pro.
+  // (sinon le téléphone met la page en pause). Reprend tout seul à la réouverture de Zado Pro.
   const share = { watch: null, last: 0, lastSent: null, lock: null, error: '' };
   // Partage automatique dès qu'il a une livraison en cours, sauf s'il l'a arrêté lui-même (comme l'application chauffeur de Grab)
   const shareWanted = () => { try { return localStorage.getItem('kamwa-share-pos') !== '0'; } catch { return true; } };
@@ -734,7 +734,7 @@
     el.className = `panel share-panel ${on ? 'on' : ''}`;
     el.innerHTML = `<div class="row between" style="align-items:center">
         <div><strong>${icon('map-pin-duotone')} Suivi en direct pour vos clients</strong><br>
-        <span class="muted">${on ? (share.error ? esc(share.error) : share.lastSent ? `Position partagée à ${share.lastSent.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}. Gardez Kamwa Pro ouvert pendant la tournée.` : 'Recherche de votre position…') : 'Vos clients vous voient arriver sur leur carte. Seulement pendant vos livraisons en cours.'}</span></div>
+        <span class="muted">${on ? (share.error ? esc(share.error) : share.lastSent ? `Position partagée à ${share.lastSent.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}. Gardez Zado Pro ouvert pendant la tournée.` : 'Recherche de votre position…') : 'Vos clients vous voient arriver sur leur carte. Seulement pendant vos livraisons en cours.'}</span></div>
         <button class="btn ${on ? 'ghost' : 'green'}" id="shareBtn">${on ? 'Arrêter' : 'Partager ma position'}</button></div>`;
     $('#shareBtn').addEventListener('click', () => (share.watch !== null ? stopSharing() : startSharing()));
   }
@@ -791,7 +791,7 @@
       </div>${sm.later ? `<p class="muted" style="margin:-4px 0 12px">${sm.later} autre(s) livraison(s) prévue(s) les jours suivants.</p>` : ''}`;
     app.innerHTML = pageHead({ title: 'Mes livraisons', desc: 'Appelez le client avant de partir. Remettez le colis, puis demandez-lui son code de livraison à 4 chiffres : sans ce code, la livraison ne peut pas être validée.' })
       + daySummary
-      + (d.cashHeld ? `<div class="alert warn">${icon('wallet-duotone')} Vous avez <strong>${fcfa(d.cashHeld)}</strong> en espèces à remettre à Kamwa.</div>` : '')
+      + (d.cashHeld ? `<div class="alert warn">${icon('wallet-duotone')} Vous avez <strong>${fcfa(d.cashHeld)}</strong> en espèces à remettre à Zado.</div>` : '')
       + (d.current.length ? '<div id="sharePanel"></div>' : '')
       + (d.current.length ? `<div class="deliv-list">${d.current.map(card).join('')}</div>` : '<div class="panel empty">Aucune livraison en cours. Les commandes qu\'on vous confie apparaissent ici.</div>')
       + (d.done.length ? `<h2 style="margin-top:24px">Dernières livraisons</h2><ul class="mini-list">${d.done.map((x) => `<li><span>${esc(x.id)} · ${esc(x.customer.name)}<br><span class="muted">${date(x.deliveredAt)}</span></span><span>${x.collected ? `${fcfa(x.collected.amount)} ${x.collected.method === 'cash' ? 'espèces' : 'Mobile Money'}` : '<span class="tag ok">payée</span>'}</span></li>`).join('')}</ul>` : '');
@@ -849,7 +849,7 @@
     app.innerHTML = pageHead({ crumb: 'Gestion', title: 'Réglages', desc: 'Maintenance, règles de vente, frais de livraison, société (factures et reçus) et paiement à la réception.' }) + `
       <form class="panel maint-panel ${mt.enabled ? 'on' : ''}" id="maintForm" style="max-width:760px">
         <h2>${icon('warning-duotone')} Mode maintenance de la boutique ${mt.enabled ? '<span class="tag danger">ACTIVÉ</span>' : '<span class="tag ok">Boutique ouverte</span>'}</h2>
-        <p class="muted" style="margin-top:0">Pendant une mise à jour ou un inventaire : les clients voient ce message à l'ouverture de la boutique et ne peuvent plus commander, payer ni créer de compte. Ils peuvent encore suivre leurs commandes et écrire à l'Aide. Kamwa Pro reste ouvert.${mt.enabled && mt.since ? `<br>Activé le ${date(mt.since)}${mt.by ? ' par ' + esc(mt.by) : ''}.` : ''}</p>
+        <p class="muted" style="margin-top:0">Pendant une mise à jour ou un inventaire : les clients voient ce message à l'ouverture de la boutique et ne peuvent plus commander, payer ni créer de compte. Ils peuvent encore suivre leurs commandes et écrire à l'Aide. Zado Pro reste ouvert.${mt.enabled && mt.since ? `<br>Activé le ${date(mt.since)}${mt.by ? ' par ' + esc(mt.by) : ''}.` : ''}</p>
         ${mt.demo ? '<div class="alert info">Démo publique : la boutique ne peut pas être fermée ici. Le bouton « Aperçu » montre l\'écran que verront les clients.</div>' : ''}
         <label for="mtMsg">Message affiché aux clients</label>
         <textarea id="mtMsg" rows="3" maxlength="300">${esc(mt.message)}</textarea>
@@ -887,14 +887,14 @@
         <h2>${icon('receipt')} Société — factures et reçus</h2>
         <p class="muted" style="margin-top:0">Ces informations apparaissent en haut de chaque facture, reçu et avoir. Un document déjà émis garde celles du jour de son émission.</p>
         <div class="grid2">
-          ${coField('name', 'Nom commercial', 'Kamwa')}${coField('legalForm', 'Forme juridique', 'SARL, SAS, Entreprise individuelle…')}
+          ${coField('name', 'Nom commercial', 'Zado')}${coField('legalForm', 'Forme juridique', 'SARL, SAS, Entreprise individuelle…')}
           ${coField('capital', 'Capital (facultatif)', '1 000 000 FCFA')}${coField('rccm', 'RCCM', 'CG-PNR-01-2026-B12-00000')}
           ${coField('niu', 'NIU', 'M2026…')}${coField('phone', 'Téléphone', '06 000 00 00')}
           ${coField('address', 'Adresse', 'N°, avenue, quartier', true)}
           ${coField('city', 'Ville', 'Pointe-Noire')}${coField('country', 'Pays', 'République du Congo')}
-          ${coField('email', 'E-mail', 'contact@kamwa.cg')}${coField('website', 'Site', 'kamwa.cg')}
+          ${coField('email', 'E-mail', 'contact@zado.cg')}${coField('website', 'Site', 'zado.cg')}
         </div>
-        <label class="check" style="margin-top:12px"><input type="checkbox" id="coVat" ${cp.vatEnabled ? 'checked' : ''}> Kamwa facture la TVA (détail HT / TVA / TTC sur les factures)</label>
+        <label class="check" style="margin-top:12px"><input type="checkbox" id="coVat" ${cp.vatEnabled ? 'checked' : ''}> Zado facture la TVA (détail HT / TVA / TTC sur les factures)</label>
         <div class="grid2" id="coVatBox" ${cp.vatEnabled ? '' : 'hidden'}>
           <div><label for="co_vatRate">Taux de TVA (%)</label><input id="co_vatRate" data-co="vatRate" type="number" step="0.01" min="0" max="50" value="${cp.vatRate}"></div>
           <div><label for="co_vatExtra">Centime additionnel (% de la TVA)</label><input id="co_vatExtra" data-co="vatExtra" type="number" step="0.01" min="0" max="50" value="${cp.vatExtra}"></div>
@@ -974,7 +974,7 @@
     try {
       const { code } = await api('/customers/' + enc(account.id) + '/new-code', { method: 'POST' });
       const who = account.phone || account.email;
-      const msg = `Bonjour ${account.name}, voici votre nouveau code Kamwa : ${code}. Connectez-vous avec ${who} et ce code.`;
+      const msg = `Bonjour ${account.name}, voici votre nouveau code Zado : ${code}. Connectez-vous avec ${who} et ce code.`;
       box.innerHTML = `
         <div class="alert ok">Nouveau code : <strong style="font-size:1.3rem;letter-spacing:.15em">${code.slice(0, 3)} ${code.slice(3)}</strong><br>
         Transmettez-le au client. Il ne sera plus affiché.</div>
@@ -985,9 +985,9 @@
   }
 
   // ---------- Agences ----------
-  // Points relais : agences Kamwa et commerces partenaires, placés sur la carte. Le client y paie en espèces et y retire
+  // Points relais : agences Zado et commerces partenaires, placés sur la carte. Le client y paie en espèces et y retire
   // son colis (ou se fait livrer après paiement). Toute modification est visible tout de suite sur la boutique.
-  const KIND = { agency: 'Agence Kamwa', partner: 'Point relais partenaire' };
+  const KIND = { agency: 'Agence Zado', partner: 'Point relais partenaire' };
   async function viewAgencies(editId) {
     let list = [];
     try { list = await api('/agencies'); } catch { return; }
@@ -1042,7 +1042,7 @@
       return;
     }
     const placed = list.filter((a) => kamwaMap.hasPos(a));
-    app.innerHTML = pageHead({ title: 'Points relais', desc: "Agences Kamwa et commerces partenaires. Le client choisit son point relais sur une carte au moment de commander : il y paie en espèces, puis retire son colis sur place ou se fait livrer. Placez chaque point sur la carte pour qu'il apparaisse au bon endroit.", actions: `<a class="btn" href="#/agences/nouvelle">${icon('plus-bold')} Ajouter un point relais</a>` })
+    app.innerHTML = pageHead({ title: 'Points relais', desc: "Agences Zado et commerces partenaires. Le client choisit son point relais sur une carte au moment de commander : il y paie en espèces, puis retire son colis sur place ou se fait livrer. Placez chaque point sur la carte pour qu'il apparaisse au bon endroit.", actions: `<a class="btn" href="#/agences/nouvelle">${icon('plus-bold')} Ajouter un point relais</a>` })
       + `<div class="panel" style="padding:10px"><div class="kmap" id="allMap" style="height:360px"></div>${placed.length < list.length ? `<p class="muted" style="margin:8px 4px 0">${list.length - placed.length} point(s) pas encore placé(s) sur la carte : les clients les voient seulement dans la liste.</p>` : ''}</div>`
       + '<div id="tbl"></div>';
     dataTable($('#tbl'), {
@@ -1069,7 +1069,7 @@
   const poTag = (bc) => `<span class="tag ${PO_TAG[bc.status] || ''}">${esc(bc.statusLabel || bc.status)}</span>`;
   const poWa = (bc) => {
     if (!bc.supplier.phone) return '';
-    const msg = `Bonjour, voici notre bon de commande ${bc.number} (${fcfa(bc.total)}) : ${bc.lines.map((l) => `${l.qty} × ${l.name}`).join(', ')}.${bc.expectedAt ? ` Livraison souhaitée le ${bc.expectedAt.split('-').reverse().join('/')}.` : ''} Merci de confirmer. — Kamwa`;
+    const msg = `Bonjour, voici notre bon de commande ${bc.number} (${fcfa(bc.total)}) : ${bc.lines.map((l) => `${l.qty} × ${l.name}`).join(', ')}.${bc.expectedAt ? ` Livraison souhaitée le ${bc.expectedAt.split('-').reverse().join('/')}.` : ''} Merci de confirmer. — Zado`;
     return `https://wa.me/${String(bc.supplier.phone).replace(/\D/g, '').replace(/^0/, '242')}?text=${enc(msg)}`;
   };
   let poMeta = null;
@@ -1104,7 +1104,7 @@
       columns: [
         { key: 'number', label: 'Bon', render: (b) => `<a href="#/achat/${enc(b.id)}"><strong class="mono">${esc(b.number)}</strong></a><br>${poTag(b)}${b.late ? ' <span class="tag danger">en retard</span>' : ''}` },
         { key: 'createdAt', label: 'Date', render: (b) => date(b.createdAt).split(' ')[0] + (b.expectedAt ? `<br><span class="muted">prévu ${esc(b.expectedAt.split('-').reverse().join('/'))}</span>` : '') },
-        { key: 'supplier', label: 'Fournisseur', sortValue: (b) => norm(b.supplier.name), render: (b) => `${esc(b.supplier.name)}${b.supplier.supplierId ? '<br><span class="muted">compte Kamwa Pro</span>' : ''}` },
+        { key: 'supplier', label: 'Fournisseur', sortValue: (b) => norm(b.supplier.name), render: (b) => `${esc(b.supplier.name)}${b.supplier.supplierId ? '<br><span class="muted">compte Zado Pro</span>' : ''}` },
         { key: 'lines', label: 'Articles', sortable: false, render: (b) => b.lines.slice(0, 3).map((l) => `${l.qty} × ${esc(l.name)}`).join('<br>') + (b.lines.length > 3 ? `<br><span class="muted">+ ${b.lines.length - 3} autre(s)</span>` : '') },
         { key: 'receivedQty', label: 'Reçu', cls: 'num', render: (b) => `${b.receivedQty}/${b.qty}` },
         ...(admin ? [{ key: 'total', label: 'Total', cls: 'num', render: (b) => `<strong>${fcfa(b.total)}</strong>${b.due > 0 && b.status !== 'cancelled' ? `<br><span class="tag warn">à payer ${fcfa(b.due)}</span>` : ''}` }] : []),
@@ -1150,7 +1150,7 @@
     app.innerHTML = pageHead({ crumb: 'Achats', title: 'Nouveau bon de commande', desc: 'Choisissez le fournisseur, ajoutez les articles et leur prix d\'achat. Le bon reste en brouillon tant que vous ne l\'envoyez pas.' }) + `
       <form class="panel" id="poForm" novalidate>
         <h2>${icon('users-three-duotone')} Fournisseur</h2>
-        <label for="poSup">Compte fournisseur Kamwa Pro</label>
+        <label for="poSup">Compte fournisseur Zado Pro</label>
         <select id="poSup"><option value="">Autre fournisseur (saisie libre)</option>${poMeta.suppliers.map((u) => `<option value="${esc(u.id)}">${esc(u.name)}</option>`).join('')}</select>
         <div class="grid2" id="poExt">
           <div><label for="poName">Nom du fournisseur</label><input id="poName" type="text" maxlength="100" placeholder="Ex. Grossiste Dubaï, Marché Total…"></div>
@@ -1199,7 +1199,7 @@
       <div id="poMsg"></div>
       <div class="grid2 po-grid">
         <div class="panel"><h2>${icon('users-three-duotone')} Fournisseur</h2>
-          <p style="margin:0"><strong>${esc(bc.supplier.name)}</strong>${bc.supplier.supplierId ? ' <span class="tag">compte Kamwa Pro</span>' : ''}${bc.supplier.contact && bc.supplier.contact !== bc.supplier.name ? `<br>${esc(bc.supplier.contact)}` : ''}${bc.supplier.phone ? `<br><a href="tel:${esc(bc.supplier.phone)}">${esc(bc.supplier.phone)}</a>` : ''}${bc.reference ? `<br><span class="muted">Réf. fournisseur : ${esc(bc.reference)}</span>` : ''}</p>
+          <p style="margin:0"><strong>${esc(bc.supplier.name)}</strong>${bc.supplier.supplierId ? ' <span class="tag">compte Zado Pro</span>' : ''}${bc.supplier.contact && bc.supplier.contact !== bc.supplier.name ? `<br>${esc(bc.supplier.contact)}` : ''}${bc.supplier.phone ? `<br><a href="tel:${esc(bc.supplier.phone)}">${esc(bc.supplier.phone)}</a>` : ''}${bc.reference ? `<br><span class="muted">Réf. fournisseur : ${esc(bc.reference)}</span>` : ''}</p>
           ${bc.confirmedAt ? `<p class="muted" style="margin:8px 0 0">Confirmé le ${date(bc.confirmedAt)}${bc.confirmedBy ? ` par ${esc(bc.confirmedBy)}` : ''}</p>` : ''}
         </div>
         <form class="panel" id="poInfo"><h2>${icon('clock-bold')} Livraison</h2>
@@ -1252,12 +1252,12 @@
     $('#invRemove')?.addEventListener('click', async () => { try { await api(`/purchases/${enc(bc.id)}/invoice`, { method: 'PUT', body: { remove: true } }); viewPurchase(bc.id); } catch (err) { show(err); } });
   }
 
-  // Espace fournisseur : les bons de commande que Kamwa lui adresse
+  // Espace fournisseur : les bons de commande que Zado lui adresse
   async function viewSupplierPurchases() {
     let r;
     try { r = await api('/purchases/mine'); } catch { return; }
     const list = r.purchases;
-    app.innerHTML = pageHead({ title: 'Bons de commande', desc: 'Les commandes que Kamwa vous passe. Confirmez chaque bon avec votre date de livraison, puis livrez à Kamwa : la réception est enregistrée par l\'équipe.' })
+    app.innerHTML = pageHead({ title: 'Bons de commande', desc: 'Les commandes que Zado vous passe. Confirmez chaque bon avec votre date de livraison, puis livrez à Zado : la réception est enregistrée par l\'équipe.' })
       + (list.some((b) => b.status === 'sent') ? `<div class="todo">${icon('clipboard-text')} ${list.filter((b) => b.status === 'sent').length} bon(s) à confirmer</div>` : '')
       + `<div id="tbl"></div><div id="poConfirm"></div>`;
     dataTable($('#tbl'), {
@@ -1277,7 +1277,7 @@
       const b = e.target.closest('[data-po-ok]'); if (!b) return;
       const bc = list.find((x) => x.id === b.dataset.poOk);
       $('#poConfirm').innerHTML = `<form class="panel" id="poOkForm" style="max-width:520px"><h2>Confirmer ${esc(bc.number)}</h2>
-        <label for="okDate">Date de livraison à Kamwa</label><input id="okDate" type="date" value="${esc(bc.expectedAt || '')}" min="${today()}">
+        <label for="okDate">Date de livraison à Zado</label><input id="okDate" type="date" value="${esc(bc.expectedAt || '')}" min="${today()}">
         <label for="okNote">Message (facultatif)</label><input id="okNote" type="text" maxlength="300" placeholder="Ex. livraison vendredi matin">
         <div id="okErr"></div><div class="row" style="gap:8px;margin-top:10px"><button class="btn green">${icon('check-bold')} Je confirme ce bon</button><button type="button" class="ghost" id="okCancel">Annuler</button></div></form>`;
       $('#poConfirm').scrollIntoView({ behavior: 'smooth' });
@@ -1294,7 +1294,7 @@
   async function viewStock(sub) {
     const tab = ['mouvements', 'inventaire'].includes(sub) ? sub : '';
     const tabs = `<div class="tabbar">${[['', 'État du stock'], ['mouvements', 'Mouvements'], ['inventaire', 'Inventaire']].map(([k, l]) => `<a class="tab ${k === tab ? 'on' : ''}" href="#/stock${k ? '/' + k : ''}">${l}</a>`).join('')}</div>`;
-    const head = pageHead({ title: 'Stock', desc: 'Ce que Kamwa a en rayon, ce qui est en commande chez les fournisseurs, et chaque entrée ou sortie (réception, vente, annulation, correction, inventaire).', actions: CAN.admin() ? `<a class="btn" href="#/achat/nouveau">${icon('plus-bold')} Commander au fournisseur</a>` : '' });
+    const head = pageHead({ title: 'Stock', desc: 'Ce que Zado a en rayon, ce qui est en commande chez les fournisseurs, et chaque entrée ou sortie (réception, vente, annulation, correction, inventaire).', actions: CAN.admin() ? `<a class="btn" href="#/achat/nouveau">${icon('plus-bold')} Commander au fournisseur</a>` : '' });
     if (tab === 'mouvements') {
       let r; try { r = await api('/stock/moves'); } catch { return; }
       app.innerHTML = head + tabs + '<div id="tbl"></div>';
@@ -1728,7 +1728,7 @@
     if (!d.customer?.phone) return '';
     const first = (d.customer.name || '').split(' ')[0];
     const what = d.type === 'receipt' ? `votre reçu de paiement n° ${d.number} (${fcfa(d.amount)})` : d.type === 'credit' ? `votre avoir n° ${d.number}` : `votre facture n° ${d.number} (${fcfa(d.amount)})`;
-    const msg = `Bonjour ${first}, merci pour votre achat sur Kamwa ! Voici ${what} pour la commande ${d.orderId} : ${location.origin}${d.link}`;
+    const msg = `Bonjour ${first}, merci pour votre achat sur Zado ! Voici ${what} pour la commande ${d.orderId} : ${location.origin}${d.link}`;
     return `https://wa.me/242${String(d.customer.phone).replace(/\D/g, '')}?text=${enc(msg)}`;
   };
   const docActions = (d) => `<div class="cell-actions">
@@ -1928,14 +1928,14 @@
       { key: 'name', label: 'Produit', sortValue: (p) => norm(p.name), render: (p) => `<div class="cell-prod">${p.image ? `<img src="${esc(p.image)}" alt="" loading="lazy">` : `<span class="ph">${catIcon(p.category)}</span>`}<span><strong>${esc(p.name)}</strong>${p.featured ? ' <span class="tag">⭐</span>' : ''}<br><span class="muted">${esc(p.brand || '')}</span></span></div>` },
       { key: 'category', label: 'Catégorie' },
     ];
-    if (!isSupplier()) columns.push({ key: 'supplierName', label: 'Fournisseur', render: (p) => esc(p.supplierName || 'Kamwa') });
+    if (!isSupplier()) columns.push({ key: 'supplierName', label: 'Fournisseur', render: (p) => esc(p.supplierName || 'Zado') });
     if (!isSupplier()) columns.push({ key: 'price', label: 'Prix de vente', cls: 'num', render: (p) => (p.price ? fcfa(p.price) : '<span class="muted">à fixer</span>') });
     if (role() !== 'catalog') columns.push({ key: 'supplierPrice', label: isSupplier() ? 'Votre prix' : 'Prix fournisseur', cls: 'num', render: (p) => (p.supplierPrice != null ? fcfa(p.supplierPrice) : '—') });
     columns.push({ key: 'stock', label: 'Stock', cls: 'num', render: (p) => (p.stock === 0 ? `<strong style="color:var(--err)">0</strong>` : p.stock) });
     columns.push({ key: 'status', label: 'Statut', sortValue: (p) => (p.pending ? 0 : p.active === false ? 1 : 2), render: statusTag });
     app.innerHTML = pageHead({
       title: isSupplier() ? 'Mes produits' : 'Produits',
-      desc: isSupplier() ? 'Vos produits sur Kamwa : stock et prix. Les nouveaux produits sont publiés après validation.' : 'Le catalogue de la boutique. Cliquez sur un produit pour le modifier.',
+      desc: isSupplier() ? 'Vos produits sur Zado : stock et prix. Les nouveaux produits sont publiés après validation.' : 'Le catalogue de la boutique. Cliquez sur un produit pour le modifier.',
       actions: `${exportBtn('products')}<a class="btn green" href="#/produit/nouveau">${icon('plus-bold')} Ajouter un produit</a>`,
     }) + tabsBar(FILTERS_P.map(([k, label, fn]) => [k, label, state.products.filter(fn).length]), f, 'pf') + '<div id="tbl"></div>';
     dataTable($('#tbl'), {
@@ -1963,7 +1963,7 @@
       <h1>${isNew ? 'Nouveau produit' : esc(p.name)}</h1>
       ${p.pending ? `<div class="alert warn">⏳ En attente de validation : ce produit n'est pas encore visible des clients.${isAdmin() ? ' Vérifiez la fiche, fixez le prix de vente, enregistrez, puis cliquez « Valider et publier ».' : " L'administrateur doit le valider."}</div>` : ''}
       ${isNew && !isAdmin() ? '<div class="alert warn">Le produit sera visible des clients après validation par l\'administrateur.</div>' : ''}
-      ${limited ? '<div class="alert warn">Produit publié : vous pouvez modifier le <strong>stock</strong> et <strong>votre prix</strong>. Pour le reste, contactez Kamwa.</div>' : ''}
+      ${limited ? '<div class="alert warn">Produit publié : vous pouvez modifier le <strong>stock</strong> et <strong>votre prix</strong>. Pour le reste, contactez Zado.</div>' : ''}
       <form class="panel" id="pform" novalidate>
         <h2>Photos</h2>
         <div class="gallery" id="gallery"></div>
@@ -2004,14 +2004,14 @@
           ${showSale ? `<div><label for="price">Prix de vente (FCFA)${p.pending || isNew ? '' : ' *'}</label><input id="price" type="number" inputmode="numeric" min="1" step="1" value="${esc(p.price ?? '')}"></div>
           <div><label for="oldPrice">Prix barré (facultatif)</label><input id="oldPrice" type="number" inputmode="numeric" min="1" step="1" value="${esc(p.oldPrice ?? '')}"></div>` : ''}
           ${showSupplierPrice ? `<div><label for="supplierPrice">${isSupplier() ? 'Votre prix (FCFA) *' : 'Prix fournisseur (FCFA)'}</label><input id="supplierPrice" type="number" inputmode="numeric" min="0" step="1" value="${esc(p.supplierPrice ?? '')}"></div>` : ''}
-          ${isAdmin() ? `<div><label for="costPrice">Prix d'achat Kamwa (FCFA)</label><input id="costPrice" type="number" inputmode="numeric" min="0" step="1" value="${esc(p.costPrice ?? '')}" placeholder="pour le stock Kamwa"></div>` : ''}
+          ${isAdmin() ? `<div><label for="costPrice">Prix d'achat Zado (FCFA)</label><input id="costPrice" type="number" inputmode="numeric" min="0" step="1" value="${esc(p.costPrice ?? '')}" placeholder="pour le stock Zado"></div>` : ''}
           <div><label for="stock">Stock disponible *</label><input id="stock" type="number" inputmode="numeric" min="0" step="1" value="${esc(p.stock)}"></div>
         </div>
-        ${isAdmin() ? '<p class="muted">Prix d\'achat : ce que Kamwa a payé ce produit (stock propre à Kamwa). Il sert au calcul de la marge dans Finances et reste invisible pour les clients et l\'équipe.</p>' : ''}
+        ${isAdmin() ? '<p class="muted">Prix d\'achat : ce que Zado a payé ce produit (stock propre à Zado). Il sert au calcul de la marge dans Finances et reste invisible pour les clients et l\'équipe.</p>' : ''}
         ${isAdmin() && margin != null ? `<p class="muted">Marge actuelle : <strong>${fcfa(margin)}</strong> par article.</p>` : ''}
-        ${isSupplier() ? '<p class="muted">Kamwa fixe le prix de vente aux clients. Mettez le stock à 0 si le produit n\'est plus disponible.</p>' : ''}
+        ${isSupplier() ? '<p class="muted">Zado fixe le prix de vente aux clients. Mettez le stock à 0 si le produit n\'est plus disponible.</p>' : ''}
         ${isAdmin() ? `<label for="supplierId">Fournisseur</label>
-          <select id="supplierId"><option value="">Aucun (stock Kamwa)</option>${[
+          <select id="supplierId"><option value="">Aucun (stock Zado)</option>${[
             ...(state.suppliers || []),
             // le fournisseur actuel reste toujours proposé (même s'il n'est plus dans la liste), pour ne jamais l'effacer par erreur
             ...(p.supplierId && !(state.suppliers || []).some((s) => s.id === p.supplierId) ? [{ id: p.supplierId, name: p.supplierName || p.supplierId }] : []),
@@ -2146,8 +2146,8 @@
     const amount = (o) => o.lines.reduce((n, l) => n + (l.supplierPrice || 0) * l.qty, 0);
     const active = (o) => ['paid', 'confirmed'].includes(o.status);
     const toPrepare = data.orders.filter((o) => active(o) && !o.ready);
-    app.innerHTML = pageHead({ title: 'Mes commandes', desc: "Kamwa s'occupe de la livraison. Préparez les articles des commandes payées, puis cliquez « Prêt à récupérer » : Kamwa est prévenu et vient les chercher." })
-      + `<div class="todo"><a href="#/fournisseur">${icon('package-duotone')} À préparer : ${toPrepare.reduce((n, o) => n + qty(o), 0)} article(s)</a><a href="#/messagerie">${icon('chats-circle-duotone')} Écrire à Kamwa</a></div><div id="tbl"></div>`;
+    app.innerHTML = pageHead({ title: 'Mes commandes', desc: "Zado s'occupe de la livraison. Préparez les articles des commandes payées, puis cliquez « Prêt à récupérer » : Zado est prévenu et vient les chercher." })
+      + `<div class="todo"><a href="#/fournisseur">${icon('package-duotone')} À préparer : ${toPrepare.reduce((n, o) => n + qty(o), 0)} article(s)</a><a href="#/messagerie">${icon('chats-circle-duotone')} Écrire à Zado</a></div><div id="tbl"></div>`;
     dataTable($('#tbl'), {
       id: 'supplier-orders', rows: data.orders, defaultSort: 'date', placeholder: 'N° de commande ou produit', empty: 'Aucune commande de vos produits pour le moment.',
       searchText: (o) => `${o.id} ${o.lines.map((l) => l.name).join(' ')}`,
@@ -2166,8 +2166,8 @@
     });
     const mark = async (id, ready) => {
       let note = '';
-      if (ready) { note = prompt('Où et quand Kamwa peut-il récupérer les articles ? (facultatif)\nEx. au magasin, à partir de 14 h', ''); if (note === null) return; }
-      try { await api('/supplier/orders/' + enc(id) + '/ready', { method: 'POST', body: { ready, note } }); toast(ready ? 'Kamwa est prévenu : articles prêts ✓' : 'Signal annulé'); viewSupplierOrders(); }
+      if (ready) { note = prompt('Où et quand Zado peut-il récupérer les articles ? (facultatif)\nEx. au magasin, à partir de 14 h', ''); if (note === null) return; }
+      try { await api('/supplier/orders/' + enc(id) + '/ready', { method: 'POST', body: { ready, note } }); toast(ready ? 'Zado est prévenu : articles prêts ✓' : 'Signal annulé'); viewSupplierOrders(); }
       catch (err) { toast('❌ ' + err.message); }
     };
     $('#tbl').addEventListener('click', (e) => { // #tbl est recréé à chaque affichage : un seul écouteur
@@ -2285,7 +2285,7 @@
 
   // Mot de passe provisoire : montré une seule fois, à transmettre à la personne
   function showPassword(user, password) {
-    const msg = `Bonjour ${user.name}, voici vos accès à l'espace Kamwa : ${location.origin}/admin — identifiant : ${user.login} — mot de passe provisoire : ${password} (à changer à la première connexion).`;
+    const msg = `Bonjour ${user.name}, voici vos accès à l'espace Zado : ${location.origin}/admin — identifiant : ${user.login} — mot de passe provisoire : ${password} (à changer à la première connexion).`;
     app.innerHTML = `
       <div class="panel" style="text-align:center">
         <h1>Accès de ${esc(user.name)}</h1>
@@ -2393,15 +2393,15 @@
     try { d = await api('/finance?' + finQuery()); } catch { return; }
     state.finMeta = { methods: d.methods, categories: d.categories };
     const actions = `<a class="btn ghost" href="/api/admin/finance/journal.csv?${finQuery()}">${icon('download-simple-bold')} Exporter</a><a class="btn" href="#/finances/nouvelle">${icon('plus-bold')} Nouvelle écriture</a>`;
-    const head = pageHead({ title: 'Finances', desc: 'Ventes, dépenses, marge et caisses de Kamwa. Les ventes s\'ajoutent toutes seules ; saisissez ici les dépenses et les autres mouvements d\'argent.', actions });
+    const head = pageHead({ title: 'Finances', desc: 'Ventes, dépenses, marge et caisses de Zado. Les ventes s\'ajoutent toutes seules ; saisissez ici les dépenses et les autres mouvements d\'argent.', actions });
     if (sub === 'journal') return viewFinJournal(head);
     if (sub === 'fournisseurs') return viewFinSuppliers(head, d);
 
     const k = d.kpis;
     const pct = k.revenue ? Math.round((k.grossMargin / k.revenue) * 100) : 0;
     const alerts = [];
-    if (d.unknownCostLines) alerts.push(`<div class="alert warn">${icon('warning-duotone')} ${d.unknownCostLines} article(s) vendu(s) sans prix d'achat connu : la marge est surestimée. Renseignez le « Prix d'achat » des produits Kamwa (fiche produit).</div>`);
-    if (d.stockNoCost) alerts.push(`<div class="alert warn">${icon('package-duotone')} ${d.stockNoCost} produit(s) Kamwa en stock sans prix d'achat : la valeur du stock est incomplète.</div>`);
+    if (d.unknownCostLines) alerts.push(`<div class="alert warn">${icon('warning-duotone')} ${d.unknownCostLines} article(s) vendu(s) sans prix d'achat connu : la marge est surestimée. Renseignez le « Prix d'achat » des produits Zado (fiche produit).</div>`);
+    if (d.stockNoCost) alerts.push(`<div class="alert warn">${icon('package-duotone')} ${d.stockNoCost} produit(s) Zado en stock sans prix d'achat : la valeur du stock est incomplète.</div>`);
     const refunds = d.refundsToDo.length ? `<section class="card wide"><h2>${icon('warning-duotone')} Remboursements à faire</h2>
       <ul class="mini-list">${d.refundsToDo.map((r) => `<li><a href="#/commande/${enc(r.id)}">${esc(r.id)} · ${esc(r.customer || '')}</a><span class="row"><strong>${fcfa(r.total)}</strong><button class="btn small red" data-refund="${esc(r.id)}">Marquer remboursé</button></span></li>`).join('')}</ul>
       <p class="muted">Remboursez d'abord le client (Mobile Money, espèces…), puis cliquez : la sortie d'argent est enregistrée dans la caisse d'origine.</p></section>` : '';
@@ -2424,7 +2424,7 @@
           <ul class="mini-list"><li><span>Argent entré</span><strong class="pos">${fcfa(k.cashIn)}</strong></li><li><span>Argent sorti</span><strong class="neg">−${fcfa(k.cashOut)}</strong></li><li class="total-line"><span>Différence</span><strong>${money(k.cashFlow)}</strong></li></ul>
           <p class="muted">Inclut les achats de stock, les paiements fournisseurs et les remboursements.</p></section>
         <section class="card third"><h2>${icon('package-duotone')} Stock et fournisseurs</h2>
-          <ul class="mini-list"><li><span>Valeur du stock Kamwa</span><strong>${fcfa(k.stockValue)}</strong></li><li><span>À payer aux fournisseurs</span><strong class="${owed ? 'neg' : ''}">${fcfa(owed)}</strong></li><li><span>Livraisons ratées (période)</span><strong class="${k.failedDeliveries ? 'neg' : ''}">${k.failedDeliveries}</strong></li><li><span>Acomptes conservés (colis refusés)</span><strong>${fcfa(k.retainedDeposits)}</strong></li></ul>
+          <ul class="mini-list"><li><span>Valeur du stock Zado</span><strong>${fcfa(k.stockValue)}</strong></li><li><span>À payer aux fournisseurs</span><strong class="${owed ? 'neg' : ''}">${fcfa(owed)}</strong></li><li><span>Livraisons ratées (période)</span><strong class="${k.failedDeliveries ? 'neg' : ''}">${k.failedDeliveries}</strong></li><li><span>Acomptes conservés (colis refusés)</span><strong>${fcfa(k.retainedDeposits)}</strong></li></ul>
           <p class="muted"><a href="#/finances/fournisseurs">Détail par fournisseur ›</a></p></section>
         ${refunds}
         ${d.cashHeld.length ? `<section class="card wide"><h2>${icon('wallet-duotone')} Espèces encaissées à la livraison, pas encore remises</h2>
@@ -2435,7 +2435,7 @@
         <section class="card"><h2>${icon('list-bullets-duotone')} Comment lire ces chiffres</h2>
           <ul class="help-list">
             <li><b>Chiffre d'affaires</b> : total des commandes payées (hors annulées).</li>
-            <li><b>Marge brute</b> : ventes − prix d'achat des produits vendus (prix fournisseur ou prix d'achat Kamwa).</li>
+            <li><b>Marge brute</b> : ventes − prix d'achat des produits vendus (prix fournisseur ou prix d'achat Zado).</li>
             <li><b>Résultat</b> : marge brute − charges. C'est le bénéfice réel de la période.</li>
             <li><b>Caisses</b> : l'argent disponible dans chaque caisse. Un retrait Mobile Money en espèces = « Transfert entre caisses ».</li>
           </ul></section>
@@ -2488,7 +2488,7 @@
   function viewFinSuppliers(head, d) {
     const pd = d.purchaseDebts || [];
     app.innerHTML = head + finTabs('fournisseurs') + `<h2 style="margin:0 0 4px">Achats (bons de commande)</h2><p class="muted" style="margin-top:0">Articles reçus ou facturés par bon de commande, moins les paiements « Achat de marchandises » rattachés au bon.</p><div id="tblPo"></div>
-      <h2 style="margin:22px 0 4px">Dépôt-vente</h2><p class="muted" style="margin-top:0">Ce que Kamwa doit à chaque fournisseur partenaire : ses produits vendus (au prix fournisseur, toutes périodes) moins les paiements enregistrés (« Paiement fournisseur »).</p><div id="tbl"></div>`;
+      <h2 style="margin:22px 0 4px">Dépôt-vente</h2><p class="muted" style="margin-top:0">Ce que Zado doit à chaque fournisseur partenaire : ses produits vendus (au prix fournisseur, toutes périodes) moins les paiements enregistrés (« Paiement fournisseur »).</p><div id="tbl"></div>`;
     dataTable($('#tblPo'), {
       id: 'fin-purchases', rows: pd, defaultSort: 'due', placeholder: 'Fournisseur', empty: 'Aucun achat par bon de commande pour le moment.',
       searchText: (s) => s.name,
@@ -2590,7 +2590,7 @@
   const msgTime = (iso) => { const d = new Date(iso); return d.toDateString() === new Date().toDateString() ? d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) + ' ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }); };
   const bubble = (m, mine) => `
     <div class="pm ${m.internal ? 'note' : m.from} ${mine ? 'mine' : ''}">
-      <span class="who">${m.internal ? `${icon('note-pencil')} Note interne · ${esc(m.staffName || '')}` : m.from === 'customer' ? 'Client' : m.from === 'bot' ? 'Assistant automatique' : m.from === 'supplier' ? `${esc(m.staffName || 'Fournisseur')}${m.auto ? ' · automatique' : ''}` : esc(m.staffName || 'Kamwa')}</span>
+      <span class="who">${m.internal ? `${icon('note-pencil')} Note interne · ${esc(m.staffName || '')}` : m.from === 'customer' ? 'Client' : m.from === 'bot' ? 'Assistant automatique' : m.from === 'supplier' ? `${esc(m.staffName || 'Fournisseur')}${m.auto ? ' · automatique' : ''}` : esc(m.staffName || 'Zado')}</span>
       <div class="pb">${esc(m.text).replace(/\n/g, '<br>')}${(m.links || []).length ? `<div class="muted" style="margin-top:4px">${m.links.map((l) => esc(l.label)).join(' · ')}</div>` : ''}</div>
       <span class="t">${msgTime(m.at)}</span>
     </div>`;
@@ -2605,10 +2605,10 @@
     const match = (c, k) => k === 'all' || (k === 'todo' ? c.status === 'open' : c.status === k);
     const FILT = [['todo', 'À répondre'], ['bot', 'Avec l\'assistant'], ['closed', 'Terminées'], ['all', 'Toutes']];
     const rows = list.filter((c) => match(c, f));
-    app.innerHTML = pageHead({ title: 'Messagerie', desc: support ? "Les questions des clients (bulle « Aide » de la boutique). L'assistant automatique répond d'abord ; quand un client demande un conseiller, la conversation arrive dans « À répondre ». Le salon « Équipe Kamwa » sert à échanger entre vous." : 'Le salon « Équipe Kamwa » pour échanger avec toute l\'équipe.' }) + `
+    app.innerHTML = pageHead({ title: 'Messagerie', desc: support ? "Les questions des clients (bulle « Aide » de la boutique). L'assistant automatique répond d'abord ; quand un client demande un conseiller, la conversation arrive dans « À répondre ». Le salon « Équipe Zado » sert à échanger entre vous." : 'Le salon « Équipe Zado » pour échanger avec toute l\'équipe.' }) + `
       <div class="msg-layout ${id ? 'has-conv' : ''}">
         <aside class="msg-list">
-          <a class="msg-item team ${id === 'equipe' ? 'on' : ''}" href="#/messagerie/equipe">${icon('chats-circle-duotone')}<span><strong>Équipe Kamwa</strong><small>Salon interne de l'équipe</small></span><b class="n" id="teamUnread" hidden></b></a>
+          <a class="msg-item team ${id === 'equipe' ? 'on' : ''}" href="#/messagerie/equipe">${icon('chats-circle-duotone')}<span><strong>Équipe Zado</strong><small>Salon interne de l'équipe</small></span><b class="n" id="teamUnread" hidden></b></a>
           ${support ? `${tabsBar(FILT.map(([k, l]) => [k, l, list.filter((c) => match(c, k)).length]), f, 'mf')}
           ${rows.length ? rows.map((c) => `
             <a class="msg-item ${c.id === id ? 'on' : ''} ${c.unread ? 'unread' : ''}" href="#/messagerie/${enc(c.id)}">
@@ -2619,7 +2619,7 @@
           ${sups.length ? `<p class="msg-sep">${icon('storefront')} Fournisseurs</p>${sups.map((f) => `
             <a class="msg-item ${id === 'f-' + f.supplierId ? 'on' : ''} ${f.unread ? 'unread' : ''}" href="#/messagerie/f-${enc(f.supplierId)}">
               <span class="av sup">${esc((f.name || 'F')[0].toUpperCase())}</span>
-              <span><strong>${esc(f.name)}</strong><small>${f.lastText ? (f.lastFrom === 'staff' ? 'Kamwa : ' : '') + esc(f.lastText.slice(0, 70)) : 'Pas encore de message'}</small></span>
+              <span><strong>${esc(f.name)}</strong><small>${f.lastText ? (f.lastFrom === 'staff' ? 'Zado : ' : '') + esc(f.lastText.slice(0, 70)) : 'Pas encore de message'}</small></span>
               <span class="side"><em>${f.lastAt ? msgTime(f.lastAt) : ''}</em>${f.unread ? `<b class="n">${f.unread}</b>` : ''}</span>
             </a>`).join('')}` : ''}
         </aside>
@@ -2637,7 +2637,7 @@
       if (id) openConv(id, true);
     }, 4000);
   }
-  // Fil « Fournisseur ↔ Kamwa » vu par l'équipe (admin, commandes, catalogue)
+  // Fil « Fournisseur ↔ Zado » vu par l'équipe (admin, commandes, catalogue)
   async function openSupplierThread(sid, refresh) {
     let t;
     try { t = await api('/chat/suppliers/' + enc(sid)); } catch (err) { $('#msgConv').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; return; }
@@ -2654,18 +2654,18 @@
     bindReply(async (text) => { await api('/chat/suppliers/' + enc(sid) + '/messages', { method: 'POST', body: { text } }); state.supSig = null; await openSupplierThread(sid, true); });
     loadChatCounts();
   }
-  // Le fournisseur : son fil avec Kamwa (il ne voit ni les clients ni le salon de l'équipe)
+  // Le fournisseur : son fil avec Zado (il ne voit ni les clients ni le salon de l'équipe)
   async function viewSupplierChat(refresh) {
     let t;
     try { t = await api('/chat/kamwa'); } catch { return; }
     const sig = JSON.stringify(t.messages.length);
     if (refresh && sig === state.supSig) return;
     state.supSig = sig;
-    const thread = t.messages.length ? t.messages.map((m) => bubble(m, m.from === 'supplier')).join('') : '<p class="muted" style="text-align:center">Écrivez à Kamwa : une question sur une commande, un produit, un rendez-vous de récupération…</p>';
+    const thread = t.messages.length ? t.messages.map((m) => bubble(m, m.from === 'supplier')).join('') : '<p class="muted" style="text-align:center">Écrivez à Zado : une question sur une commande, un produit, un rendez-vous de récupération…</p>';
     if (refresh && $('#msgThread')) { $('#msgThread').innerHTML = thread; $('#msgThread').scrollTop = 1e9; loadChatCounts(); return; }
-    app.innerHTML = pageHead({ title: 'Messagerie', desc: 'Votre fil avec l\'équipe Kamwa. Quand vous cliquez « Prêt à récupérer » sur une commande, Kamwa est prévenu ici automatiquement.' }) + `
+    app.innerHTML = pageHead({ title: 'Messagerie', desc: 'Votre fil avec l\'équipe Zado. Quand vous cliquez « Prêt à récupérer » sur une commande, Zado est prévenu ici automatiquement.' }) + `
       <div class="msg-layout has-conv solo"><section class="msg-conv" id="msgConv">
-        <div class="msg-top"><div><strong>Kamwa</strong><br><span class="muted">Administration, commandes et catalogue</span></div></div>
+        <div class="msg-top"><div><strong>Zado</strong><br><span class="muted">Administration, commandes et catalogue</span></div></div>
         <div class="msg-thread" id="msgThread">${thread}</div>
         ${replyBox('supplier')}
       </section></div>`;
@@ -2728,7 +2728,7 @@
     const thread = t.messages.length ? t.messages.map((m) => bubble(m, m.userId === t.me)).join('') : '<p class="muted" style="text-align:center">Pas encore de message. Dites bonjour à l\'équipe !</p>';
     if (refresh && $('#msgThread')) { $('#msgThread').innerHTML = thread; $('#msgThread').scrollTop = 1e9; loadChatCounts(); return; }
     $('#msgConv').innerHTML = `
-      <div class="msg-top"><a class="ghost back" href="#/messagerie">${icon('caret-left')}</a><div><strong>Équipe Kamwa</strong><br><span class="muted">Salon interne : visible par toute l'équipe (pas par les fournisseurs ni les clients)</span></div></div>
+      <div class="msg-top"><a class="ghost back" href="#/messagerie">${icon('caret-left')}</a><div><strong>Équipe Zado</strong><br><span class="muted">Salon interne : visible par toute l'équipe (pas par les fournisseurs ni les clients)</span></div></div>
       <div class="msg-thread" id="msgThread">${thread}</div>
       ${replyBox(true)}`;
     $('#msgThread').scrollTop = 1e9;
@@ -2785,7 +2785,7 @@
     if (!state.user) return;
     const groups = navModel();
     const active = groups.find((g) => g.links.some((l) => l.on)) || null;
-    $('#rail').innerHTML = `<a class="rail-logo" href="#/tableau" title="Kamwa Pro"><img src="/brand/symbole-kamwa.svg?v=2" alt="Kamwa" width="34" height="34"></a>
+    $('#rail').innerHTML = `<a class="rail-logo" href="#/tableau" title="Zado Pro"><img src="/brand/symbole-zado.svg?v=3" alt="Zado" width="34" height="34"></a>
       ${groups.map((g) => { const n = g.links.reduce((s, l) => s + (parseInt(l.count, 10) || 0), 0); return `<a class="rail-item ${g === active ? 'on' : ''}" href="${esc(g.links[0].href)}" title="${esc(g.title)}">${icon(g.icon)}<span>${esc(g.title)}</span>${n ? `<i class="n">${n}</i>` : ''}</a>`; }).join('')}
       <div class="rail-foot">
         <a class="rail-item" href="/" target="_blank" rel="noopener" title="Voir la boutique">${icon('arrow-square-out-bold')}<span>Boutique</span></a>
@@ -2795,7 +2795,7 @@
     const links = active && !active.single ? active.links : [];
     $('#pills').innerHTML = links.length > 1 ? links.map((l) => `<a class="pill ${l.on ? 'on' : ''}" href="${esc(l.href)}">${esc(l.label)}${l.count ? ` <i class="n">${esc(l.count)}</i>` : ''}</a>`).join('') : '';
     const page = (active ? active.links.find((l) => l.on) : null);
-    $('#topTitle').textContent = active ? (active.single ? active.title : `${active.title}${page ? ' › ' + page.label : ''}`) : 'Kamwa Pro';
+    $('#topTitle').textContent = active ? (active.single ? active.title : `${active.title}${page ? ' › ' + page.label : ''}`) : 'Zado Pro';
     $('#rail').hidden = false; $('#topbar').hidden = false;
   }
   function renderTopbar() {

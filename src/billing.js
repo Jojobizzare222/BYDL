@@ -19,11 +19,11 @@ const METHOD_LABEL = { cash: 'Espèces', momo: 'Mobile Money', card: 'Carte banc
 const OPERATOR_METHOD = { mtn: 'momo', airtel: 'momo', card: 'card', cash: 'cash' };
 const OPERATOR_LABEL = { mtn: 'MTN Mobile Money', airtel: 'Airtel Money', card: 'Carte bancaire', cash: 'Espèces' };
 
-// ---------- Société (en-tête des documents) — Kamwa Pro → Réglages [admin] ----------
+// ---------- Société (en-tête des documents) — Zado Pro → Réglages [admin] ----------
 const TODO = 'À compléter';
 const COMPANY_DEFAULTS = {
-  name: 'Kamwa', legalForm: '', capital: '', rccm: '', niu: '',
-  address: '', city: 'Pointe-Noire', country: 'République du Congo', phone: '', email: '', website: 'kamwa.cg',
+  name: 'Zado', legalForm: '', capital: '', rccm: '', niu: '',
+  address: '', city: 'Pointe-Noire', country: 'République du Congo', phone: '', email: '', website: 'zado.cg',
   vatEnabled: false, vatRate: 18, vatExtra: 5, // TVA 18 % + centime additionnel (5 % de la TVA) : à confirmer par le comptable
   vatNote: 'Prix toutes taxes comprises.',
   footer: 'Merci pour votre confiance. Conservez ce document : il vous sera demandé pour tout retour ou garantie.',
@@ -219,7 +219,7 @@ const fcfa = (n) => `${Math.round(n || 0).toLocaleString('fr-FR').replace(/[ �
 const dateFr = (iso, time) => (iso ? new Date(iso).toLocaleString('fr-FR', { timeZone: 'Africa/Brazzaville', day: '2-digit', month: '2-digit', year: 'numeric', ...(time ? { hour: '2-digit', minute: '2-digit' } : {}) }) : '');
 let LOGO = null;
 const logo = () => {
-  if (LOGO === null) { try { LOGO = fs.readFileSync(path.join(__dirname, '..', 'public', 'brand', 'logo-kamwa.svg'), 'utf8').replace(/<\?xml[^>]*>/, ''); } catch { LOGO = '<strong>Kamwa</strong>'; } }
+  if (LOGO === null) { try { LOGO = fs.readFileSync(path.join(__dirname, '..', 'public', 'brand', 'logo-zado.svg'), 'utf8').replace(/<\?xml[^>]*>/, ''); } catch { LOGO = '<strong>Zado</strong>'; } }
   return LOGO;
 };
 const todo = (v) => (v ? esc(v) : `<span class="todo">${TODO}</span>`);
@@ -333,7 +333,7 @@ ${ticket ? '@media print { @page { size: 80mm auto; margin: 3mm; } }' : ''}
 <body class="${ticket ? 'ticket' : ''}">
 <div class="bar"><button class="main" onclick="window.print()">Imprimer / Enregistrer en PDF</button>
   <a href="?${new URLSearchParams({ ...(admin ? {} : { k: d.token }), format: ticket ? 'a4' : 'ticket' })}">${ticket ? 'Format A4' : 'Format ticket (80 mm)'}</a></div>
-${admin && missing ? `<div class="warn">Informations de la société incomplètes (RCCM, NIU, adresse…) : à remplir dans Kamwa Pro → Réglages → « Société ». Ce document les gardera telles qu'au jour de son émission.</div>` : ''}
+${admin && missing ? `<div class="warn">Informations de la société incomplètes (RCCM, NIU, adresse…) : à remplir dans Zado Pro → Réglages → « Société ». Ce document les gardera telles qu'au jour de son émission.</div>` : ''}
 <div class="sheet">
   <div class="head">${companyBlock(c)}
     <div class="doc"><h1>${esc(title)}</h1><div class="num">N° ${esc(d.number)}</div><div class="date">Émis le ${dateFr(d.issuedAt, d.type === 'receipt')}</div>

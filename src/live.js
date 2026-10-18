@@ -33,7 +33,7 @@ async function fetchRoute(from, to) {
   const url = `${base}/route/v1/driving/${from.lng},${from.lat};${to.lng},${to.lat}?overview=full&geometries=geojson`;
   const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 4000);
   try {
-    const r = await fetch(url, { signal: ctl.signal, headers: { 'User-Agent': 'Kamwa-suivi/1.0' } });
+    const r = await fetch(url, { signal: ctl.signal, headers: { 'User-Agent': 'Zado-suivi/1.0' } });
     const j = await r.json();
     const rt = j?.routes?.[0];
     if (!rt?.geometry?.coordinates?.length) return null;

@@ -1,4 +1,4 @@
-// Comptes clients : identifiant = numéro de téléphone OU e-mail + code Kamwa à 6 chiffres attribué par le site.
+// Comptes clients : identifiant = numéro de téléphone OU e-mail + code Zado à 6 chiffres attribué par le site.
 //  - le code n'est jamais stocké en clair (empreinte scrypt) ; il n'est montré qu'une fois, à la création ;
 //  - le code seul ne suffit pas (900 000 possibilités) : il faut aussi le numéro ou l'e-mail ;
 //  - 5 essais ratés sur un compte => compte bloqué 15 minutes ; 20 essais ratés depuis une même adresse => 15 minutes.
@@ -115,7 +115,7 @@ function assignNewCode(customerId) {
   db.prepare('DELETE FROM customer_sessions WHERE customer_id = ?').run(customerId); // déconnecte les anciens appareils
   failures.delete('acc:' + customerId);
   // Alerte de sécurité sur les téléphones du client (jamais le code lui-même)
-  require('../push').notifyCustomer(customerId, 'Votre code Kamwa a changé', "Si ce n'est pas vous, écrivez-nous tout de suite dans « Aide ».", '/#/compte/reglages', 'kamwa-securite');
+  require('../push').notifyCustomer(customerId, 'Votre code Zado a changé', "Si ce n'est pas vous, écrivez-nous tout de suite dans « Aide ».", '/#/compte/reglages', 'zado-securite');
   return code;
 }
 

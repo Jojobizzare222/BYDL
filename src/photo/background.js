@@ -1,5 +1,5 @@
 // Détourage automatique des photos produits : retire l'arrière-plan et pose le produit, centré, sur un fond blanc.
-// Tout se passe sur le serveur Kamwa (aucun service extérieur, aucun coût par photo) :
+// Tout se passe sur le serveur Zado (aucun service extérieur, aucun coût par photo) :
 //  - modèle ISNet « general use » (DIS, licence Apache 2.0, fichier diffusé par le projet rembg) ;
 //  - exécuté avec onnxruntime-web (WebAssembly, licence MIT) et préparé avec sharp (Apache 2.0) ;
 //  - le modèle (~170 Mo) n'est pas dans GitHub : il est téléchargé au premier usage, puis son empreinte SHA-256

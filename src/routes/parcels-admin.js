@@ -1,4 +1,4 @@
-// Kamwa Pro → Colis (/api/admin/parcels) : liste, scan (recherche par numéro ou QR), étapes, étiquettes.
+// Zado Pro → Colis (/api/admin/parcels) : liste, scan (recherche par numéro ou QR), étapes, étiquettes.
 // Employé Commandes / admin : tout. Livreur : seulement les colis des commandes qui lui sont confiées (« Je prends le colis »).
 const crypto = require('crypto');
 const router = require('express').Router();

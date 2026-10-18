@@ -1,4 +1,4 @@
-// Règles de vente (décision Joseph 16/10/2026), réglables dans Kamwa Pro → Réglages :
+// Règles de vente (décision Joseph 16/10/2026), réglables dans Zado Pro → Réglages :
 //  - accountRequired : il faut un compte client dont la pièce d'identité a été VÉRIFIÉE par l'admin pour commander ;
 //  - methods : moyens de paiement proposés. Par défaut, SEULEMENT les espèces en agence ; le client choisit ensuite
 //    de retirer sa commande à l'agence ou de se faire livrer. Les autres moyens restent dans le code, désactivés.

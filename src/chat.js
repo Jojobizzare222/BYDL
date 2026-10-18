@@ -1,11 +1,11 @@
-// Messagerie Kamwa (décision Joseph 16/10/2026 : « pas besoin d'outils externes ») :
+// Messagerie Zado (décision Joseph 16/10/2026 : « pas besoin d'outils externes ») :
 //  - côté boutique, une bulle « Aide » : un ASSISTANT AUTOMATIQUE répond tout de suite aux questions courantes
 //    (mots-clés, aucune IA payante, aucune donnée envoyée ailleurs) ; le client peut demander un CONSEILLER ;
-//  - côté Kamwa Pro, une « Messagerie » : les conversations des clients (admin + employés Commandes) et un salon
-//    interne « Équipe Kamwa » (toute l'équipe, sauf les fournisseurs, qui sont externes).
+//  - côté Zado Pro, une « Messagerie » : les conversations des clients (admin + employés Commandes) et un salon
+//    interne « Équipe Zado » (toute l'équipe, sauf les fournisseurs, qui sont externes).
 // Les messages sont rangés dans la conversation (collection `conversations`, 500 derniers messages gardés).
 const crypto = require('crypto');
-// Frais de livraison réels (Kamwa Pro → Réglages) pour la réponse « livraison »
+// Frais de livraison réels (Zado Pro → Réglages) pour la réponse « livraison »
 function feesLine() {
   const f = require('./fees').feeSettings();
   const fm = (n) => new Intl.NumberFormat('fr-FR').format(n) + ' FCFA';
@@ -71,7 +71,7 @@ function botAnswer(text, { customer, conv }) {
   const sales = salesSettings();
   const cashOnly = sales.methods.cash && !sales.methods.momo && !sales.methods.card && !sales.methods.cod;
   switch (intent) {
-    case 'hello': return { text: `Mbote${customer ? ' ' + customer.name.split(' ')[0] : ''} ! Je suis l'assistant Kamwa. Que puis-je faire pour vous ?`, quick: MENU };
+    case 'hello': return { text: `Mbote${customer ? ' ' + customer.name.split(' ')[0] : ''} ! Je suis l'assistant Zado. Que puis-je faire pour vous ?`, quick: MENU };
     case 'thanks': return { text: 'Avec plaisir ! Autre chose ?', quick: MENU };
     case 'human': return { handoff: true, text: '' };
     case 'delivery': return { text: `Livraison rapide à Pointe-Noire (les autres villes ne sont pas encore livrées).\n${feesLine()}\nVous pouvez aussi retirer votre commande gratuitement dans un point relais.\nÀ la livraison, donnez votre code de livraison au livreur seulement quand vous avez le colis en main.`, quick: ['Paiement', 'Points relais', 'Ma commande', 'Parler à un conseiller'] };
@@ -80,10 +80,10 @@ function botAnswer(text, { customer, conv }) {
       : `Moyens de paiement proposés : ${Object.entries(sales.methods).filter(([, v]) => v).map(([k]) => ({ cash: 'espèces en agence', momo: 'Mobile Money (MTN, Airtel)', card: 'carte bancaire', cod: 'paiement à la réception' })[k]).join(', ')}.`,
       quick: ['Points relais', 'Livraison', 'Parler à un conseiller'] };
     case 'agency': return { text: `Nos points relais :\n${agencyList()}`, quick: ['Paiement', 'Livraison', 'Parler à un conseiller'] };
-    case 'account': return { text: `Pour commander, il faut un compte Kamwa vérifié : créez-le avec votre numéro (ou e-mail) et la photo de votre pièce d'identité (passeport, CNI ou NIU). Kamwa la vérifie, en général sous 24 h.\nVous vous connectez ensuite avec votre numéro + votre code Kamwa à 6 chiffres.\nCode oublié ? Demandez un conseiller : il vous en donnera un nouveau.`,
+    case 'account': return { text: `Pour commander, il faut un compte Zado vérifié : créez-le avec votre numéro (ou e-mail) et la photo de votre pièce d'identité (passeport, CNI ou NIU). Zado la vérifie, en général sous 24 h.\nVous vous connectez ensuite avec votre numéro + votre code Zado à 6 chiffres.\nCode oublié ? Demandez un conseiller : il vous en donnera un nouveau.`,
       links: customer ? [{ label: 'Mon compte', href: '#/compte' }] : [{ label: 'Créer mon compte', href: '#/compte/creer' }, { label: 'Me connecter', href: '#/compte' }], quick: ['Parler à un conseiller', 'Paiement'] };
     case 'identity': {
-      if (!customer) return { text: "Kamwa vérifie la pièce d'identité de chaque client (passeport, CNI ou NIU) avant sa première commande, pour lutter contre les fausses commandes. Connectez-vous pour voir où en est la vôtre.", links: [{ label: 'Me connecter', href: '#/compte' }], quick: ['Mon compte', 'Parler à un conseiller'] };
+      if (!customer) return { text: "Zado vérifie la pièce d'identité de chaque client (passeport, CNI ou NIU) avant sa première commande, pour lutter contre les fausses commandes. Connectez-vous pour voir où en est la vôtre.", links: [{ label: 'Me connecter', href: '#/compte' }], quick: ['Mon compte', 'Parler à un conseiller'] };
       const st = customer.idStatus || 'missing';
       const msg = { verified: 'Votre pièce est vérifiée : vous pouvez commander.', pending: "Votre pièce est en cours de vérification (en général sous 24 h). Vous serez prévenu sur votre compte dès qu'elle sera validée.",
         rejected: `Votre pièce a été refusée${customer.idRejectReason ? ' : ' + customer.idRejectReason : ''}. Envoyez une nouvelle photo depuis votre compte.`, missing: "Vous n'avez pas encore envoyé votre pièce d'identité : ajoutez-la depuis votre compte." }[st];
@@ -102,20 +102,20 @@ function botAnswer(text, { customer, conv }) {
       const misses = (conv?.botMisses || 0) + 1;
       conversations.update(conv.id, { botMisses: misses });
       return misses >= 2
-        ? { text: "Je ne suis qu'un assistant et je n'ai pas compris. Voulez-vous parler à un conseiller Kamwa ?", quick: ['Parler à un conseiller', ...MENU.slice(0, 3)] }
+        ? { text: "Je ne suis qu'un assistant et je n'ai pas compris. Voulez-vous parler à un conseiller Zado ?", quick: ['Parler à un conseiller', ...MENU.slice(0, 3)] }
         : { text: "Je n'ai pas bien compris. Choisissez un sujet ou reformulez votre question :", quick: MENU };
     }
   }
 }
 
-const WELCOME = { from: 'bot', text: "Mbote ! Je suis l'assistant Kamwa. Posez votre question ou choisissez un sujet. Un conseiller peut aussi prendre le relais.", quick: MENU };
+const WELCOME = { from: 'bot', text: "Mbote ! Je suis l'assistant Zado. Posez votre question ou choisissez un sujet. Un conseiller peut aussi prendre le relais.", quick: MENU };
 
 // ---------- Salon de l'équipe ----------
 function teamConversation() {
-  return conversations.get(TEAM_ID) || conversations.insert({ id: TEAM_ID, kind: 'team', title: 'Équipe Kamwa', messages: [], reads: {}, createdAt: new Date().toISOString() });
+  return conversations.get(TEAM_ID) || conversations.insert({ id: TEAM_ID, kind: 'team', title: 'Équipe Zado', messages: [], reads: {}, createdAt: new Date().toISOString() });
 }
 
-// Fil « Fournisseur ↔ Kamwa » : un par fournisseur (identifiant fixe)
+// Fil « Fournisseur ↔ Zado » : un par fournisseur (identifiant fixe)
 const supplierConvId = (supplierId) => 'SUP-' + supplierId;
 function supplierThread(u) {
   return conversations.get(supplierConvId(u.id)) || conversations.insert({ id: supplierConvId(u.id), kind: 'supplier', supplierId: u.id, title: u.company || u.name, messages: [], reads: {}, unreadStaff: 0, createdAt: new Date().toISOString() });

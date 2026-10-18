@@ -26,7 +26,7 @@ function findConv(req) {
   return { customer, token, conv: mine.sort((a, b) => (a.lastAt < b.lastAt ? 1 : -1))[0] || null };
 }
 // Ce que voit le client : jamais les notes internes, prénom seulement pour l'équipe
-const publicMessage = ({ id, at, from, text, quick, links, staffName }) => ({ id, at, from, text, quick, links, staffName: from === 'staff' ? String(staffName || 'Kamwa').split(' ')[0] : undefined });
+const publicMessage = ({ id, at, from, text, quick, links, staffName }) => ({ id, at, from, text, quick, links, staffName: from === 'staff' ? String(staffName || 'Zado').split(' ')[0] : undefined });
 const publicConv = (c) => (c ? { id: c.id, status: c.status, unread: c.unreadCustomer || 0, messages: (c.messages || []).filter((m) => !m.internal).map(publicMessage) } : null);
 
 router.get('/', (req, res) => {
@@ -59,12 +59,12 @@ router.post('/messages', (req, res) => {
   res.status(201).json({ conversation: publicConv(conv), token: newToken });
 });
 
-// Passage à un conseiller : la conversation arrive dans Kamwa Pro (Messagerie) + alerte
+// Passage à un conseiller : la conversation arrive dans Zado Pro (Messagerie) + alerte
 function handoff(conv, customer) {
   if (conv.status === 'open') return conv;
   conv = conversations.update(conv.id, { status: 'open', handoffAt: new Date().toISOString(), unreadStaff: Math.max(1, conv.unreadStaff || 0) });
   const who = customer || conv.phone ? '' : " Indiquez votre nom et votre numéro ci-dessous pour qu'il puisse vous recontacter.";
-  conv = chat.addMessage(conv, { from: 'bot', text: `C'est noté : un conseiller Kamwa vous répond ici dès que possible (du lundi au samedi, en journée).${who}` }).conv;
+  conv = chat.addMessage(conv, { from: 'bot', text: `C'est noté : un conseiller Zado vous répond ici dès que possible (du lundi au samedi, en journée).${who}` }).conv;
   notifyChat(conv);
   return conv;
 }

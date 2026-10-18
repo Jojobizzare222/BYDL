@@ -1,11 +1,11 @@
-// Frais de livraison par ville et par quartier (audit du 17/10/2026), réglables dans Kamwa Pro → Réglages [admin].
+// Frais de livraison par ville et par quartier (audit du 17/10/2026), réglables dans Zado Pro → Réglages [admin].
 //  - chaque ville a un tarif ; des quartiers peuvent avoir leur propre tarif (zone éloignée…) ;
 //  - « Autre ville » : livraison acceptée ou non, avec son tarif ;
 //  - livraison offerte à partir d'un montant d'achat (0 = jamais) ;
 //  - retrait au point relais : toujours gratuit.
 // Le montant est TOUJOURS calculé ici, côté serveur, au moment du paiement (jamais repris du navigateur).
 // Par défaut (décision Joseph 18/10/2026) : livraison à POINTE-NOIRE SEULEMENT, autres villes refusées (retrait au point
-// relais possible partout où il y en a) ; 0 FCFA en attendant les vrais montants. Nouvelles villes : Kamwa Pro → Réglages.
+// relais possible partout où il y en a) ; 0 FCFA en attendant les vrais montants. Nouvelles villes : Zado Pro → Réglages.
 const { settings } = require('./store');
 
 const DEFAULTS = {
@@ -27,7 +27,7 @@ function feeSettings() {
   } catch { return JSON.parse(JSON.stringify(DEFAULTS)); }
 }
 
-/** Contrôle et enregistre les tarifs saisis dans Kamwa Pro. */
+/** Contrôle et enregistre les tarifs saisis dans Zado Pro. */
 function saveFeeSettings(input) {
   const cities = [];
   const seen = new Set();

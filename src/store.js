@@ -1,4 +1,4 @@
-// Stockage dans une base SQLite (un seul fichier : data/baydel.db — nom historique, d'avant Kamwa), intégrée à Node.js, rien à installer.
+// Stockage dans une base SQLite (un seul fichier : data/baydel.db — nom historique, d'avant Zado), intégrée à Node.js, rien à installer.
 // Chaque collection est une table (id + document JSON) : les routes gardent la même interface qu'avant.
 // Au premier démarrage, le contenu de data/products.json (et des anciens orders.json / payments.json) est importé.
 // Ensuite, c'est la base qui fait foi : les produits se modifient depuis l'espace admin, plus dans products.json.
@@ -97,7 +97,7 @@ module.exports = {
   staff: createCollection('staff'), // équipe et fournisseurs (comptes de l'espace d'administration)
   activity: createCollection('activity'), // journal : qui a fait quoi
   pushSubs: createCollection('push_subs'), // notifications sur le téléphone : abonnements des clients (aucune donnée personnelle hors lien compte / commandes)
-  conversations: createCollection('conversations'), // messagerie : conversations clients (assistant + équipe) et salon « Équipe Kamwa »
+  conversations: createCollection('conversations'), // messagerie : conversations clients (assistant + équipe) et salon « Équipe Zado »
   purchases: createCollection('purchases'), // bons de commande fournisseurs (BC-…) : lignes, réceptions, facture fournisseur
   stockMoves: createCollection('stock_moves'), // mouvements de stock : réceptions, ventes, annulations, corrections, inventaires
   parcels: createCollection('parcels'), // colis : numéro KM-…, étapes (préparé, livreur, point relais, remis), historique des scans

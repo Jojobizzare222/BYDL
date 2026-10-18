@@ -1,13 +1,13 @@
-// Mode maintenance de la boutique (décision Joseph 18/10/2026), activé depuis Kamwa Pro → Réglages [admin] :
+// Mode maintenance de la boutique (décision Joseph 18/10/2026), activé depuis Zado Pro → Réglages [admin] :
 //  - à l'ouverture de la boutique, les clients voient un écran avec le message choisi (et l'heure de retour prévue) ;
 //  - pendant la maintenance, le serveur refuse les NOUVELLES commandes, les nouvelles demandes de paiement et les
 //    créations de compte (503) ; restent possibles : consulter, suivre une commande, se connecter, écrire à l'Aide,
 //    et les retours des opérateurs de paiement (callbacks) pour ne perdre aucun paiement déjà en cours ;
-//  - Kamwa Pro n'est jamais bloqué ; un bandeau rappelle à l'équipe que la boutique est fermée.
+//  - Zado Pro n'est jamais bloqué ; un bandeau rappelle à l'équipe que la boutique est fermée.
 // Changement signalé tout de suite aux boutiques ouvertes (flux /api/events, sujet « maintenance »).
 const { settings } = require('./store');
 
-const DEFAULT_MESSAGE = 'Kamwa fait peau neuve ! Notre boutique est en maintenance pour quelques instants. Revenez très vite.';
+const DEFAULT_MESSAGE = 'Zado fait peau neuve ! Notre boutique est en maintenance pour quelques instants. Revenez très vite.';
 
 function get() {
   try {

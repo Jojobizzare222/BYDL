@@ -1,7 +1,7 @@
 // Avis clients (audit du 17/10/2026) :
 //  - seul un client CONNECTÉ qui a REÇU le produit (commande livrée sur son compte) peut donner un avis : « Achat vérifié » ;
 //  - un avis par client et par produit (il peut le modifier) ; note de 1 à 5 + commentaire facultatif ;
-//  - publié tout de suite ; l'admin ou l'employé Catalogue peut le masquer (et le réafficher) depuis Kamwa Pro ;
+//  - publié tout de suite ; l'admin ou l'employé Catalogue peut le masquer (et le réafficher) depuis Zado Pro ;
 //  - sur la boutique : prénom + initiale du nom seulement, jamais le téléphone ni l'e-mail.
 const crypto = require('crypto');
 const { reviews, orders, products } = require('./store');

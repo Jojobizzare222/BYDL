@@ -1,6 +1,6 @@
 // Notifications de suivi sur le téléphone (Android et iPhone), sans application à installer depuis un store :
-// norme « Web Push » des navigateurs. iPhone : il faut avoir ajouté Kamwa à l'écran d'accueil (iOS 16.4 ou plus).
-// Clés VAPID créées une fois par Kamwa et gardées dans la base (ou dans .env : VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY).
+// norme « Web Push » des navigateurs. iPhone : il faut avoir ajouté Zado à l'écran d'accueil (iOS 16.4 ou plus).
+// Clés VAPID créées une fois par Zado et gardées dans la base (ou dans .env : VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY).
 // Envoyé à chaque étape d'une commande (payée, en route, livreur tout près, livrée…), pièce vérifiée, réponse d'un conseiller.
 // La notification ne contient jamais de donnée sensible (pas d'adresse, pas de code de livraison).
 const crypto = require('crypto');
@@ -19,7 +19,7 @@ let ready = false;
 function setup() {
   if (ready) return;
   const k = keys();
-  webpush.setVapidDetails(`mailto:${process.env.VAPID_CONTACT || 'contact@kamwa.cg'}`, k.publicKey, k.privateKey);
+  webpush.setVapidDetails(`mailto:${process.env.VAPID_CONTACT || 'contact@zado.cg'}`, k.publicKey, k.privateKey);
   ready = true;
 }
 const publicKey = () => keys().publicKey;
@@ -42,7 +42,7 @@ function subscribe(sub, { customerId = null, orderId = null } = {}) {
 async function sendTo(subs, payload) {
   if (!subs.length) return 0;
   setup();
-  const body = JSON.stringify({ icon: '/brand/icone-192.png?v=2', badge: '/brand/favicon-32.png?v=2', ...payload });
+  const body = JSON.stringify({ icon: '/brand/icone-192.png?v=3', badge: '/brand/favicon-32.png?v=3', ...payload });
   let sent = 0;
   await Promise.all(subs.map(async (s) => {
     try { await webpush.sendNotification({ endpoint: s.endpoint, keys: s.keys }, body, { TTL: 3600, urgency: payload.urgent ? 'high' : 'normal' }); sent++; }
@@ -70,8 +70,8 @@ const STAGE_TEXT = {
   shipped: () => ['Votre colis est en route 🛵', 'Suivez votre livreur en direct sur la carte.'],
   near: () => ['Votre livreur arrive !', 'Il est à moins de 2 minutes. Préparez votre code de livraison.'],
   arrived: () => ['Votre livreur est arrivé', 'Il vous attend. Donnez votre code seulement quand vous avez le colis en main.'],
-  delivered: (o) => [o.fulfillment === 'pickup' ? 'Commande retirée ✓' : 'Commande livrée ✓', 'Merci pour votre confiance. À bientôt sur Kamwa !'],
-  cancelled: () => ['Commande annulée', 'Ouvrez Kamwa pour voir le détail.'],
+  delivered: (o) => [o.fulfillment === 'pickup' ? 'Commande retirée ✓' : 'Commande livrée ✓', 'Merci pour votre confiance. À bientôt sur Zado !'],
+  cancelled: () => ['Commande annulée', 'Ouvrez Zado pour voir le détail.'],
 };
 function orderStage(order, stage) {
   const f = STAGE_TEXT[stage];
@@ -80,7 +80,7 @@ function orderStage(order, stage) {
   return notifyOrder(order, title, `${order.id} · ${body}`, { urgent: stage === 'near' || stage === 'arrived' });
 }
 
-// Branché une fois au démarrage : chaque changement d'étape d'une commande (où qu'il se fasse dans Kamwa)
+// Branché une fois au démarrage : chaque changement d'étape d'une commande (où qu'il se fasse dans Zado)
 // envoie la notification correspondante, sans rien oublier.
 function watchOrders() {
   const { orders } = require('./store');

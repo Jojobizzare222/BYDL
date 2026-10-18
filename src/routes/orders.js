@@ -60,15 +60,15 @@ const distanceKm = (a, b) => {
   return 2 * R * Math.asin(Math.sqrt(h));
 };
 
-// Règle de vente : compte client avec pièce d'identité VÉRIFIÉE par Kamwa (réglable dans Kamwa Pro → Réglages).
+// Règle de vente : compte client avec pièce d'identité VÉRIFIÉE par Zado (réglable dans Zado Pro → Réglages).
 // Renvoie null si le client peut commander, sinon la réponse d'erreur à envoyer.
 function accountGate(account) {
   if (!salesSettings().accountRequired) return null;
-  if (!account) return { status: 401, body: { error: 'Connectez-vous ou créez votre compte Kamwa pour commander', needAccount: true } };
+  if (!account) return { status: 401, body: { error: 'Connectez-vous ou créez votre compte Zado pour commander', needAccount: true } };
   const st = idStatus(account);
   if (st === 'verified') return null;
   const why = { missing: "Ajoutez la photo de votre pièce d'identité dans « Mon compte » pour pouvoir commander.",
-    pending: "Votre pièce d'identité est en cours de vérification par Kamwa. Vous pourrez commander dès qu'elle sera validée.",
+    pending: "Votre pièce d'identité est en cours de vérification par Zado. Vous pourrez commander dès qu'elle sera validée.",
     rejected: "Votre pièce d'identité a été refusée. Envoyez une nouvelle photo depuis « Mon compte »." }[st];
   return { status: 403, body: { error: why, idStatus: st } };
 }

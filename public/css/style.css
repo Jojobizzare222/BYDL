@@ -1,8 +1,8 @@
-/* Kamwa — design « Éclat moderne » (16/10/2026) : base claire et aérée, identité Kamwa affirmée.
+/* Zado — design « Éclat moderne » (16/10/2026) : base claire et aérée, identité Zado affirmée.
    Couleurs de la marque dosées : violet nuit (boutons, carrousel), corail (promos), mangue (badges, détails).
    Arrière-plan : formes géométriques qui bougent lentement (désactivées si l'appareil demande moins d'animations).
    Police : celle du système sur iPhone/Mac (San Francisco), Inter (libre, hébergée ici) ailleurs. */
-/* Police : IBM Plex Sans (libre, licence OFL — public/fonts/OFL-ibm-plex.txt), hébergée sur Kamwa : sobre et professionnelle */
+/* Police : IBM Plex Sans (libre, licence OFL — public/fonts/OFL-ibm-plex.txt), hébergée sur Zado : sobre et professionnelle */
 @font-face { font-family: 'IBM Plex Sans'; src: url('/fonts/ibm-plex-sans-latin-wght-normal.woff2') format('woff2-variations'), url('/fonts/ibm-plex-sans-latin-wght-normal.woff2') format('woff2'); font-weight: 100 700; font-style: normal; font-display: swap;
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
 @font-face { font-family: 'IBM Plex Sans'; src: url('/fonts/ibm-plex-sans-latin-ext-wght-normal.woff2') format('woff2-variations'), url('/fonts/ibm-plex-sans-latin-ext-wght-normal.woff2') format('woff2'); font-weight: 100 700; font-style: normal; font-display: swap;
@@ -17,7 +17,7 @@
   --soft: #F4F2FA;         /* fonds des vignettes */
   --line: #DCD8EA;
   --line-soft: #ECE9F5;
-  --brand: #2D1B69;        /* violet nuit Kamwa */
+  --brand: #2D1B69;        /* violet nuit Zado */
   --brand-2: #4B2FB0;
   --link: #5236C9;
   --accent: #FF5A3C;       /* corail */
@@ -75,7 +75,7 @@ button { font: inherit; letter-spacing: inherit; }
 
 .demo-strip { background: var(--ink); color: var(--mango); text-align: center; font-size: .78rem; font-weight: 600; padding: 8px 16px; }
 
-/* ---------- En-tête Kamwa : bande violette + bande des rayons, liseré violet→corail→mangue ---------- */
+/* ---------- En-tête Zado : bande violette + bande des rayons, liseré violet→corail→mangue ---------- */
 .header { position: sticky; top: 0; z-index: 20; color: #fff; box-shadow: 0 6px 18px rgba(45,27,105,.18); }
 .header::after { content: ''; display: block; height: 3px; background: linear-gradient(90deg, var(--brand-2), var(--accent) 55%, var(--mango)); }
 .hdr-top { background: radial-gradient(120% 180% at 0% 0%, #3A2585 0%, var(--brand) 45%, #241456 100%); }
@@ -313,7 +313,7 @@ main { max-width: 1180px; margin: 0 auto; padding: 20px 20px 40px; min-height: 6
 .pc-mango .ic { background: rgba(255,255,255,.5); color: var(--brand-text); } .pc-mango .go { background: var(--brand); color: #fff; }
 .pc-mango::after { background: rgba(255,90,60,.16); }
 
-/* Pourquoi Kamwa */
+/* Pourquoi Zado */
 .reassure { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
 .reassure > div { background: var(--paper); border: 1px solid var(--line-soft); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); }
 .reassure .ic { width: 50px; height: 50px; border-radius: 16px; display: grid; place-items: center; font-size: 1.5rem; margin-bottom: 14px; }
@@ -896,13 +896,13 @@ html[data-motion="reduce"] .bg-shapes, html[data-saver="on"] .bg-shapes { displa
 .doc-open { flex: none; display: inline-flex; align-items: center; gap: 4px; font-size: .85rem; font-weight: 600; color: var(--link); }
 .doc-hint { display: flex; align-items: center; gap: 6px; color: var(--brand-text); }
 @media (max-width: 420px) { .doc-open { font-size: 0; gap: 0; } .doc-open .ico { font-size: 1.1rem; } }
-/* Badge « identité vérifiée » : sceau Kamwa à côté du nom */
+/* Badge « identité vérifiée » : sceau Zado à côté du nom */
 .vbadge { width: 1.05em; height: 1.05em; flex: none; display: inline-block; vertical-align: -.14em; margin-left: .3em; --vb: #5B3FE0; --vb-check: #fff; }
 .vbadge .vb-seal { fill: var(--vb); stroke: var(--vb); stroke-width: 1.2; stroke-linejoin: round; }
 .vbadge .vb-check { fill: none; stroke: var(--vb-check); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
 .acc-head .vbadge, .site-header .vbadge, .menu-hello .vbadge, #accountHello .vbadge, #menuHello .vbadge { --vb: #A08BFF; --vb-check: #1E1247; }
 .acc-head h1 .vbadge { width: .9em; height: .9em; }
-/* Nouveau code Kamwa : carte animée */
+/* Nouveau code Zado : carte animée */
 .code-reveal { position: relative; overflow: hidden; margin: 12px 0 4px; padding: 18px; border-radius: 20px; color: #fff; background: radial-gradient(140% 160% at 0% 0%, #5B3FE0, #2D1B69 55%, #1E1247); box-shadow: 0 18px 40px rgba(45,27,105,.25); animation: cr-in .45s cubic-bezier(.2,.8,.2,1) both; }
 #codeForm[hidden] { display: none; }
 .cr-head { display: flex; align-items: center; gap: 12px; }

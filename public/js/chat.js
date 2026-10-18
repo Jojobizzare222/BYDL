@@ -1,4 +1,4 @@
-// Kamwa — bulle « Aide » : assistant automatique + conseillers Kamwa (messagerie interne, aucun outil externe).
+// Zado — bulle « Aide » : assistant automatique + conseillers Zado (messagerie interne, aucun outil externe).
 // Le visiteur sans compte est reconnu par une clé secrète gardée sur ce téléphone (kamwa-chat), jamais dans l'adresse.
 (() => {
   const KEY = 'kamwa-chat';
@@ -15,10 +15,10 @@
 
   document.body.insertAdjacentHTML('beforeend', `
     <button class="chat-fab" id="chatFab" aria-label="Aide : poser une question">${ico('chat-circle-dots-fill')}<span>Aide</span><b class="chat-badge" id="chatBadge" hidden></b></button>
-    <section class="chat-panel" id="chatPanel" hidden aria-label="Messagerie Kamwa">
+    <section class="chat-panel" id="chatPanel" hidden aria-label="Messagerie Zado">
       <header class="chat-head">
-        <img src="/brand/symbole-kamwa.svg?v=2" alt="" width="34" height="34">
-        <div><strong>Aide Kamwa</strong><small id="chatState">Assistant · réponse immédiate</small></div>
+        <img src="/brand/symbole-zado.svg?v=3" alt="" width="34" height="34">
+        <div><strong>Aide Zado</strong><small id="chatState">Assistant · réponse immédiate</small></div>
         <button class="chat-x" id="chatClose" aria-label="Fermer">${ico('x-bold')}</button>
       </header>
       <div class="chat-body" id="chatBody" aria-live="polite"></div>
@@ -44,13 +44,13 @@
     const last = msgs[msgs.length - 1];
     body.innerHTML = msgs.map((m) => `
       <div class="msg ${m.from}">
-        ${m.from === 'staff' ? `<span class="who">${esc(m.staffName || 'Kamwa')} · conseiller Kamwa</span>` : m.from === 'bot' ? '<span class="who">Assistant Kamwa</span>' : ''}
+        ${m.from === 'staff' ? `<span class="who">${esc(m.staffName || 'Zado')} · conseiller Zado</span>` : m.from === 'bot' ? '<span class="who">Assistant Zado</span>' : ''}
         <div class="bubble">${fmt(m.text)}${(m.links || []).length ? `<div class="msg-links">${m.links.map((l) => `<a href="${esc(l.href)}" data-chat-link>${esc(l.label)} ${ico('caret-right')}</a>`).join('')}</div>` : ''}</div>
         <span class="t">${time(m.at)}</span>
       </div>`).join('')
       + (last?.from === 'bot' && last.quick?.length && conv?.status !== 'open' ? `<div class="quick">${last.quick.map((q) => `<button type="button" data-q="${esc(q)}">${esc(q)}</button>`).join('')}</div>` : '')
       ;
-    document.getElementById('chatState').textContent = conv?.status === 'open' ? 'Un conseiller Kamwa vous répond ici' : conv?.status === 'closed' ? 'Conversation terminée' : 'Assistant · réponse immédiate';
+    document.getElementById('chatState').textContent = conv?.status === 'open' ? 'Un conseiller Zado vous répond ici' : conv?.status === 'closed' ? 'Conversation terminée' : 'Assistant · réponse immédiate';
     if (msgs.length !== shownCount) { body.scrollTop = body.scrollHeight; shownCount = msgs.length; }
   }
   function setBadge() {

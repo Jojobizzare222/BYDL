@@ -30,7 +30,7 @@ function moveStock(productId, delta, { reason, ref = null, by = null, note = '',
   stockMoves.insert({
     id: 'MV-' + crypto.randomBytes(6).toString('hex'), at: new Date().toISOString(),
     productId, name: p.name, qty: applied, before, after, reason, label: REASONS[reason] || reason, ref,
-    by: by?.id || null, byName: by?.name || (by ? '' : 'Kamwa (automatique)'), note: String(note || '').slice(0, 300),
+    by: by?.id || null, byName: by?.name || (by ? '' : 'Zado (automatique)'), note: String(note || '').slice(0, 300),
   });
   return updated;
 }

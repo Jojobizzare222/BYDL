@@ -38,13 +38,13 @@ const findByCode = (code) => {
   const num = m ? m[0].toUpperCase() : c;
   return parcels.find((p) => p.number === num || p.barcode === num || p.id === c) || null;
 };
-const who = (by) => (by ? { by: by.id || null, byName: by.name || '' } : { by: null, byName: 'Kamwa (automatique)' });
+const who = (by) => (by ? { by: by.id || null, byName: by.name || '' } : { by: null, byName: 'Zado (automatique)' });
 const relayPlace = (o, agencyId) => {
   const a = (agencyId && agencies.get(agencyId)) || (o.agency?.id && agencies.get(o.agency.id)) || o.agency;
   return a ? { type: 'relay', id: a.id || null, name: a.name || 'Point relais', city: a.city || '' } : { type: 'relay', id: null, name: 'Point relais', city: '' };
 };
 const courierPlace = (id) => { const u = id && staff.get(id); return { type: 'courier', id: id || null, name: u ? u.name : 'Livreur' }; };
-const WAREHOUSE = { type: 'warehouse', id: null, name: 'Entrepôt Kamwa' };
+const WAREHOUSE = { type: 'warehouse', id: null, name: 'Entrepôt Zado' };
 
 function move(p, stage, place, by, note) {
   if (p.stage === stage && JSON.stringify(p.place) === JSON.stringify(place)) return p;
@@ -121,7 +121,7 @@ function qrSvg(text) {
 }
 let LOGO = null;
 const logo = () => {
-  if (LOGO === null) { try { LOGO = fs.readFileSync(path.join(__dirname, '..', 'public', 'brand', 'logo-kamwa.svg'), 'utf8').replace(/<\?xml[^>]*>/, ''); } catch { LOGO = '<strong>Kamwa</strong>'; } }
+  if (LOGO === null) { try { LOGO = fs.readFileSync(path.join(__dirname, '..', 'public', 'brand', 'logo-zado.svg'), 'utf8').replace(/<\?xml[^>]*>/, ''); } catch { LOGO = '<strong>Zado</strong>'; } }
   return LOGO;
 };
 const scanUrl = (origin, p) => `${origin}/admin/#/colis/${p.number}`;
@@ -156,14 +156,14 @@ function labels(list, origin) {
       <div class="mid"><div class="qr">${qrSvg(scanUrl(origin, p))}<small>Scanner pour ouvrir le colis</small></div>
         <div class="dest">${pickup ? `<span class="k">Point relais</span><strong>${esc(relay.name)}</strong>${relay.city ? `<span>${esc(relay.city)}</span>` : ''}<span class="k">Client</span>` : '<span class="k">Destinataire</span>'}
           <strong>${esc(o.customer.name)}</strong><span class="tel">${esc(o.customer.phone)}</span>
-          ${!pickup ? `${o.customer.zone ? `<span><b>Quartier :</b> ${esc(o.customer.zone)}</span>` : ''}<span>${esc(o.customer.address)}</span><span>${esc(o.customer.city)}</span>${o.customer.location ? '<span class="gps">● Point placé sur la carte (voir Kamwa Pro)</span>' : ''}` : ''}</div></div>
+          ${!pickup ? `${o.customer.zone ? `<span><b>Quartier :</b> ${esc(o.customer.zone)}</span>` : ''}<span>${esc(o.customer.address)}</span><span>${esc(o.customer.city)}</span>${o.customer.location ? '<span class="gps">● Point placé sur la carte (voir Zado Pro)</span>' : ''}` : ''}</div></div>
       ${info.length ? `<dl class="info">${info.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>` : ''}
       <div class="items"><div class="ih"><span>Contenu · ${items} article${items > 1 ? 's' : ''}${count > 1 ? ` (commande en ${count} colis)` : ''}</span>${fragile ? '<b class="fragile">FRAGILE</b>' : ''}</div>
         <ul>${shown.map((l) => `<li><b>${l.qty} ×</b> ${esc(l.name)}${l.variant ? ` <i>(${esc(l.variant)})</i>` : ''}</li>`).join('')}${more > 0 ? `<li><i>+ ${more} autre${more > 1 ? 's' : ''} article${more > 1 ? 's' : ''}</i></li>` : ''}</ul></div>
       <div class="bc">${require('./barcode').svg(p.barcode || p.number, { height: 60 })}<span>${esc(p.barcode || p.number)}</span></div>
       <footer><span>Commande <b>${esc(o.id || p.orderId)}</b></span>
         <span class="pay ${toCollect ? 'due' : ''}">${toCollect ? `À ENCAISSER : ${fcfa(toCollect)}` : 'PAYÉ'}</span></footer>
-      <p class="hint">${pickup ? 'Remise au client uniquement contre son code de retrait.' : 'Remise uniquement contre le code de livraison du client, colis en main.'}${support ? ` · Problème : Kamwa ${esc(support)}` : ''}</p>
+      <p class="hint">${pickup ? 'Remise au client uniquement contre son code de retrait.' : 'Remise uniquement contre le code de livraison du client, colis en main.'}${support ? ` · Problème : Zado ${esc(support)}` : ''}</p>
     </section>`;
   };
   return `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">

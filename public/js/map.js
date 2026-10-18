@@ -1,6 +1,6 @@
-// Kamwa — cartes intégrées (points relais, suivi du livreur) : Leaflet 1.9.4 (licence BSD, hébergé sur Kamwa,
+// Zado — cartes intégrées (points relais, suivi du livreur) : Leaflet 1.9.4 (licence BSD, hébergé sur Zado,
 // public/vendor/leaflet) + fonds de carte OpenStreetMap (libres, sans clé ni compte ; attribution obligatoire).
-// Chargé seulement quand une carte s'affiche (économe en données mobiles). Utilisé par la boutique et Kamwa Pro.
+// Chargé seulement quand une carte s'affiche (économe en données mobiles). Utilisé par la boutique et Zado Pro.
 (() => {
   const CITIES = { 'Pointe-Noire': [-4.7761, 11.8635], Brazzaville: [-4.2634, 15.2429], Dolisie: [-4.199, 12.6666] };
   let loading = null;
@@ -16,7 +16,7 @@
     }
     return loading;
   }
-  // Repères aux couleurs Kamwa (pas d'image à télécharger)
+  // Repères aux couleurs Zado (pas d'image à télécharger)
   const pin = (L, kind = 'relay', label = '') => L.divIcon({
     className: `kmap-pin kmap-${kind}`, iconSize: [34, 42], iconAnchor: [17, 40], popupAnchor: [0, -36],
     html: `<span>${label}</span>`,

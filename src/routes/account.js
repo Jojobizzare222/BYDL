@@ -120,7 +120,7 @@ router.put('/prefs', (req, res) => {
   res.json({ prefs: updated.prefs });
 });
 
-// Changer son code Kamwa soi-même (code actuel obligatoire) : le nouveau code est montré UNE fois
+// Changer son code Zado soi-même (code actuel obligatoire) : le nouveau code est montré UNE fois
 router.post('/code', (req, res) => {
   const customer = auth.currentCustomer(req);
   if (!customer) return res.status(401).json({ error: 'Connectez-vous' });

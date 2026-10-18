@@ -5,7 +5,7 @@
 //     (impossible d'inventer une livraison). 5 codes faux = commande bloquée, seul l'admin peut débloquer.
 //  3. FIABILITÉ par numéro de téléphone : livraisons réussies / refus. Client fiable = plus d'acompte ;
 //     trop de refus = paiement à la réception refusé (il doit payer en ligne).
-//  4. Espèces encaissées par un livreur : suivies jusqu'à leur remise à Kamwa (volet Finances).
+//  4. Espèces encaissées par un livreur : suivies jusqu'à leur remise à Zado (volet Finances).
 const crypto = require('crypto');
 const { settings, orders, products, payments, staff } = require('./store');
 const { normalizeLocal } = require('./utils/phone');

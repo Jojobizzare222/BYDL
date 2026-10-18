@@ -1,8 +1,8 @@
-// Messagerie — côté Kamwa Pro (/api/admin/chat)
+// Messagerie — côté Zado Pro (/api/admin/chat)
 //  - conversations des clients : admin + employés Commandes (service client) ;
-//  - fils « Fournisseur ↔ Kamwa » (audit 17/10/2026) : un fil par fournisseur, lu par l'admin et les employés
+//  - fils « Fournisseur ↔ Zado » (audit 17/10/2026) : un fil par fournisseur, lu par l'admin et les employés
 //    Commandes / Catalogue ; le fournisseur ne voit que le sien (jamais les clients ni le salon de l'équipe) ;
-//  - salon « Équipe Kamwa » : toute l'équipe interne (admin, catalogue, commandes, livreurs), pas les fournisseurs.
+//  - salon « Équipe Zado » : toute l'équipe interne (admin, catalogue, commandes, livreurs), pas les fournisseurs.
 const router = require('express').Router();
 const { conversations, customers, orders, staff } = require('../store');
 const { requireRole } = require('../admin/auth');
@@ -68,14 +68,14 @@ router.post('/conversations/:id/messages', SUPPORT, (req, res) => {
   conversations.update(c.id, { status: 'open', assignedTo: c.assignedTo || staffName(req.user) });
   const r = chat.addMessage(conversations.get(c.id), { from: 'staff', staffName: staffName(req.user), userId: req.user.id, text, internal });
   if (internal) conversations.update(c.id, { unreadCustomer: Math.max(0, (r.conv.unreadCustomer || 1) - 1) });
-  else if (c.customerId) require('../push').notifyCustomer(c.customerId, `Kamwa : réponse de ${staffName(req.user).split(' ')[0]}`, text.slice(0, 140), '/?aide=1#/', 'kamwa-chat');
+  else if (c.customerId) require('../push').notifyCustomer(c.customerId, `Zado : réponse de ${staffName(req.user).split(' ')[0]}`, text.slice(0, 140), '/?aide=1#/', 'kamwa-chat');
   res.status(201).json(r.message);
 });
 
 router.post('/conversations/:id/close', SUPPORT, (req, res) => {
   const c = conversations.get(req.params.id);
   if (!c || c.kind !== 'support') return res.status(404).json({ error: 'Conversation introuvable' });
-  chat.addMessage(c, { from: 'bot', text: 'Conversation terminée. Merci d\'avoir contacté Kamwa ! Écrivez à nouveau à tout moment.' });
+  chat.addMessage(c, { from: 'bot', text: 'Conversation terminée. Merci d\'avoir contacté Zado ! Écrivez à nouveau à tout moment.' });
   res.json(summary(conversations.update(c.id, { status: 'closed', closedAt: new Date().toISOString(), unreadStaff: 0 })));
 });
 
@@ -94,7 +94,7 @@ router.post('/team', TEAM, (req, res) => {
   res.status(201).json(r.message);
 });
 
-// ---------- Fournisseurs ↔ Kamwa ----------
+// ---------- Fournisseurs ↔ Zado ----------
 const SUPPLIER_DESK = requireRole('orders', 'catalog');
 const onlySupplier = (req, res, next) => (req.user.role === 'supplier' ? next() : res.status(403).json({ error: 'Réservé aux fournisseurs' }));
 const supplierSummary = (u, c) => ({
@@ -102,7 +102,7 @@ const supplierSummary = (u, c) => ({
   lastAt: c?.lastAt || null, lastText: c?.lastText || '', lastFrom: c?.lastFrom || null, unread: c?.unreadStaff || 0,
 });
 
-// Le fournisseur : son fil avec Kamwa
+// Le fournisseur : son fil avec Zado
 router.get('/kamwa', onlySupplier, (req, res) => {
   const c = chat.supplierThread(req.user);
   conversations.update(c.id, { reads: { ...(c.reads || {}), [req.user.id]: new Date().toISOString() } });
@@ -117,7 +117,7 @@ router.post('/kamwa', onlySupplier, (req, res) => {
   res.status(201).json(r.message);
 });
 
-// L'équipe Kamwa : liste des fournisseurs et leurs fils
+// L'équipe Zado : liste des fournisseurs et leurs fils
 router.get('/suppliers', SUPPLIER_DESK, (req, res) => {
   const list = staff.all().filter((u) => u.role === 'supplier').map((u) => supplierSummary(u, conversations.get(chat.supplierConvId(u.id))));
   res.json(list.sort((a, b) => (b.unread - a.unread) || String(b.lastAt || '').localeCompare(String(a.lastAt || '')) || a.name.localeCompare(b.name)));

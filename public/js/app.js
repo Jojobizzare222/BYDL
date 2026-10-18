@@ -1,4 +1,4 @@
-// Kamwa — front-end léger (aucune dépendance) pour rester rapide sur les réseaux mobiles.
+// Zado — front-end léger (aucune dépendance) pour rester rapide sur les réseaux mobiles.
 (() => {
   const $ = (sel, el = document) => el.querySelector(sel);
   const app = $('#app');
@@ -34,7 +34,7 @@
     return data;
   }
 
-  // ---------- Mode maintenance (activé dans Kamwa Pro → Réglages) ----------
+  // ---------- Mode maintenance (activé dans Zado Pro → Réglages) ----------
   // Écran plein à l'ouverture de la boutique ; restent accessibles : suivi des commandes, compte, pages légales, Aide.
   // Aperçu pour l'équipe : /?apercu=maintenance&msg=…&until=… (rien n'est fermé, seul cet écran s'affiche).
   const MAINT_OPEN = ['compte', 'suivi', 'merci', 'legal', 'cookies', 'demo-suivi'];
@@ -62,7 +62,7 @@
     const sameDay = until && until.toDateString() === new Date().toDateString();
     el.innerHTML = `<div class="maint-card">
         ${m.preview ? '<span class="maint-preview">Aperçu visible uniquement sur cet écran : la boutique reste ouverte</span>' : ''}
-        <img class="maint-logo for-light" src="/brand/logo-kamwa.svg?v=2" alt="Kamwa" width="150" height="36"><img class="maint-logo for-dark" src="/brand/logo-kamwa-clair.svg?v=2" alt="Kamwa" width="150" height="36">
+        <img class="maint-logo for-light" src="/brand/logo-zado.svg?v=3" alt="Zado" width="86" height="36"><img class="maint-logo for-dark" src="/brand/logo-zado-clair.svg?v=3" alt="Zado" width="86" height="36">
         <div class="maint-ico">${icon('clock-bold')}</div>
         <h1 id="maintTitle">Petite pause, on revient vite</h1>
         <p class="maint-msg">${esc(m.message || 'La boutique est en maintenance pour quelques instants.')}</p>
@@ -108,7 +108,7 @@
   new MutationObserver(() => requestAnimationFrame(markScrollers)).observe(document.getElementById('app'), { childList: true });
   // Numéro congolais (9 chiffres commençant par 0, avec ou sans +242), comme le serveur
   const localPhone = (v) => { let d = String(v || '').replace(/\D/g, ''); if (d.startsWith('00')) d = d.slice(2); if (d.startsWith('242') && d.length === 12) d = d.slice(3); return /^0\d{8}$/.test(d) ? d : null; };
-  // Frais de livraison (réglés dans Kamwa Pro, envoyés par /api/config) : villes, quartiers, livraison offerte
+  // Frais de livraison (réglés dans Zado Pro, envoyés par /api/config) : villes, quartiers, livraison offerte
   const feeCfg = () => state.config?.deliveryFees || { cities: [{ city: 'Pointe-Noire', fee: 0, zones: [] }], other: { allowed: false, fee: 0 }, freeFrom: 0 };
   const normCity = (s) => String(s || '').trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   const cityFees = (city) => feeCfg().cities.find((c) => normCity(c.city) === normCity(city));
@@ -175,17 +175,17 @@
   const shortDate = (iso) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '');
   const longDate = (iso) => (iso ? new Date(iso).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }) : '');
   const formatCode = (c) => `${c.slice(0, 3)} ${c.slice(3)}`;
-  // Badge « identité vérifiée » (sceau Kamwa) : à côté du nom de chaque client dont la pièce a été validée
-  const VERIFIED = '<svg class="vbadge" viewBox="0 0 24 24" role="img" aria-label="Identité vérifiée"><title>Identité vérifiée par Kamwa</title><path class="vb-seal" d="M12 .7l2.41 2.32 3.24-.81.93 3.21 3.21.93-.81 3.24L23.3 12l-2.32 2.41.81 3.24-3.21.93-.93 3.21-3.24-.81L12 23.3l-2.41-2.32-3.24.81-.93-3.21-3.21-.93.81-3.24L.7 12l2.32-2.41-.81-3.24 3.21-.93.93-3.21 3.24.81z"/><path class="vb-check" d="M7.4 12.4l3.1 3 6-6.2"/></svg>';
+  // Badge « identité vérifiée » (sceau Zado) : à côté du nom de chaque client dont la pièce a été validée
+  const VERIFIED = '<svg class="vbadge" viewBox="0 0 24 24" role="img" aria-label="Identité vérifiée"><title>Identité vérifiée par Zado</title><path class="vb-seal" d="M12 .7l2.41 2.32 3.24-.81.93 3.21 3.21.93-.81 3.24L23.3 12l-2.32 2.41.81 3.24-3.21.93-.93 3.21-3.24-.81L12 23.3l-2.41-2.32-3.24.81-.93-3.21-3.21-.93.81-3.24L.7 12l2.32-2.41-.81-3.24 3.21-.93.93-3.21 3.24.81z"/><path class="vb-check" d="M7.4 12.4l3.1 3 6-6.2"/></svg>';
   const verifiedBadge = (c) => (c && c.idStatus === 'verified' ? VERIFIED : '');
-  // Code Kamwa en 6 tuiles qui apparaissent une à une (3 + 3)
+  // Code Zado en 6 tuiles qui apparaissent une à une (3 + 3)
   const codeDigits = (c) => `<div class="cr-digits" aria-label="Code ${esc(c.split('').join(' '))}">${c.split('').map((d, i) => `${i === 3 ? '<i></i>' : ''}<span style="--i:${i}">${esc(d)}</span>`).join('')}</div>`;
 
   function renderAccountBtn() {
     const first = state.customer ? state.customer.name.split(' ')[0] : '';
     $('#accountHello').innerHTML = first ? `Mbote ${esc(first)} !${verifiedBadge(state.customer)}` : 'Mon espace';
     $('#accountLabel').textContent = first ? 'Mon compte' : 'Se connecter';
-    $('#menuHello').innerHTML = first ? `Mbote ${esc(first)} !${verifiedBadge(state.customer)}` : 'Mon espace Kamwa';
+    $('#menuHello').innerHTML = first ? `Mbote ${esc(first)} !${verifiedBadge(state.customer)}` : 'Mon espace Zado';
   }
   async function refreshCustomer() {
     try {
@@ -475,7 +475,7 @@
     return `<div class="${cls} no-img tint-${tintOf(p.category)}">${catIcon(p.category)}`;
   }
 
-  // Familles : même produit en plusieurs couleurs (fiche « family » saisie dans Kamwa Pro, sinon couleur en fin de nom)
+  // Familles : même produit en plusieurs couleurs (fiche « family » saisie dans Zado Pro, sinon couleur en fin de nom)
   const COLORS = { 'lumiere stellaire': '#F2EEE6', 'gris sideral': '#5B5E63', 'titane naturel': '#C2BCB2', 'titane noir': '#3B3B3D', 'titane blanc': '#F1F0EC', 'titane bleu': '#3E4A5C', 'titane desert': '#C8B49B', 'bleu ciel': '#A7C6ED', 'bleu nuit': '#1E2A44', minuit: '#1F2933', noir: '#1B1B1F', blanc: '#F5F5F5', bleu: '#3B6BD6', rose: '#F4C6CF', vert: '#A9CFA0', jaune: '#F7E27A', rouge: '#D23B3B', violet: '#8E6FD8', argent: '#D9DCE1', or: '#E8C77A', gris: '#8B8F96', mauve: '#B9A5D6', graphite: '#4A4A4F', orange: '#F28C38', beige: '#E3D3B4', marron: '#7A5233', kaki: '#7A7A4A', creme: '#F3EBD9', corail: '#FF7F66' };
   const COLOR_KEYS = Object.keys(COLORS).sort((a, b) => b.length - a.length);
   const plain = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
@@ -500,7 +500,7 @@
     const c = state.customer;
     if (c && c.idStatus === 'verified') return '';
     const msg = !c
-      ? `<b>Première commande ?</b> Créez votre compte Kamwa avec la photo de votre pièce d'identité : nous la vérifions (en général sous 24 h), puis vous commandez. <a href="#/compte/creer">Créer mon compte</a> · <a href="#/compte">Me connecter</a>`
+      ? `<b>Première commande ?</b> Créez votre compte Zado avec la photo de votre pièce d'identité : nous la vérifions (en général sous 24 h), puis vous commandez. <a href="#/compte/creer">Créer mon compte</a> · <a href="#/compte">Me connecter</a>`
       : c.idStatus === 'pending' ? `<b>Votre pièce d'identité est en cours de vérification.</b> Vous pourrez commander dès sa validation (en général sous 24 h). Votre panier est gardé.`
       : `<b>Pièce d'identité à envoyer</b> pour pouvoir commander. <a href="#/compte">Envoyer ma pièce</a>`;
     return `<div class="acct-hint ${where}">${icon('identification-card')}<span>${msg}</span></div>`;
@@ -679,7 +679,7 @@
         </section>`).join('')}
 
       <section class="shelf">
-        <div class="shelf-head"><div><p class="kicker">${icon('seal-check-duotone')} Acheter en confiance</p><h2>Pourquoi choisir Kamwa</h2></div></div>
+        <div class="shelf-head"><div><p class="kicker">${icon('seal-check-duotone')} Acheter en confiance</p><h2>Pourquoi choisir Zado</h2></div></div>
         <div class="reassure">
           <div class="r-violet"><span class="ic">${icon('credit-card')}</span><b>Paiement simple</b><p>En espèces dans nos points relais, sans carte ni frais cachés. Retrait sur place ou livraison.</p></div>
           <div class="r-mango"><span class="ic">${icon('truck')}</span><b>Livraison rapide</b><p>Partout à Pointe-Noire, à l'adresse ou au repère que vous indiquez.</p></div>
@@ -891,7 +891,7 @@
     // Partager (WhatsApp…) : le lien /p/<id> donne un aperçu avec photo, nom et prix
     $('#shareBtn').addEventListener('click', async () => {
       const url = `${location.origin}/p/${enc(p.id)}`;
-      const text = `${p.name} à ${fcfa(p.price)} sur Kamwa`;
+      const text = `${p.name} à ${fcfa(p.price)} sur Zado`;
       if (navigator.share) { try { await navigator.share({ title: p.name, text, url }); return; } catch (err) { if (err?.name === 'AbortError') return; } }
       window.open(`https://wa.me/?text=${enc(text + '\n' + url)}`, '_blank', 'noopener');
     });
@@ -962,14 +962,14 @@
       if (agencyId === o.agency?.id) return;
       try {
         await api('/orders/' + enc(id) + '/relay', { method: 'POST', headers: orderHeaders(tokenOf(id) || ''), body: { agencyId } });
-        $('#relayMsg').innerHTML = `<div class="alert ok">${icon('check-circle-duotone')} Point relais changé. Kamwa est prévenu.</div>`;
+        $('#relayMsg').innerHTML = `<div class="alert ok">${icon('check-circle-duotone')} Point relais changé. Zado est prévenu.</div>`;
         setTimeout(() => route({ keep: true }), 1200);
       } catch (err) { $('#relayMsg').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; }
     }, o.agency?.city);
   });
 
   // ---------- Choix du point relais sur une carte (commande, et changement après commande) ----------
-  const RELAY_KIND = { agency: 'Agence Kamwa', partner: 'Point relais partenaire' };
+  const RELAY_KIND = { agency: 'Agence Zado', partner: 'Point relais partenaire' };
   const defaultRelay = (list, city) => list.find((a) => a.id === state.prefs.relayId) || list.find((a) => a.city === city) || list[0];
   function relayPicker(host, list, selected, onPick, city) {
     let me = null; let map = null; let L = null; const markers = {};
@@ -1048,12 +1048,12 @@
         app.innerHTML = `
           <div class="panel gate" style="max-width:620px;margin:0 auto;text-align:center">
             <div class="big-check">${icon(c ? 'clock-countdown-duotone' : 'identification-card-duotone')}</div>
-            ${!c ? `<h1>Un compte Kamwa est nécessaire pour commander</h1>
-              <p class="hint">Pour lutter contre les fausses commandes, chaque client crée son compte avec la photo de sa pièce d'identité (passeport, CNI ou NIU). Kamwa la vérifie, puis vous pouvez commander. Votre panier est gardé.</p>
+            ${!c ? `<h1>Un compte Zado est nécessaire pour commander</h1>
+              <p class="hint">Pour lutter contre les fausses commandes, chaque client crée son compte avec la photo de sa pièce d'identité (passeport, CNI ou NIU). Zado la vérifie, puis vous pouvez commander. Votre panier est gardé.</p>
               <a class="btn cta block" href="#/compte/creer">Créer mon compte</a>
               <a class="btn ghost block" href="#/compte" style="margin-top:10px">J'ai déjà un compte : me connecter</a>`
             : st === 'pending' ? `<h1>Votre identité est en cours de vérification</h1>
-              <p class="hint">Kamwa vérifie votre pièce d'identité (en général sous 24 h). Vous pourrez commander dès qu'elle sera validée : votre panier vous attend.</p>
+              <p class="hint">Zado vérifie votre pièce d'identité (en général sous 24 h). Vous pourrez commander dès qu'elle sera validée : votre panier vous attend.</p>
               <a class="btn ghost block" href="#/compte">Voir mon compte</a>`
             : `<h1>Pièce d'identité ${st === 'rejected' ? 'refusée' : 'manquante'}</h1>
               <p class="hint">${st === 'rejected' && c.idRejectReason ? `Motif : ${esc(c.idRejectReason)}. ` : ''}Envoyez la photo de votre pièce d'identité depuis votre compte pour pouvoir commander.</p>
@@ -1122,7 +1122,7 @@
             ${methods.cod?.deposit ? `Pour confirmer une première commande, un <strong>acompte de ${fcfa(methods.cod.deposit)}</strong> est demandé en Mobile Money (déduit du total). Il est offert aux clients fidèles. En cas de refus du colis, il couvre le déplacement du livreur.` : ''}</span></p>
           </div>
           <div id="cardFields" hidden>
-            <p class="hint">${icon('lock-key-bold')} Vous allez être redirigé vers la page de paiement sécurisée de notre partenaire bancaire. Kamwa ne voit jamais votre numéro de carte.</p>
+            <p class="hint">${icon('lock-key-bold')} Vous allez être redirigé vers la page de paiement sécurisée de notre partenaire bancaire. Zado ne voit jamais votre numéro de carte.</p>
           </div>
           <div id="cashFields" hidden>
             <p class="lbl" style="margin-top:4px">Point relais : où payer (et retirer votre colis)</p>
@@ -1384,7 +1384,7 @@
       </div>
       ${state.customer ? '' : `<div class="panel" style="text-align:center">
         <strong>Retrouvez vos commandes sur n'importe quel téléphone</strong>
-        <p class="hint">Créez votre compte Kamwa en 30 secondes : vous recevez un code à 6 chiffres.</p>
+        <p class="hint">Créez votre compte Zado en 30 secondes : vous recevez un code à 6 chiffres.</p>
         <a class="btn ghost" href="#/compte/creer">Créer mon compte</a>
       </div>`}`;
   }
@@ -1456,7 +1456,7 @@
           <h1>Se connecter</h1>
           <label for="identifier">Numéro de téléphone ou e-mail</label>
           <input id="identifier" autocomplete="username" placeholder="06 123 45 67 ou nom@exemple.com" required>
-          <label for="code">Code Kamwa (6 chiffres)</label>
+          <label for="code">Code Zado (6 chiffres)</label>
           <input id="code" class="code-input" inputmode="numeric" autocomplete="one-time-code" maxlength="7" placeholder="••• •••" required>
           <div id="loginError"></div>
           <button class="btn cta block" style="margin-top:14px">Me connecter</button>
@@ -1464,7 +1464,7 @@
         </form>
         <div class="panel">
           <h2>Pas encore de compte ?</h2>
-          <p class="hint">Un compte est nécessaire pour commander. Créez-le avec votre numéro ou votre e-mail et la photo de votre pièce d'identité : Kamwa vous attribue un code à 6 chiffres pour vous connecter sur n'importe quel téléphone.</p>
+          <p class="hint">Un compte est nécessaire pour commander. Créez-le avec votre numéro ou votre e-mail et la photo de votre pièce d'identité : Zado vous attribue un code à 6 chiffres pour vous connecter sur n'importe quel téléphone.</p>
           <a class="btn ghost block" href="#/compte/creer">Créer mon compte</a>
         </div>
       </div>
@@ -1514,7 +1514,7 @@
     <fieldset class="id-box">
       <legend>${icon('identification-card')} Pièce d'identité <span class="req">obligatoire</span></legend>
       ${state.config?.demo ? `<div class="alert err" style="margin-top:6px"><strong>Site de démonstration public :</strong> n'envoyez pas votre vraie pièce d'identité ni votre vrai numéro. Une photo quelconque (un papier, une carte de fidélité…) suffit pour essayer.</div>` : ''}
-      <p class="hint">Pour lutter contre les fausses commandes, Kamwa vérifie l'identité de chaque client avant sa première commande. Votre photo reste confidentielle : seule l'équipe de vérification de Kamwa peut la voir.</p>
+      <p class="hint">Pour lutter contre les fausses commandes, Zado vérifie l'identité de chaque client avant sa première commande. Votre photo reste confidentielle : seule l'équipe de vérification de Zado peut la voir.</p>
       <label for="idType">Type de pièce</label>
       <select id="idType" required><option value="">Choisissez…</option>${Object.entries(ID_TYPES).map(([k, v]) => `<option value="${k}">${esc(v)}</option>`).join('')}</select>
       <label for="idNumber">Numéro de la pièce (facultatif)</label>
@@ -1623,7 +1623,7 @@
   function idStatusPanel(c) {
     const st = c.idStatus || 'missing';
     if (st === 'verified') return `<div class="alert ok id-status">${icon('seal-check-duotone')} <span><strong>Identité vérifiée</strong> — vous pouvez commander.</span></div>`;
-    if (st === 'pending') return `<div class="alert warn id-status">${icon('clock-countdown-duotone')} <span><strong>Pièce d'identité en cours de vérification.</strong> Vous pourrez commander dès sa validation par Kamwa (en général sous 24 h). Votre panier vous attend.</span></div>`;
+    if (st === 'pending') return `<div class="alert warn id-status">${icon('clock-countdown-duotone')} <span><strong>Pièce d'identité en cours de vérification.</strong> Vous pourrez commander dès sa validation par Zado (en général sous 24 h). Votre panier vous attend.</span></div>`;
     return `<form class="panel" id="idForm" novalidate>
       ${st === 'rejected' ? `<div class="alert err"><strong>Votre pièce a été refusée</strong>${c.idRejectReason ? ` : ${esc(c.idRejectReason)}` : ''}. Envoyez une nouvelle photo.</div>`
         : `<div class="alert warn">Pour commander, ajoutez la photo de votre pièce d'identité.</div>`}
@@ -1671,7 +1671,7 @@
       <div class="acc-actions">
         <a href="#/compte/commandes">${icon('package')}<span>Suivre mes commandes</span></a>
         <button type="button" data-open-chat>${icon('chat-circle')}<span>Aide et messages</span></button>
-        <a href="#/compte/reglages">${icon('gear-six')}<span>Personnaliser Kamwa</span></a>
+        <a href="#/compte/reglages">${icon('gear-six')}<span>Personnaliser Zado</span></a>
         <a href="#/promos">${icon('tag')}<span>Bonnes affaires</span></a>
         ${relay ? `<a href="${kamwaMap.hasPos(relay) ? kamwaMap.directions(relay) : '#/compte/reglages'}" ${kamwaMap.hasPos(relay) ? 'target="_blank" rel="noopener"' : ''}>${icon('map-pin')}<span>Mon point relais<br><small>${esc(relay.name)}</small></span></a>` : `<a href="#/compte/reglages">${icon('map-pin')}<span>Choisir mon point relais</span></a>`}
       </div>
@@ -1703,14 +1703,14 @@
     const seg = (key, opts) => `<div class="seg" role="group">${opts.map(([v, l]) => `<button type="button" data-pref="${key}" data-val="${esc(String(v))}" class="${String(p[key]) === String(v) ? 'on' : ''}" aria-pressed="${String(p[key]) === String(v)}">${l}</button>`).join('')}</div>`;
     const toggle = (key, label, hint, on) => `<label class="pref-row"><span><b>${label}</b><small>${hint}</small></span><span class="switch"><input type="checkbox" data-pref-bool="${key}" ${on ? 'checked' : ''}><span></span></span></label>`;
     app.innerHTML = `<div class="acc">${head}${nav}
-      <p class="hint" style="margin:0 0 12px">Ces réglages ne changent Kamwa <strong>que pour vous</strong> (sur vos téléphones). Ils n'affectent ni le site des autres clients, ni les produits.</p>
+      <p class="hint" style="margin:0 0 12px">Ces réglages ne changent Zado <strong>que pour vous</strong> (sur vos téléphones). Ils n'affectent ni le site des autres clients, ni les produits.</p>
       <div class="panel prefs">
         <h2>${icon('palette')} Apparence</h2>
         <div class="pref-row"><span><b>Thème</b><small>« Auto » suit le réglage de votre téléphone</small></span><span data-theme-host></span></div>
         <div class="pref-row"><span><b>Taille du texte</b><small>Pour lire plus confortablement</small></span>${seg('textSize', [['normal', 'A'], ['large', '<span style="font-size:1.15em">A</span>'], ['xlarge', '<span style="font-size:1.35em">A</span>']])}</div>
         <div class="pref-row"><span><b>Affichage des produits</b><small>« Compact » montre plus de produits à la fois</small></span>${seg('density', [['comfort', 'Confort'], ['compact', 'Compact']])}</div>
         ${toggle('motionReduce', 'Réduire les animations', 'Moins de mouvements (formes, carrousel automatique)', p.motion === 'reduce')}
-        ${toggle('splash', "Animation d'ouverture", 'Le logo animé au lancement de Kamwa', p.splash !== false)}
+        ${toggle('splash', "Animation d'ouverture", 'Le logo animé au lancement de Zado', p.splash !== false)}
         ${toggle('dataSaver', 'Économie de données', 'Les cartes ne se chargent que si vous les demandez', p.dataSaver)}
       </div>
       <div class="panel prefs">
@@ -1728,13 +1728,13 @@
         <h2>${icon('bell')} Notifications</h2>
         ${pushCard(null)}
         ${toggle('notifyOrders', 'Suivi de mes commandes', 'Payée, en route, livreur tout près, livrée', p.notify?.orders !== false)}
-        ${toggle('notifyChat', 'Réponses de Kamwa', 'Quand un conseiller vous répond dans la messagerie', p.notify?.chat !== false)}
+        ${toggle('notifyChat', 'Réponses de Zado', 'Quand un conseiller vous répond dans la messagerie', p.notify?.chat !== false)}
       </div>
       <div class="panel prefs">
         <h2>${icon('user-circle')} Mon profil</h2>
         <div class="pref-row"><span><b>Nom</b><small>Celui de votre pièce d'identité</small></span><span>${esc(c.name)}</span></div>
         <div class="pref-row"><span><b>Identifiant</b><small>Pour le changer, écrivez-nous dans « Aide »</small></span><span>${esc([c.phone, c.email].filter(Boolean).join(' · '))}</span></div>
-        <form class="pref-row" id="codeForm"><span><b>Changer mon code Kamwa</b><small>Code actuel obligatoire ; vos autres appareils seront déconnectés${c.codeChangedAt ? ` · dernier changement le ${shortDate(c.codeChangedAt)}` : ''}</small></span>
+        <form class="pref-row" id="codeForm"><span><b>Changer mon code Zado</b><small>Code actuel obligatoire ; vos autres appareils seront déconnectés${c.codeChangedAt ? ` · dernier changement le ${shortDate(c.codeChangedAt)}` : ''}</small></span>
           <span class="code-change"><input id="curCode" inputmode="numeric" maxlength="7" placeholder="Code actuel" autocomplete="current-password"><button class="btn ghost small">Changer</button></span></form>
         <div id="codeMsg"></div>
       </div>
@@ -1774,7 +1774,7 @@
         box.innerHTML = `<div class="code-reveal" role="status">
           <span class="cr-spark s1">${icon('sparkle-fill')}</span><span class="cr-spark s2">${icon('sparkle-fill')}</span>
           <div class="cr-head"><span class="cr-ico">${icon('key-bold')}</span>
-            <div><b>C'est fait, ${esc(c.name.split(' ')[0])} !</b><small>Votre nouveau code Kamwa est actif dès maintenant</small></div></div>
+            <div><b>C'est fait, ${esc(c.name.split(' ')[0])} !</b><small>Votre nouveau code Zado est actif dès maintenant</small></div></div>
           ${codeDigits(r.code)}
           <div class="cr-actions">
             <button type="button" class="btn ghost small" data-cr-copy>${icon('clipboard-text')} Copier</button>
@@ -1782,7 +1782,7 @@
           </div>
           <ul class="cr-tips">
             <li>${icon('device-mobile')}<span>Vos autres appareils ont été déconnectés : reconnectez-les avec ce code.</span></li>
-            <li>${icon('lock-key-bold')}<span>Kamwa ne vous demandera <b>jamais</b> ce code, ni par téléphone ni par WhatsApp.</span></li>
+            <li>${icon('lock-key-bold')}<span>Zado ne vous demandera <b>jamais</b> ce code, ni par téléphone ni par WhatsApp.</span></li>
             <li>${icon('camera')}<span>Notez-le ou faites une capture d'écran : il ne sera plus affiché.</span></li>
           </ul></div>`;
         box.querySelector('[data-cr-copy]').addEventListener('click', async (ev) => {
@@ -1790,7 +1790,7 @@
           try { await navigator.clipboard.writeText(r.code); b.innerHTML = `${icon('check-bold')} Copié`; } catch { b.textContent = formatCode(r.code); }
         });
         box.querySelector('[data-cr-done]').addEventListener('click', () => {
-          box.innerHTML = `<div class="alert ok id-status">${icon('shield-check')} <span><strong>Code Kamwa changé</strong> le ${shortDate(new Date().toISOString())}. Utilisez-le à votre prochaine connexion.</span></div>`;
+          box.innerHTML = `<div class="alert ok id-status">${icon('shield-check')} <span><strong>Code Zado changé</strong> le ${shortDate(new Date().toISOString())}. Utilisez-le à votre prochaine connexion.</span></div>`;
           $('#codeForm').hidden = false;
         });
       } catch (err) { $('#codeMsg').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; }
@@ -1802,7 +1802,7 @@
     const saved = loadJSON('kamwa-customer') || {};
     app.innerHTML = `
       <form class="panel" id="registerForm" novalidate style="max-width:520px;margin:0 auto">
-        <h1>Créer mon compte Kamwa</h1>
+        <h1>Créer mon compte Zado</h1>
         <p class="hint">Indiquez votre numéro de téléphone <strong>ou</strong> votre e-mail (ou les deux) : c'est votre identifiant. Un compte vérifié est nécessaire pour commander.</p>
         <label for="rName">Nom complet</label>
         <input id="rName" autocomplete="name" value="${esc(saved.name)}" required>
@@ -1838,12 +1838,12 @@
           <div class="panel" style="max-width:520px;margin:0 auto;text-align:center">
             <div class="big-check">${icon('check-circle-duotone')}</div>
             <h1>Bienvenue ${esc(res.customer.name.split(' ')[0])} !</h1>
-            <p>Voici votre <strong>code Kamwa</strong> :</p>
+            <p>Voici votre <strong>code Zado</strong> :</p>
             ${codeDigits(res.code)}
             <div class="alert err" style="text-align:left"><strong>Notez-le bien</strong> (ou faites une capture d'écran) : il ne sera plus affiché.<br>
             Pour vous connecter : <strong>${esc(who)}</strong> + ce code.</div>
             ${res.claimed ? `<p class="hint">${res.claimed} commande(s) de ce téléphone ajoutée(s) à votre compte.</p>` : ''}
-            <div class="alert warn" style="text-align:left">${icon('clock-countdown-duotone')} Votre pièce d'identité est <strong>en cours de vérification</strong>. Vous pourrez commander dès sa validation par Kamwa (en général sous 24 h).</div>
+            <div class="alert warn" style="text-align:left">${icon('clock-countdown-duotone')} Votre pièce d'identité est <strong>en cours de vérification</strong>. Vous pourrez commander dès sa validation par Zado (en général sous 24 h).</div>
             <a class="btn cta block" href="#/compte" style="margin-top:14px">J'ai noté mon code</a>
           </div>`;
       } catch (err) {
@@ -1942,7 +1942,7 @@
   const pushOn = () => pushSupported() && Notification.permission === 'granted';
   const b64ToBytes = (b) => { const p = '='.repeat((4 - (b.length % 4)) % 4); const r = atob((b + p).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from([...r].map((c) => c.charCodeAt(0))); };
   async function enablePush(orderId) {
-    if (Notification.permission === 'denied') throw new Error('Notifications bloquées : autorisez-les dans les réglages du navigateur pour Kamwa.');
+    if (Notification.permission === 'denied') throw new Error('Notifications bloquées : autorisez-les dans les réglages du navigateur pour Zado.');
     const perm = await Notification.requestPermission();
     if (perm !== 'granted') throw new Error('Notifications non autorisées');
     const reg = await navigator.serviceWorker.ready;
@@ -1955,7 +1955,7 @@
   async function linkPush(orderId) { if (pushOn()) { try { await enablePush(orderId); } catch {} } }
   function pushCard(orderId) {
     if (pushOn()) { linkPush(orderId); return `<div class="push-card on">${icon('bell-bold')} <span>Notifications de suivi activées sur ce téléphone.</span></div>`; }
-    if (isIOS && !isStandalone) return `<div class="push-card">${icon('bell-bold')} <span><strong>Suivez votre commande en direct sur votre iPhone</strong>Touchez ${icon('export')} <b>Partager</b>, puis <b>« Sur l'écran d'accueil »</b>. Ouvrez ensuite Kamwa depuis l'écran d'accueil et activez les notifications.</span></div>`;
+    if (isIOS && !isStandalone) return `<div class="push-card">${icon('bell-bold')} <span><strong>Suivez votre commande en direct sur votre iPhone</strong>Touchez ${icon('export')} <b>Partager</b>, puis <b>« Sur l'écran d'accueil »</b>. Ouvrez ensuite Zado depuis l'écran d'accueil et activez les notifications.</span></div>`;
     if (!pushSupported()) return '';
     return `<div class="push-card">${icon('bell-bold')} <span><strong>Être prévenu à chaque étape</strong>Paiement reçu, colis en route, livreur tout près, livré : recevez une notification sur ce téléphone.</span><button type="button" class="btn cta small" data-push="${esc(orderId || '')}">Activer</button></div>`;
   }
@@ -2036,7 +2036,7 @@
     const renderCourier = (d) => {
       const c = d.courier; if (!c) return;
       const el = $('#liveCourier'); el.hidden = false;
-      el.innerHTML = `<span class="av">${esc(c.initial || 'L')}</span><div><b>${esc(c.name)}</b><small>${c.vehicle ? esc(c.vehicle) : 'Livreur Kamwa'}</small></div>
+      el.innerHTML = `<span class="av">${esc(c.initial || 'L')}</span><div><b>${esc(c.name)}</b><small>${c.vehicle ? esc(c.vehicle) : 'Livreur Zado'}</small></div>
         <div class="acts"><button type="button" class="live-act" id="liveMsg">${icon('chat-circle-dots-fill')}<span>Message</span></button>${d.supportPhone ? `<a class="live-act" href="tel:${esc(String(d.supportPhone).replace(/[^\d+]/g, ''))}">${icon('phone-bold')}<span>Appeler</span></a>` : ''}</div>`;
       $('#liveMsg').addEventListener('click', () => { closeFull(); window.kamwaChat?.open(); });
     };
@@ -2153,7 +2153,7 @@
   // ---------- Site « vivant » : données toujours à jour, sans relancer l'application ----------
   // 1) À chaque changement de page : compte client revérifié (pièce validée, déconnexion…) et catalogue
   //    rechargé s'il date de plus de 30 s (prix, stock, nouveaux produits) ; la page se redessine si quelque chose a changé.
-  // 2) Sur les pages qui attendent une action de Kamwa (mon compte, suivi, merci, commande bloquée), on revérifie
+  // 2) Sur les pages qui attendent une action de Zado (mon compte, suivi, merci, commande bloquée), on revérifie
   //    toutes les 15 s tant que la page est affichée, et dès qu'on revient sur l'application.
   //    On ne redessine jamais une page pendant que le client écrit ou a choisi une photo.
   const currentParts = () => (location.hash || '#/').slice(2).split('#')[0].split('/').map(decodeURIComponent);
@@ -2295,7 +2295,7 @@
     }
     renderCart();
     setMaintenance(state.config.maintenance);
-    renderDeliverCity(); // villes de livraison réglées dans Kamwa Pro
+    renderDeliverCity(); // villes de livraison réglées dans Zado Pro
     $('#year').textContent = new Date().getFullYear();
     const last = loadJSON('kamwa-last-order');
     if (last?.id && !tokenOf(last.id)) rememberOrder(last.id, last.token);
