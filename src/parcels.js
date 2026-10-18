@@ -36,7 +36,7 @@ const findByCode = (code) => {
   const c = String(code || '').trim();
   const m = c.match(/KM-\d{6}-\d{3,}/i);
   const num = m ? m[0].toUpperCase() : c;
-  return parcels.find((p) => p.number === num || p.id === c) || null;
+  return parcels.find((p) => p.number === num || p.barcode === num || p.id === c) || null;
 };
 const who = (by) => (by ? { by: by.id || null, byName: by.name || '' } : { by: null, byName: 'Kamwa (automatique)' });
 const relayPlace = (o, agencyId) => {
@@ -56,9 +56,10 @@ function create(o, { stage = 'preparing', by = null } = {}) {
   return transaction(() => {
     const list = forOrder(o.id);
     const now = new Date().toISOString();
+    const number = nextNumber();
     const place = stage === 'with_courier' ? courierPlace(o.courierId) : stage === 'at_relay' ? relayPlace(o) : stage === 'delivered' ? { type: 'customer', id: null, name: 'Client' } : WAREHOUSE;
     const p = parcels.insert({
-      id: 'PCL-' + crypto.randomBytes(6).toString('hex'), number: nextNumber(), orderId: o.id,
+      id: 'PCL-' + crypto.randomBytes(6).toString('hex'), number, barcode: number, orderId: o.id, // code-barres CODE 128 = numéro du colis
       index: list.length + 1, stage, place, stageAt: now, createdAt: now,
       history: [{ stage, at: now, place: place.name, note: list.length ? 'Colis supplémentaire' : '', ...who(by) }],
     });
@@ -89,6 +90,8 @@ function sync(orderOrId) {
   return forOrder(o.id);
 }
 function syncAll() {
+  // Colis créés avant les codes-barres (18/10/2026) : chacun reçoit le sien (= son numéro)
+  for (const p of parcels.all().filter((x) => !x.barcode)) parcels.update(p.id, { barcode: p.number });
   const list = orders.all().sort((a, b) => String(a.paidAt || a.createdAt).localeCompare(String(b.paidAt || b.createdAt)));
   for (const o of list) { try { sync(o); } catch (err) { console.error('[colis]', o.id, err.message); } }
 }
@@ -157,6 +160,7 @@ function labels(list, origin) {
       ${info.length ? `<dl class="info">${info.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>` : ''}
       <div class="items"><div class="ih"><span>Contenu · ${items} article${items > 1 ? 's' : ''}${count > 1 ? ` (commande en ${count} colis)` : ''}</span>${fragile ? '<b class="fragile">FRAGILE</b>' : ''}</div>
         <ul>${shown.map((l) => `<li><b>${l.qty} ×</b> ${esc(l.name)}${l.variant ? ` <i>(${esc(l.variant)})</i>` : ''}</li>`).join('')}${more > 0 ? `<li><i>+ ${more} autre${more > 1 ? 's' : ''} article${more > 1 ? 's' : ''}</i></li>` : ''}</ul></div>
+      <div class="bc">${require('./barcode').svg(p.barcode || p.number, { height: 60 })}<span>${esc(p.barcode || p.number)}</span></div>
       <footer><span>Commande <b>${esc(o.id || p.orderId)}</b></span>
         <span class="pay ${toCollect ? 'due' : ''}">${toCollect ? `À ENCAISSER : ${fcfa(toCollect)}` : 'PAYÉ'}</span></footer>
       <p class="hint">${pickup ? 'Remise au client uniquement contre son code de retrait.' : 'Remise uniquement contre le code de livraison du client, colis en main.'}${support ? ` · Problème : Kamwa ${esc(support)}` : ''}</p>
@@ -171,14 +175,14 @@ body { margin: 0; font-family: "IBM Plex Sans", Arial, sans-serif; background: #
 .bar { position: sticky; top: 0; display: flex; gap: 8px; justify-content: center; padding: 10px; background: #2D1B69; z-index: 2; }
 .bar button { font: inherit; font-weight: 600; border: 0; border-radius: 999px; padding: 8px 18px; background: #FFB300; color: #2D1B69; cursor: pointer; }
 .bar span { color: #CFC6F2; align-self: center; font-size: 13px; }
-.label { width: 100mm; height: 150mm; margin: 16px auto; background: #fff; padding: 6mm; display: flex; flex-direction: column; gap: 3mm; border: 1px dashed #bbb; page-break-after: always; break-after: page; overflow: hidden; }
+.label { width: 100mm; height: 150mm; margin: 16px auto; background: #fff; padding: 5mm 6mm; display: flex; flex-direction: column; gap: 2mm; border: 1px dashed #bbb; page-break-after: always; break-after: page; overflow: hidden; }
 header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #111; padding-bottom: 2mm; }
 .logo svg { height: 8mm; width: auto; display: block; }
 .num { text-align: right; } .num small { display: block; font-size: 9pt; } .num strong { font-size: 15pt; letter-spacing: .02em; font-variant-numeric: tabular-nums; }
 .mode { text-align: center; font-weight: 700; font-size: 12pt; padding: 1.5mm; color: #fff; background: #111; border-radius: 2mm; letter-spacing: .04em; }
 .mode.pickup { background: #2D1B69; }
 .mid { display: flex; gap: 4mm; align-items: flex-start; flex: 1; }
-.qr { width: 40mm; flex: none; } .qr svg { width: 40mm; height: 40mm; display: block; }
+.qr { width: 31mm; flex: none; } .qr svg { width: 31mm; height: 31mm; display: block; }
 .dest { display: flex; flex-direction: column; gap: .6mm; font-size: 10.5pt; min-width: 0; overflow-wrap: anywhere; }
 .dest strong { font-size: 13pt; line-height: 1.15; } .dest .k { font-size: 8pt; text-transform: uppercase; letter-spacing: .06em; color: #555; margin-top: 2mm; }
 .dest .k:first-child { margin-top: 0; }
@@ -189,9 +193,10 @@ footer { display: flex; justify-content: space-between; gap: 3mm; align-items: c
 .dest .tel { font-weight: 700; font-size: 11.5pt; letter-spacing: .02em; } .dest .gps { font-size: 7.5pt; color: #333; margin-top: 1mm; }
 .info { margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 1.5mm 3mm; padding: 2mm 0; border-top: 1px solid #ccc; }
 .info div { min-width: 0; } .info dt { font-size: 7pt; text-transform: uppercase; letter-spacing: .06em; color: #555; } .info dd { margin: 0; font-size: 9.5pt; font-weight: 600; overflow-wrap: anywhere; }
-.items { flex: 1; min-height: 0; overflow: hidden; border: 1px solid #111; border-radius: 2mm; padding: 1.5mm 2.5mm; }
+.items { flex: 1 1 auto; min-height: 14mm; overflow: hidden; border: 1px solid #111; border-radius: 2mm; padding: 1.5mm 2.5mm; }
 .items .ih { display: flex; justify-content: space-between; align-items: center; font-size: 7.5pt; text-transform: uppercase; letter-spacing: .05em; color: #333; margin-bottom: 1mm; }
 .items ul { margin: 0; padding: 0; list-style: none; font-size: 9pt; line-height: 1.3; } .items li { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .items i { color: #555; }
+.bc { text-align: center; } .bc svg { display: block; width: 100%; height: 12mm; } .bc span { display: block; font-size: 9pt; font-weight: 700; letter-spacing: .25em; font-variant-numeric: tabular-nums; margin-top: .5mm; }
 .fragile { background: #111; color: #fff; padding: .3mm 2mm; border-radius: 1mm; font-size: 7.5pt; letter-spacing: .08em; }
 @media print { body { background: #fff; } .bar { display: none; } .label { margin: 0; border: 0; } @page { size: 100mm 150mm; margin: 0; } }
 </style></head><body>

@@ -781,3 +781,14 @@ html[data-theme="light"] .demo-box .ghost { background: #fff; color: #171C30; bo
 @media (max-width: 900px) { .msg-layout.solo .msg-conv { height: calc(100dvh - 250px); min-height: 380px; } }
 .cell-stack { display: inline-block; text-align: inherit; }
 @media (min-width: 701px) { .fee-del span { display: none; } }
+/* Scanner : cadre large pour les codes-barres, remise au client après scan (18/10/2026) */
+.scan-frame.bar { inset: 30% 8%; }
+.scan-frame.bar::after { content: ''; position: absolute; left: 6%; right: 6%; top: 50%; height: 2px; background: #FF5A3C; box-shadow: 0 0 8px #FF5A3C; animation: scanline 1.6s ease-in-out infinite alternate; }
+@keyframes scanline { from { transform: translateY(-28px); } to { transform: translateY(28px); } }
+@media (prefers-reduced-motion: reduce) { .scan-frame.bar::after { animation: none; } }
+.scan-expect { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-bottom: 10px; }
+.handover h3 { font-size: 1.15rem; }
+.hand-list { list-style: none; padding: 0; margin: 10px 0; display: grid; gap: 4px; }
+.hand-list li { display: flex; align-items: center; gap: 6px; font-size: .9rem; color: var(--muted); } .hand-list li.ok { color: var(--ok); }
+.alert.info { background: #12343B; color: #7FD9E6; }
+html[data-theme="light"] .alert.info { background: #E0F5F7; color: #0E6E7A; }

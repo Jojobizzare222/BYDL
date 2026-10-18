@@ -42,7 +42,8 @@ function view(req, p) {
   const count = P.forOrder(p.orderId).length;
   const pickup = o ? P.isPickup(o) : false;
   return {
-    id: p.id, number: p.number, index: p.index, count, stage: p.stage, stageLabel: P.STAGES[p.stage], stageAt: p.stageAt,
+    id: p.id, number: p.number, barcode: p.barcode || p.number, index: p.index, count, stage: p.stage, stageLabel: P.STAGES[p.stage], stageAt: p.stageAt,
+    siblings: P.forOrder(p.orderId).map((x) => ({ number: x.number, index: x.index, stage: x.stage })), // tous les colis de la commande (remise : vérifier qu'aucun ne manque)
     place: p.place, history: p.history, orderId: p.orderId, createdAt: p.createdAt,
     stale: P.OPEN.includes(p.stage) && STALE_AFTER[p.stage] && HOURS(p.stageAt) > STALE_AFTER[p.stage] ? Math.floor(HOURS(p.stageAt)) : 0,
     order: o ? {

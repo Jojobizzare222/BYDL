@@ -763,6 +763,7 @@
           <a class="btn green" href="https://wa.me/${esc(intl)}" target="_blank" rel="noopener">WhatsApp</a>
         </div>
         <div class="row" style="margin-top:10px">
+          <a class="btn dark" href="#/scanner" data-expect="${esc(x.id)}">${icon('camera-bold')} Scanner le colis</a>
           <button class="btn" data-open="ok">${icon('check-bold')} Colis remis</button>
           <button class="ghost" data-open="ko">Problème</button>
         </div>
@@ -795,6 +796,7 @@
       + (d.current.length ? `<div class="deliv-list">${d.current.map(card).join('')}</div>` : '<div class="panel empty">Aucune livraison en cours. Les commandes qu\'on vous confie apparaissent ici.</div>')
       + (d.done.length ? `<h2 style="margin-top:24px">Dernières livraisons</h2><ul class="mini-list">${d.done.map((x) => `<li><span>${esc(x.id)} · ${esc(x.customer.name)}<br><span class="muted">${date(x.deliveredAt)}</span></span><span>${x.collected ? `${fcfa(x.collected.amount)} ${x.collected.method === 'cash' ? 'espèces' : 'Mobile Money'}` : '<span class="tag ok">payée</span>'}</span></li>`).join('')}</ul>` : '');
     renderShare();
+    app.querySelectorAll('[data-expect]').forEach((b) => b.addEventListener('click', () => { state.scanExpect = b.dataset.expect; state.scanMode = 'deliver'; }));
     app.querySelectorAll('.deliv').forEach((el) => {
       const id = el.dataset.id;
       el.querySelectorAll('[data-open]').forEach((b) => b.addEventListener('click', () => {
@@ -1530,7 +1532,10 @@
     catch (err) { alert(err.message); b.disabled = false; }
   });
 
-  // ---------- Scanner : caméra du téléphone (BarcodeDetector, sinon jsQR, Apache 2.0) ----------
+  // ---------- Scanner : caméra du téléphone, codes-barres (CODE 128) et QR codes ----------
+  // Lecteur intégré au téléphone (BarcodeDetector, Android) ; sinon ZXing (iPhone…, chargé à la demande depuis
+  // public/admin/vendor/zxing/) ; en dernier recours jsQR (QR seulement). Une douchette (lecteur Bluetooth / USB)
+  // tape le numéro dans le champ de saisie : elle marche aussi.
   let scan = null;
   function stopScanner() {
     if (!scan) return;
@@ -1538,34 +1543,81 @@
     scan.stream?.getTracks().forEach((t) => t.stop());
     scan = null;
   }
+  const loadZXing = () => window.ZXing ? Promise.resolve() : new Promise((ok, ko) => { const s = document.createElement('script'); s.src = '/admin/vendor/zxing/zxing.min.js'; s.onload = ok; s.onerror = ko; document.head.appendChild(s); });
   const loadJsQR = () => window.jsQR ? Promise.resolve() : new Promise((ok, ko) => { const s = document.createElement('script'); s.src = '/admin/vendor/jsqr/jsQR.js'; s.onload = ok; s.onerror = ko; document.head.appendChild(s); });
   function beep(good) {
     try { navigator.vibrate?.(good ? 70 : [60, 60, 60]); } catch {}
     try { const ac = new (window.AudioContext || window.webkitAudioContext)(); const o = ac.createOscillator(); const g = ac.createGain(); o.frequency.value = good ? 1046 : 220; g.gain.value = .08; o.connect(g); g.connect(ac.destination); o.start(); o.stop(ac.currentTime + (good ? .12 : .3)); setTimeout(() => ac.close(), 500); } catch {}
   }
+  // Livreur : colis scanné chez le client → bon colis vérifié, autres colis de la commande, encaissement, code du client
+  function showHandover(out, p) {
+    const o = p.order || {}; const c = o.customer || {};
+    state.scanned = state.scanned || {}; (state.scanned[p.orderId] = state.scanned[p.orderId] || new Set()).add(p.number);
+    const seen = state.scanned[p.orderId];
+    const sib = p.siblings || [{ number: p.number, index: 1 }];
+    const missing = sib.filter((x) => !seen.has(x.number) && x.stage !== 'delivered');
+    if (o.status !== 'shipped') { out.innerHTML = `<div class="alert err"><strong>${esc(p.number)}</strong> : cette commande n'est pas en livraison (${esc(state.labels?.[o.status] || o.status || '')}).</div>`; return; }
+    out.innerHTML = `<div class="panel scan-card handover">
+      <div class="row between"><span class="tag ok">${icon('check-bold')} Bon colis</span><span class="mono">${esc(p.number)} · ${p.index}/${p.count}</span></div>
+      <h3 style="margin:8px 0 2px">${esc(c.name)}</h3><p class="muted" style="margin:0">${esc(c.address || '')} ${c.city ? '· ' + esc(c.city) : ''}</p>
+      ${sib.length > 1 ? `<ul class="hand-list">${sib.map((x) => `<li class="${seen.has(x.number) ? 'ok' : ''}">${icon(seen.has(x.number) ? 'check-bold' : 'package')} <span class="mono">${esc(x.number)}</span> ${seen.has(x.number) ? 'scanné' : '<b>à scanner</b>'}</li>`).join('')}</ul>` : ''}
+      <form class="deliver-form" id="handForm">
+        ${o.toCollect ? `<p><strong>À encaisser : ${fcfa(o.toCollect)}</strong></p><div class="row"><label class="check"><input type="radio" name="collect" value="cash" checked> Espèces</label><label class="check"><input type="radio" name="collect" value="momo"> Mobile Money du client</label></div><input type="tel" name="phone" placeholder="Autre numéro Mobile Money (facultatif)">` : '<p class="muted">Déjà payée : rien à encaisser.</p>'}
+        <label>Code de livraison donné par le client</label>
+        <input class="code-input-pro" name="code" inputmode="numeric" maxlength="4" placeholder="• • • •" autocomplete="off">
+        <div class="msg"></div>
+        <button class="btn green">${icon('check-bold')} Valider la remise</button>
+      </form></div>`;
+    const form = out.querySelector('#handForm');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (missing.length && !confirm(`Il manque ${missing.length} colis de cette commande (${missing.map((x) => x.number).join(', ')}).\n\nRemettre quand même ?`)) return;
+      const f = new FormData(form); const msg = form.querySelector('.msg');
+      try {
+        const res = await api('/courier/deliveries/' + enc(p.orderId) + '/deliver', { method: 'POST', body: { code: f.get('code'), collect: f.get('collect') || undefined, phone: f.get('phone') || undefined } });
+        const done = () => { beep(true); delete state.scanned[p.orderId]; state.scanExpect = null; out.innerHTML = `<div class="alert ok">${icon('check-bold')} Commande ${esc(p.orderId)} remise à ${esc(c.name.split(' ')[0])}. Merci !</div><a class="btn" href="#/livraisons" style="margin-top:8px">Mes livraisons</a>`; };
+        if (res.pending) return waitBalance(res, '/courier/payments/', msg, done);
+        done();
+      } catch (err) { beep(false); msg.innerHTML = `<div class="alert err">${esc(err.message)}</div>`; }
+    });
+    form.querySelector('[name=code]').focus({ preventScroll: true });
+  }
+
   async function viewScanner() {
     if (CAN.orders() && !pclMeta.couriers.length && !pclMeta.relays.length) await loadPclMeta();
-    const MODES = CAN.courier() ? [['look', 'Consulter'], ['take', 'Je prends le colis']]
+    const MODES = CAN.courier() ? [['deliver', 'Remettre au client'], ['take', 'Je prends le colis'], ['look', 'Consulter']]
       : [['look', 'Consulter'], ['prepare', 'Préparé'], ['to_courier', 'Remis au livreur'], ['at_relay', 'Au point relais']];
-    const mode = MODES.some(([k]) => k === state.scanMode) ? state.scanMode : 'look';
-    app.innerHTML = pageHead({ crumb: 'Colis', title: 'Scanner', desc: "Visez le QR code de l'étiquette. En mode « Consulter », le colis s'ouvre ; dans les autres modes, l'étape est enregistrée à chaque scan (pratique pour une pile de colis)." })
+    const mode = MODES.some(([k]) => k === state.scanMode) ? state.scanMode : MODES[0][0];
+    state.scanMode = mode;
+    const expect = mode === 'deliver' && state.scanExpect ? state.scanExpect : null;
+    app.innerHTML = pageHead({ crumb: 'Colis', title: 'Scanner', desc: CAN.courier()
+      ? "Visez le code-barres (ou le QR code) de l'étiquette. « Remettre au client » : vérifie que c'est le bon colis, puis vous validez avec le code du client. « Je prends le colis » : à l'entrepôt, scannez chaque colis que vous emportez."
+      : "Visez le code-barres (ou le QR code) de l'étiquette. En mode « Consulter », le colis s'ouvre ; dans les autres modes, l'étape est enregistrée à chaque scan (pratique pour une pile de colis)." })
       + `<div class="scan-modes">${MODES.map(([k, l]) => `<button class="tab ${k === mode ? 'on' : ''}" data-smode="${k}">${esc(l)}</button>`).join('')}</div>
       <div class="scan-opts">
         ${mode === 'to_courier' ? `<label>Livreur <select id="scanCourier">${pclMeta.couriers.map((c) => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('') || '<option value="">Aucun livreur actif</option>'}</select></label>` : ''}
         ${mode === 'at_relay' ? `<label>Point relais <select id="scanRelay"><option value="">Celui choisi par le client</option>${pclMeta.relays.map((r) => `<option value="${esc(r.id)}">${esc(r.name)}</option>`).join('')}</select></label>` : ''}
       </div>
-      <div class="scan-cam"><video id="scanVideo" playsinline muted></video><div class="scan-frame"></div><p class="scan-hint" id="scanHint">Ouverture de la caméra…</p></div>
-      <form class="scan-manual" id="scanManual"><input type="text" id="scanInput" placeholder="Ou tapez le numéro : KM-…" autocomplete="off" autocapitalize="characters"><button class="btn">OK</button></form>
+      ${expect ? `<div class="alert info scan-expect">${icon('package')} Scannez le colis de la commande <strong class="mono">${esc(expect)}</strong> <button type="button" class="linkish" id="scanAny">Scanner un autre colis</button></div>` : ''}
+      <div class="scan-cam"><video id="scanVideo" playsinline muted></video><div class="scan-frame bar"></div><p class="scan-hint" id="scanHint">Ouverture de la caméra…</p></div>
+      <form class="scan-manual" id="scanManual"><input type="text" id="scanInput" placeholder="Ou tapez le numéro (KM-…) · douchette : scannez ici" autocomplete="off" autocapitalize="characters" enterkeyhint="go"><button class="btn">OK</button></form>
       <div id="scanResult"></div>
       <ul class="scan-log" id="scanLog"></ul>`;
     app.querySelectorAll('[data-smode]').forEach((b) => b.addEventListener('click', () => { state.scanMode = b.dataset.smode; stopScanner(); viewScanner(); }));
+    $('#scanAny')?.addEventListener('click', () => { state.scanExpect = null; stopScanner(); viewScanner(); });
+    if (matchMedia('(pointer: fine)').matches) $('#scanInput').focus(); // ordinateur + douchette : prêt à lire
     const handle = async (raw) => {
       const number = pclNumber(raw);
       const out = $('#scanResult');
       if (!out) return;
       const m = state.scanMode && MODES.some(([k]) => k === state.scanMode) ? state.scanMode : 'look';
       try {
-        if (m === 'look') {
+        if (m === 'deliver') {
+          const p = await api('/parcels/lookup?code=' + enc(number));
+          if (expect && p.orderId !== expect) { beep(false); out.innerHTML = `<div class="alert err">${icon('warning-duotone')} <strong>Mauvais colis.</strong> ${esc(p.number)} est pour ${esc((p.order?.customer.name || '').split(' ')[0] || 'une autre commande')} (${esc(p.orderId)}), pas pour la commande ${esc(expect)}.</div>`; return; }
+          beep(true);
+          showHandover(out, p);
+        } else if (m === 'look') {
           const p = await api('/parcels/lookup?code=' + enc(number));
           beep(true);
           out.innerHTML = `<div class="panel scan-card">${pclCard(p, { compact: true })}<a class="btn ghost" href="#/colis/${enc(p.number)}" style="margin-top:8px">Ouvrir la fiche</a></div>`;
@@ -1595,10 +1647,23 @@
     }
     if (me.stop) { me.stream.getTracks().forEach((t) => t.stop()); return; }
     video.srcObject = me.stream; await video.play().catch(() => {});
-    $('#scanHint').textContent = 'Visez le QR code du colis';
-    let detector = null;
-    try { if ('BarcodeDetector' in window && (await BarcodeDetector.getSupportedFormats()).includes('qr_code')) detector = new BarcodeDetector({ formats: ['qr_code'] }); } catch {}
-    if (!detector) { try { await loadJsQR(); } catch { $('#scanHint').textContent = 'Lecteur de QR indisponible : tapez le numéro.'; return; } }
+    $('#scanHint').textContent = 'Visez le code-barres ou le QR code du colis';
+    let detector = null, zx = null;
+    try {
+      if ('BarcodeDetector' in window) {
+        const f = await BarcodeDetector.getSupportedFormats();
+        if (f.includes('code_128')) detector = new BarcodeDetector({ formats: ['code_128', 'qr_code'].filter((x) => f.includes(x)) });
+      }
+    } catch {}
+    if (!detector) {
+      try {
+        await loadZXing();
+        zx = new ZXing.MultiFormatReader();
+        zx.setHints(new Map([[ZXing.DecodeHintType.POSSIBLE_FORMATS, [ZXing.BarcodeFormat.CODE_128, ZXing.BarcodeFormat.QR_CODE]]]));
+      } catch {
+        try { await loadJsQR(); $('#scanHint').textContent = 'Visez le QR code du colis (lecteur de code-barres indisponible)'; } catch { $('#scanHint').textContent = 'Lecteur indisponible : tapez le numéro.'; return; }
+      }
+    }
     const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d', { willReadFrequently: true });
     const tick = async () => {
       if (me.stop || scan !== me) return;
@@ -1606,7 +1671,11 @@
         let text = null;
         try {
           if (detector) { const r = await detector.detect(video); text = r[0]?.rawValue || null; }
-          else {
+          else if (zx) {
+            const w = Math.min(960, video.videoWidth), h = Math.round(video.videoHeight * (w / video.videoWidth));
+            canvas.width = w; canvas.height = h; ctx.drawImage(video, 0, 0, w, h);
+            try { text = zx.decodeWithState(new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(new ZXing.HTMLCanvasElementLuminanceSource(canvas)))).getText(); } catch { text = null; } finally { zx.reset(); }
+          } else {
             const w = Math.min(640, video.videoWidth), h = Math.round(video.videoHeight * (w / video.videoWidth));
             canvas.width = w; canvas.height = h; ctx.drawImage(video, 0, 0, w, h);
             const r = window.jsQR(ctx.getImageData(0, 0, w, h).data, w, h, { inversionAttempts: 'dontInvert' });

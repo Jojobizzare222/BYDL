@@ -1,0 +1,1 @@
+@zxing/library 0.21.3 (https://github.com/zxing-js/library) — lecture des codes-barres et QR codes dans Kamwa Pro quand le téléphone ne sait pas le faire seul (iPhone). Licence : voir LICENSE.txt.
