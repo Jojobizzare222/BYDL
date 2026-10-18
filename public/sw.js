@@ -2,7 +2,7 @@
 // (installation sur l'écran d'accueil, ouverture rapide, consultation du catalogue même sans réseau).
 // Règles de sécurité : les commandes, paiements, comptes et l'espace pro passent TOUJOURS par le réseau,
 // jamais par le cache. Seuls le catalogue public et les fichiers du site sont gardés en mémoire.
-const VERSION = 'kamwa-v36';
+const VERSION = 'kamwa-v37';
 const SHELL = `${VERSION}-shell`;
 const MEDIA = `${VERSION}-media`;
 const DATA = `${VERSION}-data`;

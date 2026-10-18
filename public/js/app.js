@@ -571,7 +571,7 @@
         </div>
       </div>`;
     const slides = [];
-    if (heroP) slides.push(slide({ theme: 'violet', kicker: `${icon('sparkle-fill')} Nouveauté`, title: esc(heroP.name.replace(/^Apple /, '')), text: `À partir de <strong>${fcfa(heroP.price)}</strong>, livré chez vous en 24-48 h.`, href: `#/p/${heroP.id}`, cta: 'Je le veux', p: heroP }));
+    if (heroP) slides.push(slide({ theme: 'violet', kicker: `${icon('sparkle-fill')} Nouveauté`, title: esc(heroP.name.replace(/^Apple /, '')), text: `À partir de <strong>${fcfa(heroP.price)}</strong>, avec livraison rapide chez vous.`, href: `#/p/${heroP.id}`, cta: 'Je le veux', p: heroP }));
     if (deals.length) slides.push(slide({ theme: 'coral', kicker: `${icon('lightning-fill')} Bonnes affaires`, title: `Jusqu'à -${discount(deals[0])} %`, text: 'Des prix cassés sur une sélection de produits, dans la limite des stocks.', href: '#/promos', cta: 'Voir les offres', p: pick(deals) }));
     for (const u of myUniverses()) {
       const p = pick(featured(u.name));
@@ -630,7 +630,7 @@
         <div class="shelf-head"><div><p class="kicker">${icon('seal-check-duotone')} Acheter en confiance</p><h2>Pourquoi choisir Kamwa</h2></div></div>
         <div class="reassure">
           <div class="r-violet"><span class="ic">${icon('credit-card')}</span><b>Paiement simple</b><p>En espèces dans nos points relais, sans carte ni frais cachés. Retrait sur place ou livraison.</p></div>
-          <div class="r-mango"><span class="ic">${icon('truck')}</span><b>Livraison rapide</b><p>24-48 h à Pointe-Noire et Brazzaville. Autres villes sur demande.</p></div>
+          <div class="r-mango"><span class="ic">${icon('truck')}</span><b>Livraison rapide</b><p>En 24-48 h à Pointe-Noire et Brazzaville. Autres villes sur demande.</p></div>
           <div class="r-coral"><span class="ic">${icon('storefront')}</span><b>Points relais</b><p>Choisissez le plus proche sur la carte, payez et repartez avec votre commande.</p></div>
           <div class="r-green"><span class="ic">${icon('chat-circle')}</span><b>Service client</b><p>Nous vous appelons après chaque commande.</p></div>
         </div>
@@ -822,7 +822,7 @@
             <span class="price">${fcfa(p.price)}</span>
             ${(p.options || []).map((o, i) => `<label class="opt-label" for="opt${i}">${esc(o.name)}</label><div class="opt-choices" id="opt${i}" data-opt="${esc(o.name)}">${o.values.map((v) => `<button type="button" class="opt" data-v="${esc(v)}">${esc(v)}</button>`).join('')}</div>`).join('')}
             <span class="momo-note">${icon('check-circle-duotone')} Payable en espèces au point relais · retrait ou livraison</span>
-            <span class="hint">${icon('truck-duotone')} Livraison 24-48 h à Pointe-Noire et Brazzaville</span>
+            <span class="hint">${icon('truck-duotone')} Livraison rapide (24-48 h) à Pointe-Noire et Brazzaville</span>
             ${p.stock === 0 ? '<span class="stock-low">Épuisé</span>' : p.stock <= 6 ? `<span class="stock-low">Plus que ${p.stock} en stock</span>` : '<span class="momo-note">En stock</span>'}
             <div id="optErr"></div>
             <button class="btn cta block" ${(p.options || []).length ? 'id="addOpt"' : `data-add="${p.id}"`} ${p.stock === 0 ? 'disabled' : ''}>Ajouter au panier</button>
