@@ -1159,3 +1159,20 @@ body.live-open .app-tabs, body.live-open #appTabs, body.live-open .chat-fab, bod
 .demo-strip a { color: #fff; text-decoration: underline; margin-left: 6px; white-space: nowrap; }
 .live-btn[hidden] { display: none; }
 .live-note[hidden], .live-courier[hidden] { display: none; }
+
+/* ---------- Mode maintenance (18/10/2026) ---------- */
+.maint-screen { position: fixed; inset: 0; z-index: 45; display: grid; place-items: center; padding: 20px 16px calc(20px + env(safe-area-inset-bottom)); overflow-y: auto;
+  background: radial-gradient(circle at 15% 10%, rgba(255,179,0,.18), transparent 40%), radial-gradient(circle at 90% 85%, rgba(255,90,60,.16), transparent 45%), var(--bg); }
+.maint-card { width: min(480px, 100%); text-align: center; background: var(--paper); border: 1px solid var(--line-soft); border-radius: 26px; padding: 30px 24px 22px; box-shadow: 0 24px 60px rgba(27,21,48,.14); }
+.maint-logo { height: 34px; width: auto; margin: 0 auto 18px; display: block; }
+.maint-logo.for-dark { display: none; }
+html[data-theme="dark"] .maint-logo.for-light { display: none; } html[data-theme="dark"] .maint-logo.for-dark { display: block; }
+.maint-ico { width: 64px; height: 64px; margin: 0 auto 14px; border-radius: 50%; display: grid; place-items: center; font-size: 2rem; color: var(--brand-text); background: var(--violet-soft); }
+.maint-card h1 { font-size: 1.45rem; margin: 0 0 8px; }
+.maint-msg { font-size: 1rem; line-height: 1.55; margin: 0 0 12px; }
+.maint-until { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: var(--mango-soft); font-weight: 600; font-size: .9rem; margin: 0 0 10px; }
+.maint-actions { display: flex; flex-direction: column; gap: 10px; margin: 16px 0 8px; }
+.maint-actions .btn { width: 100%; justify-content: center; }
+.maint-preview { display: inline-block; margin-bottom: 14px; padding: 4px 10px; border-radius: 999px; background: var(--coral-soft); color: var(--accent-dark); font-size: .8rem; font-weight: 600; }
+body.maint-on { overflow: hidden; }
+body.maint-on .app-tabs, body.maint-on #appTabs { display: none !important; }

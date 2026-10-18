@@ -824,10 +824,18 @@
     });
   }
 
+  // ---------- Mode maintenance : bandeau de rappel pour toute l'équipe ----------
+  function renderMaintBar(on) {
+    const bar = $('#maintBar'); if (!bar) return;
+    bar.hidden = !on;
+    bar.innerHTML = on ? `${icon('warning-duotone')} <span><b>Boutique en maintenance</b> : les clients voient le message de maintenance et ne peuvent pas commander.</span>${CAN.admin() ? '<a href="#/reglages">Rouvrir la boutique</a>' : ''}` : '';
+  }
+
   // ---------- Réglages du paiement à la réception (admin) ----------
   async function viewSettings() {
-    let c, sl, co, fe;
-    try { [c, sl, co, fe] = await Promise.all([api('/settings/cod'), api('/settings/sales'), api('/documents/company'), api('/settings/fees')]); } catch { return; }
+    let c, sl, co, fe, mt;
+    try { [c, sl, co, fe, mt] = await Promise.all([api('/settings/cod'), api('/settings/sales'), api('/documents/company'), api('/settings/fees'), api('/settings/maintenance')]); } catch { return; }
+    const localDT = (iso) => { if (!iso) return ''; const d = new Date(iso); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 16); };
     const zonesText = (zones) => zones.map((z) => `${z.name} : ${z.fee}`).join('\n');
     const cityRow = (ct = { city: '', fee: 0, zones: [] }) => `<div class="fee-city">
         <div><label>Ville</label><input type="text" data-fc="city" value="${esc(ct.city)}" placeholder="Pointe-Noire" maxlength="40"></div>
@@ -838,7 +846,22 @@
     const cp = co.company;
     const coField = (k, label, ph = '', wide = false) => `<div${wide ? ' style="grid-column:1/-1"' : ''}><label for="co_${k}">${label}${co.missing.includes(k) ? ' <span class="tag warn">à compléter</span>' : ''}</label><input id="co_${k}" type="text" data-co="${k}" value="${esc(cp[k] || '')}" placeholder="${esc(ph)}"></div>`;
     const PAY = [['cash', 'Espèces en agence (retrait ou livraison)'], ['momo', 'Mobile Money (MTN, Airtel)'], ['card', 'Carte bancaire (prestataire à brancher)'], ['cod', 'Paiement à la réception']];
-    app.innerHTML = pageHead({ crumb: 'Gestion', title: 'Réglages', desc: 'Règles de vente, frais de livraison, société (factures et reçus) et paiement à la réception.' }) + `
+    app.innerHTML = pageHead({ crumb: 'Gestion', title: 'Réglages', desc: 'Maintenance, règles de vente, frais de livraison, société (factures et reçus) et paiement à la réception.' }) + `
+      <form class="panel maint-panel ${mt.enabled ? 'on' : ''}" id="maintForm" style="max-width:760px">
+        <h2>${icon('warning-duotone')} Mode maintenance de la boutique ${mt.enabled ? '<span class="tag danger">ACTIVÉ</span>' : '<span class="tag ok">Boutique ouverte</span>'}</h2>
+        <p class="muted" style="margin-top:0">Pendant une mise à jour ou un inventaire : les clients voient ce message à l'ouverture de la boutique et ne peuvent plus commander, payer ni créer de compte. Ils peuvent encore suivre leurs commandes et écrire à l'Aide. Kamwa Pro reste ouvert.${mt.enabled && mt.since ? `<br>Activé le ${date(mt.since)}${mt.by ? ' par ' + esc(mt.by) : ''}.` : ''}</p>
+        ${mt.demo ? '<div class="alert info">Démo publique : la boutique ne peut pas être fermée ici. Le bouton « Aperçu » montre l\'écran que verront les clients.</div>' : ''}
+        <label for="mtMsg">Message affiché aux clients</label>
+        <textarea id="mtMsg" rows="3" maxlength="300">${esc(mt.message)}</textarea>
+        <label for="mtUntil">Retour prévu (facultatif)</label>
+        <input type="datetime-local" id="mtUntil" value="${esc(localDT(mt.until))}" style="max-width:260px">
+        <div id="mtMsgBox"></div>
+        <div class="row" style="margin-top:14px">
+          ${mt.enabled ? `<button type="button" class="btn green" id="mtOff">${icon('check-bold')} Rouvrir la boutique</button><button class="ghost">Mettre à jour le message</button>`
+            : `<button type="button" class="btn red" id="mtOn" ${mt.demo ? 'disabled' : ''}>${icon('warning-duotone')} Mettre la boutique en maintenance</button><button class="ghost">Enregistrer le message</button>`}
+          <a class="ghost" id="mtPreview" href="/?apercu=maintenance" target="_blank" rel="noopener">${icon('arrow-square-out-bold')} Aperçu</a>
+        </div>
+      </form>
       <form class="panel" id="salesForm" style="max-width:640px">
         <h2>${icon('identification-card')} Règles de vente</h2>
         <label class="check"><input type="checkbox" id="slAccount" ${sl.accountRequired ? 'checked' : ''}> Compte avec pièce d'identité <b>vérifiée</b> obligatoire pour commander</label>
@@ -900,6 +923,15 @@
         <div id="sMsg"></div>
         <button class="btn" style="margin-top:14px">Enregistrer</button>
       </form>`;
+    const mtBody = (extra = {}) => ({ message: $('#mtMsg').value, until: $('#mtUntil').value ? new Date($('#mtUntil').value).toISOString() : null, ...extra });
+    const mtSave = async (extra, okMsg) => {
+      try { const v = await api('/settings/maintenance', { method: 'PUT', body: mtBody(extra) }); toast(okMsg); renderMaintBar(v.enabled); route({ keep: true }); }
+      catch (err) { $('#mtMsgBox').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; }
+    };
+    $('#maintForm').addEventListener('submit', (e) => { e.preventDefault(); mtSave({}, 'Message enregistré'); });
+    $('#mtOn')?.addEventListener('click', () => { if (confirm('Mettre la boutique en maintenance ?\n\nLes clients verront votre message et ne pourront plus commander jusqu\'à la réouverture.')) mtSave({ enabled: true }, 'Boutique en maintenance'); });
+    $('#mtOff')?.addEventListener('click', () => mtSave({ enabled: false }, 'Boutique rouverte ✓'));
+    $('#mtPreview').addEventListener('click', (e) => { e.currentTarget.href = '/?apercu=maintenance&msg=' + enc($('#mtMsg').value.slice(0, 300)) + ($('#mtUntil').value ? '&until=' + enc(new Date($('#mtUntil').value).toISOString()) : ''); });
     $('#feeAdd').addEventListener('click', () => { $('#feeCities').insertAdjacentHTML('beforeend', cityRow()); $('#feeCities').lastElementChild.querySelector('input').focus(); });
     $('#feeCities').addEventListener('click', (e) => { if (e.target.closest('.fee-del')) e.target.closest('.fee-city').remove(); });
     $('#feesForm').addEventListener('submit', async (e) => {
@@ -2839,6 +2871,7 @@
     proEs.addEventListener('change', (e) => {
       let t = {}; try { t = JSON.parse(e.data); } catch {}
       if (!t.topic) return;
+      if (t.topic === 'maintenance') { api('/me').then((me) => renderMaintBar(me.maintenance)).catch(() => {}); if (/^#\/reglages/.test(location.hash) && !proBusy()) route({ keep: true }); return; }
       liveQueue.add(t.topic);
       if (!liveTimer) liveTimer = setTimeout(applyLive, 150);
     });
@@ -2903,7 +2936,9 @@
 
   async function start() {
     app.innerHTML = '<p class="empty">Chargement…</p>';
-    state.user = (await api('/me')).user;
+    const me = await api('/me');
+    state.user = me.user;
+    renderMaintBar(me.maintenance);
     await Promise.all([CAN.orders() ? loadOrders() : null, CAN.products() ? loadProducts() : null]);
     loadChatCounts();
     connectProEvents();

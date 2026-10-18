@@ -27,9 +27,61 @@
       body: options.body ? JSON.stringify(options.body) : undefined,
     });
     const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw Object.assign(new Error(data.error || 'Erreur réseau, réessayez.'), { data });
+    if (!res.ok) {
+      if (data.maintenance && typeof setMaintenance === 'function') setMaintenance({ enabled: true, message: data.error, until: data.until || null });
+      throw Object.assign(new Error(data.error || 'Erreur réseau, réessayez.'), { data });
+    }
     return data;
   }
+
+  // ---------- Mode maintenance (activé dans Kamwa Pro → Réglages) ----------
+  // Écran plein à l'ouverture de la boutique ; restent accessibles : suivi des commandes, compte, pages légales, Aide.
+  // Aperçu pour l'équipe : /?apercu=maintenance&msg=…&until=… (rien n'est fermé, seul cet écran s'affiche).
+  const MAINT_OPEN = ['compte', 'suivi', 'merci', 'legal', 'cookies', 'demo-suivi'];
+  let maint = null, maintPreview = null;
+  try {
+    const q = new URLSearchParams(location.search);
+    if (q.get('apercu') === 'maintenance') maintPreview = { enabled: true, message: q.get('msg') || '', until: q.get('until') || null, preview: true };
+  } catch {}
+  function setMaintenance(m) {
+    const was = Boolean(maint?.enabled);
+    maint = m || null;
+    renderMaintenance();
+    if (was && !maint?.enabled) toast('La boutique est rouverte, bonnes affaires !');
+  }
+  function renderMaintenance() {
+    const m = maintPreview ? { ...maintPreview, message: maintPreview.message || maint?.message || '' } : maint;
+    const page = (location.hash || '#/').slice(2).split('/')[0];
+    const show = Boolean(m?.enabled) && (maintPreview || !MAINT_OPEN.includes(page));
+    document.body.classList.toggle('maint-on', show);
+    let el = document.getElementById('maintScreen');
+    if (!show) { el?.remove(); return; }
+    if (!el) { el = document.createElement('div'); el.id = 'maintScreen'; el.className = 'maint-screen'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-modal', 'true'); el.setAttribute('aria-labelledby', 'maintTitle'); document.body.appendChild(el); }
+    const until = m.until ? new Date(m.until) : null;
+    const hh = until && until.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    const sameDay = until && until.toDateString() === new Date().toDateString();
+    el.innerHTML = `<div class="maint-card">
+        ${m.preview ? '<span class="maint-preview">Aperçu visible uniquement sur cet écran : la boutique reste ouverte</span>' : ''}
+        <img class="maint-logo for-light" src="/brand/logo-kamwa.svg?v=2" alt="Kamwa" width="150" height="36"><img class="maint-logo for-dark" src="/brand/logo-kamwa-clair.svg?v=2" alt="Kamwa" width="150" height="36">
+        <div class="maint-ico">${icon('clock-bold')}</div>
+        <h1 id="maintTitle">Petite pause, on revient vite</h1>
+        <p class="maint-msg">${esc(m.message || 'La boutique est en maintenance pour quelques instants.')}</p>
+        ${until && until > Date.now() ? `<p class="maint-until">${icon('clock-bold')} Retour prévu ${sameDay ? "aujourd'hui" : 'le ' + until.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })} vers ${hh}</p>` : ''}
+        <p class="hint">Votre panier est gardé. Vous pouvez toujours suivre vos commandes en cours.</p>
+        <div class="maint-actions">
+          <a class="btn cta" href="#/compte">${icon('package')} Suivre ma commande</a>
+          <button type="button" class="btn ghost" id="maintHelp">${icon('chat-circle')} Écrire à l'Aide</button>
+        </div>
+        ${m.preview ? '<button type="button" class="linkish" id="maintClose">Fermer l\'aperçu</button>' : '<button type="button" class="linkish" id="maintRetry">Réessayer</button>'}
+      </div>`;
+    el.querySelector('#maintHelp').addEventListener('click', () => window.kamwaChat?.open());
+    el.querySelector('#maintClose')?.addEventListener('click', () => { maintPreview = null; history.replaceState(null, '', location.pathname + location.hash); renderMaintenance(); });
+    el.querySelector('#maintRetry')?.addEventListener('click', checkMaintenance);
+  }
+  async function checkMaintenance() {
+    try { const c = await fetch('/api/config', { cache: 'no-store' }).then((r) => r.json()); setMaintenance(c.maintenance); } catch {}
+  }
+  setInterval(() => { if (!document.hidden) checkMaintenance(); }, 60000);
 
   // ---------- Commande en cours (une seule commande et un seul paiement par panier) ----------
   // On garde la commande et sa clé secrète : si le client réessaie, recharge la page ou revient plus tard,
@@ -2181,6 +2233,7 @@
       if (t.topic === 'catalog') productsAt = 0;
       if (t.topic === 'chat') window.kamwaChat?.refresh?.();
       if (t.topic === 'live') { window.dispatchEvent(new CustomEvent('kamwa-live')); return; }
+      if (t.topic === 'maintenance') { checkMaintenance(); return; }
       pulse();
     });
   }
@@ -2192,6 +2245,7 @@
     state.timers.forEach(clearInterval); state.timers = [];
     const parts = currentParts();
     document.body.dataset.route = parts[0] || 'accueil'; // sert au style (ex. bulle « Aide » réduite sur les pages d'achat)
+    renderMaintenance();
     if (parts[0] !== 'recherche') $('.header').classList.remove('search-open');
     if (parts[0] !== 'recherche') $('#searchInput').value = '';
     markTab(parts[0]);
@@ -2240,6 +2294,7 @@
       return;
     }
     renderCart();
+    setMaintenance(state.config.maintenance);
     renderDeliverCity(); // villes de livraison réglées dans Kamwa Pro
     $('#year').textContent = new Date().getFullYear();
     const last = loadJSON('kamwa-last-order');

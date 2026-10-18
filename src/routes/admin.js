@@ -26,7 +26,7 @@ router.post('/login', login);
 router.post('/logout', logout);
 router.get('/me', (req, res) => {
   const user = currentUser(req);
-  res.json({ loggedIn: Boolean(user), passwordSet: isPasswordSet(), user, roles: ROLES, demoAccounts: demo.publicAccounts() });
+  res.json({ loggedIn: Boolean(user), passwordSet: isPasswordSet(), user, roles: ROLES, demoAccounts: demo.publicAccounts(), ...(user ? { maintenance: require('../maintenance').publicState().enabled } : {}) });
 });
 
 router.use(requireStaff);
@@ -57,6 +57,7 @@ router.get('/events', (req, res) => {
       if (doc.kind === 'supplier') return (role === 'supplier' ? doc.supplierId === u.id : ['admin', 'orders', 'catalog'].includes(role)) ? { topic: 'chat', id: doc.id } : null;
       return ordersRole ? { topic: 'chat', id: doc.id } : null;
     }
+    if (col === 'maintenance') return { topic: 'maintenance' };
     if (col === 'customers') return role === 'admin' ? { topic: 'customers', id: doc.id } : null;
     if (col === 'reviews') return ['admin', 'catalog'].includes(role) ? { topic: 'reviews' } : null;
     if (col === 'agencies') return role === 'admin' ? { topic: 'agencies' } : null;
@@ -571,6 +572,18 @@ router.patch('/reviews/:id', requireRole('catalog'), (req, res) => {
   const u = reviews.update(r.id, { hidden, hiddenBy: hidden ? req.user.name : null, hiddenAt: hidden ? new Date().toISOString() : null });
   log(req, hidden ? 'Avis masqué' : 'Avis réaffiché', { id: r.productId, name: products.get(r.productId)?.name || r.productId }, `${r.rating}/5 · ${r.name}`);
   res.json({ id: u.id, hidden: u.hidden });
+});
+
+// ---------- Mode maintenance de la boutique (admin) ----------
+router.get('/settings/maintenance', requireRole(), (req, res) => res.json({ ...require('../maintenance').get(), demo: Boolean(config.demo) }));
+router.put('/settings/maintenance', requireRole(), (req, res) => {
+  const M = require('../maintenance');
+  // Démo publique : compte admin partagé et plusieurs copies du serveur → seulement l'aperçu, jamais la vraie fermeture
+  if (config.demo && req.body?.enabled) return res.status(403).json({ error: "Démo publique : la boutique ne peut pas être fermée. Utilisez « Aperçu » pour voir l'écran de maintenance." });
+  const r = M.set(req.body || {}, req.user.name);
+  if (r.error) return res.status(400).json({ error: r.error });
+  log(req, r.value.enabled ? 'Boutique mise en maintenance' : 'Boutique rouverte', null, r.value.enabled ? r.value.message : '');
+  res.json(r.value);
 });
 
 // ---------- Frais de livraison par ville / quartier (admin) ----------

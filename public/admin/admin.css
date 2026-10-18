@@ -792,3 +792,9 @@ html[data-theme="light"] .demo-box .ghost { background: #fff; color: #171C30; bo
 .hand-list li { display: flex; align-items: center; gap: 6px; font-size: .9rem; color: var(--muted); } .hand-list li.ok { color: var(--ok); }
 .alert.info { background: #12343B; color: #7FD9E6; }
 html[data-theme="light"] .alert.info { background: #E0F5F7; color: #0E6E7A; }
+/* Mode maintenance (18/10/2026) */
+.maint-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 14px 24px 0; padding: 10px 14px; border-radius: 10px; background: #3B1C22; color: #FFB4B4; font-size: .9rem; }
+.maint-bar a { margin-left: auto; color: inherit; font-weight: 700; text-decoration: underline; }
+html[data-theme="light"] .maint-bar { background: #FDEEEC; color: #B3261E; }
+.maint-panel.on { border-color: var(--err); box-shadow: 0 0 0 2px rgba(255,107,107,.18); }
+@media (max-width: 900px) { .maint-bar { margin: 10px 14px 0; } }

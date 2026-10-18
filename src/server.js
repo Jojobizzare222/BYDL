@@ -15,6 +15,7 @@ app.use(security.headers);
 // Jamais sur les flux en direct (/events), qui doivent partir tout de suite.
 app.use(require('compression')({ filter: (req, res) => !/\/events$/.test(req.path) && require('compression').filter(req, res) }));
 app.use('/api', security.rateLimit);
+app.use(require('./maintenance').guard); // maintenance : nouvelles commandes, paiements et comptes refusés (503)
 // Création de compte / envoi de la pièce d'identité : la photo est jointe (réduite par le navigateur), d'où une limite plus haute
 app.use(['/api/account/register', '/api/account/identity'], express.json({ limit: '6mb' }));
 app.use(express.json({ limit: '100kb' }));
@@ -80,7 +81,7 @@ function siteVersion() {
 }
 app.get('/api/config', (req, res) => {
   res.set('Cache-Control', 'no-store');
-  res.json({ shopName: config.shopName, currency: config.currency, paymentMode: config.paymentMode, demo: config.demo, universes: UNIVERSES, version: siteVersion(), accountRequired: require('./sales').salesSettings().accountRequired, deliveryFees: require('./fees').publicFees(), ...(config.demo ? { demoTrack: { id: 'CMD-DEMO-0002', token: require('./demo').DEMO_TRACK_TOKEN } } : {}) });
+  res.json({ shopName: config.shopName, currency: config.currency, paymentMode: config.paymentMode, demo: config.demo, universes: UNIVERSES, version: siteVersion(), accountRequired: require('./sales').salesSettings().accountRequired, deliveryFees: require('./fees').publicFees(), maintenance: require('./maintenance').publicState(), ...(config.demo ? { demoTrack: { id: 'CMD-DEMO-0002', token: require('./demo').DEMO_TRACK_TOKEN } } : {}) });
 });
 app.use('/api/products', require('./routes/products'));
 app.use('/api/orders', require('./routes/orders'));
@@ -102,6 +103,7 @@ app.get('/api/events', (req, res) => {
   const { currentCustomer } = require('./customer/auth');
   const me = currentCustomer(req)?.id || null;
   events.stream(req, res, ({ col, doc, before }) => {
+    if (col === 'maintenance') return { topic: 'maintenance' };
     if (col === 'products' || col === 'agencies' || col === 'reviews') return { topic: 'catalog' };
     if (!me) return null;
     if (col === 'orders' && (doc.customerId === me || before?.customerId === me)) return { topic: 'order', id: doc.id };
