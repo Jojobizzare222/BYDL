@@ -13,3 +13,6 @@ data/uploads/
 data/models/
 # Pièces d'identité des clients : données TRÈS sensibles, jamais sur GitHub
 data/identity/
+
+# Documents administratifs personnels de Joseph : jamais sur GitHub (dépôt public) ni sur Vercel
+Documents administratifs/
