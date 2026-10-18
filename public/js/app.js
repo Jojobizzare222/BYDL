@@ -1880,7 +1880,7 @@
           <p class="hint" style="margin-top:12px">${isPickup(o) ? `Retrait au point relais : ${esc(ag.name)} (${esc(ag.city)})` : `Livraison : ${esc(o.customer.city || '—')} · ${esc(o.customer.address || '')}`}<br>Contact : ${esc(o.customer.phone)}</p>
         </div>
       </div>`;
-    if ($('#liveBox')) startLive(id);
+    if ($('#liveBox')) startLive(id, o);
   }
 
   // ---------- Notifications de suivi sur le téléphone (Android et iPhone) ----------
@@ -1914,51 +1914,169 @@
     catch (err) { b.disabled = false; b.textContent = 'Activer'; alert(err.message); }
   });
 
-  // ---------- Suivi EN DIRECT du livreur (façon Grab) ----------
-  // La carte montre le livreur qui avance vers l'adresse du client, la distance et le temps estimé ; mise à jour toutes les 5 s.
-  function startLive(id) {
+  // ---------- Suivi EN DIRECT de la course (façon Grab, décision Joseph 18/10/2026) ----------
+  // Carte où le livreur GLISSE vers le client (animation entre deux positions, icône tournée dans sa direction),
+  // trajet restant, heure d'arrivée, étapes, carte du livreur (prénom, véhicule, plaque), plein écran, « arrivé ».
+  // Données : GET /api/orders/:id/live (src/live.js), toutes les 4 s + signal instantané « kamwa-live ».
+  function startLive(id, order = {}) {
     const box = $('#liveBox');
-    let L = null, map = null, courier = null, home = null, line = null;
-    box.innerHTML = `<div class="live-head"><span class="live-dot"></span><strong id="liveTitle">Votre livreur est en route</strong></div>
-      <div class="live-eta" id="liveEta">Recherche de la position du livreur…</div>
-      <div class="live-bar"><span id="liveBar" style="width:8%"></span>${icon('truck')}</div>
-      <div class="kmap" id="liveMap" style="height:300px"></div>`;
-    const tick = async () => {
-      if (!document.body.contains(box) || document.hidden) return;
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.dataset.motion === 'reduce';
+    let L = null, map = null, rider = null, home = null, casing = null, line = null, follow = true, last = null, anim = 0, picking = false, pickMk = null, data = null;
+    box.innerHTML = `
+      <div class="live-map-wrap">
+        <div class="kmap" id="liveMap"></div>
+        <button type="button" class="live-btn live-fs" id="liveFs">${icon('arrow-square-out-bold')}<span>Agrandir</span></button>
+        <button type="button" class="live-btn live-center" id="liveCenter" hidden>${icon('map-pin-bold')}<span>Recentrer</span></button>
+      </div>
+      <div class="live-sheet">
+        <div class="live-top"><span class="live-dot"></span><small id="liveKicker">Suivi en direct</small></div>
+        <div class="live-eta2"><b id="liveClock">…</b><span id="liveSub">Recherche de la position du livreur…</span></div>
+        <div class="live-bar"><span id="liveBar" style="width:6%"></span></div>
+        <ol class="live-steps" id="liveSteps"></ol>
+        <div class="live-courier" id="liveCourier" hidden></div>
+        <p class="live-note" id="liveNote" hidden></p>
+        <div id="livePick"></div>
+      </div>`;
+    const hhmm = (iso) => new Date(iso).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    const ll = (p) => [p.lat, p.lng];
+    const riderIcon = () => L.divIcon({ className: 'kmap-rider', iconSize: [46, 46], iconAnchor: [23, 23], html: '<span class="rider-halo"></span><span class="rider-dot"><i class="rider-arrow"></i></span>' });
+    const setHeading = (h) => { const a = rider?.getElement()?.querySelector('.rider-arrow'); if (a && h != null) a.style.transform = `rotate(${h}deg)`; };
+    const pathFrom = (pos) => (data?.route?.length ? [ll(pos), ...data.route.slice(1)] : home ? [ll(pos), home.getLatLng()] : [ll(pos)]);
+    const drawPath = (pos) => {
+      const pts = pathFrom(pos);
+      if (pts.length < 2) return;
+      const roads = data?.routeKind === 'roads' && data?.route?.length > 1;
+      if (!line) {
+        casing = L.polyline(pts, { color: '#fff', weight: 9, opacity: 0.9, lineCap: 'round' }).addTo(map);
+        line = L.polyline(pts, { color: '#4B2FB0', weight: 5, opacity: 0.95, lineCap: 'round', dashArray: roads ? null : '2 10' }).addTo(map);
+      } else { casing.setLatLngs(pts); line.setLatLngs(pts); line.setStyle({ dashArray: roads ? null : '2 10' }); }
+    };
+    const fit = () => {
+      if (!map || !follow) return;
+      const pts = [rider?.getLatLng(), home?.getLatLng()].filter(Boolean);
+      if (!pts.length) return;
+      const full = box.classList.contains('full');
+      if (pts.length === 1) map.setView(pts[0], 16, { animate: !reduce });
+      else map.fitBounds(L.latLngBounds(pts), { paddingTopLeft: [40, 70], paddingBottomRight: [40, full ? 300 : 40], maxZoom: 17, animate: !reduce });
+    };
+    // Le livreur glisse de son ancienne à sa nouvelle position (au lieu de sauter)
+    const moveRider = (to, heading) => {
+      cancelAnimationFrame(anim);
+      if (!rider) { rider = L.marker(ll(to), { icon: riderIcon(), zIndexOffset: 1000, keyboard: false, title: 'Votre livreur' }).addTo(map); setHeading(heading); drawPath(to); return; }
+      setHeading(heading);
+      const from = rider.getLatLng();
+      if (reduce) { rider.setLatLng(ll(to)); drawPath(to); return; }
+      const t0 = performance.now(), dur = 3600;
+      const step = (t) => {
+        const k = Math.min(1, (t - t0) / dur), e = k < 0.5 ? 2 * k * k : 1 - (-2 * k + 2) ** 2 / 2;
+        const p = { lat: from.lat + (to.lat - from.lat) * e, lng: from.lng + (to.lng - from.lng) * e };
+        rider.setLatLng(ll(p)); drawPath(p);
+        if (k < 1) anim = requestAnimationFrame(step);
+      };
+      anim = requestAnimationFrame(step);
+    };
+    const renderSteps = (d) => {
+      const st = d.steps || {};
+      const items = [['Commande confirmée', st.confirmedAt], [`Confiée à ${d.courier?.name || 'votre livreur'}`, st.assignedAt], ['En route vers vous', st.startedAt], ['Arrivé', st.arrivedAt]];
+      const cur = items.findIndex(([, at]) => !at);
+      $('#liveSteps').innerHTML = items.map(([t, at], k) => `<li class="${at ? 'done' : k === cur ? 'now' : ''}"><i></i><span>${esc(t)}${at ? `<small>${hhmm(at)}</small>` : ''}</span></li>`).join('');
+    };
+    const renderCourier = (d) => {
+      const c = d.courier; if (!c) return;
+      const el = $('#liveCourier'); el.hidden = false;
+      el.innerHTML = `<span class="av">${esc(c.initial || 'L')}</span><div><b>${esc(c.name)}</b><small>${c.vehicle ? esc(c.vehicle) : 'Livreur Kamwa'}</small></div>
+        <div class="acts"><button type="button" class="live-act" id="liveMsg">${icon('chat-circle-dots-fill')}<span>Message</span></button>${d.supportPhone ? `<a class="live-act" href="tel:${esc(String(d.supportPhone).replace(/[^\d+]/g, ''))}">${icon('phone-bold')}<span>Appeler</span></a>` : ''}</div>`;
+      $('#liveMsg').addEventListener('click', () => { closeFull(); window.kamwaChat?.open(); });
+    };
+    const note = (html) => { const n = $('#liveNote'); n.hidden = !html; n.innerHTML = html || ''; };
+    // Pas d'adresse sur la carte : le client la place (comme le point de dépôt dans Grab)
+    const askPin = () => {
+      if (picking || !map) return;
+      $('#livePick').innerHTML = `<div class="live-pick">${icon('map-pin-bold')}<span><b>Où êtes-vous exactement ?</b> Touchez la carte à l'endroit de la livraison : votre livreur vous trouve plus vite et vous voyez l'heure d'arrivée.</span><button type="button" class="btn cta small" id="pickOk" disabled>Confirmer ce point</button></div>`;
+      picking = true;
+      map.on('click', (e) => {
+        if (!picking) return;
+        if (!pickMk) pickMk = L.marker(e.latlng, { icon: kamwaMap.pin(L, 'home'), draggable: true }).addTo(map); else pickMk.setLatLng(e.latlng);
+        $('#pickOk').disabled = false;
+      });
+      $('#livePick').addEventListener('click', async (e) => {
+        if (!e.target.closest('#pickOk') || !pickMk) return;
+        const p = pickMk.getLatLng();
+        try {
+          await api('/orders/' + enc(id) + '/location', { method: 'POST', headers: orderHeaders(tokenOf(id) || ''), body: { location: { lat: p.lat, lng: p.lng } } });
+          picking = false; pickMk.remove(); pickMk = null; $('#livePick').innerHTML = ''; toast('Adresse enregistrée : votre livreur la voit'); tick();
+        } catch (err) { toast(err.message); }
+      });
+    };
+    async function tick() {
+      if (!document.body.contains(box) || (box.classList.contains('full') && !document.body.contains(spot))) return;
       let d; try { d = await api('/orders/' + enc(id) + '/live', { headers: orderHeaders(tokenOf(id) || '') }); } catch { return; }
-      if (d.status !== 'shipped') { route({ keep: true }); return; }
+      if (d.status !== 'shipped') { closeFull(); route({ keep: true }); return; }
+      data = d;
       if (!map) {
-        try { ({ L, map } = await kamwaMap.create($('#liveMap'), { center: d.courier ? [d.courier.lat, d.courier.lng] : d.destination ? [d.destination.lat, d.destination.lng] : null, zoom: 15 })); } catch { $('#liveMap').remove(); }
+        try {
+          ({ L, map } = await kamwaMap.create($('#liveMap'), { center: d.courier?.lat ? [d.courier.lat, d.courier.lng] : d.destination ? ll(d.destination) : null, zoom: 15 }));
+          // Le client déplace ou zoome la carte lui-même : on arrête de la recadrer, bouton « Recentrer »
+          const byHand = () => { if (picking) return; follow = false; $('#liveCenter').hidden = false; };
+          ['pointerdown', 'wheel', 'touchstart'].forEach((ev) => $('#liveMap').addEventListener(ev, byHand, { passive: true }));
+        } catch { $('#liveMap')?.remove(); }
       }
-      if (map && d.destination && !home) home = L.marker([d.destination.lat, d.destination.lng], { icon: kamwaMap.pin(L, 'home'), title: 'Votre adresse' }).addTo(map).bindPopup('Votre adresse');
+      if (map && d.destination && !home) home = L.marker(ll(d.destination), { icon: kamwaMap.pin(L, 'home'), title: 'Votre adresse' }).addTo(map);
+      renderSteps(d); renderCourier(d);
       if (!d.active) {
-        $('#liveEta').textContent = d.waiting ? `${d.courierName || 'Votre livreur'} n'a pas encore activé le suivi en direct. Gardez votre téléphone allumé, il vous appelle avant d'arriver.` : 'Suivi en direct disponible dès que le livreur part.';
+        $('#liveKicker').textContent = 'Livraison en cours';
+        $('#liveClock').textContent = d.courier ? `${d.courier.name} est en route` : 'Votre colis est en route';
+        $('#liveSub').textContent = d.waiting ? 'Le suivi sur la carte apparaîtra dès que le livreur partagera sa position. Il vous appelle avant d\'arriver.' : 'Le suivi sur la carte commence quand le livreur part.';
+        note(''); if (!d.destination) askPin();
         return;
       }
-      $('#liveTitle').textContent = `${d.courier.name} arrive`;
-      if (d.etaMin) {
-        const pct = Math.max(8, Math.min(96, Math.round((d.progress || 0) * 100)));
-        $('#liveBar').style.width = pct + '%';
-        $('#liveEta').innerHTML = d.distanceKm < 0.2 ? `<strong>Votre livreur est tout près !</strong> Préparez votre code de livraison.`
-          : `Arrivée estimée dans <strong>${d.etaMin} min</strong> · à ${String(d.distanceKm).replace('.', ',')} km`;
-      } else $('#liveEta').textContent = 'Votre livreur est en route. Placez votre adresse sur la carte lors de votre prochaine commande pour voir le temps d\'arrivée.';
-      if (map) {
-        const pos = [d.courier.lat, d.courier.lng];
-        if (!courier) courier = L.marker(pos, { icon: kamwaMap.pin(L, 'courier'), title: 'Livreur', zIndexOffset: 1000 }).addTo(map);
-        else courier.setLatLng(pos);
-        if (home) {
-          if (!line) line = L.polyline([pos, home.getLatLng()], { color: '#5236C9', weight: 4, dashArray: '6 8', opacity: 0.8 }).addTo(map);
-          else line.setLatLngs([pos, home.getLatLng()]);
-          if (!map._kamwaFit) { map.fitBounds(L.latLngBounds([pos, home.getLatLng()]).pad(0.3), { maxZoom: 16 }); map._kamwaFit = true; }
-        } else map.panTo(pos);
+      const c = d.courier;
+      if (d.arrived) {
+        $('#liveKicker').textContent = 'Votre livreur est arrivé';
+        $('#liveClock').textContent = `${c.name} est là`;
+        $('#liveSub').innerHTML = order.deliveryCode ? `Donnez votre code <b class="mono">${esc(order.deliveryCode)}</b> seulement quand vous avez le colis en main.` : 'Donnez votre code de livraison seulement quand vous avez le colis en main.';
+      } else if (d.etaAt) {
+        $('#liveKicker').textContent = d.near ? `${c.name} arrive` : 'Arrivée prévue';
+        $('#liveClock').textContent = d.near ? 'Dans un instant' : `vers ${hhmm(d.etaAt)}`;
+        $('#liveSub').textContent = `${d.etaMin} min · ${String(d.distanceKm).replace('.', ',')} km${d.routeKind === 'direct' ? ' environ' : ''}`;
+      } else {
+        $('#liveKicker').textContent = `${c.name} est en route`;
+        $('#liveClock').textContent = 'En route';
+        $('#liveSub').textContent = 'Placez votre adresse sur la carte pour voir l\'heure d\'arrivée.';
       }
+      $('#liveBar').style.width = Math.max(6, Math.min(100, Math.round((d.arrived ? 1 : d.progress || 0) * 100))) + '%';
+      note(c.ageSec > 45 ? `${icon('clock-bold')} Dernière position il y a ${c.ageSec < 120 ? c.ageSec + ' s' : Math.round(c.ageSec / 60) + ' min'} : le réseau du livreur est faible.`
+        : d.stopsBefore ? `${icon('package')} ${esc(c.name)} termine ${d.stopsBefore} livraison${d.stopsBefore > 1 ? 's' : ''} avant la vôtre.` : '');
+      if (!d.destination) askPin();
+      if (map) {
+        const first = !rider;
+        moveRider({ lat: c.lat, lng: c.lng }, c.heading);
+        if (first || follow) { fit(); }
+      }
+    }
+    // Plein écran (comme l'écran de course de Grab) : carte entière + volet d'informations en bas
+    // (le volet est déplacé à la racine de la page : l'animation d'apparition des pages l'empêcherait de couvrir l'écran)
+    const spot = document.createComment('suivi');
+    const closeFull = () => {
+      if (!box.classList.contains('full')) return;
+      box.classList.remove('full'); document.body.classList.remove('live-open');
+      if (spot.parentNode) spot.replaceWith(box);
+      const b = box.querySelector('#liveFs'); if (b) b.innerHTML = `${icon('arrow-square-out-bold')}<span>Agrandir</span>`;
+      setTimeout(() => { map?.invalidateSize(); fit(); }, 60);
     };
+    box.querySelector('#liveFs').addEventListener('click', () => {
+      const on = !box.classList.contains('full');
+      if (on) { box.replaceWith(spot); document.body.appendChild(box); box.classList.add('full'); document.body.classList.add('live-open'); box.querySelector('#liveFs').innerHTML = `${icon('x-bold')}<span>Fermer</span>`; } else closeFull();
+      setTimeout(() => { map?.invalidateSize(); follow = true; $('#liveCenter').hidden = true; fit(); }, 60);
+    });
+    $('#liveCenter').addEventListener('click', () => { follow = true; $('#liveCenter').hidden = true; fit(); });
+    document.addEventListener('keydown', function esc(e) { if (e.key === 'Escape' && box.classList.contains('full')) closeFull(); if (!document.body.contains(box)) document.removeEventListener('keydown', esc); });
     tick();
-    state.timers.push(setInterval(tick, 5000));
+    state.timers.push(setInterval(() => { if (!document.hidden) tick(); }, 4000));
     const onLive = () => tick();
     window.addEventListener('kamwa-live', onLive);
-    state.timers.push(setTimeout(() => {}, 0)); // (le minuteur ci-dessus est arrêté au changement de page)
-    const stopLive = () => { if (!document.body.contains(box)) { window.removeEventListener('kamwa-live', onLive); window.removeEventListener('hashchange', stopLive); } };
+    const gone = () => !document.body.contains(box.classList.contains('full') ? spot : box);
+    const stopLive = () => { if (gone()) { cancelAnimationFrame(anim); box.classList.contains('full') && (box.remove(), document.body.classList.remove('live-open')); window.removeEventListener('kamwa-live', onLive); window.removeEventListener('hashchange', stopLive); } };
     window.addEventListener('hashchange', stopLive);
   }
 
@@ -2094,6 +2212,9 @@
       case 'merci': return viewThanks(parts[1]);
       case 'compte': return viewAccount(parts[1]);
       case 'suivi': return viewTracking(parts[1]);
+      case 'demo-suivi': // démo : course simulée (clé publique de la commande CMD-DEMO-0002)
+        if (state.config.demoTrack) { rememberOrder(state.config.demoTrack.id, state.config.demoTrack.token); location.replace('#/suivi/' + state.config.demoTrack.id); return; }
+        return viewHome();
       case 'credits': return viewCredits();
       case 'legal': return viewLegal(parts[1]);
       case 'cookies': renderNav(null); return window.kamwaConsent?.renderSettings(app);
@@ -2109,7 +2230,7 @@
       // automatiquement dès qu'un produit y est ajouté ou réaffiché depuis l'admin).
       // Vitrine de démonstration (Vercel) : bandeau bien visible, pour que personne ne prenne le site pour la vraie boutique
       if (state.config.demo && !document.querySelector('.demo-strip')) {
-        document.body.insertAdjacentHTML('afterbegin', '<div class="demo-strip">Site de démonstration : commandes fictives, aucun paiement réel, données remises à zéro régulièrement.</div>');
+        document.body.insertAdjacentHTML('afterbegin', `<div class="demo-strip">Site de démonstration : commandes fictives, aucun paiement réel, données remises à zéro régulièrement.${state.config.demoTrack ? ' <a href="#/demo-suivi">Voir une course en direct</a>' : ''}</div>`);
       }
       UNIVERSES = (state.config.universes || [])
         .map((u) => ({ ...u, categories: u.categories.filter((c) => state.products.some((p) => p.category === c)) }))

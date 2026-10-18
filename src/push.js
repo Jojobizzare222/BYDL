@@ -69,6 +69,7 @@ const STAGE_TEXT = {
   paid: (o) => ['Paiement reçu ✓', o.fulfillment === 'pickup' ? 'Merci ! Nous préparons votre colis : vous serez prévenu dès qu\'il vous attend au point relais.' : 'Merci ! Nous préparons votre commande et vous appelons avant la livraison.'],
   shipped: () => ['Votre colis est en route 🛵', 'Suivez votre livreur en direct sur la carte.'],
   near: () => ['Votre livreur arrive !', 'Il est à moins de 2 minutes. Préparez votre code de livraison.'],
+  arrived: () => ['Votre livreur est arrivé', 'Il vous attend. Donnez votre code seulement quand vous avez le colis en main.'],
   delivered: (o) => [o.fulfillment === 'pickup' ? 'Commande retirée ✓' : 'Commande livrée ✓', 'Merci pour votre confiance. À bientôt sur Kamwa !'],
   cancelled: () => ['Commande annulée', 'Ouvrez Kamwa pour voir le détail.'],
 };
@@ -76,7 +77,7 @@ function orderStage(order, stage) {
   const f = STAGE_TEXT[stage];
   if (!f) return Promise.resolve(0);
   const [title, body] = f(order);
-  return notifyOrder(order, title, `${order.id} · ${body}`, { urgent: stage === 'near' });
+  return notifyOrder(order, title, `${order.id} · ${body}`, { urgent: stage === 'near' || stage === 'arrived' });
 }
 
 // Branché une fois au démarrage : chaque changement d'étape d'une commande (où qu'il se fasse dans Kamwa)

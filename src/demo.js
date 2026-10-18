@@ -13,6 +13,8 @@ const DEMO_ACCOUNTS = [
   { label: 'Employé Commandes', login: 'demo-commandes', role: 'orders', name: 'Oscar (démo)' },
   { label: 'Livreur', login: 'demo-livreur', role: 'courier', name: 'Junior (démo)' },
 ];
+// Course de démonstration (suivi en direct simulé, src/live.js) : clé connue de tous, n'existe que sur la démo
+const DEMO_TRACK_TOKEN = 'demo0000suivi0000kamwa0000course';
 const isDemoLogin = (login) => config.demo && DEMO_ACCOUNTS.some((a) => a.login === login);
 
 const id = (prefix, n = 4) => prefix + crypto.randomBytes(n).toString('hex').toUpperCase();
@@ -34,6 +36,7 @@ function seed() {
   for (const a of DEMO_ACCOUNTS.filter((x) => x.role !== 'admin')) {
     users[a.role] = staff.insert({
       id: 'U-DEMO-' + a.role.toUpperCase(), name: a.name, login: a.login, role: a.role, company: a.company || null, phone: null,
+      ...(a.role === 'courier' ? { vehicle: 'Moto Haojue rouge · PN 2468 AB' } : {}),
       active: true, mustChangePassword: false, passwordHash: hashPassword(DEMO_PASSWORD), createdAt: now,
     });
   }
@@ -69,10 +72,10 @@ function seed() {
 
   // Une commande « à la réception » (acompte payé) confiée au livreur de démo : code client 2468, reste 12 500 à encaisser
   orders.insert({
-    id: 'CMD-DEMO-0002', accessToken: crypto.randomBytes(16).toString('hex'), customerId: null,
+    id: 'CMD-DEMO-0002', accessToken: DEMO_TRACK_TOKEN, customerId: null, // clé fixe et publique : « Voir une course en direct » sur la démo
     lines: [{ productId: chemise.id, name: chemise.name, unitPrice: chemise.price, qty: 1, total: chemise.price }],
     subtotal: chemise.price, deliveryFee: 0, total: chemise.price, currency: 'XAF',
-    customer: { name: 'Mireille (démo)', phone: '069999999', city: 'Pointe-Noire', address: 'Quartier Loandjili, près du marché (fictif)' },
+    customer: { name: 'Mireille (démo)', phone: '069999999', city: 'Pointe-Noire', address: 'Quartier Loandjili, près du marché (fictif)', location: require('./live').DEMO_DEST },
     status: 'shipped', paymentPlan: 'cod', deposit: 2000, balance: chemise.price - 2000, depositPaidAt: now, depositPaymentId: 'PAY-DEMO-0002',
     confirmedAt: now, callConfirmedAt: now, callConfirmedBy: 'Oscar (démo)', courierId: users.courier.id, assignedAt: now, deliveryCode: '2468',
     createdAt: now, history: [{ status: 'confirmed', at: now }, { status: 'shipped', at: now }], fulfillment: 'delivery',
@@ -105,4 +108,4 @@ function seed() {
 // Ce que la page de connexion de la démo affiche (rien en dehors de la démo)
 const publicAccounts = () => (config.demo ? DEMO_ACCOUNTS.map(({ label, login }) => ({ label, login, password: DEMO_PASSWORD })) : []);
 
-module.exports = { seed, isDemoLogin, publicAccounts };
+module.exports = { seed, isDemoLogin, publicAccounts, DEMO_TRACK_TOKEN };

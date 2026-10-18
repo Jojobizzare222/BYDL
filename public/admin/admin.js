@@ -698,18 +698,21 @@
 
   // ---------- Espace livreur : mes livraisons ----------
   // ---------- Suivi en direct : le livreur partage sa position pendant ses livraisons (façon Grab) ----------
-  // Position envoyée toutes les 10 s au plus, seulement quand il a une livraison en cours ; écran gardé allumé
+  // Position envoyée toutes les 5 s (15 s à l'arrêt), seulement quand il a une livraison en cours ; écran gardé allumé
   // (sinon le téléphone met la page en pause). Reprend tout seul à la réouverture de Kamwa Pro.
   const share = { watch: null, last: 0, lastSent: null, lock: null, error: '' };
-  const shareWanted = () => { try { return localStorage.getItem('kamwa-share-pos') === '1'; } catch { return false; } };
+  // Partage automatique dès qu'il a une livraison en cours, sauf s'il l'a arrêté lui-même (comme l'application chauffeur de Grab)
+  const shareWanted = () => { try { return localStorage.getItem('kamwa-share-pos') !== '0'; } catch { return true; } };
   async function keepAwake() { try { share.lock = await navigator.wakeLock?.request('screen'); } catch {} }
   function startSharing() {
     if (share.watch !== null || !navigator.geolocation) return;
     try { localStorage.setItem('kamwa-share-pos', '1'); } catch {}
     keepAwake();
     share.watch = navigator.geolocation.watchPosition(async (p) => {
-      if (Date.now() - share.last < 10000) return;
-      share.last = Date.now();
+      // Toutes les 5 s quand il roule, toutes les 15 s à l'arrêt : le client le voit avancer sans vider la batterie ni le forfait
+      const moved = share.pos ? kamwaMap.distanceKm(share.pos, { lat: p.coords.latitude, lng: p.coords.longitude }) > 0.008 : true;
+      if (Date.now() - share.last < (moved ? 5000 : 15000)) return;
+      share.last = Date.now(); share.pos = { lat: p.coords.latitude, lng: p.coords.longitude };
       try {
         await api('/courier/position', { method: 'POST', body: { lat: p.coords.latitude, lng: p.coords.longitude, accuracy: p.coords.accuracy, heading: p.coords.heading } });
         share.lastSent = new Date(); share.error = '';
@@ -2124,15 +2127,16 @@
           <label for="sName">Nom de la personne *</label><input id="sName" type="text">
           <label for="sLogin">Identifiant de connexion *</label><input id="sLogin" type="text" autocapitalize="off" placeholder="Ex. paul.mabiala">
           <label for="sPhone">Téléphone</label><input id="sPhone" type="tel">
+          <div id="vehicleField" hidden><label for="sVehicle">Véhicule (montré au client pendant la course)</label><input id="sVehicle" type="text" maxlength="60" placeholder="Ex. Moto Haojue rouge · PN 1234 AB"></div>
           <div id="sError"></div>
           <button class="btn" style="width:100%;margin-top:14px">Créer le compte</button>
         </form>`;
-      const syncRole = () => { $('#companyField').hidden = $('#sRole').value !== 'supplier'; };
+      const syncRole = () => { $('#companyField').hidden = $('#sRole').value !== 'supplier'; $('#vehicleField').hidden = $('#sRole').value !== 'courier'; };
       $('#sRole').addEventListener('change', syncRole); syncRole();
       $('#staffForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         try {
-          const res = await api('/staff', { method: 'POST', body: { role: $('#sRole').value, company: $('#sCompany').value, name: $('#sName').value, login: $('#sLogin').value, phone: $('#sPhone').value } });
+          const res = await api('/staff', { method: 'POST', body: { role: $('#sRole').value, company: $('#sCompany').value, name: $('#sName').value, login: $('#sLogin').value, phone: $('#sPhone').value, vehicle: $('#sVehicle').value } });
           showPassword(res.user, res.password);
         } catch (err) { $('#sError').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; }
       });
@@ -2144,17 +2148,25 @@
       id: 'staff', rows: data.staff, placeholder: 'Nom, entreprise ou identifiant', empty: 'Aucun compte pour le moment. Ajoutez vos fournisseurs et vos employés.',
       searchText: (u) => `${u.name} ${u.company || ''} ${u.login} ${roleLabel(u.role)}`,
       columns: [
-        { key: 'name', label: 'Nom', sortValue: (u) => norm(u.name), render: (u) => `<strong>${esc(u.name)}</strong>${u.company ? `<br><span class="muted">${esc(u.company)}</span>` : ''}` },
+        { key: 'name', label: 'Nom', sortValue: (u) => norm(u.name), render: (u) => `<span class="cell-stack"><strong>${esc(u.name)}</strong>${u.company ? `<br><span class="muted">${esc(u.company)}</span>` : ''}${u.role === 'courier' ? `<br><span class="muted">${esc(u.vehicle || 'Véhicule non renseigné')}</span>` : ''}</span>` },
         { key: 'role', label: 'Rôle', sortValue: (u) => roleLabel(u.role), render: (u) => esc(roleLabel(u.role)) },
         { key: 'login', label: 'Identifiant', render: (u) => `<code>${esc(u.login)}</code>` },
         { key: 'products', label: 'Produits', cls: 'num', render: (u) => (u.role === 'supplier' ? u.products : '—') },
         { key: 'active', label: 'Statut', sortValue: (u) => u.active !== false, render: (u) => (u.active === false ? '<span class="tag danger">Désactivé</span>' : '<span class="tag ok">Actif</span>') },
-        { key: 'act', label: '', sortable: false, render: (u) => `<div class="cell-actions"><button class="ghost" data-toggle="${esc(u.id)}" data-active="${u.active !== false}">${u.active === false ? 'Réactiver' : 'Désactiver'}</button><button class="ghost" data-reset="${esc(u.id)}">${icon('key-bold')} Mot de passe</button></div>` },
+        { key: 'act', label: '', sortable: false, render: (u) => `<div class="cell-actions"><button class="ghost" data-toggle="${esc(u.id)}" data-active="${u.active !== false}">${u.active === false ? 'Réactiver' : 'Désactiver'}</button><button class="ghost" data-reset="${esc(u.id)}">${icon('key-bold')} Mot de passe</button>${u.role === 'courier' ? `<button class="ghost" data-vehicle="${esc(u.id)}">${icon('truck-duotone')} Véhicule</button>` : ''}</div>` },
       ],
     });
     $('#tbl').addEventListener('click', async (e) => {
       const t = e.target.closest('[data-toggle]');
       const r = e.target.closest('[data-reset]');
+      const v = e.target.closest('[data-vehicle]');
+      if (v) {
+        const u = data.staff.find((x) => x.id === v.dataset.vehicle);
+        const val = prompt('Véhicule du livreur (montré au client pendant la course) :\nType, couleur et plaque, ex. Moto Haojue rouge · PN 1234 AB', u?.vehicle || '');
+        if (val === null) return;
+        try { await api('/staff/' + enc(u.id), { method: 'PATCH', body: { vehicle: val } }); toast('Véhicule enregistré'); viewStaff(); } catch (err) { toast('❌ ' + err.message); }
+        return;
+      }
       if (t) {
         const active = t.dataset.active !== 'true';
         if (!active && !confirm('Désactiver ce compte ? La personne sera déconnectée immédiatement.')) return;

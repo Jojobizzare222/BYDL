@@ -398,12 +398,20 @@ router.post('/courier/position', requireRole('courier'), (req, res) => {
   const lat = Number(req.body?.lat), lng = Number(req.body?.lng);
   if (!(Math.abs(lat) <= 90 && Math.abs(lng) <= 180)) return res.status(400).json({ error: 'Position invalide' });
   const num = (v) => (Number.isFinite(Number(v)) ? Math.round(Number(v)) : null);
-  staff.update(req.user.id, { livePos: { lat: Math.round(lat * 1e6) / 1e6, lng: Math.round(lng * 1e6) / 1e6, accuracy: num(req.body?.accuracy), heading: num(req.body?.heading), at: new Date().toISOString() } });
+  const next = { lat: Math.round(lat * 1e6) / 1e6, lng: Math.round(lng * 1e6) / 1e6 };
+  const prev = staff.get(req.user.id)?.livePos;
+  // Cap (direction) : donné par le téléphone en mouvement, sinon calculé à partir du déplacement → l'icône du livreur tourne sur la carte
+  const bearing = require('../live').headingFrom(prev, next);
+  staff.update(req.user.id, { livePos: { ...next, accuracy: num(req.body?.accuracy), heading: num(req.body?.heading), bearing, at: new Date().toISOString() } });
   // « Votre livreur arrive » : une seule fois par commande, quand il est à moins de 500 m du point placé par le client
   for (const o of orders.all().filter((x) => x.courierId === req.user.id && x.status === 'shipped' && x.customer?.location && !x.nearNotified)) {
     const R = 6371, rad = (v) => (v * Math.PI) / 180, d = o.customer.location;
     const km = 2 * R * Math.asin(Math.sqrt(Math.sin(rad(d.lat - lat) / 2) ** 2 + Math.cos(rad(lat)) * Math.cos(rad(d.lat)) * Math.sin(rad(d.lng - lng) / 2) ** 2));
     if (km < 0.5) { orders.update(o.id, { nearNotified: new Date().toISOString() }); require('../push').orderStage(orders.get(o.id), 'near'); }
+  }
+  // « Votre livreur est arrivé » : une fois, à moins de 80 m
+  for (const o of orders.all().filter((x) => x.courierId === req.user.id && x.status === 'shipped' && x.customer?.location && !x.arrivedNotified)) {
+    if (require('../live').distanceKm(next, o.customer.location) < 0.08) { orders.update(o.id, { arrivedNotified: new Date().toISOString(), liveArrivedAt: o.liveArrivedAt || new Date().toISOString() }); require('../push').orderStage(orders.get(o.id), 'arrived'); }
   }
   res.json({ ok: true });
 });
@@ -824,7 +832,7 @@ router.get('/staff', requireRole(), (req, res) => {
 });
 
 router.post('/staff', requireRole(), (req, res) => {
-  const { name, login, role, company, phone } = req.body || {};
+  const { name, login, role, company, phone, vehicle } = req.body || {};
   const cleanName = String(name || '').trim().slice(0, 80);
   const cleanLogin = normLogin(login);
   if (!cleanName) return res.status(400).json({ error: 'Le nom est obligatoire' });
@@ -840,6 +848,7 @@ router.post('/staff', requireRole(), (req, res) => {
     role,
     company: role === 'supplier' ? String(company).trim().slice(0, 80) : null,
     phone: String(phone || '').trim().slice(0, 30) || null,
+    ...(role === 'courier' ? { vehicle: String(vehicle || '').trim().slice(0, 60) || null } : {}), // ex. « Moto Haojue rouge · PN 1234 AB » (montré au client)
     active: true,
     mustChangePassword: true,
     passwordHash: hashPassword(password),
@@ -857,6 +866,7 @@ router.patch('/staff/:id', requireRole(), (req, res) => {
   if ('active' in (req.body || {})) patch.active = Boolean(req.body.active);
   if ('name' in (req.body || {}) && String(req.body.name).trim()) patch.name = String(req.body.name).trim().slice(0, 80);
   if ('company' in (req.body || {}) && u.role === 'supplier') patch.company = String(req.body.company || '').trim().slice(0, 80);
+  if ('vehicle' in (req.body || {}) && u.role === 'courier') patch.vehicle = String(req.body.vehicle || '').trim().slice(0, 60) || null;
   const updated = staff.update(u.id, patch);
   if (patch.active === false) closeSessionsOf(u.id); // compte désactivé : déconnecté partout tout de suite
   if ('active' in patch && patch.active !== u.active) log(req, patch.active ? 'Compte réactivé' : 'Compte désactivé', { id: u.id, name: u.name });

@@ -32,7 +32,7 @@ function hasAccess(order, token) {
 const clientLines = (lines) => (lines || []).map(({ unitCost, supplierId, ...l }) => l);
 // Données internes de livraison et de caisse : jamais montrées au client
 const INTERNAL = ['courierId', 'cashHeldBy', 'cashRemittedAt', 'cashRemittedTo', 'codeFails', 'codeLocked', 'codeVerifiedAt', 'callConfirmedBy',
-  'callAttempts', 'deliveredBy', 'deliveredWithoutCode', 'depositPaymentId', 'refused', 'depositRetained', 'refundedAt', 'supplierReady'];
+  'callAttempts', 'deliveredBy', 'deliveredWithoutCode', 'depositPaymentId', 'refused', 'depositRetained', 'refundedAt', 'supplierReady', 'liveStartKm', 'nearNotified', 'arrivedNotified'];
 function clientOrder({ accessToken, note, paidAfterCancel, ...order }) {
   for (const k of INTERNAL) delete order[k];
   if (order.attempts) order.attempts = order.attempts.map(({ at, label }) => ({ at, label }));
@@ -145,29 +145,25 @@ router.get('/:id', (req, res) => {
   res.json(publicOrder(order));
 });
 
-// Suivi EN DIRECT de la livraison (façon Grab) : position du livreur pendant SA livraison en cours seulement.
-// Position gardée 3 minutes au plus (au-delà : « suivi momentanément indisponible »), jamais d'historique.
-router.get('/:id/live', (req, res) => {
-  const { staff } = require('../store');
+// Suivi EN DIRECT de la course (façon Grab) : tout le calcul est dans src/live.js
+router.get('/:id/live', async (req, res) => {
   const order = orders.get(req.params.id);
   if (!order || !(hasAccess(order, req.get('X-Order-Token')) || isOwner(req, order))) return res.status(404).json({ error: 'Commande introuvable' });
   res.set('Cache-Control', 'no-store');
-  const dest = order.customer?.location || null;
-  if (order.status !== 'shipped' || !order.courierId) return res.json({ active: false, status: order.status, destination: dest });
-  const c = staff.get(order.courierId);
-  const pos = c?.livePos;
-  const fresh = pos && Date.now() - Date.parse(pos.at) < 3 * 60 * 1000;
-  if (!fresh) return res.json({ active: false, status: 'shipped', courierName: String(c?.name || 'Votre livreur').split(' ')[0], destination: dest, waiting: true });
-  const out = { active: true, status: 'shipped', courier: { name: String(c.name || 'Votre livreur').split(' ')[0], lat: pos.lat, lng: pos.lng, heading: pos.heading ?? null, at: pos.at }, destination: dest };
-  if (dest) {
-    const km = distanceKm(pos, dest);
-    out.distanceKm = Math.round(km * 10) / 10;
-    out.etaMin = Math.max(1, Math.round(((km * 1.35) / 18) * 60)); // détours en ville (×1,35), 18 km/h en moyenne
-    // Barre de progression : distance au départ du livreur (première position connue de cette livraison)
-    const start = order.liveStartKm || (orders.update(order.id, { liveStartKm: Math.max(km, 0.1) }), Math.max(km, 0.1));
-    out.progress = Math.max(0, Math.min(1, 1 - km / Math.max(start, km)));
-  }
-  res.json(out);
+  res.json(await require('../live').forOrder(order));
+});
+
+// Le client place (ou corrige) son adresse sur la carte après la commande, tant que le colis n'est pas livré :
+// le livreur le trouve plus vite et le client voit l'heure d'arrivée.
+router.post('/:id/location', (req, res) => {
+  const order = orders.get(req.params.id);
+  if (!order || !(hasAccess(order, req.get('X-Order-Token')) || isOwner(req, order))) return res.status(404).json({ error: 'Commande introuvable' });
+  if (order.fulfillment === 'pickup' || ['delivered', 'cancelled'].includes(order.status)) return res.status(409).json({ error: 'Cette commande ne se livre plus à domicile' });
+  if (order.id === require('../live').DEMO_ORDER && require('../config').demo) return res.status(403).json({ error: 'Course de démonstration : adresse fixe' });
+  const loc = validPoint(req.body?.location);
+  if (!loc) return res.status(400).json({ error: 'Touchez la carte à l\'endroit de la livraison' });
+  const updated = orders.update(order.id, { customer: { ...order.customer, location: loc }, liveStartKm: null, nearNotified: null, liveArrivedAt: null, locationSetAt: new Date().toISOString() });
+  res.json(clientOrder(updated));
 });
 
 // Changer de point relais après la commande (client propriétaire ou navigateur qui a la clé) :
