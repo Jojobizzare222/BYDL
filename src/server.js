@@ -135,6 +135,22 @@ app.post('/api/push/subscribe', (req, res) => {
 app.use('/api/admin', require('./routes/admin'));
 // Vitrine de démo (Vercel) : comptes et données d'exemple, créés une fois par démarrage de la base temporaire
 require('./demo').seed();
+// Photos d'illustration du catalogue de départ supprimées (décision Joseph 19/10/2026) : une seule fois par base,
+// on retire des produits les adresses vers ces fichiers (et leurs crédits). Les photos envoyées depuis Zado Pro restent.
+(() => {
+  const { products, settings } = require('./store');
+  if (settings.get('migr:photos-illustration')) return;
+  const gone = (u) => typeof u === 'string' && /^\/images\/(commons|products)\//.test(u);
+  let n = 0;
+  for (const p of products.all()) {
+    if (!gone(p.image) && !(p.images || []).some(gone) && !p.imageCredit) continue;
+    const images = (p.images || []).filter((u) => !gone(u));
+    products.update(p.id, { images, image: gone(p.image) ? images[0] || null : p.image, imageCredit: null });
+    n++;
+  }
+  settings.set('migr:photos-illustration', new Date().toISOString());
+  if (n) console.log(`[photos] ${n} produit(s) : photos d'illustration retirées`);
+})();
 billing.syncAll(); // documents manquants (anciennes commandes, données de démo), dans l'ordre des ventes
 parcels.syncAll(); // colis des commandes prêtes
 

@@ -10,14 +10,7 @@
     "stock": 7,
     "description": "Écran 6,1\", 128 Go, port USB-C. Débloqué tous opérateurs, double SIM (nano + eSIM).",
     "color": "#E9ECF0",
-    "updatedAt": "2026-10-14T07:26:52.173Z",
-    "image": "/images/commons/iphone15-4.jpg",
-    "imageCredit": {
-      "author": "IPHONE ONE",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:Apple_Phone.jpg"
-    }
+    "updatedAt": "2026-10-14T07:26:52.173Z"
   },
   {
     "id": "a002",
@@ -30,14 +23,7 @@
     "stock": 8,
     "description": "Écran 6,1\", 128 Go, port USB-C. Débloqué tous opérateurs, double SIM (nano + eSIM).",
     "color": "#E9ECF0",
-    "featured": true,
-    "image": "/images/commons/iphone15pro-6.jpg",
-    "imageCredit": {
-      "author": "IPHONE 15",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:Apple_iPhone_15.jpg"
-    }
+    "featured": true
   },
   {
     "id": "a003",
@@ -49,14 +35,7 @@
     "oldPrice": 690000,
     "stock": 8,
     "description": "Écran 6,1\", 128 Go, port USB-C. Débloqué tous opérateurs, double SIM (nano + eSIM).",
-    "color": "#E9ECF0",
-    "image": "/images/commons/iphone15-6.jpg",
-    "imageCredit": {
-      "author": "Ka Kit Pang",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:Apple_iPhone.jpeg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a004",
@@ -68,14 +47,7 @@
     "oldPrice": 690000,
     "stock": 8,
     "description": "Écran 6,1\", 128 Go, port USB-C. Débloqué tous opérateurs, double SIM (nano + eSIM).",
-    "color": "#E9ECF0",
-    "image": "/images/commons/iphone15pro-6.jpg",
-    "imageCredit": {
-      "author": "IPHONE 15",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:Apple_iPhone_15.jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a005",
@@ -87,14 +59,7 @@
     "oldPrice": 770000,
     "stock": 5,
     "description": "Écran 6,1\", 256 Go, port USB-C. Débloqué tous opérateurs, double SIM (nano + eSIM).",
-    "color": "#E9ECF0",
-    "image": "/images/commons/iphone15-4.jpg",
-    "imageCredit": {
-      "author": "IPHONE ONE",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:Apple_Phone.jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a006",
@@ -106,14 +71,7 @@
     "oldPrice": 770000,
     "stock": 5,
     "description": "Écran 6,1\", 256 Go, port USB-C. Débloqué tous opérateurs, double SIM (nano + eSIM).",
-    "color": "#E9ECF0",
-    "image": "/images/commons/iphone15pro-6.jpg",
-    "imageCredit": {
-      "author": "IPHONE 15",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:Apple_iPhone_15.jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a007",
@@ -125,14 +83,7 @@
     "oldPrice": null,
     "stock": 4,
     "description": "Grand écran 6,7\", 128 Go. Débloqué tous opérateurs, double SIM (nano + eSIM).",
-    "color": "#E9ECF0",
-    "image": "/images/commons/iphone15-4.jpg",
-    "imageCredit": {
-      "author": "IPHONE ONE",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:Apple_Phone.jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a008",
@@ -144,14 +95,7 @@
     "oldPrice": null,
     "stock": 4,
     "description": "Grand écran 6,7\", 128 Go. Débloqué tous opérateurs, double SIM (nano + eSIM).",
-    "color": "#E9ECF0",
-    "image": "/images/commons/iphone15-6.jpg",
-    "imageCredit": {
-      "author": "Ka Kit Pang",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:Apple_iPhone.jpeg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a009",
@@ -164,14 +108,7 @@
     "stock": 4,
     "description": "Écran 6,1\", 128 Go, châssis titane. Débloqué tous opérateurs, double SIM (nano + eSIM).",
     "color": "#E9ECF0",
-    "featured": true,
-    "image": "/images/commons/iphone15pro-0.jpg",
-    "imageCredit": {
-      "author": "IPHONE ONE",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:Apple_Phone.jpeg"
-    }
+    "featured": true
   },
   {
     "id": "a010",
@@ -183,14 +120,7 @@
     "oldPrice": 960000,
     "stock": 4,
     "description": "Écran 6,1\", 128 Go, châssis titane. Débloqué tous opérateurs, double SIM (nano + eSIM).",
-    "color": "#E9ECF0",
-    "image": "/images/commons/iphone15pro-0.jpg",
-    "imageCredit": {
-      "author": "IPHONE ONE",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:Apple_Phone.jpeg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a011",
@@ -202,14 +132,7 @@
     "oldPrice": 1050000,
     "stock": 4,
     "description": "Écran 6,1\", 256 Go, châssis titane. Débloqué tous opérateurs, double SIM (nano + eSIM).",
-    "color": "#E9ECF0",
-    "image": "/images/commons/iphone15pro-0.jpg",
-    "imageCredit": {
-      "author": "IPHONE ONE",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:Apple_Phone.jpeg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a012",
@@ -221,14 +144,7 @@
     "oldPrice": 1050000,
     "stock": 4,
     "description": "Écran 6,1\", 256 Go, châssis titane. Débloqué tous opérateurs, double SIM (nano + eSIM).",
-    "color": "#E9ECF0",
-    "image": "/images/commons/iphone15pro-0.jpg",
-    "imageCredit": {
-      "author": "IPHONE ONE",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:Apple_Phone.jpeg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a013",
@@ -240,14 +156,7 @@
     "oldPrice": 1190000,
     "stock": 3,
     "description": "Écran 6,7\", 256 Go, châssis titane. Débloqué tous opérateurs, double SIM (nano + eSIM).",
-    "color": "#E9ECF0",
-    "image": "/images/commons/iphone15pro-0.jpg",
-    "imageCredit": {
-      "author": "IPHONE ONE",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:Apple_Phone.jpeg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a014",
@@ -259,14 +168,7 @@
     "oldPrice": 1190000,
     "stock": 3,
     "description": "Écran 6,7\", 256 Go, châssis titane. Débloqué tous opérateurs, double SIM (nano + eSIM).",
-    "color": "#E9ECF0",
-    "image": "/images/commons/iphone15pro-0.jpg",
-    "imageCredit": {
-      "author": "IPHONE ONE",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:Apple_Phone.jpeg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a015",
@@ -278,14 +180,7 @@
     "oldPrice": null,
     "stock": 3,
     "description": "Écran 6,7\", 512 Go, châssis titane. Débloqué tous opérateurs, double SIM (nano + eSIM).",
-    "color": "#E9ECF0",
-    "image": "/images/commons/iphone15pro-0.jpg",
-    "imageCredit": {
-      "author": "IPHONE ONE",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:Apple_Phone.jpeg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a016",
@@ -297,14 +192,7 @@
     "oldPrice": 580000,
     "stock": 6,
     "description": "Écran 6,1\", 128 Go. Débloqué tous opérateurs, double SIM (nano + eSIM).",
-    "color": "#E9ECF0",
-    "image": "/images/commons/iphone14-7.jpg",
-    "imageCredit": {
-      "author": "メイド理世",
-      "license": "CC BY-SA 2.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
-      "source": "https://commons.wikimedia.org/wiki/File:IPhone_(54239311561).jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a017",
@@ -316,14 +204,7 @@
     "oldPrice": 580000,
     "stock": 6,
     "description": "Écran 6,1\", 128 Go. Débloqué tous opérateurs, double SIM (nano + eSIM).",
-    "color": "#E9ECF0",
-    "image": "/images/commons/iphone14-2.jpg",
-    "imageCredit": {
-      "author": "Hajoon0102",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:Back_of_the_iPhone_14_Pro.jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a018",
@@ -335,14 +216,7 @@
     "oldPrice": 480000,
     "stock": 7,
     "description": "Écran 6,1\", 128 Go. Débloqué tous opérateurs, double SIM (nano + eSIM).",
-    "color": "#E9ECF0",
-    "image": "/images/commons/iphone13-7.jpg",
-    "imageCredit": {
-      "author": "茅野ふたば",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:IPhone_13_White_256g.jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a019",
@@ -354,14 +228,7 @@
     "oldPrice": 480000,
     "stock": 7,
     "description": "Écran 6,1\", 128 Go. Débloqué tous opérateurs, double SIM (nano + eSIM).",
-    "color": "#E9ECF0",
-    "image": "/images/commons/iphone13-7.jpg",
-    "imageCredit": {
-      "author": "茅野ふたば",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:IPhone_13_White_256g.jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a020",
@@ -373,14 +240,7 @@
     "oldPrice": 320000,
     "stock": 6,
     "description": "Format compact 4,7\", bouton principal, 64 Go. Débloqué tous opérateurs, double SIM (nano + eSIM).",
-    "color": "#E9ECF0",
-    "image": "/images/commons/iphonese-5.jpg",
-    "imageCredit": {
-      "author": "MIKI Yoshihito",
-      "license": "CC BY 2.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-      "source": "https://commons.wikimedia.org/wiki/File:Boxes_of_iPhone_SE_2_(September_2020_and_October_2020_model),_Japan;_October_2020_(02).jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a021",
@@ -392,14 +252,7 @@
     "oldPrice": 320000,
     "stock": 6,
     "description": "Format compact 4,7\", bouton principal, 64 Go. Débloqué tous opérateurs, double SIM (nano + eSIM).",
-    "color": "#E9ECF0",
-    "image": "/images/commons/iphonese-3.jpg",
-    "imageCredit": {
-      "author": "Hajoon0102",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:Back_of_the_iPhone_SE_(3rd_generation).jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a022",
@@ -412,14 +265,7 @@
     "stock": 6,
     "description": "Écran 10,9\", 64 Go, Wi-Fi, port USB-C.",
     "color": "#E9ECF0",
-    "featured": true,
-    "image": "/images/commons/ipad10-1.jpg",
-    "imageCredit": {
-      "author": "メイド理世",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:About_iPad_(10th_generation).jpg"
-    }
+    "featured": true
   },
   {
     "id": "a023",
@@ -431,14 +277,7 @@
     "oldPrice": 370000,
     "stock": 6,
     "description": "Écran 10,9\", 64 Go, Wi-Fi, port USB-C.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/ipad10-1.jpg",
-    "imageCredit": {
-      "author": "メイド理世",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:About_iPad_(10th_generation).jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a024",
@@ -450,14 +289,7 @@
     "oldPrice": 370000,
     "stock": 6,
     "description": "Écran 10,9\", 64 Go, Wi-Fi, port USB-C.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/ipad10-1.jpg",
-    "imageCredit": {
-      "author": "メイド理世",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:About_iPad_(10th_generation).jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a025",
@@ -469,14 +301,7 @@
     "oldPrice": null,
     "stock": 3,
     "description": "Écran 10,9\", 256 Go, Wi-Fi.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/ipad10-1.jpg",
-    "imageCredit": {
-      "author": "メイド理世",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:About_iPad_(10th_generation).jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a026",
@@ -488,14 +313,7 @@
     "oldPrice": 540000,
     "stock": 4,
     "description": "Écran 11\", puce M2, 128 Go.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/ipadair-6.jpg",
-    "imageCredit": {
-      "author": "茅野ふたば",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:IPad_Air_11-inch_(M3)_backside.jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a027",
@@ -507,14 +325,7 @@
     "oldPrice": 540000,
     "stock": 4,
     "description": "Écran 11\", puce M2, 128 Go.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/ipadair-2.jpg",
-    "imageCredit": {
-      "author": "茅野ふたば",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:IPad_Air_11-inch_(M2)_back_side_(20250525_154602).jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a028",
@@ -526,14 +337,7 @@
     "oldPrice": 540000,
     "stock": 4,
     "description": "Écran 11\", puce M2, 128 Go.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/ipadair-2.jpg",
-    "imageCredit": {
-      "author": "茅野ふたば",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:IPad_Air_11-inch_(M2)_back_side_(20250525_154602).jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a029",
@@ -545,14 +349,7 @@
     "oldPrice": null,
     "stock": 3,
     "description": "Écran 11\" Ultra Retina, puce M4, 256 Go.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/ipadpro-5.jpg",
-    "imageCredit": {
-      "author": "メイド理世",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:About_iPad_Pro_13-inch_(M4).jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a030",
@@ -564,14 +361,7 @@
     "oldPrice": null,
     "stock": 3,
     "description": "Écran 11\" Ultra Retina, puce M4, 256 Go.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/ipadpro-4.jpg",
-    "imageCredit": {
-      "author": "メイド理世",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:About_iPad_Pro_11-inch_(M4).jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a031",
@@ -583,14 +373,7 @@
     "oldPrice": null,
     "stock": 2,
     "description": "Écran 13\" Ultra Retina, puce M4, 512 Go.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/ipadpro-5.jpg",
-    "imageCredit": {
-      "author": "メイド理世",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:About_iPad_Pro_13-inch_(M4).jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a032",
@@ -602,14 +385,7 @@
     "oldPrice": 430000,
     "stock": 4,
     "description": "Format compact 8,3\", 128 Go.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/ipadmini-3.jpg",
-    "imageCredit": {
-      "author": "AzureSaturn",
-      "license": "CC0",
-      "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
-      "source": "https://commons.wikimedia.org/wiki/File:IPad_mini_(A17_Pro,_Starlight)_-_Backside.jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a033",
@@ -621,14 +397,7 @@
     "oldPrice": 430000,
     "stock": 4,
     "description": "Format compact 8,3\", 128 Go.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/ipadmini-1.jpg",
-    "imageCredit": {
-      "author": "茅野ふたば",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:IPad_mini_(A17_Pro)_backside.jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a034",
@@ -641,14 +410,7 @@
     "stock": 5,
     "description": "Puce M2, 8 Go de mémoire, SSD 256 Go, clavier AZERTY.",
     "color": "#E9ECF0",
-    "featured": true,
-    "image": "/images/commons/mbair-3.jpg",
-    "imageCredit": {
-      "author": "Wilfredor",
-      "license": "CC0",
-      "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
-      "source": "https://commons.wikimedia.org/wiki/File:MacBook_M1.jpg"
-    }
+    "featured": true
   },
   {
     "id": "a035",
@@ -660,14 +422,7 @@
     "oldPrice": 800000,
     "stock": 5,
     "description": "Puce M2, 8 Go de mémoire, SSD 256 Go, clavier AZERTY.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/mbair-4.jpg",
-    "imageCredit": {
-      "author": "Jelican9",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:Macbook_Air_2020_(M1).jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a036",
@@ -679,14 +434,7 @@
     "oldPrice": null,
     "stock": 4,
     "description": "Puce M3, 16 Go de mémoire, SSD 256 Go, clavier AZERTY.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/mbair-6.jpg",
-    "imageCredit": {
-      "author": "KKPCW",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:Macbook_Air_2020_(M1)_-_2.jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a037",
@@ -698,14 +446,7 @@
     "oldPrice": null,
     "stock": 4,
     "description": "Puce M3, 16 Go de mémoire, SSD 256 Go, clavier AZERTY.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/mbair-3.jpg",
-    "imageCredit": {
-      "author": "Wilfredor",
-      "license": "CC0",
-      "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
-      "source": "https://commons.wikimedia.org/wiki/File:MacBook_M1.jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a038",
@@ -717,14 +458,7 @@
     "oldPrice": 1180000,
     "stock": 3,
     "description": "Écran 15\", puce M3, 16 Go, SSD 512 Go, clavier AZERTY.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/mbair-3.jpg",
-    "imageCredit": {
-      "author": "Wilfredor",
-      "license": "CC0",
-      "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
-      "source": "https://commons.wikimedia.org/wiki/File:MacBook_M1.jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a039",
@@ -736,14 +470,7 @@
     "oldPrice": 1390000,
     "stock": 2,
     "description": "Puce M3, 8 Go, SSD 512 Go, clavier AZERTY.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/mbpro-1.jpg",
-    "imageCredit": {
-      "author": "Oops4321",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:A_2021_14-inch_Silver_MacBook_Pro_(cropped).jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a040",
@@ -755,14 +482,7 @@
     "oldPrice": 1390000,
     "stock": 2,
     "description": "Puce M3, 8 Go, SSD 512 Go, clavier AZERTY.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/mbpro-0.jpg",
-    "imageCredit": {
-      "author": "Oops4321",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:A_2021_14-inch_Silver_MacBook_Pro.jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a041",
@@ -775,14 +495,7 @@
     "stock": 2,
     "description": "Puce M3 Pro, 18 Go, SSD 1 To, clavier AZERTY.",
     "color": "#E9ECF0",
-    "featured": true,
-    "image": "/images/commons/mbpro-1.jpg",
-    "imageCredit": {
-      "author": "Oops4321",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:A_2021_14-inch_Silver_MacBook_Pro_(cropped).jpg"
-    }
+    "featured": true
   },
   {
     "id": "a042",
@@ -794,14 +507,7 @@
     "oldPrice": null,
     "stock": 2,
     "description": "Écran 16\", puce M3 Pro, 18 Go, SSD 512 Go.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/mbpro-1.jpg",
-    "imageCredit": {
-      "author": "Oops4321",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:A_2021_14-inch_Silver_MacBook_Pro_(cropped).jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a043",
@@ -813,14 +519,7 @@
     "oldPrice": null,
     "stock": 2,
     "description": "Écran 16\", puce M3 Pro, 18 Go, SSD 512 Go.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/mbpro-0.jpg",
-    "imageCredit": {
-      "author": "Oops4321",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:A_2021_14-inch_Silver_MacBook_Pro.jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a044",
@@ -832,14 +531,7 @@
     "oldPrice": null,
     "stock": 1,
     "description": "Écran 16\", puce M3 Max, 36 Go, SSD 1 To.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/mbpro-1.jpg",
-    "imageCredit": {
-      "author": "Oops4321",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:A_2021_14-inch_Silver_MacBook_Pro_(cropped).jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a045",
@@ -900,14 +592,7 @@
     "oldPrice": 495000,
     "stock": 4,
     "description": "Ordinateur compact, puce M2. Écran, clavier et souris non inclus.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/macmini-2.jpg",
-    "imageCredit": {
-      "author": "Ganesh Mohan T",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:Mac_Mini_3.jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a050",
@@ -919,14 +604,7 @@
     "oldPrice": null,
     "stock": 2,
     "description": "Puce M2 Pro, 16 Go, SSD 512 Go.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/macmini-2.jpg",
-    "imageCredit": {
-      "author": "Ganesh Mohan T",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:Mac_Mini_3.jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a051",
@@ -938,14 +616,7 @@
     "oldPrice": null,
     "stock": 1,
     "description": "Station de travail compacte, puce M2 Max.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/macstudio-7.jpg",
-    "imageCredit": {
-      "author": "Yasu (talk)",
-      "license": "CC BY-SA 3.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-      "source": "https://commons.wikimedia.org/wiki/File:Mac_Studio_(2022)_front.jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a052",
@@ -957,14 +628,7 @@
     "oldPrice": null,
     "stock": 1,
     "description": "Puce M2 Ultra, 64 Go, SSD 1 To.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/macstudio-7.jpg",
-    "imageCredit": {
-      "author": "Yasu (talk)",
-      "license": "CC BY-SA 3.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
-      "source": "https://commons.wikimedia.org/wiki/File:Mac_Studio_(2022)_front.jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a053",
@@ -977,14 +641,7 @@
     "stock": 6,
     "description": "Boîtier aluminium 40 mm, bracelet sport.",
     "color": "#E9ECF0",
-    "featured": true,
-    "image": "/images/commons/watch9-6.jpg",
-    "imageCredit": {
-      "author": "Terminator216",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:Apple_Watch_Series_8_Midnight_Aluminium_Case.jpg"
-    }
+    "featured": true
   },
   {
     "id": "a054",
@@ -996,14 +653,7 @@
     "oldPrice": null,
     "stock": 5,
     "description": "Boîtier aluminium 44 mm, bracelet sport.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/watch9-3.jpg",
-    "imageCredit": {
-      "author": "iGeeksBlog",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:Apple_Watch_8_with_Box_(cropped).jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a055",
@@ -1015,14 +665,7 @@
     "oldPrice": 310000,
     "stock": 4,
     "description": "Boîtier aluminium 41 mm, écran toujours allumé.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/watch9-3.jpg",
-    "imageCredit": {
-      "author": "iGeeksBlog",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:Apple_Watch_8_with_Box_(cropped).jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a056",
@@ -1034,14 +677,7 @@
     "oldPrice": 330000,
     "stock": 4,
     "description": "Boîtier aluminium 45 mm, écran toujours allumé.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/watch9-6.jpg",
-    "imageCredit": {
-      "author": "Terminator216",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:Apple_Watch_Series_8_Midnight_Aluminium_Case.jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a057",
@@ -1053,14 +689,7 @@
     "oldPrice": null,
     "stock": 3,
     "description": "Boîtier aluminium 45 mm, GPS + Cellular.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/watch9-3.jpg",
-    "imageCredit": {
-      "author": "iGeeksBlog",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:Apple_Watch_8_with_Box_(cropped).jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a058",
@@ -1072,14 +701,7 @@
     "oldPrice": null,
     "stock": 2,
     "description": "Boîtier titane 49 mm, GPS + Cellular, pour le sport et l'aventure.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/watchultra-7.jpg",
-    "imageCredit": {
-      "author": "Pangalau",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:Apple_Watch_Ultra_2.jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a059",
@@ -1117,14 +739,7 @@
     "stock": 6,
     "description": "Réduction active du bruit, boîtier USB-C.",
     "color": "#E9ECF0",
-    "featured": true,
-    "image": "/images/commons/airpodspro-6.jpg",
-    "imageCredit": {
-      "author": "Hajoon0102",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:AirPods_Pro_(2nd_generation).jpg"
-    }
+    "featured": true
   },
   {
     "id": "a062",
@@ -1136,14 +751,7 @@
     "oldPrice": 420000,
     "stock": 2,
     "description": "Casque circum-auriculaire, réduction active du bruit.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/airpodsmax-6.jpg",
-    "imageCredit": {
-      "author": "Kyu3a",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:AirPods_Max_2_Midnight_model.jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a063",
@@ -1155,14 +763,7 @@
     "oldPrice": 420000,
     "stock": 2,
     "description": "Casque circum-auriculaire, réduction active du bruit.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/airpodsmax-4.jpg",
-    "imageCredit": {
-      "author": "ajay_suresh",
-      "license": "CC BY 2.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-      "source": "https://commons.wikimedia.org/wiki/File:AirPods_Max_(51817515866).jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a064",
@@ -1174,14 +775,7 @@
     "oldPrice": 420000,
     "stock": 2,
     "description": "Casque circum-auriculaire, réduction active du bruit.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/airpodsmax-5.jpg",
-    "imageCredit": {
-      "author": "ajay_suresh",
-      "license": "CC BY 2.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-      "source": "https://commons.wikimedia.org/wiki/File:AirPods_Max_-_Smart_Case_(51817627848).jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a065",
@@ -1193,14 +787,7 @@
     "oldPrice": null,
     "stock": 5,
     "description": "Boîtier TV 4K HDR avec télécommande.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/appletv-7.jpg",
-    "imageCredit": {
-      "author": "Intel Free Press",
-      "license": "CC BY 2.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-      "source": "https://commons.wikimedia.org/wiki/File:Apple_TV_(Nov_3,_2011).jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a066",
@@ -1212,14 +799,7 @@
     "oldPrice": null,
     "stock": 4,
     "description": "Boîtier TV 4K HDR, port Ethernet, 128 Go.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/appletv-7.jpg",
-    "imageCredit": {
-      "author": "Intel Free Press",
-      "license": "CC BY 2.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-      "source": "https://commons.wikimedia.org/wiki/File:Apple_TV_(Nov_3,_2011).jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a067",
@@ -1231,14 +811,7 @@
     "oldPrice": null,
     "stock": 3,
     "description": "Enceinte connectée, son haute fidélité.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/homepod-1.jpg",
-    "imageCredit": {
-      "author": "Gregory Varnum",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:Apple_HomePod_-_June_2018_(1923).jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a068",
@@ -1250,14 +823,7 @@
     "oldPrice": null,
     "stock": 3,
     "description": "Enceinte connectée, son haute fidélité.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/homepod-4.jpg",
-    "imageCredit": {
-      "author": "Nobuyuki Hayashi",
-      "license": "CC BY 2.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-      "source": "https://commons.wikimedia.org/wiki/File:Apple_HomePod_at_WWDC_2017_in_white.jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a069",
@@ -1269,14 +835,7 @@
     "oldPrice": 80000,
     "stock": 6,
     "description": "Enceinte connectée compacte.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/homepod-5.jpg",
-    "imageCredit": {
-      "author": "Arne Müseler",
-      "license": "CC BY-SA 3.0 de",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/de/deed.en",
-      "source": "https://commons.wikimedia.org/wiki/File:Apple_HomePod_mini.jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a070",
@@ -1288,14 +847,7 @@
     "oldPrice": 80000,
     "stock": 6,
     "description": "Enceinte connectée compacte.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/homepod-5.jpg",
-    "imageCredit": {
-      "author": "Arne Müseler",
-      "license": "CC BY-SA 3.0 de",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/de/deed.en",
-      "source": "https://commons.wikimedia.org/wiki/File:Apple_HomePod_mini.jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a071",
@@ -1307,14 +859,7 @@
     "oldPrice": 80000,
     "stock": 6,
     "description": "Enceinte connectée compacte.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/homepod-5.jpg",
-    "imageCredit": {
-      "author": "Arne Müseler",
-      "license": "CC BY-SA 3.0 de",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/de/deed.en",
-      "source": "https://commons.wikimedia.org/wiki/File:Apple_HomePod_mini.jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a072",
@@ -1446,14 +991,7 @@
     "oldPrice": null,
     "stock": 8,
     "description": "Clavier sans fil rechargeable.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/keyboard-4.jpg",
-    "imageCredit": {
-      "author": "Fletcher",
-      "license": "CC BY 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:Apple_Magic_Keyboard_-_US.jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a083",
@@ -1465,14 +1003,7 @@
     "oldPrice": null,
     "stock": 6,
     "description": "Clavier sans fil avec pavé numérique.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/keyboard-0.jpg",
-    "imageCredit": {
-      "author": "Chris Satterfield (User:Compgeke)",
-      "license": "Public domain",
-      "licenseUrl": "",
-      "source": "https://commons.wikimedia.org/wiki/File:Apple_A1243_CloseKeys.jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a084",
@@ -1484,14 +1015,7 @@
     "oldPrice": 70000,
     "stock": 8,
     "description": "Souris sans fil multi-touch.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/mouse-6.jpg",
-    "imageCredit": {
-      "author": "Tris T7",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:Apple_Magic_Mouse_by_Trisorn_Triboon.jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a085",
@@ -1503,14 +1027,7 @@
     "oldPrice": null,
     "stock": 5,
     "description": "Souris sans fil multi-touch, surface noire.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/mouse-7.jpg",
-    "imageCredit": {
-      "author": "Magicludovic",
-      "license": "CC0",
-      "licenseUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
-      "source": "https://commons.wikimedia.org/wiki/File:Apple_Magic_mouse_back.jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a086",
@@ -1522,14 +1039,7 @@
     "oldPrice": null,
     "stock": 5,
     "description": "Pavé tactile sans fil, Force Touch.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/trackpad-1.jpg",
-    "imageCredit": {
-      "author": "Raimond Spekking",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:Apple_Magic_Trackpad-3881.jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a087",
@@ -1541,14 +1051,7 @@
     "oldPrice": 110000,
     "stock": 6,
     "description": "Stylet pour iPad compatible, charge magnétique.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/pencil-6.jpg",
-    "imageCredit": {
-      "author": "ajay_suresh",
-      "license": "CC BY 2.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
-      "source": "https://commons.wikimedia.org/wiki/File:Apple_Pencil_2_(51013514266).jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a088",
@@ -1560,14 +1063,7 @@
     "oldPrice": null,
     "stock": 8,
     "description": "Stylet pour iPad, recharge par USB-C.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/pencil-2.jpg",
-    "imageCredit": {
-      "author": "Tony Webster from Minneapolis, Minnesota, United States",
-      "license": "CC BY-SA 2.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/2.0",
-      "source": "https://commons.wikimedia.org/wiki/File:Apple_Pencil_-_iPad_Pro_(40144499833).jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a089",
@@ -1579,14 +1075,7 @@
     "oldPrice": null,
     "stock": 20,
     "description": "Localisez vos clés, sac ou bagages.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/airtag-5.jpg",
-    "imageCredit": {
-      "author": "KKPCW",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:Airtag_-_6.jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "a090",
@@ -1598,14 +1087,7 @@
     "oldPrice": 98000,
     "stock": 10,
     "description": "Quatre traceurs AirTag.",
-    "color": "#E9ECF0",
-    "image": "/images/commons/airtag-0.jpg",
-    "imageCredit": {
-      "author": "KKPCW",
-      "license": "CC BY-SA 4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
-      "source": "https://commons.wikimedia.org/wiki/File:Airtag_-_1.jpg"
-    }
+    "color": "#E9ECF0"
   },
   {
     "id": "e009",

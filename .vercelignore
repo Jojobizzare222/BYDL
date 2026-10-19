@@ -7,7 +7,6 @@ data/*.tmp
 .env
 node_modules/
 .DS_Store
-public/images/products/
 .env.local
 .vercel/
 data/models/

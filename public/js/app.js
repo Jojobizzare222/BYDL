@@ -612,9 +612,9 @@
     const inUniverse = (u) => state.products.filter((p) => p.universe === u);
     const featured = (u) => inUniverse(u).filter((p) => p.featured).concat(inUniverse(u).filter((p) => !p.featured)).slice(0, 12);
     const withImg = (list) => list.find((p) => p.image);
-    const heroP = withImg(state.products.filter((p) => p.featured)) || withImg(state.products);
+    const heroP = withImg(state.products.filter((p) => p.featured)) || withImg(state.products) || state.products.find((p) => p.featured) || state.products[0];
     const used = new Set([heroP?.id]);
-    const pick = (list) => { const p = list.find((x) => x.image && !used.has(x.id)); if (p) used.add(p.id); return p; };
+    const pick = (list) => { const p = list.find((x) => x.image && !used.has(x.id)) || list.find((x) => !used.has(x.id)); if (p) used.add(p.id); return p; }; // photo de préférence
 
     // Diapositives du grand carrousel (construites à partir du catalogue)
     const slide = ({ theme, kicker, title, text, href, cta, p, extra = '' }) => `
@@ -628,7 +628,7 @@
         </div>
         <div class="slide-visual">
           <span class="deco o1"></span><span class="deco o2"></span><span class="deco o3"></span>
-          ${p?.image ? `<img src="${esc(p.image)}" alt="${esc(p.name)}" ${p === heroP ? '' : 'loading="lazy"'}>` : ''}
+          ${p?.image ? `<img src="${esc(p.image)}" alt="${esc(p.name)}" ${p === heroP ? '' : 'loading="lazy"'}>` : p ? `<span class="slide-ico">${catIcon(p.category)}</span>` : ''}
           ${p && discount(p) ? `<span class="slide-badge">-${discount(p)} %</span>` : ''}
         </div>
       </div>`;
@@ -653,23 +653,23 @@
     const sideCards = [];
     for (const x of [...cats].sort((a, b) => Math.max(0, ...b.list.map(discount)) - Math.max(0, ...a.list.map(discount)))) {
       if (sideCards.length === 2) break;
-      const p = [...x.list].sort((a, b) => discount(b) - discount(a)).find((q) => q.image && q.id !== heroP?.id);
+      const sorted = [...x.list].sort((a, b) => discount(b) - discount(a)); const p = sorted.find((q) => q.image && q.id !== heroP?.id) || sorted.find((q) => q.id !== heroP?.id);
       if (p) sideCards.push({ x, p });
     }
     const sideCard = ({ x, p }, i) => `<a class="side-card sc-${i}" href="#/p/${p.id}">
         <span class="sc-k">${esc(x.c)}</span><b>${esc(p.name.replace(/^Apple /, ''))}</b>
         <span class="sc-price">${discount(p) ? 'Seulement ' : 'À partir de '}${fcfa(p.price)}</span><span class="sc-go">Découvrir ${icon('arrow-right')}</span>
-        <img src="${esc(p.image)}" alt="" loading="lazy">${discount(p) ? `<span class="zl">-${discount(p)} %</span>` : ''}</a>`;
+        ${p.image ? `<img src="${esc(p.image)}" alt="" loading="lazy">` : `<span class="sc-ico">${catIcon(p.category)}</span>`}${discount(p) ? `<span class="zl">-${discount(p)} %</span>` : ''}</a>`;
     // Blocs « Explorer les rayons » : 4 vignettes par rayon + prix d'entrée
     const blocks = [...cats].sort((a, b) => b.list.length - a.list.length).slice(0, 4).map((x) => {
-      const seenImg = new Set(); const pics = x.list.filter((p) => p.image && !seenImg.has(p.image) && seenImg.add(p.image)).slice(0, 4); // 4 photos différentes
+      const seenImg = new Set(); const pics = groupFamilies(x.list).map((g) => g[0]).filter((p) => !p.image || (!seenImg.has(p.image) && seenImg.add(p.image))).slice(0, 4); // 4 produits différents
       return `<a class="ublock" href="${href(x)}">
         <span class="ub-h"><b>${esc(x.c)}</b><small>${x.list.length} article${x.list.length > 1 ? 's' : ''} · dès ${fcfa(Math.min(...x.list.map((p) => p.price)))}</small></span>
-        <span class="ub-g">${pics.map((p) => `<span><img src="${esc(p.image)}" alt="" loading="lazy"></span>`).join('')}</span>
+        <span class="ub-g">${pics.map((p) => p.image ? `<span><img src="${esc(p.image)}" alt="" loading="lazy"></span>` : `<span class="ub-ico">${catIcon(p.category)}<small>${esc(familyName(p).replace(/^Apple /, ''))}</small></span>`).join('')}</span>
         <span class="ub-go">Voir le rayon ${icon('caret-right')}</span></a>`;
     }).join('');
     // Onglets « Les meilleures offres » : sélection, remises, puis deux rayons
-    const picks = state.products.filter((p) => p.featured).concat(state.products.filter((p) => !p.featured && p.image)).slice(0, 12);
+    const picks = state.products.filter((p) => p.featured).concat(state.products.filter((p) => !p.featured && p.image), state.products.filter((p) => !p.featured && !p.image)).slice(0, 12);
     const tabs = [{ k: 'sel', label: 'Sélection Zado', ic: 'sparkle-fill', list: picks }, { k: 'deal', label: 'Bonnes affaires', ic: 'tag', list: deals }]
       .concat([...cats].sort((a, b) => b.list.length - a.list.length).slice(1, 3).map((x) => ({ k: 'c:' + x.c, label: x.c, ic: (ICONS[x.c] || 'tag').replace('-duotone', ''), list: x.list.slice(0, 12) })))
       .filter((t) => t.list.length);
