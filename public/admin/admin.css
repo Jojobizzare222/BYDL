@@ -476,7 +476,7 @@ html[data-theme="light"] h1, html[data-theme="light"] h2, html[data-theme="light
 html[data-theme="light"] .install-text b, html[data-theme="light"] .detour-opt b, html[data-theme="light"] .deliv h3 { color: var(--ink); }
 html[data-theme="light"] .dash-hero h1, html[data-theme="light"] .dash-hero h2 { color: #fff; }
 /* Logo : version foncée sur fond clair (le logo clair deviendrait invisible) */
-html[data-theme="light"] img[src^="/brand/logo-zado-clair.svg"] { content: url('/brand/logo-zado.svg?v=6'); }
+html[data-theme="light"] img[src^="/brand/logo-zado-clair.svg"] { content: url('/brand/logo-zado.svg?v=7'); }
 
 /* Badge « identité vérifiée » (sceau Zado, même dessin que la boutique) */
 .vbadge { width: 1.05em; height: 1.05em; flex: none; display: inline-block; vertical-align: -.16em; margin-left: .3em; --vb: #8BB6FF; --vb-check: #122547; }

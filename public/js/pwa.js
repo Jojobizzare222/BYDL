@@ -62,7 +62,7 @@
         ? `<p class="install-how">Touchez ${ico('export')} <b>Partager</b>, puis <b>« Sur l'écran d'accueil »</b>.</p>`
         : `<p class="install-how">Dans le menu du navigateur ${ico('dots-three-vertical')}, choisissez <b>« Installer l'application »</b> ou <b>« Ajouter à l'écran d'accueil »</b>.</p>`;
     el.innerHTML = `
-      <img src="${isAdmin ? "/brand/pro-192.png?v=6" : "/brand/icone-192.png?v=6"}" alt="" width="48" height="48">
+      <img src="${isAdmin ? "/brand/pro-192.png?v=7" : "/brand/icone-192.png?v=7"}" alt="" width="48" height="48">
       <div class="install-text"><b>Installez l'application ${isAdmin ? 'Zado Pro' : 'Zado'}</b><span>S'ouvre en plein écran depuis votre téléphone, plus rapide, même avec peu de réseau. Gratuit, sans Play Store.</span>${deferred ? '' : how}</div>
       ${deferred ? how : ''}
       <button type="button" class="install-close" data-install="later" aria-label="Plus tard">${ico('x')}</button>`;

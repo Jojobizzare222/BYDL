@@ -6,11 +6,11 @@
   <script>(function(){var k="kamwa-pro-theme",d="light",m;try{m=localStorage.getItem(k)||d}catch(e){m=d}var q=matchMedia("(prefers-color-scheme: dark)");function a(){var t=m==="auto"?(q.matches?"dark":"light"):m;document.documentElement.setAttribute("data-theme",t);}a();if(q.addEventListener)q.addEventListener("change",function(){if(m==="auto")a()});window.kamwaTheme={mode:function(){return m},set:function(v){m=v;try{localStorage.setItem(k,v)}catch(e){}a();document.dispatchEvent(new CustomEvent("kamwa-theme"))}};})();</script>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#10264A">
-  <link rel="icon" href="/brand/favicon.svg?v=6" type="image/svg+xml">
+  <link rel="icon" href="/brand/favicon.svg?v=7" type="image/svg+xml">
   <meta name="robots" content="noindex, nofollow">
   <!-- Application « Zado Pro » : installable sur l'écran d'accueil de l'équipe et des fournisseurs -->
   <link rel="manifest" href="/admin/manifest.webmanifest">
-  <link rel="apple-touch-icon" href="/brand/pro-apple-touch.png?v=6">
+  <link rel="apple-touch-icon" href="/brand/pro-apple-touch.png?v=7">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Zado Pro">
@@ -25,20 +25,21 @@
       .splash { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; background: radial-gradient(60% 50% at 50% 45%, #163462 0%, #0F2447 55%, #0A182F 100%); animation: sp-out .45s ease-in 2.05s forwards; cursor: pointer; }
       .splash .sp-box { display: grid; justify-items: center; gap: 16px; }
       .sp-logo { width: min(300px, 72vw); height: auto; overflow: visible; }
-      .sp-c1, .sp-c2, .sp-word { stroke-dasharray: 1; stroke-dashoffset: 1; }
-      .sp-c1 { animation: sp-draw .45s cubic-bezier(.4,0,.2,1) .1s forwards; }
-      .sp-c2 { animation: sp-draw .45s cubic-bezier(.4,0,.2,1) .45s forwards; }
-      .sp-word { animation: sp-draw 1s cubic-bezier(.4,0,.2,1) .7s forwards; }
-      .sp-tag { font: 600 .95rem/1.2 "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #B9C6E0; letter-spacing: .02em; opacity: 0; transform: translateY(6px); animation: sp-word .5s ease-out 1.45s forwards; }
+      .sp-stem { transform-box: fill-box; transform-origin: 50% 100%; transform: scaleY(0); animation: sp-stem .4s cubic-bezier(.2,.9,.3,1.2) .1s forwards; }
+      .sp-chev, .sp-word { stroke-dasharray: 1; stroke-dashoffset: 1; }
+      .sp-chev { animation: sp-draw .5s cubic-bezier(.4,0,.2,1) .35s forwards; }
+      .sp-word { animation: sp-draw 1s cubic-bezier(.4,0,.2,1) .6s forwards; }
+      .sp-tag { font: 600 .95rem/1.2 "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #B9C6E0; letter-spacing: .02em; opacity: 0; transform: translateY(6px); animation: sp-word .5s ease-out 1.35s forwards; }
       .sp-pro { display: inline-flex; align-items: center; gap: 8px; }
-      .sp-pill { transform-box: border-box; transform-origin: center; font: 700 .72rem/1 "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; letter-spacing: .14em; color: #fff; background: #DC241F; padding: 6px 10px; border-radius: 999px; opacity: 0; transform: scale(.4); animation: sp-pill .45s cubic-bezier(.3,1.8,.5,1) 1.4s forwards; }
+      .sp-pill { transform-box: border-box; transform-origin: center; font: 700 .72rem/1 "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; letter-spacing: .14em; color: #0A182F; background: #FFB300; padding: 6px 10px; border-radius: 999px; opacity: 0; transform: scale(.4); animation: sp-pill .45s cubic-bezier(.3,1.8,.5,1) 1.4s forwards; }
+      @keyframes sp-stem { to { transform: scaleY(1); } }
       @keyframes sp-draw { to { stroke-dashoffset: 0; } }
       @keyframes sp-pill { 0% { opacity: 1; transform: scale(.4); } 70% { opacity: 1; transform: scale(1.15); } 100% { opacity: 1; transform: scale(1); } }
       @keyframes sp-word { to { opacity: 1; transform: none; } }
       @keyframes sp-out { to { opacity: 0; transform: scale(1.04); visibility: hidden; } }
       @media (prefers-reduced-motion: reduce) { .splash { display: none; } }
     </style>
-    <div class="sp-box"><svg class="sp-logo" viewBox="-4 -4 329 108" role="img" aria-label="Zado"><g transform="translate(0 20.6) scale(.847)"><path class="sp-c1" pathLength="1" d="M18 22H82L58 43" fill="none" stroke="#fff" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/><path class="sp-c2" pathLength="1" d="M42 57L18 78H82" fill="none" stroke="#DC241F" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/></g><g transform="translate(96 9)"><path class="sp-word" pathLength="1" d="M8 30H48L8 78H48 M82 54m-20 0a20 22 0 1 0 40 0a20 22 0 1 0-40 0 M102 34V78 M136 54m-20 0a20 22 0 1 0 40 0a20 22 0 1 0-40 0 M156 4V78 M190 54m-20 0a20 22 0 1 0 40 0a20 22 0 1 0-40 0" fill="none" stroke="#fff" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/></g></svg><span class="sp-pro"><span class="sp-pill">PRO</span><span class="sp-tag">Espace de gestion</span></span></div>
+    <div class="sp-box"><svg class="sp-logo" viewBox="-6 -6 348 112" role="img" aria-label="Zado"><g transform="translate(0 7.5)"><rect class="sp-stem" x="16" y="14" width="16" height="72" rx="3" fill="#fff"/><path class="sp-chev" pathLength="1" d="M46 22 L76 50 46 78" fill="none" stroke="#FFB300" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/></g><g transform="translate(112 9)"><path class="sp-word" pathLength="1" d="M8 30H48L8 78H48 M82 54m-20 0a20 22 0 1 0 40 0a20 22 0 1 0-40 0 M102 34V78 M136 54m-20 0a20 22 0 1 0 40 0a20 22 0 1 0-40 0 M156 4V78 M190 54m-20 0a20 22 0 1 0 40 0a20 22 0 1 0-40 0" fill="none" stroke="#fff" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/></g></svg><span class="sp-pro"><span class="sp-pill">PRO</span><span class="sp-tag">Espace de gestion</span></span></div>
   </div>
   <script>
     // Une seule fois par visite (pas à chaque changement de page) ; jamais si « réduire les animations »
@@ -59,7 +60,7 @@
   </div>
   <!-- Barre latérale (cachée tant qu'on n'est pas connecté) -->
   <aside class="side" id="top" hidden>
-    <a class="side-logo" href="#/tableau"><img src="/brand/logo-zado-clair.svg?v=6" alt="Zado" width="96" height="30"> espace pro</a>
+    <a class="side-logo" href="#/tableau"><img src="/brand/logo-zado-clair.svg?v=7" alt="Zado" width="101" height="30"> espace pro</a>
     <nav class="side-nav">
       <a href="#/tableau" data-tab="tableau"><svg class="ico" aria-hidden="true"><use href="/icons.svg?v=12#squares-four-duotone"></use></svg>Tableau de bord</a>
       <a href="#/messagerie" data-tab="messagerie" data-roles="admin orders catalog courier supplier"><svg class="ico" aria-hidden="true"><use href="/icons.svg?v=12#chats-circle-duotone"></use></svg>Messagerie <span class="count" id="chatCount" hidden></span></a>
@@ -106,7 +107,7 @@
   <div class="main">
     <header class="mobile-top">
       <button id="menuBtn" aria-label="Ouvrir le menu"><svg class="ico" aria-hidden="true"><use href="/icons.svg?v=12#list-bold"></use></svg></button>
-      <img src="/brand/logo-zado-clair.svg?v=6" alt="Zado" width="83" height="26">
+      <img src="/brand/logo-zado-clair.svg?v=7" alt="Zado" width="87" height="26">
       <span class="count" id="todoCountMobile" hidden></span>
     </header>
     <!-- Barre du haut : page en cours, onglets du module, recherche, alertes, personne connectée -->
