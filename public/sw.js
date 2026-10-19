@@ -2,11 +2,11 @@
 // (installation sur l'écran d'accueil, ouverture rapide, consultation du catalogue même sans réseau).
 // Règles de sécurité : les commandes, paiements, comptes et l'espace pro passent TOUJOURS par le réseau,
 // jamais par le cache. Seuls le catalogue public et les fichiers du site sont gardés en mémoire.
-const VERSION = 'zado-v45';
+const VERSION = 'zado-v46';
 const SHELL = `${VERSION}-shell`;
 const MEDIA = `${VERSION}-media`;
 const DATA = `${VERSION}-data`;
-const PRECACHE = ['/', '/css/style.css', '/js/app.js', '/js/legal.js', '/js/cookies.js', '/js/pwa.js', '/js/chat.js', '/js/map.js', '/icons.svg?v=12', '/fonts/ibm-plex-sans-latin-wght-normal.woff2', '/brand/logo-zado.svg?v=5', '/manifest.webmanifest'];
+const PRECACHE = ['/', '/css/style.css', '/js/app.js', '/js/legal.js', '/js/cookies.js', '/js/pwa.js', '/js/chat.js', '/js/map.js', '/icons.svg?v=12', '/fonts/ibm-plex-sans-latin-wght-normal.woff2', '/brand/logo-zado.svg?v=6', '/manifest.webmanifest'];
 // Lecture seule et publique : utilisable hors ligne (le prix est toujours recalculé par le serveur à la commande)
 const CACHEABLE_API = ['/api/products', '/api/config'];
 
@@ -71,7 +71,7 @@ self.addEventListener('push', (e) => {
   let d = {};
   try { d = e.data ? e.data.json() : {}; } catch { d = { title: 'Zado', body: e.data && e.data.text() }; }
   e.waitUntil(self.registration.showNotification(d.title || 'Zado', {
-    body: d.body || '', icon: d.icon || '/brand/icone-192.png?v=5', badge: d.badge || '/brand/favicon-32.png?v=5',
+    body: d.body || '', icon: d.icon || '/brand/icone-192.png?v=6', badge: d.badge || '/brand/favicon-32.png?v=6',
     tag: d.tag || 'kamwa', renotify: true, data: { url: d.url || '/' }, vibrate: d.urgent ? [200, 100, 200] : [100],
   }));
 });

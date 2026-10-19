@@ -49,7 +49,7 @@ app.get('/p/:id', (req, res) => {
   const host = /localhost|127\.0\.0\.1/.test(config.publicUrl) ? `${req.protocol}://${req.get('host')}` : config.publicUrl;
   const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const target = ok ? `/#/p/${encodeURIComponent(p.id)}` : '/';
-  const img = ok && p.image ? (/^https?:/.test(p.image) ? p.image : host + p.image) : `${host}/brand/partage-zado.png?v=5`;
+  const img = ok && p.image ? (/^https?:/.test(p.image) ? p.image : host + p.image) : `${host}/brand/partage-zado.png?v=6`;
   const price = ok ? new Intl.NumberFormat('fr-FR').format(p.price).replace(/\u202f/g, ' ') + ' FCFA' : '';
   const title = ok ? `${p.name} — ${price}` : 'Zado';
   const desc = ok ? `${p.description ? String(p.description).slice(0, 150) + ' · ' : ''}Payez au point relais · livraison rapide à Pointe-Noire.` : 'Électronique et mode au meilleur prix, livrées au Congo.';

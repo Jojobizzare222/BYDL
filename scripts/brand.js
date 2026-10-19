@@ -23,8 +23,10 @@ const WORD = 'M8 30H48L8 78H48 M82 54m-20 0a20 22 0 1 0 40 0a20 22 0 1 0-40 0 M1
 const word = (c) => `<path d="${WORD}" ${sw(c, 13)}/>`;
 
 const svg = (w, h, body) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" role="img" aria-label="Zado"><title>Zado</title>${body}</svg>`;
-// Logo complet : symbole + mot (336 × 100)
-const lockup = (c, a = RED) => svg(336, 100, `${symbol(c, a)}<g transform="translate(112 9)">${word(c)}</g>`);
+// Logo complet : symbole + mot (321 × 100). Le symbole est réduit (0,847) pour avoir EXACTEMENT la hauteur des
+// lettres sans hampe (haut des chevrons = haut du « z », bas = ligne de base) et la même épaisseur de trait (≈ 13,5).
+const LOCK_SYMBOL = 'translate(0 20.6) scale(.847)', LOCK_WORD = 'translate(96 9)';
+const lockup = (c, a = RED) => svg(321, 100, `<g transform="${LOCK_SYMBOL}">${symbol(c, a)}</g><g transform="${LOCK_WORD}">${word(c)}</g>`);
 // Mot seul (232 × 100)
 const wordmark = (c) => svg(232, 100, `<g transform="translate(8 9)">${word(c)}</g>`);
 // Empilé : symbole au-dessus du mot (234 × 230) — image de partage
@@ -64,8 +66,8 @@ async function png(name, svgText, width, height = width) {
   await png('pro-512.png', icon(100, INK, 0.6), 512);
   await png('pro-apple-touch.png', icon(100, INK, 0.6), 180);
   await png('partage-zado.png', share(), 1200, 630);
-  await sharp(Buffer.from(lockup(NAVY)), { density: 300 }).resize(672, 200).png().toFile(path.join(OUT, 'logo-zado.png'));
+  await sharp(Buffer.from(lockup(NAVY)), { density: 300 }).resize(642, 200).png().toFile(path.join(OUT, 'logo-zado.png'));
   console.log(`Logo Zado « Les deux chevrons » écrit dans ${OUT} (${Object.keys(files).length} SVG + 11 PNG)`);
 })();
 
-module.exports = { CHEV_TOP, CHEV_BOTTOM, WORD, RED, NAVY };
+module.exports = { CHEV_TOP, CHEV_BOTTOM, WORD, LOCK_SYMBOL, LOCK_WORD, RED, NAVY };

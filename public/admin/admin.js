@@ -251,7 +251,7 @@
     document.body.classList.remove('logged', 'menu-open');
     app.innerHTML = `
       <form class="panel login" id="loginForm">
-        <span class="logo"><img src="/brand/logo-zado-clair.svg?v=5" alt="Zado" width="148" height="44"></span>
+        <span class="logo"><img src="/brand/logo-zado-clair.svg?v=6" alt="Zado" width="141" height="44"></span>
         <h1>Espace Zado</h1>
         <p class="muted" style="margin-top:-6px">Administration, équipe et fournisseurs</p>
         ${message ? `<div class="alert err">${esc(message)}</div>` : ''}
@@ -2785,7 +2785,7 @@
     if (!state.user) return;
     const groups = navModel();
     const active = groups.find((g) => g.links.some((l) => l.on)) || null;
-    $('#rail').innerHTML = `<a class="rail-logo" href="#/tableau" title="Zado Pro"><img src="/brand/symbole-zado.svg?v=5" alt="Zado" width="34" height="34"></a>
+    $('#rail').innerHTML = `<a class="rail-logo" href="#/tableau" title="Zado Pro"><img src="/brand/symbole-zado.svg?v=6" alt="Zado" width="34" height="34"></a>
       ${groups.map((g) => { const n = g.links.reduce((s, l) => s + (parseInt(l.count, 10) || 0), 0); return `<a class="rail-item ${g === active ? 'on' : ''}" href="${esc(g.links[0].href)}" title="${esc(g.title)}">${icon(g.icon)}<span>${esc(g.title)}</span>${n ? `<i class="n">${n}</i>` : ''}</a>`; }).join('')}
       <div class="rail-foot">
         <a class="rail-item" href="/" target="_blank" rel="noopener" title="Voir la boutique">${icon('arrow-square-out-bold')}<span>Boutique</span></a>

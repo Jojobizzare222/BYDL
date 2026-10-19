@@ -42,7 +42,7 @@ function subscribe(sub, { customerId = null, orderId = null } = {}) {
 async function sendTo(subs, payload) {
   if (!subs.length) return 0;
   setup();
-  const body = JSON.stringify({ icon: '/brand/icone-192.png?v=5', badge: '/brand/favicon-32.png?v=5', ...payload });
+  const body = JSON.stringify({ icon: '/brand/icone-192.png?v=6', badge: '/brand/favicon-32.png?v=6', ...payload });
   let sent = 0;
   await Promise.all(subs.map(async (s) => {
     try { await webpush.sendNotification({ endpoint: s.endpoint, keys: s.keys }, body, { TTL: 3600, urgency: payload.urgent ? 'high' : 'normal' }); sent++; }

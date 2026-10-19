@@ -62,7 +62,7 @@
     const sameDay = until && until.toDateString() === new Date().toDateString();
     el.innerHTML = `<div class="maint-card">
         ${m.preview ? '<span class="maint-preview">Aperçu visible uniquement sur cet écran : la boutique reste ouverte</span>' : ''}
-        <img class="maint-logo for-light" src="/brand/logo-zado.svg?v=5" alt="Zado" width="121" height="36"><img class="maint-logo for-dark" src="/brand/logo-zado-clair.svg?v=5" alt="Zado" width="121" height="36">
+        <img class="maint-logo for-light" src="/brand/logo-zado.svg?v=6" alt="Zado" width="116" height="36"><img class="maint-logo for-dark" src="/brand/logo-zado-clair.svg?v=6" alt="Zado" width="116" height="36">
         <div class="maint-ico">${icon('clock-bold')}</div>
         <h1 id="maintTitle">Petite pause, on revient vite</h1>
         <p class="maint-msg">${esc(m.message || 'La boutique est en maintenance pour quelques instants.')}</p>
