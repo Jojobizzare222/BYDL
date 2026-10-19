@@ -205,8 +205,8 @@ function render(bc, company) {
   return `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
 <title>Bon de commande ${esc(bc.number)} — ${esc(c.name)}</title>
 <style>
-@font-face { font-family: "IBM Plex Sans"; src: url(/fonts/ibm-plex-sans-latin-wght-normal.woff2) format("woff2"); font-weight: 100 700; }
-* { box-sizing: border-box; } body { margin: 0; font-family: "IBM Plex Sans", Arial, sans-serif; color: #1B1530; background: #EEEAF7; font-size: 13px; line-height: 1.45; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+@font-face { font-family: "Plus Jakarta Sans"; src: url(/fonts/plus-jakarta-sans-latin-wght-normal.woff2) format("woff2"); font-weight: 200 800; }
+* { box-sizing: border-box; } body { margin: 0; font-family: "Plus Jakarta Sans", Arial, sans-serif; color: #1B1530; background: #EEEAF7; font-size: 13px; line-height: 1.45; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 .bar { position: sticky; top: 0; display: flex; gap: 8px; justify-content: center; padding: 10px; background: #2D1B69; }
 .bar button { font: inherit; font-weight: 600; border: 0; border-radius: 999px; padding: 8px 16px; cursor: pointer; background: #FFB300; color: #2D1B69; }
 .sheet { background: #fff; margin: 20px auto; padding: 36px 40px; width: 210mm; max-width: calc(100% - 24px); min-height: 280mm; box-shadow: 0 10px 40px rgba(45,27,105,.15); position: relative; }

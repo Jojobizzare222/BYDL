@@ -169,9 +169,9 @@ function labels(list, origin) {
   return `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
 <title>Étiquette${list.length > 1 ? 's' : ''} ${esc(list.map((p) => p.number).join(', ')).slice(0, 80)}</title>
 <style>
-@font-face { font-family: "IBM Plex Sans"; src: url(/fonts/ibm-plex-sans-latin-wght-normal.woff2) format("woff2"); font-weight: 100 700; }
+@font-face { font-family: "Plus Jakarta Sans"; src: url(/fonts/plus-jakarta-sans-latin-wght-normal.woff2) format("woff2"); font-weight: 200 800; }
 * { box-sizing: border-box; }
-body { margin: 0; font-family: "IBM Plex Sans", Arial, sans-serif; background: #EEEAF7; color: #111; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+body { margin: 0; font-family: "Plus Jakarta Sans", Arial, sans-serif; background: #EEEAF7; color: #111; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 .bar { position: sticky; top: 0; display: flex; gap: 8px; justify-content: center; padding: 10px; background: #2D1B69; z-index: 2; }
 .bar button { font: inherit; font-weight: 600; border: 0; border-radius: 999px; padding: 8px 18px; background: #FFB300; color: #2D1B69; cursor: pointer; }
 .bar span { color: #CFC6F2; align-self: center; font-size: 13px; }

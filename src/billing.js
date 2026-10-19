@@ -277,10 +277,10 @@ function render(d, { format = 'a4', admin = false } = {}) {
   return `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex"><title>${esc(title)} ${esc(d.number)} — ${esc(c.name)}</title>
 <style>
-@font-face { font-family: "IBM Plex Sans"; src: url(/fonts/ibm-plex-sans-latin-wght-normal.woff2) format("woff2"); font-weight: 100 700; }
-@font-face { font-family: "IBM Plex Sans"; src: url(/fonts/ibm-plex-sans-latin-ext-wght-normal.woff2) format("woff2"); font-weight: 100 700; unicode-range: U+0100-024F, U+1E00-1EFF, U+20A0-20CF, U+2C60-2C7F, U+A720-A7FF; }
+@font-face { font-family: "Plus Jakarta Sans"; src: url(/fonts/plus-jakarta-sans-latin-wght-normal.woff2) format("woff2"); font-weight: 200 800; }
+@font-face { font-family: "Plus Jakarta Sans"; src: url(/fonts/plus-jakarta-sans-latin-ext-wght-normal.woff2) format("woff2"); font-weight: 200 800; unicode-range: U+0100-024F, U+1E00-1EFF, U+20A0-20CF, U+2C60-2C7F, U+A720-A7FF; }
 * { box-sizing: border-box; }
-body { margin: 0; font-family: "IBM Plex Sans", Arial, sans-serif; color: #1B1530; background: #EEEAF7; font-size: 13px; line-height: 1.45; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+body { margin: 0; font-family: "Plus Jakarta Sans", Arial, sans-serif; color: #1B1530; background: #EEEAF7; font-size: 13px; line-height: 1.45; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 .bar { position: sticky; top: 0; display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; padding: 10px; background: #2D1B69; }
 .bar a, .bar button { font: inherit; font-weight: 600; color: #fff; background: rgba(255,255,255,.12); border: 0; border-radius: 999px; padding: 8px 16px; text-decoration: none; cursor: pointer; }
 .bar .main { background: #FFB300; color: #2D1B69; }
