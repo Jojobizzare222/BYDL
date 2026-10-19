@@ -17,7 +17,7 @@
     <button class="chat-fab" id="chatFab" aria-label="Aide : poser une question">${ico('chat-circle-dots-fill')}<span>Aide</span><b class="chat-badge" id="chatBadge" hidden></b></button>
     <section class="chat-panel" id="chatPanel" hidden aria-label="Messagerie Zado">
       <header class="chat-head">
-        <img src="/brand/symbole-zado.svg?v=7" alt="" width="34" height="34">
+        <img src="/brand/symbole-zado.svg?v=8" alt="" width="34" height="34">
         <div><strong>Aide Zado</strong><small id="chatState">Assistant · réponse immédiate</small></div>
         <button class="chat-x" id="chatClose" aria-label="Fermer">${ico('x-bold')}</button>
       </header>

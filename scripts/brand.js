@@ -24,10 +24,10 @@ const WORD = 'M8 30H48L8 78H48 M82 54m-20 0a20 22 0 1 0 40 0a20 22 0 1 0-40 0 M1
 const word = (c) => `<path d="${WORD}" ${sw(c, 13)}/>`;
 
 const svg = (w, h, body) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" role="img" aria-label="Zado"><title>Zado</title>${body}</svg>`;
-// Logo complet : symbole + mot (336 × 100). Le symbole est posé sur la ligne de base des lettres (comme une lettre
-// à hampe : son pied = le pied du « z », son haut entre le haut des lettres et le haut du « d »).
-const LOCK_SYMBOL = 'translate(0 7.5)', LOCK_WORD = 'translate(112 9)';
-const lockup = (c, chevron = c) => svg(336, 100, `<g transform="${LOCK_SYMBOL}">${symbol(c, chevron)}</g><g transform="${LOCK_WORD}">${word(c)}</g>`);
+// Logo complet : symbole + mot (320 × 100). Le symbole est réduit (0,847) pour avoir EXACTEMENT la hauteur des lettres
+// sans hampe : haut du trait = haut du « z », pied = ligne de base, même épaisseur de trait (≈ 13,5) ; écart = 20.
+const LOCK_SYMBOL = 'translate(0 20.6) scale(.847)', LOCK_WORD = 'translate(90 9)';
+const lockup = (c, chevron = c) => svg(320, 100, `<g transform="${LOCK_SYMBOL}">${symbol(c, chevron)}</g><g transform="${LOCK_WORD}">${word(c)}</g>`);
 // Mot seul (232 × 100)
 const wordmark = (c) => svg(232, 100, `<g transform="translate(8 9)">${word(c)}</g>`);
 // Icône d'application : carré arrondi + symbole blanc centré (zone sûre « maskable » : le symbole reste dans les 80 % du centre)
@@ -35,7 +35,7 @@ const icon = (size, bg, scale, chevron = WHITE) => {
   const m = size * scale, off = (size - m) / 2, r = Math.round(size * 0.22);
   return svg(size, size, `<rect width="${size}" height="${size}" rx="${r}" fill="${bg}"/><g transform="translate(${off} ${off}) scale(${m / 100})">${symbol(WHITE, chevron)}</g>`);
 };
-const share = () => svg(1200, 630, `<rect width="1200" height="630" fill="${NAVY}"/><rect x="0" y="0" width="1200" height="8" fill="${MANGO}"/><g transform="translate(348 240) scale(1.5)"><g transform="${LOCK_SYMBOL}">${symbol(WHITE)}</g><g transform="${LOCK_WORD}">${word(WHITE)}</g></g>`);
+const share = () => svg(1200, 630, `<rect width="1200" height="630" fill="${NAVY}"/><rect x="0" y="0" width="1200" height="8" fill="${MANGO}"/><g transform="translate(360 240) scale(1.5)"><g transform="${LOCK_SYMBOL}">${symbol(WHITE)}</g><g transform="${LOCK_WORD}">${word(WHITE)}</g></g>`);
 
 const files = {
   'logo-zado.svg': lockup(NAVY),             // fond clair (documents, étiquettes, thème clair)
@@ -65,7 +65,7 @@ async function png(name, svgText, width, height = width) {
   await png('pro-512.png', icon(100, INK, 0.56, MANGO), 512);
   await png('pro-apple-touch.png', icon(100, INK, 0.56, MANGO), 180);
   await png('partage-zado.png', share(), 1200, 630);
-  await sharp(Buffer.from(lockup(NAVY)), { density: 300 }).resize(672, 200).png().toFile(path.join(OUT, 'logo-zado.png'));
+  await sharp(Buffer.from(lockup(NAVY)), { density: 300 }).resize(640, 200).png().toFile(path.join(OUT, 'logo-zado.png'));
   console.log(`Logo Zado (symbole Kamwa « La flèche ») écrit dans ${OUT} (${Object.keys(files).length} SVG + 11 PNG)`);
 })();
 
