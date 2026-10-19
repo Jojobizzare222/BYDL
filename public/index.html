@@ -5,7 +5,7 @@
   <!-- Apparence (clair / sombre / automatique) appliquée AVANT l'affichage : pas de flash de couleur -->
   <script>(function(){var k="kamwa-theme",d="light",m;try{m=localStorage.getItem(k)||d}catch(e){m=d}var q=matchMedia("(prefers-color-scheme: dark)");function a(){var t=m==="auto"?(q.matches?"dark":"light"):m;document.documentElement.setAttribute("data-theme",t);}a();if(q.addEventListener)q.addEventListener("change",function(){if(m==="auto")a()});window.kamwaTheme={mode:function(){return m},set:function(v){m=v;try{localStorage.setItem(k,v)}catch(e){}a();document.dispatchEvent(new CustomEvent("kamwa-theme"))}};})();</script>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#2D1B69">
+  <meta name="theme-color" content="#10264A">
   <link rel="icon" href="/brand/favicon.svg?v=8" type="image/svg+xml">
   <link rel="icon" href="/brand/favicon-32.png?v=8" sizes="32x32" type="image/png">
   <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png?v=8">
@@ -57,12 +57,19 @@
       setTimeout(done, 2800);
     })();
   </script>
-  <!-- Formes géométriques animées en arrière-plan (décor, ignorées par les lecteurs d'écran) -->
-  <div class="bg-shapes" aria-hidden="true">
-    <span class="shape ring r1"></span><span class="shape blob b1"></span><span class="shape spark k1"></span>
-    <span class="shape square q1"></span><span class="shape ring r2"></span><span class="shape dots d1"></span>
-    <span class="shape blob b2"></span><span class="shape spark k2"></span><span class="shape tri t1"></span>
-  </div>
+  <!-- Bandeau défilant des promesses Zado (arrêté si « réduire les animations ») -->
+  <div class="ann" aria-label="Les engagements Zado"><div class="ann-track">
+    <span><svg class="ico" aria-hidden="true"><use href="/icons.svg?v=12#truck"></use></svg> Livraison rapide à Pointe-Noire</span>
+    <span><svg class="ico" aria-hidden="true"><use href="/icons.svg?v=12#storefront"></use></svg> Payez en espèces au point relais</span>
+    <span><svg class="ico" aria-hidden="true"><use href="/icons.svg?v=12#shield-check"></use></svg> Produits neufs et vérifiés</span>
+    <span><svg class="ico" aria-hidden="true"><use href="/icons.svg?v=12#lightning-fill"></use></svg> Ventes flash chaque jour</span>
+    <span><svg class="ico" aria-hidden="true"><use href="/icons.svg?v=12#chat-circle"></use></svg> Une question ? L'Aide vous répond</span>
+    <span aria-hidden="true"><svg class="ico"><use href="/icons.svg?v=12#truck"></use></svg> Livraison rapide à Pointe-Noire</span>
+    <span aria-hidden="true"><svg class="ico"><use href="/icons.svg?v=12#storefront"></use></svg> Payez en espèces au point relais</span>
+    <span aria-hidden="true"><svg class="ico"><use href="/icons.svg?v=12#shield-check"></use></svg> Produits neufs et vérifiés</span>
+    <span aria-hidden="true"><svg class="ico"><use href="/icons.svg?v=12#lightning-fill"></use></svg> Ventes flash chaque jour</span>
+    <span aria-hidden="true"><svg class="ico"><use href="/icons.svg?v=12#chat-circle"></use></svg> Une question ? L'Aide vous répond</span>
+  </div></div>
 
   <header class="header">
     <!-- Bande principale : logo, livraison, recherche, compte, commandes, panier -->
@@ -71,7 +78,7 @@
         <button class="hdr-btn menu-btn" id="menuBtn" aria-label="Tous les rayons" aria-expanded="false">
           <svg class="ico" aria-hidden="true"><use href="/icons.svg?v=12#list-bold"></use></svg>
         </button>
-        <a href="#/" class="logo" aria-label="Zado, accueil"><img src="/brand/logo-zado-clair.svg?v=8" alt="Zado" width="96" height="30"></a>
+        <a href="#/" class="logo" aria-label="Zado, accueil"><img class="logo-light" src="/brand/logo-zado.svg?v=8" alt="Zado" width="96" height="30"><img class="logo-dark" src="/brand/logo-zado-clair.svg?v=8" alt="" width="96" height="30"></a>
         <label class="hdr-btn deliver" title="Ville de livraison">
           <svg class="ico" aria-hidden="true"><use href="/icons.svg?v=12#map-pin"></use></svg>
           <span class="hdr-two"><small>Livraison</small><strong id="deliverCity">Pointe-Noire</strong></span>
@@ -106,7 +113,10 @@
       <div class="sub-inner">
         <button class="all-btn" id="allBtn" aria-expanded="false"><svg class="ico" aria-hidden="true"><use href="/icons.svg?v=12#squares-four"></use></svg> Rayons</button>
         <nav class="catnav" id="catnav" aria-label="Catégories"></nav>
-        <span class="sub-promise"><svg class="ico" aria-hidden="true"><use href="/icons.svg?v=12#truck"></use></svg> Livraison rapide</span>
+        <span class="sub-links">
+          <a href="#/compte"><svg class="ico" aria-hidden="true"><use href="/icons.svg?v=12#package"></use></svg> Suivre ma commande</a>
+          <button type="button" id="subHelp"><svg class="ico" aria-hidden="true"><use href="/icons.svg?v=12#chat-circle"></use></svg> Aide</button>
+        </span>
       </div>
     </div>
   </header>

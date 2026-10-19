@@ -366,6 +366,7 @@
   };
   $('#menuBtn').addEventListener('click', () => openMenu(true));
   $('#allBtn').addEventListener('click', () => openMenu(true));
+  $('#subHelp')?.addEventListener('click', () => window.kamwaChat?.open()); // « Aide » de la barre des rayons : ouvre la messagerie
   $('#menuClose').addEventListener('click', () => openMenu(false));
   menu.addEventListener('click', (e) => { if (e.target === menu || e.target.closest('a')) openMenu(false); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && menu.classList.contains('open')) openMenu(false); });
@@ -438,13 +439,22 @@
 
   // ---------- Menu catégories ----------
   function renderNav(active) {
-    // En-tête allégé : seulement les grandes catégories (Électronique, Mode…) ; leurs rayons s'ouvrent dans un menu déroulant
-    const links = [`<a href="#/" class="${!active ? 'active' : ''}">Accueil</a>`];
-    for (const u of myUniverses()) {
-      const on = active === u.name || u.categories.includes(active);
-      links.push(`<button type="button" class="uni ${on ? 'active' : ''}" data-uni="${esc(u.name)}" aria-expanded="false">${esc(u.name)} ${icon('caret-down')}</button>`);
+    // Barre des rayons (vitrine tech, 19/10/2026) : « Bonnes affaires » en premier ; avec un seul univers (électronique),
+    // ses rayons sont affichés directement (ceux qui ont des produits) ; avec plusieurs, menu déroulant par univers.
+    const links = [`<a href="#/promos" class="deals-link ${active === 'promos' ? 'active' : ''}">${icon('fire')} Bonnes affaires <span class="nb">Promo</span></a>`];
+    const unis = myUniverses();
+    if (unis.length === 1) {
+      const u = unis[0];
+      for (const c of u.categories.filter((c) => state.products.some((p) => p.category === c))) {
+        links.push(`<a href="#/c/${enc(u.name)}/${enc(c)}" class="${active === c ? 'active' : ''}">${esc(c)}</a>`);
+      }
+    } else {
+      links.unshift(`<a href="#/" class="${!active ? 'active' : ''}">Accueil</a>`);
+      for (const u of unis) {
+        const on = active === u.name || u.categories.includes(active);
+        links.push(`<button type="button" class="uni ${on ? 'active' : ''}" data-uni="${esc(u.name)}" aria-expanded="false">${esc(u.name)} ${icon('caret-down')}</button>`);
+      }
     }
-    links.push(`<a href="#/promos" class="deals-link ${active === 'promos' ? 'active' : ''}">Bonnes affaires</a>`);
     $('#catnav').innerHTML = links.join('');
     closeDrop();
     // Menu « Toutes » et liste des rayons de la recherche (une seule fois)
@@ -460,7 +470,7 @@
       $('#searchCat').innerHTML = '<option value="">Tous les rayons</option>' +
         UNIVERSES.map((u) => `<option value="u:${esc(u.name)}">${esc(u.name)}</option>` + u.categories.map((c) => `<option value="c:${esc(c)}">&nbsp;&nbsp;${esc(c)}</option>`).join('')).join('');
     }
-    $('#footerShop').innerHTML = UNIVERSES.map((u) => `<li><a href="#/c/${enc(u.name)}">${esc(u.name)}</a></li>`).join('') + '<li><a href="#/promos">Bonnes affaires</a></li>';
+    $('#footerShop').innerHTML = (UNIVERSES.length === 1 ? UNIVERSES[0].categories.filter((c) => state.products.some((p) => p.category === c)).map((c) => `<li><a href="#/c/${enc(UNIVERSES[0].name)}/${enc(c)}">${esc(c)}</a></li>`) : UNIVERSES.map((u) => `<li><a href="#/c/${enc(u.name)}">${esc(u.name)}</a></li>`)).join('') + '<li><a href="#/promos">Bonnes affaires</a></li>';
   }
 
   // ---------- Composants ----------
@@ -469,7 +479,7 @@
   // Image du produit si elle existe, sinon pictogramme sur fond coloré (repli)
   function visual(p, cls = 'thumb') {
     if (p.image) {
-      return `<div class="${cls} has-img" style="--fallback:${esc(p.color || '#2D1B69')}">${catIcon(p.category, 'fallback-ico')}
+      return `<div class="${cls} has-img" style="--fallback:${esc(p.color || '#10264A')}">${catIcon(p.category, 'fallback-ico')}
         <img src="${esc(p.image)}" alt="${esc(p.name)}" loading="lazy" decoding="async" onerror="this.parentNode.classList.add('img-failed');this.remove()">`;
     }
     return `<div class="${cls} no-img tint-${tintOf(p.category)}">${catIcon(p.category)}`;
@@ -531,8 +541,8 @@
           <a href="#/p/${p.id}"><h3>${esc(multi ? familyName(p) : p.name)}</h3></a>
           ${ratingLine(famRating(family))}
           ${multi ? `<div class="swatches" aria-label="${family.length} couleurs">${family.slice(0, 6).map((x) => `<i style="background:${colorOf(x)?.hex || '#ccc'}" title="${esc(colorOf(x)?.label || '')}"></i>`).join('')}<small>${family.length} couleurs</small></div>` : ''}
-          <div class="prices"><span class="price">${multi && family.some((x) => x.price !== p.price) ? 'dès ' : ''}${fcfa(multi ? Math.min(...family.map((x) => x.price)) : p.price)}</span><span class="old">${d && !multi ? fcfa(p.oldPrice) : ''}</span></div>
-          <span class="stock-low">${!multi && p.stock > 0 && p.stock <= 6 ? `${icon('fire')} Plus que ${p.stock} en stock` : ''}</span>
+          <div class="prices"><span class="price ${d && !multi ? 'sale' : ''}">${multi && family.some((x) => x.price !== p.price) ? 'dès ' : ''}${fcfa(multi ? Math.min(...family.map((x) => x.price)) : p.price)}</span><span class="old">${d && !multi ? fcfa(p.oldPrice) : ''}</span></div>
+          <span class="stock-low ${!multi && p.stock > 0 && p.stock <= 6 ? '' : 'ok'}">${!multi && p.stock > 0 && p.stock <= 6 ? `${icon('fire')} Plus que ${p.stock} en stock` : multi || p.stock > 0 ? '<i class="dot"></i> En stock' : ''}</span>
           ${multi ? `<a class="btn cta small" href="#/p/${p.id}">Choisir la couleur</a>` : `<button class="btn cta small" data-add="${p.id}" ${p.stock === 0 ? 'disabled' : ''}>${p.stock === 0 ? 'Épuisé' : (p.options || []).length ? 'Choisir' : `${icon('plus')} Ajouter`}</button>`}
         </div>
       </article>`;
@@ -635,60 +645,91 @@
     }));
 
     const [h, m, sec] = untilMidnight();
-    const tints = ['violet', 'mango', 'coral'];
-    app.innerHTML = `
-      <section class="hero slider" id="hero" aria-roledescription="carrousel" aria-label="Offres du moment">
-        <div class="slider-track">${slides.join('')}</div>
-        <button type="button" class="slider-arrow prev" data-slide="-1" aria-label="Offre précédente">${icon('caret-left')}</button>
-        <button type="button" class="slider-arrow next" data-slide="1" aria-label="Offre suivante">${icon('caret-right')}</button>
-        <div class="slider-dots"></div>
-      </section>
+    // Accueil « vitrine tech » (19/10/2026, inspiré des grandes boutiques d'électronique, mise en page propre à Zado)
+    const cats = myUniverses().flatMap((u) => u.categories.map((c) => ({ u: u.name, c, list: state.products.filter((p) => p.category === c) }))).filter((x) => x.list.length);
+    const href = (x) => `#/c/${enc(x.u)}/${enc(x.c)}`;
+    const firstImg = (list) => list.find((p) => p.image);
+    // Deux cartes à côté du carrousel : meilleure remise de deux autres rayons (photo obligatoire)
+    const sideCards = [];
+    for (const x of [...cats].sort((a, b) => Math.max(0, ...b.list.map(discount)) - Math.max(0, ...a.list.map(discount)))) {
+      if (sideCards.length === 2) break;
+      const p = [...x.list].sort((a, b) => discount(b) - discount(a)).find((q) => q.image && q.id !== heroP?.id);
+      if (p) sideCards.push({ x, p });
+    }
+    const sideCard = ({ x, p }, i) => `<a class="side-card sc-${i}" href="#/p/${p.id}">
+        <span class="sc-k">${esc(x.c)}</span><b>${esc(p.name.replace(/^Apple /, ''))}</b>
+        <span class="sc-price">${discount(p) ? 'Seulement ' : 'À partir de '}${fcfa(p.price)}</span><span class="sc-go">Découvrir ${icon('arrow-right')}</span>
+        <img src="${esc(p.image)}" alt="" loading="lazy">${discount(p) ? `<span class="zl">-${discount(p)} %</span>` : ''}</a>`;
+    // Blocs « Explorer les rayons » : 4 vignettes par rayon + prix d'entrée
+    const blocks = [...cats].sort((a, b) => b.list.length - a.list.length).slice(0, 4).map((x) => {
+      const seenImg = new Set(); const pics = x.list.filter((p) => p.image && !seenImg.has(p.image) && seenImg.add(p.image)).slice(0, 4); // 4 photos différentes
+      return `<a class="ublock" href="${href(x)}">
+        <span class="ub-h"><b>${esc(x.c)}</b><small>${x.list.length} article${x.list.length > 1 ? 's' : ''} · dès ${fcfa(Math.min(...x.list.map((p) => p.price)))}</small></span>
+        <span class="ub-g">${pics.map((p) => `<span><img src="${esc(p.image)}" alt="" loading="lazy"></span>`).join('')}</span>
+        <span class="ub-go">Voir le rayon ${icon('caret-right')}</span></a>`;
+    }).join('');
+    // Onglets « Les meilleures offres » : sélection, remises, puis deux rayons
+    const picks = state.products.filter((p) => p.featured).concat(state.products.filter((p) => !p.featured && p.image)).slice(0, 12);
+    const tabs = [{ k: 'sel', label: 'Sélection Zado', ic: 'sparkle-fill', list: picks }, { k: 'deal', label: 'Bonnes affaires', ic: 'tag', list: deals }]
+      .concat([...cats].sort((a, b) => b.list.length - a.list.length).slice(1, 3).map((x) => ({ k: 'c:' + x.c, label: x.c, ic: (ICONS[x.c] || 'tag').replace('-duotone', ''), list: x.list.slice(0, 12) })))
+      .filter((t) => t.list.length);
+    state.homeTabs = tabs;
 
-      <nav class="bubbles" aria-label="Rayons">
-        ${myUniverses().flatMap((u) => u.categories).map((c, i) => `<a href="#/c/${enc(universeOf(c))}/${enc(c)}"><span class="ic tint-${tints[i % 3]}">${icon((ICONS[c] || 'shopping-bag-duotone').replace('-duotone', ''))}</span>${esc(c)}</a>`).join('')}
+    app.innerHTML = `
+      <nav class="cat-chips" aria-label="Rayons">
+        ${cats.map((x) => { const p = firstImg(x.list); return `<a href="${href(x)}"><span class="cc-img">${p ? `<img src="${esc(p.image)}" alt="" loading="lazy">` : catIcon(x.c)}</span><span><b>${esc(x.c)}</b><small>${x.list.length} article${x.list.length > 1 ? 's' : ''}</small></span></a>`; }).join('')}
       </nav>
+
+      <div class="hero-grid">
+        <section class="hero slider" id="hero" aria-roledescription="carrousel" aria-label="Offres du moment">
+          <div class="slider-track">${slides.join('')}</div>
+          <button type="button" class="slider-arrow prev" data-slide="-1" aria-label="Offre précédente">${icon('caret-left')}</button>
+          <button type="button" class="slider-arrow next" data-slide="1" aria-label="Offre suivante">${icon('caret-right')}</button>
+          <div class="slider-dots"></div>
+        </section>
+        ${sideCards.length ? `<div class="hero-side">${sideCards.map(sideCard).join('')}</div>` : ''}
+      </div>
 
       ${deals.length && state.prefs.showFlash !== false ? `<section class="shelf flash">
         <div class="shelf-head">
-          <div><p class="kicker">${icon('fire')} Ventes flash</p><h2>Les prix fondent aujourd'hui</h2></div>
-          <div class="countdown" aria-label="Temps restant"><span>Fin dans</span><b id="cdH">${h}</b>:<b id="cdM">${m}</b>:<b id="cdS">${sec}</b></div>
+          <div class="fl-title"><p class="kicker">${icon('lightning-fill')} Ventes flash</p><h2>Les prix fondent aujourd'hui</h2></div>
+          <div class="countdown" aria-label="Temps restant"><span>Fin dans</span><b id="cdH">${h}</b><i>h</i><b id="cdM">${m}</b><i>min</i><b id="cdS">${sec}</b><i>s</i></div>
+          <a class="see-all" href="#/promos">Tout voir ${icon('caret-right')}</a>
         </div>
         ${railCarousel(deals)}
       </section>` : ''}
 
-      <section class="duo">
-        <a class="promo-card pc-violet" href="#/promos">
-          <span class="ic">${icon('tag')}</span>
-          <span><b>Bonnes affaires</b><small>Des remises toute l'année sur la tech.</small></span>
-          <span class="go">${icon('arrow-right')}</span>
-        </a>
-        <a class="promo-card pc-mango" href="#/legal/vente">
-          <span class="ic">${icon('truck')}</span>
-          <span><b>Livraison rapide</b><small>À Pointe-Noire, ou retrait en point relais.</small></span>
-          <span class="go">${icon('arrow-right')}</span>
-        </a>
+      <section class="relay-band">
+        <div class="rb-text"><p class="kicker">${icon('storefront')} Réservez en ligne</p><h2>Payez au point relais, repartez avec</h2>
+          <p>Pas besoin de carte : choisissez un point relais près de chez vous, payez-y en espèces, puis retirez votre commande ou faites-vous livrer.</p></div>
+        <ol class="rb-steps"><li><b>1</b>Je réserve sur Zado</li><li><b>2</b>Je paie au point relais</li><li><b>3</b>Je repars ou je suis livré</li></ol>
+        <a class="btn light" href="#/promos">Commencer mes achats ${icon('arrow-right')}</a>
       </section>
 
-      ${myUniverses().map((u, i) => `
-        <section class="shelf">
-          <div class="shelf-head">
-            <div><p class="kicker k-${tints[(i + 1) % 3]}">${esc(u.name)}</p><h2>${i === 0 ? 'Nos coups de cœur' : 'À ne pas manquer'}</h2></div>
-            <a class="see-all" href="#/c/${enc(u.name)}">Tout voir ${icon('caret-right')}</a>
-          </div>
-          ${railCarousel(featured(u.name))}
-        </section>`).join('')}
+      ${blocks ? `<section class="shelf">
+        <div class="shelf-head"><div><p class="kicker">${icon('squares-four')} Nos rayons</p><h2>Explorer les rayons</h2></div></div>
+        <div class="ublocks">${blocks}</div>
+      </section>` : ''}
 
-      <section class="shelf">
-        <div class="shelf-head"><div><p class="kicker">${icon('seal-check-duotone')} Acheter en confiance</p><h2>Pourquoi choisir Zado</h2></div></div>
-        <div class="reassure">
-          <div class="r-violet"><span class="ic">${icon('credit-card')}</span><b>Paiement simple</b><p>En espèces dans nos points relais, sans carte ni frais cachés. Retrait sur place ou livraison.</p></div>
-          <div class="r-mango"><span class="ic">${icon('truck')}</span><b>Livraison rapide</b><p>Partout à Pointe-Noire, à l'adresse ou au repère que vous indiquez.</p></div>
-          <div class="r-coral"><span class="ic">${icon('storefront')}</span><b>Points relais</b><p>Choisissez le plus proche sur la carte, payez et repartez avec votre commande.</p></div>
-          <div class="r-green"><span class="ic">${icon('chat-circle')}</span><b>Service client</b><p>Nous vous appelons après chaque commande.</p></div>
-        </div>
+      ${tabs.length ? `<section class="shelf best">
+        <div class="shelf-head"><div><p class="kicker">${icon('seal-check-duotone')} Choisis pour vous</p><h2>Les meilleures offres du moment</h2></div></div>
+        <div class="home-tabs" role="tablist">${tabs.map((t, i) => `<button type="button" role="tab" class="${i ? '' : 'on'}" aria-selected="${!i}" data-home-tab="${i}">${icon(t.ic)} ${esc(t.label)}</button>`).join('')}</div>
+        <div id="homeTabRail">${railCarousel(tabs[0].list)}</div>
+      </section>` : ''}
+
+      <section class="trust-row" aria-label="Acheter en confiance">
+        <div>${icon('truck')}<span><b>Livraison rapide</b><small>Partout à Pointe-Noire, à l'adresse ou au repère indiqué</small></span></div>
+        <div>${icon('storefront')}<span><b>Paiement au point relais</b><small>En espèces, sans carte ni frais cachés</small></span></div>
+        <div>${icon('shield-check')}<span><b>Achat en confiance</b><small>Clients vérifiés, code remis à la livraison</small></span></div>
+        <div>${icon('chat-circle')}<span><b>Service client</b><small>Nous vous appelons après chaque commande</small></span></div>
       </section>`;
 
     setupSlider($('#hero'));
+    app.querySelector('.home-tabs')?.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-home-tab]'); if (!b) return;
+      app.querySelectorAll('[data-home-tab]').forEach((x) => { x.classList.toggle('on', x === b); x.setAttribute('aria-selected', String(x === b)); });
+      $('#homeTabRail').innerHTML = railCarousel(state.homeTabs[Number(b.dataset.homeTab)].list);
+    });
     state.timers.push(setInterval(() => {
       const [hh, mm, ss] = untilMidnight();
       if (!$('#cdS')) return;
@@ -1001,7 +1042,7 @@
       ({ L, map } = r);
       for (const a of placed) {
         markers[a.id] = L.marker([a.lat, a.lng], { icon: kamwaMap.pin(L, a.id === selected ? 'relay on' : 'relay'), title: a.name }).addTo(map)
-          .bindPopup(`<b>${esc(a.name)}</b><br><span style="color:#6B6585">${esc(RELAY_KIND[a.kind || 'agency'])}</span><br>${esc(a.address || '')}${a.hours ? '<br>' + esc(a.hours) : ''}<br><button type="button" class="btn cta small" data-relay-pop="${esc(a.id)}">Choisir ce point relais</button>`);
+          .bindPopup(`<b>${esc(a.name)}</b><br><span style="color:#5F6B80">${esc(RELAY_KIND[a.kind || 'agency'])}</span><br>${esc(a.address || '')}${a.hours ? '<br>' + esc(a.hours) : ''}<br><button type="button" class="btn cta small" data-relay-pop="${esc(a.id)}">Choisir ce point relais</button>`);
       }
       const inCity = placed.filter((a) => a.city === city);
       map.fitBounds(L.featureGroup((inCity.length ? inCity : placed).map((a) => markers[a.id])).getBounds().pad(0.25), { maxZoom: 15 });
@@ -2000,7 +2041,7 @@
       const roads = data?.routeKind === 'roads' && data?.route?.length > 1;
       if (!line) {
         casing = L.polyline(pts, { color: '#fff', weight: 9, opacity: 0.9, lineCap: 'round' }).addTo(map);
-        line = L.polyline(pts, { color: '#4B2FB0', weight: 5, opacity: 0.95, lineCap: 'round', dashArray: roads ? null : '2 10' }).addTo(map);
+        line = L.polyline(pts, { color: '#1E56C2', weight: 5, opacity: 0.95, lineCap: 'round', dashArray: roads ? null : '2 10' }).addTo(map);
       } else { casing.setLatLngs(pts); line.setLatLngs(pts); line.setStyle({ dashArray: roads ? null : '2 10' }); }
     };
     const fit = () => {
