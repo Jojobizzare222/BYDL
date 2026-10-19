@@ -45,14 +45,14 @@ app.get('/images/uploads/:name', (req, res) => {
 app.get('/p/:id', (req, res) => {
   const { products } = require('./store');
   const p = products.get(req.params.id);
-  const ok = p && p.active !== false && !p.pending;
+  const ok = p && p.active !== false && !p.pending && require('./catalog').inCatalog(p);
   const host = /localhost|127\.0\.0\.1/.test(config.publicUrl) ? `${req.protocol}://${req.get('host')}` : config.publicUrl;
   const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const target = ok ? `/#/p/${encodeURIComponent(p.id)}` : '/';
   const img = ok && p.image ? (/^https?:/.test(p.image) ? p.image : host + p.image) : `${host}/brand/partage-zado.png?v=8`;
   const price = ok ? new Intl.NumberFormat('fr-FR').format(p.price).replace(/\u202f/g, ' ') + ' FCFA' : '';
   const title = ok ? `${p.name} — ${price}` : 'Zado';
-  const desc = ok ? `${p.description ? String(p.description).slice(0, 150) + ' · ' : ''}Payez au point relais · livraison rapide à Pointe-Noire.` : 'Électronique et mode au meilleur prix, livrées au Congo.';
+  const desc = ok ? `${p.description ? String(p.description).slice(0, 150) + ' · ' : ''}Payez au point relais · livraison rapide à Pointe-Noire.` : 'Électronique au meilleur prix, livraison rapide à Pointe-Noire.';
   res.set('Cache-Control', 'public, max-age=300');
   res.status(ok ? 200 : 404).type('html').send(`<!doctype html><html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1"><title>${esc(title)}</title>

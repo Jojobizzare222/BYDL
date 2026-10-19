@@ -6,8 +6,9 @@ const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-
 // Ce que voient les clients : jamais le prix fournisseur, le fournisseur ni les informations internes.
 // Données internes jamais montrées en boutique (anciens champs de l'achat en Europe compris)
 const publicProduct = ({ supplierPrice, costPrice, supplierId, createdBy, updatedBy, pending, approvedAt, sourceUrl, priceEur, weightKg, origin, lastPurchasePrice, ...p }) => p;
-// Visible sur la boutique : actif et validé par l'admin
-const isPublic = (p) => p.active !== false && !p.pending;
+// Visible sur la boutique : actif, validé par l'admin et d'un rayon qui existe encore (ex. plus de Mode depuis le 19/10/2026)
+const { inCatalog } = require('../catalog');
+const isPublic = (p) => p.active !== false && !p.pending && inCatalog(p);
 
 const { search } = require('../search');
 // Filtres : ?universe=Électronique  ?category=Téléphones  ?q=recherche (tolérante : fautes, pluriels, synonymes — src/search.js)
@@ -44,7 +45,7 @@ router.get('/suggest', (req, res) => {
 
 router.get('/:id', (req, res) => {
   const product = products.get(req.params.id);
-  if (!product || product.pending) return res.status(404).json({ error: 'Produit introuvable' });
+  if (!product || product.pending || !inCatalog(product)) return res.status(404).json({ error: 'Produit introuvable' });
   const note = require('../reviews').summaries().get(product.id);
   res.json({ ...publicProduct(product), ...(note ? { rating: note } : {}) });
 });
@@ -52,7 +53,7 @@ router.get('/:id', (req, res) => {
 // Avis clients d'un produit ; si le client est connecté : peut-il donner son avis, et le sien
 router.get('/:id/reviews', (req, res) => {
   const product = products.get(req.params.id);
-  if (!product || product.pending) return res.status(404).json({ error: 'Produit introuvable' });
+  if (!product || product.pending || !inCatalog(product)) return res.status(404).json({ error: 'Produit introuvable' });
   const R = require('../reviews');
   const me = require('../customer/auth').currentCustomer(req);
   res.set('Cache-Control', 'no-store');

@@ -8,7 +8,7 @@ const { hashPassword } = require('./admin/auth');
 const DEMO_PASSWORD = 'demo-kamwa';
 const DEMO_ACCOUNTS = [
   { label: 'Administrateur', login: 'admin', role: 'admin' },
-  { label: 'Fournisseur (Mode Congo)', login: 'demo-fournisseur', role: 'supplier', name: 'Grâce Ngoma', company: 'Mode Congo (démo)' },
+  { label: 'Fournisseur (Tech Pointe-Noire)', login: 'demo-fournisseur', role: 'supplier', name: 'Grâce Ngoma', company: 'Tech Pointe-Noire (démo)' },
   { label: 'Employé Catalogue', login: 'demo-catalogue', role: 'catalog', name: 'Clara (démo)' },
   { label: 'Employé Commandes', login: 'demo-commandes', role: 'orders', name: 'Oscar (démo)' },
   { label: 'Livreur', login: 'demo-livreur', role: 'courier', name: 'Junior (démo)' },
@@ -43,23 +43,23 @@ function seed() {
   const sup = users.supplier.id;
 
   // Produits du fournisseur : un publié, un en attente de validation
-  const chemise = products.insert({
-    id: 'pdemo1', name: 'Chemise wax homme', brand: 'Mode Congo', universe: 'Mode', category: 'Homme', condition: 'neuf',
+  const ecouteurs = products.insert({
+    id: 'pdemo1', name: 'Écouteurs sans fil Bluetooth', brand: 'Tech Pointe-Noire', universe: 'Électronique', category: 'Audio', condition: 'neuf',
     price: 14500, oldPrice: 17000, supplierPrice: 8500, stock: 9, active: true, supplierId: sup, images: [],
-    description: 'Chemise en wax 100 % coton, coupe ajustée. Produit de démonstration.',
-    specs: [{ label: 'Tailles', value: 'M, L, XL' }, { label: 'Matière', value: 'coton' }],
+    description: 'Écouteurs sans fil avec boîtier de charge, réduction du bruit. Produit de démonstration.',
+    specs: [{ label: 'Connexion', value: 'Bluetooth 5.3' }, { label: 'Autonomie', value: '6 h (24 h avec le boîtier)' }],
     createdAt: now, createdBy: sup,
   });
   products.insert({
-    id: 'pdemo2', name: 'Jogging wax homme', brand: 'Mode Congo', universe: 'Mode', category: 'Homme', condition: 'neuf',
+    id: 'pdemo2', name: 'Chargeur rapide USB-C 25 W', brand: 'Tech Pointe-Noire', universe: 'Électronique', category: 'Accessoires', condition: 'neuf',
     price: null, supplierPrice: 7000, stock: 20, active: true, pending: true, supplierId: sup, images: [],
-    description: 'Jogging coton avec bandes en wax. Produit de démonstration en attente de validation.',
-    specs: [{ label: 'Tailles', value: 'S à XXL' }], createdAt: now, createdBy: sup,
+    description: 'Chargeur secteur USB-C, charge rapide. Produit de démonstration en attente de validation.',
+    specs: [{ label: 'Puissance', value: '25 W' }], createdAt: now, createdBy: sup,
   });
 
   // Une commande payée contenant le produit du fournisseur et un produit Zado
   const iphone = products.get('a002');
-  const lines = [{ productId: chemise.id, name: chemise.name, unitPrice: chemise.price, qty: 3, total: chemise.price * 3 }];
+  const lines = [{ productId: ecouteurs.id, name: ecouteurs.name, unitPrice: ecouteurs.price, qty: 3, total: ecouteurs.price * 3 }];
   if (iphone) lines.push({ productId: iphone.id, name: iphone.name, unitPrice: iphone.price, qty: 1, total: iphone.price });
   const total = lines.reduce((s, l) => s + l.total, 0);
   const orderId = 'CMD-DEMO-0001';
@@ -73,10 +73,10 @@ function seed() {
   // Une commande « à la réception » (acompte payé) confiée au livreur de démo : code client 2468, reste 12 500 à encaisser
   orders.insert({
     id: 'CMD-DEMO-0002', accessToken: DEMO_TRACK_TOKEN, customerId: null, // clé fixe et publique : « Voir une course en direct » sur la démo
-    lines: [{ productId: chemise.id, name: chemise.name, unitPrice: chemise.price, qty: 1, total: chemise.price }],
-    subtotal: chemise.price, deliveryFee: 0, total: chemise.price, currency: 'XAF',
+    lines: [{ productId: ecouteurs.id, name: ecouteurs.name, unitPrice: ecouteurs.price, qty: 1, total: ecouteurs.price }],
+    subtotal: ecouteurs.price, deliveryFee: 0, total: ecouteurs.price, currency: 'XAF',
     customer: { name: 'Mireille (démo)', phone: '069999999', city: 'Pointe-Noire', address: 'Quartier Loandjili, près du marché (fictif)', location: require('./live').DEMO_DEST },
-    status: 'shipped', paymentPlan: 'cod', deposit: 2000, balance: chemise.price - 2000, depositPaidAt: now, depositPaymentId: 'PAY-DEMO-0002',
+    status: 'shipped', paymentPlan: 'cod', deposit: 2000, balance: ecouteurs.price - 2000, depositPaidAt: now, depositPaymentId: 'PAY-DEMO-0002',
     confirmedAt: now, callConfirmedAt: now, callConfirmedBy: 'Oscar (démo)', courierId: users.courier.id, assignedAt: now, deliveryCode: '2468',
     createdAt: now, history: [{ status: 'confirmed', at: now }, { status: 'shipped', at: now }], fulfillment: 'delivery',
   });
@@ -93,7 +93,7 @@ function seed() {
   entry(12, 'expense', 'marketing', 35000, 'momo', 'Publicité Facebook');
   entry(9, 'expense', 'delivery', 12000, 'cash', 'Carburant livreur');
   entry(6, 'transfer', 'transfer', 200000, 'bank', 'Retrait pour la caisse', { toMethod: 'cash' });
-  entry(3, 'expense', 'supplier', 15000, 'momo', 'Acompte Mode Congo', { supplierId: sup });
+  entry(3, 'expense', 'supplier', 15000, 'momo', 'Acompte Tech Pointe-Noire', { supplierId: sup });
 
   // Avis clients d'exemple (identifiants fixes : identiques dans chaque copie du serveur)
   const rv = (id, productId, rating, name, text, n) => products.get(productId) && reviews.insert({ id, productId, customerId: 'C-DEMO', orderId: 'CMD-DEMO-0000', rating, text, name, hidden: false, createdAt: new Date(Date.now() - n * 864e5).toISOString(), demo: true });

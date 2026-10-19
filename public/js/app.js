@@ -10,7 +10,7 @@
   let UNIVERSES = [];
   // Icônes Phosphor (fichier /icons.svg, récupérées via Iconify)
   const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=12#${name}"></use></svg>`;
-  const ICONS = { 'Téléphones': 'device-mobile-duotone', 'Tablettes': 'device-tablet-duotone', 'Ordinateurs': 'laptop-duotone', 'Montres': 'watch-duotone', 'Audio': 'headphones-duotone', 'TV & Maison': 'television-duotone', 'Jeux vidéo & consoles': 'game-controller-duotone', 'Composants': 'cpu-duotone', 'Accessoires': 'plug-duotone', 'Homme': 't-shirt-duotone', 'Femme': 'dress-duotone', 'Chaussures': 'sneaker-duotone' };
+  const ICONS = { 'Téléphones': 'device-mobile-duotone', 'Tablettes': 'device-tablet-duotone', 'Ordinateurs': 'laptop-duotone', 'Montres': 'watch-duotone', 'Audio': 'headphones-duotone', 'TV & Maison': 'television-duotone', 'Jeux vidéo & consoles': 'game-controller-duotone', 'Composants': 'cpu-duotone', 'Accessoires': 'plug-duotone' };
   const catIcon = (cat, cls = '') => icon(ICONS[cat] || 'shopping-bag-duotone', cls);
   // Vignettes sans photo : une des trois teintes de la charte, selon la catégorie
   const tintOf = (cat) => Object.keys(ICONS).indexOf(cat) % 3;
@@ -627,7 +627,7 @@
     if (deals.length) slides.push(slide({ theme: 'coral', kicker: `${icon('lightning-fill')} Bonnes affaires`, title: `Jusqu'à -${discount(deals[0])} %`, text: 'Des prix cassés sur une sélection de produits, dans la limite des stocks.', href: '#/promos', cta: 'Voir les offres', p: pick(deals) }));
     for (const u of myUniverses()) {
       const p = pick(featured(u.name));
-      if (p) slides.push(slide({ theme: 'mango', kicker: esc(u.name), title: u.name === 'Mode' ? 'Le style, sans se ruiner' : 'Le meilleur de la tech', text: esc(u.categories.slice(0, 4).join(' · ')), href: `#/c/${enc(u.name)}`, cta: 'Découvrir', p }));
+      if (p) slides.push(slide({ theme: 'mango', kicker: esc(u.name), title: 'Le meilleur de la tech', text: esc(u.categories.slice(0, 4).join(' · ')), href: `#/c/${enc(u.name)}`, cta: 'Découvrir', p }));
     }
     slides.push(slide({
       theme: 'light', kicker: `${icon('wallet')} Paiement`, title: 'Réservez en ligne, payez au point relais', text: 'Choisissez un point relais près de chez vous sur la carte, payez-y en espèces, puis repartez avec votre commande ou faites-vous livrer.', href: '#/promos', cta: 'Commencer mes achats',
@@ -659,7 +659,7 @@
       <section class="duo">
         <a class="promo-card pc-violet" href="#/promos">
           <span class="ic">${icon('tag')}</span>
-          <span><b>Bonnes affaires</b><small>Des remises toute l'année sur l'électronique et la mode.</small></span>
+          <span><b>Bonnes affaires</b><small>Des remises toute l'année sur la tech.</small></span>
           <span class="go">${icon('arrow-right')}</span>
         </a>
         <a class="promo-card pc-mango" href="#/legal/vente">
@@ -775,7 +775,7 @@
       : partial && list.length ? `<p class="search-note">${icon('magnifying-glass')} Aucun produit ne correspond à tous vos mots : voici les plus proches.</p>` : '';
     const popular = state.products.filter((p) => p.featured || discount(p)).slice(0, 8);
     const empty = `<div class="empty-search">
-        <p><strong>Aucun produit pour « ${esc(q)} ».</strong> Vérifiez l'orthographe, essayez un mot plus simple (ex. « téléphone », « chaussures »), ou parcourez un rayon :</p>
+        <p><strong>Aucun produit pour « ${esc(q)} ».</strong> Vérifiez l'orthographe, essayez un mot plus simple (ex. « téléphone », « écouteurs »), ou parcourez un rayon :</p>
         <div class="chips">${UNIVERSES.flatMap((u) => u.categories.map((c) => `<a class="chip" href="#/c/${enc(u.name)}/${enc(c)}">${esc(c)}</a>`)).join('')}</div>
         <p class="hint">Vous ne trouvez pas ? Écrivez-nous dans « Aide » : nous vous répondons.</p>
         ${popular.length ? `<h2 style="margin-top:22px">Nos produits du moment</h2><div class="grid">${cardsOf(popular)}</div>` : ''}
@@ -1715,9 +1715,9 @@
       </div>
       <div class="panel prefs">
         <h2>${icon('storefront')} Ma boutique</h2>
-        <div class="pref-row"><span><b>Rayon préféré</b><small>Affiché en premier sur l'accueil et dans le menu</small></span>${seg('homeUniverse', [['', 'Aucun'], ...UNIVERSES.map((u) => [u.name, esc(u.name)])])}</div>
+        ${UNIVERSES.length > 1 ? `<div class="pref-row"><span><b>Rayon préféré</b><small>Affiché en premier sur l'accueil et dans le menu</small></span>${seg('homeUniverse', [['', 'Aucun'], ...UNIVERSES.map((u) => [u.name, esc(u.name)])])}</div>
         <div class="pref-row"><span><b>Rayons affichés</b><small>Masquez un rayon qui ne vous intéresse pas (il reste accessible par la recherche)</small></span>
-          <span class="chips">${UNIVERSES.map((u) => `<label class="chip-check"><input type="checkbox" data-uni-show="${esc(u.name)}" ${(p.hiddenUniverses || []).includes(u.name) ? '' : 'checked'}> ${esc(u.name)}</label>`).join('')}</span></div>
+          <span class="chips">${UNIVERSES.map((u) => `<label class="chip-check"><input type="checkbox" data-uni-show="${esc(u.name)}" ${(p.hiddenUniverses || []).includes(u.name) ? '' : 'checked'}> ${esc(u.name)}</label>`).join('')}</span></div>` : ''}
         ${toggle('showFlash', 'Ventes flash sur l\'accueil', 'Afficher le bloc des prix qui fondent', p.showFlash !== false)}
         <div class="pref-row"><span><b>Ville de livraison</b><small>Pré-remplie à chaque commande</small></span>
           <select data-pref-select="city"><option value="">—</option>${deliveryCities().map((v) => `<option ${p.city === v ? 'selected' : ''}>${esc(v)}</option>`).join('')}</select></div>

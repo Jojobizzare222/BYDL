@@ -9,7 +9,7 @@
   const vb = (st) => (st === 'verified' ? VERIFIED : '');
   const enc = encodeURIComponent;
   const date = (iso) => (iso ? new Date(iso).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }) : '');
-  const ICONS = { 'Téléphones': 'device-mobile-duotone', 'Tablettes': 'device-tablet-duotone', 'Ordinateurs': 'laptop-duotone', 'Montres': 'watch-duotone', 'Audio': 'headphones-duotone', 'TV & Maison': 'television-duotone', 'Jeux vidéo & consoles': 'game-controller-duotone', 'Composants': 'cpu-duotone', 'Accessoires': 'plug-duotone', 'Homme': 't-shirt-duotone', 'Femme': 'dress-duotone', 'Chaussures': 'sneaker-duotone' };
+  const ICONS = { 'Téléphones': 'device-mobile-duotone', 'Tablettes': 'device-tablet-duotone', 'Ordinateurs': 'laptop-duotone', 'Montres': 'watch-duotone', 'Audio': 'headphones-duotone', 'TV & Maison': 'television-duotone', 'Jeux vidéo & consoles': 'game-controller-duotone', 'Composants': 'cpu-duotone', 'Accessoires': 'plug-duotone' };
   const catIcon = (cat) => icon(ICONS[cat] || 'shopping-bag-duotone');
 
   const state = { user: null, orders: [], labels: {}, transitions: {}, products: [], universes: [], suppliers: [], orderFilter: 'paid', productQuery: '', productFilter: 'all', seenPaid: null };
@@ -1994,10 +1994,10 @@
         <label for="description">Description</label>
         <textarea id="description" rows="4" placeholder="Points forts, contenu de la boîte, garantie…" ${dis}>${esc(p.description)}</textarea>
         <label for="options">Choix proposés au client (une ligne par choix)</label>
-        <textarea id="options" rows="2" placeholder="Couleur : Noir, Bleu, Rouge&#10;Taille : 40, 41, 42, 43" ${dis}>${esc((p.options || []).map((o) => `${o.name} : ${o.values.join(', ')}`).join('\n'))}</textarea>
+        <textarea id="options" rows="2" placeholder="Couleur : Noir, Bleu, Rouge&#10;Capacité : 128 Go, 256 Go" ${dis}>${esc((p.options || []).map((o) => `${o.name} : ${o.values.join(', ')}`).join('\n'))}</textarea>
         <p class="muted" style="margin-top:4px">Le client devra choisir avant d'ajouter au panier.</p>
         <label for="specs">Caractéristiques (une par ligne)</label>
-        <textarea id="specs" rows="4" placeholder="Couleur : Noir&#10;Capacité : 128 Go&#10;Taille : M" ${dis}>${esc((p.specs || []).map((x) => `${x.label} : ${x.value}`).join('\n'))}</textarea>
+        <textarea id="specs" rows="4" placeholder="Couleur : Noir&#10;Capacité : 128 Go&#10;Écran : 6,1 pouces" ${dis}>${esc((p.specs || []).map((x) => `${x.label} : ${x.value}`).join('\n'))}</textarea>
 
         <h2 style="margin-top:18px">Prix et disponibilité</h2>
         <div class="grid2">

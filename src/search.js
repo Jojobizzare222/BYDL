@@ -1,8 +1,8 @@
-// Recherche de la boutique, tolérante (audit du 17/10/2026 : « iphne », « chemises », « baskets » ne trouvaient rien) :
-//  - accents, majuscules et ponctuation ignorés ; pluriels ramenés au singulier (chemises → chemise) ;
-//  - synonymes courants au Congo (portable, tél, ordi, baskets, jogging…) ;
+// Recherche de la boutique, tolérante (audit du 17/10/2026 : « iphne », « téléphones » ne trouvaient rien) :
+//  - accents, majuscules et ponctuation ignorés ; pluriels ramenés au singulier (chargeurs → chargeur) ;
+//  - synonymes courants au Congo (portable, tél, ordi, écouteurs, télé…) ;
 //  - petites fautes de frappe corrigées (1 lettre de différence pour un mot court, 2 pour un mot long) ;
-//  - les noms de rayons comptent (« chaussures » trouve le rayon Chaussures) ;
+//  - les noms de rayons comptent (« tablettes » trouve le rayon Tablettes) ;
 //  - classement : nom > marque / rayon > caractéristiques > description ; si aucun produit ne contient TOUS les mots,
 //    on propose ceux qui en contiennent le plus (resultat « partiel »).
 const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
@@ -19,12 +19,7 @@ const GROUPS = [
   ['chargeur', 'cable', 'adaptateur', 'prise', 'powerbank', 'batterie'],
   ['television', 'tele', 'tv', 'ecran'],
   ['console', 'jeu', 'playstation', 'ps5', 'xbox', 'nintendo', 'manette'],
-  ['chaussure', 'basket', 'sneaker', 'tennis', 'soulier', 'sandale', 'mocassin'],
-  ['tshirt', 't shirt', 'tee', 'maillot', 'polo'],
-  ['jogging', 'survetement', 'bas'],
-  ['pantalon', 'jean', 'chino'],
-  ['chemise', 'boubou', 'wax', 'pagne'],
-  ['robe', 'jupe', 'femme'],
+  ['composant', 'ssd', 'disque', 'ram', 'memoire', 'carte graphique', 'processeur'],
   ['coque', 'etui', 'protection'],
 ];
 const SYN = new Map();

@@ -648,7 +648,7 @@ function cleanProduct(input, current, { role }) {
     p.supplierPrice = input.supplierPrice === '' || input.supplierPrice === null ? null : toInt(input.supplierPrice);
   }
   if ('stock' in input) p.stock = toInt(input.stock);
-  // Choix proposés au client (ex. « Couleur : Noir, Bleu » / « Taille : 40, 41, 42 »), une ligne par choix
+  // Choix proposés au client (ex. « Couleur : Noir, Bleu » / « Capacité : 128 Go, 256 Go »), une ligne par choix
   if ('options' in input) {
     const lines = Array.isArray(input.options) ? input.options.map((o) => `${o.name} : ${(o.values || []).join(', ')}`) : String(input.options || '').split('\n');
     p.options = lines.map((l) => l.split(/\s*:\s*/)).map(([name, ...rest]) => ({ name: str(name, 30), values: [...new Set(rest.join(':').split(/\s*,\s*/).map((v) => str(v, 40)).filter(Boolean))].slice(0, 40) }))
