@@ -75,11 +75,11 @@ function seed() {
     lines: [{ productId: ecouteurs.id, name: ecouteurs.name, unitPrice: ecouteurs.price, qty: 1, total: ecouteurs.price }],
     subtotal: ecouteurs.price, deliveryFee: 0, total: ecouteurs.price, currency: 'XAF',
     customer: { name: 'Mireille (démo)', phone: '069999999', city: 'Pointe-Noire', address: 'Quartier Loandjili, près du marché (fictif)', location: require('./live').DEMO_DEST },
-    status: 'shipped', paymentPlan: 'cod', deposit: 2000, balance: ecouteurs.price - 2000, depositPaidAt: now, depositPaymentId: 'PAY-DEMO-0002',
+    status: 'shipped', paymentPlan: 'cod', deposit: 500, balance: ecouteurs.price - 500, depositPaidAt: now, depositPaymentId: 'PAY-DEMO-0002',
     confirmedAt: now, callConfirmedAt: now, callConfirmedBy: 'Oscar (démo)', courierId: users.courier.id, assignedAt: now, deliveryCode: '2468',
     createdAt: now, history: [{ status: 'confirmed', at: now }, { status: 'shipped', at: now }], fulfillment: 'delivery',
   });
-  payments.insert({ id: 'PAY-DEMO-0002', orderId: 'CMD-DEMO-0002', operator: 'mtn', phone: '069999999', purpose: 'deposit', amount: 2000, currency: 'XAF', status: 'SUCCESSFUL', providerRef: 'DEMO', reason: null, createdAt: now });
+  payments.insert({ id: 'PAY-DEMO-0002', orderId: 'CMD-DEMO-0002', operator: 'mtn', phone: '069999999', purpose: 'deposit', amount: 500, currency: 'XAF', status: 'SUCCESSFUL', providerRef: 'DEMO', reason: null, createdAt: now });
   payments.insert({ id: paymentId, orderId, operator: 'mtn', phone: '060000000', amount: total, currency: 'XAF', status: 'SUCCESSFUL', providerRef: 'DEMO', reason: null, createdAt: now });
 
   // Volet Finances : prix d'achat du produit Zado vendu + quelques écritures d'exemple

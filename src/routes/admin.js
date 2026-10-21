@@ -131,7 +131,15 @@ function adminOrder({ accessToken, ...order }, user) {
   const account = order.customerId && customers.get(order.customerId);
   return {
     ...order,
+    logisticsEta: require('../logistics').etaOf(order),
     payment: payment ? { operator: payment.operator, phone: payment.phone, status: payment.status, reason: payment.reason, expiresAt: payment.expiresAt || null } : null,
+    // Mobile Money en deux temps : acompte et reste (retrait = demande sur le téléphone, dépôt = argent envoyé au numéro de Zado)
+    mobile: order.paymentPlan === 'mobile' ? (() => {
+      const mine = payments.all().filter((p) => p.orderId === order.id && ['deposit', 'rest'].includes(p.purpose));
+      const last = (k) => mine.filter((p) => p.purpose === k).pop() || null;
+      const pub = (p) => (p ? { id: p.id, operator: p.operator, network: p.network || null, amount: p.amount, status: p.status, reason: p.reason, createdAt: p.createdAt, expiresAt: p.expiresAt || null, confirmedBy: p.confirmedBy || null } : null);
+      return { mode: order.payMode, deposit: pub(last('deposit')), rest: pub(last('rest')) };
+    })() : null,
     account: account ? customerAuth.publicCustomer(account) : null,
     parcels: ['admin', 'orders'].includes(user?.role) ? require('../parcels').forOrder(order.id).map((p) => ({ id: p.id, number: p.number, index: p.index, stage: p.stage, stageAt: p.stageAt, place: p.place })) : [],
     documents: ['admin', 'orders'].includes(user?.role) ? require('../billing').forOrder(order.id).map(require('./documents-admin').summary) : [],
@@ -213,9 +221,44 @@ router.post('/orders/:id/cash-received', requireRole('orders'), (req, res) => {
   res.json(adminOrder(orders.get(order.id), req.user));
 });
 
+// Logistique France → Pointe-Noire : acheté, dans l'avion, arrivé (ou déjà en stock sur place) — le client est prévenu à chaque étape
+router.post('/orders/:id/logistics', requireRole('orders'), (req, res) => {
+  const order = orders.get(req.params.id);
+  if (!order) return res.status(404).json({ error: 'Commande introuvable' });
+  const r = require('../logistics').setStep(order, String(req.body?.step || ''), { id: req.user.id, name: req.user.name });
+  if (r.error) return res.status(400).json({ error: r.error });
+  const LBL = { bought: 'Acheté en France', flying: 'Dans l\'avion', arrived: 'Arrivé à Pointe-Noire', local: 'Déjà à Pointe-Noire', undo: 'Étape annulée' };
+  log(req, 'Logistique : ' + LBL[req.body.step], { id: order.id, name: order.id });
+  res.json(adminOrder(r.value, req.user));
+});
+// Mobile Money en deux temps : l'équipe confirme un DÉPÔT reçu sur le numéro de Zado (acompte ou reste)
+router.post('/orders/:id/transfer-received', requireRole('orders'), (req, res) => {
+  const order = orders.get(req.params.id);
+  if (!order) return res.status(404).json({ error: 'Commande introuvable' });
+  if (order.paymentPlan !== 'mobile' || !['pending_payment', 'confirmed'].includes(order.status)) return res.status(400).json({ error: "Aucun dépôt attendu pour cette commande" });
+  const purpose = order.status === 'pending_payment' ? 'deposit' : 'rest';
+  const dep = payments.all().filter((p) => p.orderId === order.id && p.operator === 'transfer' && p.purpose === purpose && p.status !== 'CANCELLED' && p.status !== 'SUCCESSFUL').pop();
+  if (!dep) return res.status(400).json({ error: "Aucun dépôt attendu pour cette commande" });
+  payments.update(dep.id, { status: 'SUCCESSFUL', reason: null, confirmedAt: new Date().toISOString(), confirmedBy: req.user.name || 'Zado' });
+  settleSuccessfulPayment(payments.get(dep.id));
+  log(req, purpose === 'deposit' ? 'Acompte reçu par dépôt' : 'Reste reçu par dépôt', { id: order.id, name: order.id }, `${dep.amount} FCFA`);
+  res.json(adminOrder(orders.get(order.id), req.user));
+});
+// Renvoyer la demande du reste (retrait) sur le téléphone du client, ou recréer l'attente d'un dépôt expiré
+router.post('/orders/:id/rest-request', requireRole('orders'), async (req, res) => {
+  const order = orders.get(req.params.id);
+  if (!order || order.paymentPlan !== 'mobile' || order.status !== 'confirmed') return res.status(400).json({ error: 'Aucun reste à demander pour cette commande' });
+  const { refreshStatus, startRest } = require('./payments');
+  for (const p of payments.all().filter((x) => x.orderId === order.id && x.purpose === 'rest' && x.status === 'PENDING')) { try { await refreshStatus(p); } catch {} }
+  const p = await startRest(orders.get(order.id));
+  log(req, 'Demande du reste envoyée', { id: order.id, name: order.id }, p ? `${p.amount} FCFA` : '');
+  res.json(adminOrder(orders.get(order.id), req.user));
+});
+
 // ---------- Livraison sécurisée : appel de confirmation, livreur, code de livraison ----------
 const isDeliveryOrder = (o) => o.fulfillment !== 'pickup';
-const readyToDeliver = (o) => ['paid', 'confirmed', 'shipped'].includes(o.status);
+// Mobile Money en deux temps : une commande « confirmée » (acompte reçu) ne part en livraison qu'une fois le reste payé
+const readyToDeliver = (o) => ['paid', 'shipped'].includes(o.status) || (o.status === 'confirmed' && o.paymentPlan !== 'mobile');
 const actor = (req) => ({ id: req.user.id, role: req.user.role, name: req.user.name });
 
 router.get('/couriers', requireRole('orders'), (req, res) => {
@@ -616,6 +659,16 @@ router.put('/settings/fees', requireRole(), (req, res) => {
 });
 
 // ---------- Règles de vente : compte vérifié obligatoire, moyens de paiement (admin) ----------
+// Transport facturé au client, délais annoncés, acompte et numéros de dépôt Mobile Money (décision Joseph 21/10/2026)
+router.get('/settings/transport', requireRole(), (req, res) => res.json({ freight: require('../freight').freightSettings(), perKg: require('../freight').perKgFcfa(), mobile: require('../mobile-pay').mobileSettings() }));
+router.put('/settings/transport', requireRole(), (req, res) => {
+  const b = req.body || {};
+  if (b.freight) { const r = require('../freight').saveFreightSettings(b.freight); if (r.error) return res.status(400).json({ error: r.error }); }
+  if (b.mobile) { const r = require('../mobile-pay').saveMobileSettings(b.mobile); if (r.error) return res.status(400).json({ error: r.error }); }
+  const f = require('../freight').freightSettings(), m = require('../mobile-pay').mobileSettings();
+  log(req, 'Transport et acompte modifiés', null, `${f.eurPerKg} €/kg, minimum ${f.minKg} kg ${f.perArticle ? 'par article' : 'par commande'} · acompte ${m.deposit} FCFA`);
+  res.json({ freight: f, perKg: require('../freight').perKgFcfa(), mobile: m });
+});
 router.get('/settings/sales', requireRole(), (req, res) => res.json(sales.salesSettings()));
 router.put('/settings/sales', requireRole(), (req, res) => {
   const r = sales.saveSalesSettings(req.body || {});
@@ -689,6 +742,17 @@ function cleanProduct(input, current, { role }) {
     if (p.costPrice != null && (!Number.isInteger(p.costPrice) || p.costPrice < 0 || p.costPrice > 100000000)) return { error: "Prix d'achat invalide (nombre entier en FCFA)" };
   }
   if ('stock' in input) p.stock = toInt(input.stock);
+  // Poids (kg) : sert au transport France → Pointe-Noire facturé au client (13 €/kg, 1 kg minimum par article)
+  if ('weightKg' in input) {
+    const w = input.weightKg === '' || input.weightKg === null ? null : Number(String(input.weightKg).replace(',', '.'));
+    if (w !== null && !(Number.isFinite(w) && w > 0 && w <= 200)) return { error: 'Poids invalide (en kg, ex. 0,45)' };
+    p.weightKg = w === null ? null : Math.round(w * 1000) / 1000;
+  }
+  // Prix fournisseur MONTRÉ au client (décision Joseph 21/10/2026 : « prix fournisseur + marge Zado ») ; la marge = prix de vente − prix fournisseur
+  if ('sourcePrice' in input && ['admin', 'catalog'].includes(role)) {
+    p.sourcePrice = input.sourcePrice === '' || input.sourcePrice === null ? null : toInt(input.sourcePrice);
+    if (p.sourcePrice != null && (!Number.isInteger(p.sourcePrice) || p.sourcePrice <= 0 || p.sourcePrice > 100000000)) return { error: 'Prix fournisseur invalide (nombre entier en FCFA)' };
+  }
   // Choix proposés au client (ex. « Couleur : Noir, Bleu » / « Capacité : 128 Go, 256 Go »), une ligne par choix
   if ('options' in input) {
     const lines = Array.isArray(input.options) ? input.options.map((o) => `${o.name} : ${(o.values || []).join(', ')}`) : String(input.options || '').split('\n');
@@ -782,7 +846,7 @@ function productFor(user, p) {
 const canSee = () => true;
 
 // Résumé lisible des changements, pour le journal
-const TRACKED = { name: 'nom', price: 'prix', oldPrice: 'prix barré', supplierPrice: 'prix fournisseur', costPrice: 'prix d\'achat', stock: 'stock', category: 'catégorie', active: 'visible', featured: 'mis en avant', condition: 'état', provenance: 'provenance', sourceSupplier: 'fournisseur d\'origine', priceRefsPublic: 'prix France visibles' };
+const TRACKED = { name: 'nom', price: 'prix', oldPrice: 'prix barré', supplierPrice: 'prix fournisseur', costPrice: 'prix d\'achat', stock: 'stock', category: 'catégorie', active: 'visible', featured: 'mis en avant', condition: 'état', provenance: 'provenance', sourceSupplier: 'fournisseur d\'origine', priceRefsPublic: 'prix France visibles', weightKg: 'poids', sourcePrice: 'prix fournisseur' };
 // Valeur comparable et lisible (« visible » est vrai par défaut, « mis en avant » faux par défaut)
 const shown = (k, v) => {
   if (k === 'active') return v !== false ? 'oui' : 'non';

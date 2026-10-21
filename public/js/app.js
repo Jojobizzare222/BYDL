@@ -9,7 +9,7 @@
   // Univers et catégories affichés dans le menu : fournis par le serveur (src/catalog.js), même liste que l'admin
   let UNIVERSES = [];
   // Icônes Phosphor (fichier /icons.svg, récupérées via Iconify)
-  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=14#${name}"></use></svg>`;
+  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=15#${name}"></use></svg>`;
   const ICONS = { 'Téléphones': 'device-mobile-duotone', 'Tablettes': 'device-tablet-duotone', 'Ordinateurs': 'laptop-duotone', 'Montres': 'watch-duotone', 'Audio': 'headphones-duotone', 'TV & Maison': 'television-duotone', 'Jeux vidéo & consoles': 'game-controller-duotone', 'Composants': 'cpu-duotone', 'Accessoires': 'plug-duotone' };
   const catIcon = (cat, cls = '') => icon(ICONS[cat] || 'shopping-bag-duotone', cls);
   // Vignettes sans photo : une des trois teintes de la charte, selon la catégorie
@@ -170,8 +170,8 @@
   };
   const statusBadge = (o) => `<span class="st st-${o.status}">${esc(statusLabel(o))}</span>`;
   // Étapes de suivi : livraison (4 étapes) ou retrait en agence (3 étapes)
-  const stepIndex = (o) => (isPickup(o) ? { pending_payment: 0, paid: 1, delivered: 2 } : STEP_INDEX)[o.status] ?? -1;
-  const stepCount = (o) => (isPickup(o) ? 3 : 4);
+  const stepIndex = (o) => (o.status === 'cancelled' ? -1 : trackSteps(o).reduce((n, st, i) => (st[1] ? i : n), 0));
+  const stepCount = (o) => trackSteps(o).length;
   const shortDate = (iso) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' }) : '');
   const longDate = (iso) => (iso ? new Date(iso).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' }) : '');
   const formatCode = (c) => `${c.slice(0, 3)} ${c.slice(3)}`;
@@ -278,6 +278,22 @@
   const variantText = (v) => (v ? Object.entries(v).map(([k, x]) => `${k} : ${x}`).join(' · ') : '');
   const cartItems = () => Object.entries(state.cart).map(([key, qty]) => { const { id, variant } = parseKey(key); return { key, product: byId(id), variant, qty }; }).filter((l) => l.product);
   const cartTotal = () => cartItems().reduce((s, l) => s + l.product.price * l.qty, 0);
+  // Transport France → Pointe-Noire facturé au client (décision Joseph 21/10/2026) : 13 €/kg, 1 kg minimum par article
+  const EUR_FCFA = 655.957;
+  const frCfg = () => state.config?.freight || { enabled: true, eurPerKg: 13, minKg: 1, perArticle: true, perKg: 8527 };
+  const billedKg = (w) => { const c = frCfg(), x = Number(w) > 0 ? Number(w) : 0; return Math.round((c.perArticle ? Math.max(c.minKg, x) : x) * 100) / 100; };
+  const unitTransport = (p) => (frCfg().enabled ? Math.round(billedKg(p.weightKg) * frCfg().eurPerKg * EUR_FCFA) : 0);
+  const cartFreight = () => {
+    const c = frCfg();
+    if (!c.enabled) return { fee: 0, kg: 0 };
+    let kg = cartItems().reduce((n, l) => n + billedKg(l.product.weightKg) * l.qty, 0);
+    if (!c.perArticle) kg = Math.max(c.minKg, kg);
+    kg = Math.round(kg * 100) / 100;
+    return { fee: Math.round(kg * c.eurPerKg * EUR_FCFA), kg };
+  };
+  // Délai annoncé (décision Joseph 21/10/2026) : logistique depuis la France puis livraison à Pointe-Noire
+  const delayText = () => { const c = frCfg(); return `Expédié de France en ${c.logisticsMin ?? 2} à ${c.logisticsMax ?? 5} jours, puis livré sous ${c.deliveryHours ?? 24} h à Pointe-Noire`; };
+  const kgTxt = (k) => `${String(k).replace('.', ',')} kg`;
   const cartSaving = () => cartItems().reduce((s, l) => s + ((l.product.oldPrice || l.product.price) - l.product.price) * l.qty, 0);
   const addToCart = (id, variant) => { const key = variant ? `${id}|${JSON.stringify(variant)}` : id; state.cart[key] = (state.cart[key] || 0) + 1; saveCart(); };
   const setQty = (id, qty) => { if (qty <= 0) delete state.cart[id]; else state.cart[id] = qty; saveCart(); };
@@ -287,7 +303,9 @@
     const count = items.reduce((s, l) => s + l.qty, 0);
     $('#cartCount').textContent = count || '';
     $('#cartCount2').textContent = count || '';
-    $('#cartTotal').textContent = fcfa(cartTotal());
+    const fr = cartFreight();
+    $('#cartTransport').innerHTML = items.length && fr.fee ? `<span>Transport France → Pointe-Noire <small class="hint">(${kgTxt(fr.kg)} facturés)</small></span><span>${fcfa(fr.fee)}</span>` : '';
+    $('#cartTotal').textContent = fcfa(cartTotal() + fr.fee);
     const saving = cartSaving();
     $('#cartSaving').innerHTML = saving > 0 ? `<span>Vous économisez</span><span>${fcfa(saving)}</span>` : '';
     $('#cartLines').innerHTML = items.length
@@ -792,7 +810,7 @@
       </section>` : ''}
 
       <section class="trust-row" aria-label="Acheter en confiance">
-        <div>${icon('truck')}<span><b>Livraison rapide</b><small>Partout à Pointe-Noire, à l'adresse ou au repère indiqué</small></span></div>
+        <div>${icon('airplane-tilt')}<span><b>De France à chez vous</b><small>${delayText()}</small></span></div>
         <div>${icon('storefront')}<span><b>Paiement au point relais</b><small>En espèces, sans carte ni frais cachés</small></span></div>
         <div>${icon('shield-check')}<span><b>Achat en confiance</b><small>Clients vérifiés, code remis à la livraison</small></span></div>
         <div>${icon('chat-circle')}<span><b>Service client</b><small>Nous vous appelons après chaque commande</small></span></div>
@@ -998,6 +1016,19 @@
     return `<section class="dt"><div class="shelf-head"><div><p class="kicker">${esc(p.brand || p.category)}</p><h2>En détail</h2></div></div><div class="dt-grid">${cards.join('')}</div></section>`;
   }
 
+  // Détail du prix montré au client avant de commander : prix fournisseur + marge Zado = prix de l'article, + transport (1 kg minimum)
+  function priceDetail(p) {
+    const t = unitTransport(p), c = frCfg();
+    const src = Number.isInteger(p.sourcePrice) && p.sourcePrice > 0 && p.sourcePrice <= p.price ? p.sourcePrice : null;
+    if (!t && !src) return '';
+    return `<details class="price-detail" open><summary>${icon('info')} Détail du prix</summary><table>
+      ${src ? `<tr><td>Prix fournisseur${p.sourceSupplier ? ` (${esc(p.sourceSupplier)})` : ''}</td><td>${fcfa(src)}</td></tr><tr><td>Marge Zado</td><td>${fcfa(p.price - src)}</td></tr>` : ''}
+      <tr class="sub"><td>Prix de l'article</td><td>${fcfa(p.price)}</td></tr>
+      ${t ? `<tr><td>Transport France → Pointe-Noire<small>${kgTxt(billedKg(p.weightKg))} facturé${billedKg(p.weightKg) > 1 ? 's' : ''} × ${String(c.eurPerKg).replace('.', ',')} €/kg${c.perArticle && c.minKg ? ` (minimum ${kgTxt(c.minKg)} par article)` : ''}</small></td><td>${fcfa(t)}</td></tr>
+      <tr class="tot"><td>Total livré à Pointe-Noire</td><td>${fcfa(p.price + t)}</td></tr>` : ''}
+    </table></details>`;
+  }
+
   function viewProduct(id) {
     const p = byId(id);
     if (!p) return viewHome();
@@ -1022,9 +1053,10 @@
           <div class="buybox">
             ${d ? `<div><span class="old">${fcfa(p.oldPrice)}</span> <span class="save-tag">Économisez ${fcfa(p.oldPrice - p.price)}</span></div>` : ''}
             <span class="price">${fcfa(p.price)}</span>
+            ${priceDetail(p)}
             ${(p.options || []).map((o, i) => `<label class="opt-label" for="opt${i}">${esc(o.name)}</label><div class="opt-choices" id="opt${i}" data-opt="${esc(o.name)}">${o.values.map((v) => `<button type="button" class="opt" data-v="${esc(v)}">${esc(v)}</button>`).join('')}</div>`).join('')}
             <span class="momo-note">${icon('check-circle-duotone')} Payable en espèces au point relais · retrait ou livraison</span>
-            <span class="hint">${icon('truck-duotone')} Livraison rapide à Pointe-Noire</span>
+            <span class="hint">${icon('airplane-tilt')} ${delayText()}</span>
             ${p.stock === 0 ? '<span class="stock-low">Épuisé</span>' : p.stock <= 6 ? `<span class="stock-low">Plus que ${p.stock} en stock</span>` : '<span class="momo-note">En stock</span>'}
             <div id="optErr"></div>
             <button class="btn cta block" ${(p.options || []).length ? 'id="addOpt"' : `data-add="${p.id}"`} ${p.stock === 0 ? 'disabled' : ''}>Ajouter au panier</button>
@@ -1213,7 +1245,7 @@
         return;
       }
     }
-    if (!methods.momo && !methods.card && !methods.cash && !methods.cod?.enabled) {
+    if (!methods.momo && !methods.card && !methods.cash && !methods.cod?.enabled && !methods.mobile?.enabled) {
       app.innerHTML = '<div class="panel empty">Aucun point relais n\'est ouvert pour le moment : la commande n\'est pas possible. Revenez bientôt ou contactez-nous.</div>';
       return;
     }
@@ -1223,7 +1255,9 @@
       saved.name = saved.name || state.customer.name;
       saved.phone = saved.phone || state.customer.phone || '';
     }
-    const total = fcfa(cartTotal());
+    const fr0 = cartFreight();
+    const total = fcfa(cartTotal() + fr0.fee);
+    const dep = methods.mobile?.deposit ?? 500;
 
     app.innerHTML = `
       <h1>Finaliser ma commande</h1>
@@ -1253,6 +1287,7 @@
 
           <h2 style="margin-top:24px">2. Paiement</h2>
           <div class="methods">
+            ${methods.mobile?.enabled ? `<label class="op"><input type="radio" name="method" value="mobile"><span>${icon('device-mobile-duotone')}<span class="txt">Mobile Money<small>${dep ? `Acompte de ${fcfa(dep)} pour confirmer, puis le reste` : 'MTN MoMo · Airtel Money'}</small></span></span></label>` : ''}
             ${methods.momo ? `<label class="op"><input type="radio" name="method" value="momo"><span>${icon('device-mobile-duotone')}<span class="txt">Mobile Money<small>MTN MoMo · Airtel Money</small></span></span></label>` : ''}
             ${methods.card ? `<label class="op"><input type="radio" name="method" value="card"><span>${icon('credit-card-duotone')}<span class="txt">Carte bancaire<small>Visa · Mastercard</small></span></span></label>` : ''}
             ${methods.cod?.enabled ? `<label class="op"><input type="radio" name="method" value="cod"><span>${icon('hand-coins-duotone')}<span class="txt">Payer à la réception<small>Espèces ou Mobile Money au livreur${methods.cod.deposit ? ` · acompte de ${fcfa(methods.cod.deposit)} pour confirmer` : ''}</small></span></span></label>` : ''}
@@ -1267,6 +1302,14 @@
             <label for="momo">Numéro Mobile Money à débiter</label>
             <input id="momo" name="momo" type="tel" inputmode="tel" placeholder="06 123 45 67" value="${esc(saved.phone)}">
             <p class="hint">MTN : numéros en 06 · Airtel : numéros en 05 ou 04</p>
+          </div>
+          <div id="mobileFields" hidden>
+            <p class="lbl" style="margin-top:12px">Comment voulez-vous payer ?</p>
+            <div class="methods two">
+              <label class="op"><input type="radio" name="paymode" value="pull" checked><span>${icon('device-mobile-duotone')}<span class="txt">Par retrait<small>Zado envoie la demande sur votre téléphone : vous tapez votre code secret</small></span></span></label>
+              <label class="op ${methods.mobile?.push ? '' : 'off'}"><input type="radio" name="paymode" value="push" ${methods.mobile?.push ? '' : 'disabled'}><span>${icon('money-duotone')}<span class="txt">Par dépôt<small>${methods.mobile?.push ? 'Vous envoyez vous-même l\'argent au numéro Mobile Money de Zado' : 'Bientôt disponible'}</small></span></span></label>
+            </div>
+            <p class="hint cod-hint" id="mobileHint"></p>
           </div>
           <div id="codFields" hidden>
             <p class="hint cod-hint">${icon('check-circle-duotone')} <span>Vous payez <strong>à la livraison</strong>, en espèces ou en Mobile Money, après avoir vérifié votre colis.
@@ -1295,8 +1338,11 @@
           <h2>Récapitulatif</h2>
           ${items.map(({ product: p, qty, variant }) => `<div class="line"><span>${qty} × ${esc(p.name)}${variant ? `<br><span class="hint">${esc(variantText(variant))}</span>` : ''}</span><strong>${fcfa(p.price * qty)}</strong></div>`).join('')}
           ${cartSaving() > 0 ? `<div class="row saving" style="margin-top:10px"><span>Vous économisez</span><span>${fcfa(cartSaving())}</span></div>` : ''}
+          ${fr0.fee ? `<div class="row" style="margin-top:10px"><span>Transport France → Pointe-Noire<br><span class="hint">${kgTxt(fr0.kg)} facturés · ${String(frCfg().eurPerKg).replace('.', ',')} €/kg${frCfg().perArticle ? `, minimum ${kgTxt(frCfg().minKg)} par article` : ''}</span></span><span>${fcfa(fr0.fee)}</span></div>` : ''}
           <div class="row" style="margin-top:10px"><span>Livraison</span><span id="feeLine">—</span></div>
           <div class="row total" style="margin-top:10px"><span>Total</span><strong id="sumTotal">${total}</strong></div>
+          <div id="depositSplit"></div>
+          <p class="hint" style="margin-top:10px">${icon('airplane-tilt')} ${delayText()}.</p>
         </div>
       </div>`;
 
@@ -1311,8 +1357,10 @@
       }
     };
     const fee = () => (method() === 'cash' && receive() === 'pickup' ? 0 : deliveryFee(form.city.value, $('#zoneBox').hidden ? '' : form.zone.value, cartTotal()));
-    const grand = () => fcfa(cartTotal() + (fee() || 0));
-    const BTN = { momo: () => `Payer ${grand()}`, card: () => `Payer ${grand()} par carte`, cash: () => 'Réserver et payer au point relais', cod: () => 'Confirmer ma commande' };
+    const grandN = () => cartTotal() + fr0.fee + (fee() || 0);
+    const grand = () => fcfa(grandN());
+    const payMode = () => (form.paymode?.value === 'push' ? 'push' : 'pull');
+    const BTN = { mobile: () => (dep ? `${payMode() === 'push' ? 'Commander et déposer' : 'Payer'} l'acompte de ${fcfa(Math.min(dep, grandN()))}` : 'Commander'), momo: () => `Payer ${grand()}`, card: () => `Payer ${grand()} par carte`, cash: () => 'Réserver et payer au point relais', cod: () => 'Confirmer ma commande' };
     const BUTTON = new Proxy({}, { get: (_, k) => BTN[k]?.() });
     const showFee = () => {
       const f = fee();
@@ -1350,10 +1398,16 @@
     // Affiche les champs du moyen de paiement choisi (pas d'adresse de livraison pour un retrait en agence)
     const syncMethod = () => {
       const m = method();
-      $('#momoFields').hidden = !(m === 'momo' || (m === 'cod' && methods.cod?.deposit));
+      $('#momoFields').hidden = !(m === 'momo' || m === 'mobile' || (m === 'cod' && methods.cod?.deposit));
+      $('#mobileFields').hidden = m !== 'mobile';
+      if (m === 'mobile') {
+        const d = Math.min(dep, grandN()), rest = grandN() - d;
+        $('#mobileHint').innerHTML = `${icon('check-circle-duotone')} <span>1) Vous payez un <strong>acompte de ${fcfa(d)}</strong> : il confirme votre commande et vous recevez le récapitulatif dans « Aide ». 2) ${payMode() === 'push' ? `Vous déposez ensuite le reste (<strong>${fcfa(rest)}</strong>) sur le numéro Mobile Money de Zado indiqué, avec le numéro de commande en référence.` : `Une demande du reste (<strong>${fcfa(rest)}</strong>) arrive aussitôt sur votre téléphone : vous tapez votre code secret.`} L'acompte est déduit du total sur votre facture.</span>`;
+        $('#depositSplit').innerHTML = `<div class="row" style="margin-top:8px"><span>Acompte à payer maintenant</span><span>${fcfa(d)}</span></div><div class="row"><span>Reste à payer ensuite</span><span>${fcfa(rest)}</span></div>`;
+      } else $('#depositSplit').innerHTML = '';
       $('#codFields').hidden = m !== 'cod';
       const momoLbl = form.querySelector('label[for="momo"]');
-      if (momoLbl) momoLbl.textContent = m === 'cod' ? "Numéro Mobile Money pour l'acompte" : 'Numéro Mobile Money à débiter';
+      if (momoLbl) momoLbl.textContent = m === 'cod' ? "Numéro Mobile Money pour l'acompte" : m === 'mobile' ? (payMode() === 'push' ? 'Votre numéro Mobile Money (celui qui fera le dépôt)' : 'Numéro Mobile Money à débiter') : 'Numéro Mobile Money à débiter';
       $('#cardFields').hidden = m !== 'card';
       $('#cashFields').hidden = m !== 'cash';
       $('#deliveryFields').hidden = m === 'cash' && receive() === 'pickup';
@@ -1367,6 +1421,7 @@
       if (a) $('#agencyInfo').innerHTML = `<strong>${esc(a.name)}</strong><br>${icon('map-pin-bold')} ${esc(a.address || 'Adresse communiquée par téléphone')}${a.hours ? `<br>${icon('clock-bold')} ` + esc(a.hours) : ''}${a.phone ? `<br>${icon('phone-bold')} ` + esc(a.phone) : ''}${kamwaMap.hasPos(a) ? `<br><a href="${kamwaMap.directions(a)}" target="_blank" rel="noopener">${icon('arrow-square-out-bold')} Itinéraire (Google Maps)</a>` : ''}`;
     };
     form.querySelectorAll('input[name="method"]').forEach((r) => r.addEventListener('change', syncMethod));
+    form.querySelectorAll('input[name="paymode"]').forEach((r) => r.addEventListener('change', syncMethod));
     relayPicker($('#relayPick'), methods.agencies, form.agency.value, (id) => { form.agency.value = id; syncMethod(); }, saved.city);
     form.querySelectorAll('input[name="receive"]').forEach((r) => r.addEventListener('change', syncMethod));
     form.city.addEventListener('change', () => { zoneSync(); syncMethod(); });
@@ -1396,7 +1451,7 @@
       if (!m) problems.push([form.querySelector('[name=method]'), 'Choisissez comment payer']);
       if (m === 'cash' && !agency) problems.push([form.agency, 'Choisissez le point relais sur la carte ou dans la liste']);
       if (!pickup && !form.address.value.trim()) problems.push([form.address, 'Indiquez votre quartier, votre rue ou un repère pour le livreur']);
-      if ((m === 'momo' || m === 'cod') && !localPhone(form.momo?.value)) problems.push([form.momo, 'Numéro Mobile Money invalide']);
+      if ((m === 'momo' || m === 'cod' || m === 'mobile') && !localPhone(form.momo?.value)) problems.push([form.momo, 'Numéro Mobile Money invalide']);
       if (!fieldErrors(form, problems)) return;
       const btn = $('#payBtn'); btn.disabled = true; btn.textContent = 'Envoi de la demande…';
       const customer = pickup
@@ -1425,7 +1480,8 @@
           saveCheckout(checkout);
         }
         const body = { orderId: checkout.orderId, token: checkout.token, method: m };
-        if (m === 'momo' || m === 'cod') Object.assign(body, { phone: form.momo.value, operator: form.operator.value });
+        if (m === 'momo' || m === 'cod' || m === 'mobile') Object.assign(body, { phone: form.momo.value, operator: form.operator.value });
+        if (m === 'mobile') body.mode = payMode();
         if (m === 'cash') Object.assign(body, { agencyId: form.agency.value, fulfillment: receive() });
         let payment;
         try {
@@ -1434,9 +1490,11 @@
           if (['paid', 'confirmed'].includes(ex.data?.orderStatus)) return finishPaid(checkout);
           throw ex;
         }
-        if (payment.operator === 'cash') return finishReservation(checkout);
+        if (payment.operator === 'cash' || payment.operator === 'transfer') return finishReservation(checkout); // dépôt : instructions sur la page de suivi
+        if (payment.mobile && payment.status === 'SUCCESSFUL') return finishPaid(checkout); // acompte à 0 : confirmée tout de suite
         if (payment.cod && payment.status === 'SUCCESSFUL') return finishPaid(checkout); // client fiable : confirmée sans acompte
-        saveCheckout({ ...checkout, paymentId: payment.id });
+        saveCheckout({ ...checkout, paymentId: payment.id, mobile: m === 'mobile' });
+        if (m === 'mobile') checkout = { ...checkout, mobile: true };
         if (payment.redirectUrl) { location.href = payment.redirectUrl; return; } // page sécurisée de paiement par carte
         viewWaiting(checkout, payment, payment.resumed);
       } catch (ex) {
@@ -1466,7 +1524,7 @@
         <h1>${payment.purpose === 'deposit' ? "Validez l'acompte sur votre téléphone" : 'Validez le paiement sur votre téléphone'}</h1>
         ${resumed ? '<div class="sim">Une demande de paiement est déjà en cours pour cette commande. Validez-la sur votre téléphone : nous n\'en envoyons pas une deuxième.</div>' : ''}
         <p>Une demande de <strong>${fcfa(payment.amount)}</strong> a été envoyée via <strong>${opName}</strong>.<br>
-        Saisissez votre <strong>code secret</strong> sur votre téléphone pour confirmer.${payment.purpose === 'deposit' ? '<br>Le reste se paie à la livraison.' : ''}</p>`}
+        Saisissez votre <strong>code secret</strong> sur votre téléphone pour confirmer.${payment.purpose === 'deposit' ? (checkout.mobile ? '<br>Ensuite, la demande du reste arrive sur votre téléphone.' : '<br>Le reste se paie à la livraison.') : ''}</p>`}
         <p class="hint" id="waitHint">Commande ${esc(checkout.orderId)}. Ne fermez pas cette page.</p>
       </div>`;
     const box = $('#waiting');
@@ -1504,6 +1562,35 @@
     $('#retryBtn').addEventListener('click', route);
   }
 
+  // Paiement Mobile Money en deux temps : acompte, puis reste (retrait = demande sur le téléphone ; dépôt = numéro de Zado)
+  function mobileBox(o) {
+    const m = o?.mobilePay;
+    if (!m || ['cancelled', 'delivered'].includes(o.status)) return '';
+    const op = { mtn: 'MTN Mobile Money', airtel: 'Airtel Money' };
+    if (!m.stage) return `<div class="pay-box done">${icon('check-circle-duotone')}<div><b>Paiement complet reçu</b><span>Acompte ${fcfa(m.deposit)} + solde ${fcfa(m.balance)} = ${fcfa(o.total)}. Merci !</span></div></div>`;
+    const what = m.stage === 'deposit' ? "l'acompte" : 'le reste';
+    const failed = m.status === 'FAILED';
+    if (m.mode === 'push') {
+      const to = m.depositTo;
+      return `<div class="pay-box ${failed ? 'warn' : ''}">${icon('money-duotone')}<div><b>${m.stage === 'deposit' ? 'Confirmez votre commande : déposez l\'acompte' : 'Finalisez votre paiement : déposez le reste'}</b>
+        ${to ? `<span>Envoyez <strong>${fcfa(m.amount)}</strong> par dépôt ${op[to.operator] || 'Mobile Money'} au <strong class="pb-num">${esc(to.display)}</strong> (${esc(to.holder)}).<br>Référence à indiquer : <strong>${esc(o.id)}</strong></span>
+        <button type="button" class="btn ghost small" data-copy="${esc(to.number)}">${icon('copy')} Copier le numéro</button>` : '<span>Un conseiller Zado vous indique le numéro de dépôt dans « Aide ».</span>'}
+        <small>${failed ? 'Délai dépassé : écrivez-nous dans « Aide » si vous avez déjà déposé.' : `Zado confirme dès réception${m.expiresAt ? `, avant le ${longDate(m.expiresAt)}` : ''}. Vous serez prévenu ici et dans « Aide ».`}</small></div></div>`;
+    }
+    if (m.stage === 'deposit') return `<div class="pay-box">${icon('device-mobile-duotone')}<div><b>Validez l'acompte de ${fcfa(m.amount)} sur votre téléphone</b><span>Tapez votre code secret ${op[m.operator] || 'Mobile Money'} pour confirmer la commande.</span></div></div>`;
+    return `<div class="pay-box ${failed ? 'warn' : ''}">${icon('device-mobile-duotone')}<div><b>${failed ? 'La demande du reste n\'a pas abouti' : `Validez le reste : ${fcfa(m.amount)}`}</b>
+      <span>${failed ? `${esc(m.reason || 'Demande refusée ou expirée.')} Vous pouvez la renvoyer sur votre téléphone.` : `Une demande de paiement a été envoyée sur votre téléphone (${op[m.operator] || 'Mobile Money'}) : tapez votre code secret pour valider.`}</span>
+      <button type="button" class="btn ${failed ? 'cta' : 'ghost'} small" data-rest="${esc(o.id)}">${icon('arrows-clockwise')} ${failed ? 'Renvoyer la demande' : 'Je n\'ai rien reçu : renvoyer'}</button></div></div>`;
+  }
+  function bindMobileBox(o) {
+    app.querySelectorAll('[data-copy]').forEach((b) => b.addEventListener('click', async () => { try { await navigator.clipboard.writeText(b.dataset.copy); toast('Numéro copié'); } catch { toast(b.dataset.copy); } }));
+    app.querySelectorAll('[data-rest]').forEach((b) => b.addEventListener('click', async () => {
+      b.disabled = true;
+      try { await api('/payments/rest', { method: 'POST', body: { orderId: o.id, token: tokenOf(o.id) || loadJSON('kamwa-last-order')?.token } }); toast('Demande envoyée sur votre téléphone'); route({ keep: true }); }
+      catch (err) { toast(err.message); b.disabled = false; }
+    }));
+  }
+
   async function viewThanks(orderId) {
     renderNav(null);
     // Les détails de la commande ne sont lisibles qu'avec sa clé secrète, gardée par ce navigateur.
@@ -1513,6 +1600,7 @@
       try { order = await api('/orders/' + enc(orderId), { headers: orderHeaders(last.token) }); } catch {}
     }
     try { state.products = await api('/products'); } catch {} // stock à jour
+    if (order && order.status === 'pending_payment' && order.paymentPlan === 'mobile') { location.hash = '#/suivi/' + order.id; return; }
     if (order && order.status === 'pending_payment') {
       app.innerHTML = `
         <div class="panel waiting">
@@ -1525,8 +1613,9 @@
     app.innerHTML = `
       <div class="panel waiting">
         <div class="big-check">${icon('check-circle-duotone')}</div>
-        <h1>${order?.paymentPlan === 'cod' ? 'Merci, commande confirmée&nbsp;!' : 'Merci, paiement reçu&nbsp;!'}</h1>
+        <h1>${order?.paymentPlan === 'cod' || (order?.paymentPlan === 'mobile' && order.status === 'confirmed') ? 'Merci, commande confirmée&nbsp;!' : 'Merci, paiement reçu&nbsp;!'}</h1>
         ${order ? `<p>Commande <strong>${esc(order.id)}</strong> : ${fcfa(order.total)}</p>
+        ${order.paymentPlan === 'mobile' ? `<p>Acompte reçu : <strong>${fcfa(order.deposit)}</strong>. Le récapitulatif de votre commande est dans « Aide ».</p>${mobileBox(order)}` : ''}
         ${order.paymentPlan === 'cod' ? `<p>${order.deposit ? `Acompte reçu : ${fcfa(order.deposit)}. ` : ''}Vous paierez <strong>${fcfa(order.balance ?? order.total)}</strong> à la livraison, en espèces ou en Mobile Money.</p>` : ''}
         <p>Nous vous appelons au <strong>${esc(order.customer.phone)}</strong> pour organiser la livraison à ${esc(order.customer.city)}.</p>
         ${codeCard(order)}
@@ -2004,6 +2093,71 @@
     });
   }
 
+  // Étapes du suivi client. Le matériel vient de France (demande Joseph 21/10/2026) : achat chez le fournisseur,
+  // vol vers Pointe-Noire (2 à 5 jours annoncés), arrivée, puis livraison sous 24 h. L'étape en cours = la dernière qui a une date.
+  const dayLong = (iso) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }) : '');
+  function trackSteps(o, agencyStep = '', payAg = Boolean(o.agency)) {
+    const at = (status) => [...(o.history || [])].reverse().find((h) => h.status === status)?.at;
+    const lg = o.logistics || {};
+    const eta = lg.to ? `Arrivée prévue entre le ${dayLong(lg.from)} et le ${dayLong(lg.to)}.` : `Comptez ${lg.minDays ?? 2} à ${lg.maxDays ?? 5} jours.`;
+    const france = lg.show ? [
+      ['Achetée en France', lg.boughtAt, `Nous achetons votre article chez notre fournisseur en France. ${eta}`],
+      ["Dans l'avion", lg.flyingAt, `Votre colis voyage par avion vers Pointe-Noire. ${eta}`],
+      ['Arrivée à Pointe-Noire', lg.arrivedAt, isPickup(o) ? 'Votre colis est arrivé : il vous attend bientôt au point relais.' : `Arrivé ! Livraison sous ${lg.deliveryHours ?? 24} h${lg.deliverBy ? `, avant le ${longDate(lg.deliverBy)}` : ''} : nous vous appelons.`],
+    ] : [];
+    if (isPickup(o)) return [
+      ['Commande réservée', o.createdAt, agencyStep],
+      ['Payée au point relais', o.paidAt || at('paid'), lg.show ? 'Paiement reçu. Nous lançons l\'achat de votre article.' : 'Paiement reçu. Votre commande vous est remise au point relais.'],
+      ...france,
+      ['Retirée', at('delivered'), 'Vous avez retiré votre commande. Merci pour votre confiance !'],
+    ];
+    const pay = payAg ? [['Payée au point relais', o.paidAt || at('paid'), 'Paiement reçu. Nous préparons votre commande.']]
+      : o.paymentPlan === 'mobile' ? [
+        ['Commande confirmée', o.confirmedAt || at('confirmed'), `Acompte de ${fcfa(o.deposit)} reçu : votre commande est confirmée. Il reste ${fcfa(o.balance)} à payer.`],
+        ['Paiement complet', o.paidAt || at('paid'), 'Paiement complet reçu. Merci !'],
+      ]
+      : o.paymentPlan === 'cod' ? [['Commande confirmée', o.confirmedAt || at('confirmed'), `${o.deposit ? `Acompte de ${fcfa(o.deposit)} reçu. ` : ''}Vous paierez ${fcfa(o.balance ?? o.total)} à la livraison.`]]
+      : [['Paiement confirmé', o.paidAt || at('paid'), 'Votre paiement est validé.']];
+    return [
+      ['Commande passée', o.createdAt, payAg ? agencyStep : 'Nous avons bien reçu votre commande.'],
+      ...pay,
+      ...france,
+      ['En livraison', at('shipped'), `Le livreur arrive à ${esc(o.customer.city || 'votre adresse')}. Gardez votre téléphone allumé et préparez votre code de livraison.`],
+      ['Livrée', at('delivered'), 'Votre commande a été livrée. Merci pour votre confiance !'],
+    ];
+  }
+  // Le voyage du colis, animé : Paris → Pointe-Noire (avion qui attend, vole, puis atterrit)
+  function voyageCard(o) {
+    const lg = o.logistics || {};
+    if (!lg.show || ['delivered', 'cancelled', 'shipped'].includes(o.status)) return '';
+    const stage = lg.arrivedAt ? 'arrived' : lg.flyingAt ? 'flying' : lg.boughtAt ? 'bought' : 'waiting';
+    const still = document.documentElement.dataset.motion === 'reduce' || matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const P = 'M34 96 Q160 -6 286 96';
+    const prog = { waiting: 0, bought: 6, flying: 55, arrived: 100 }[stage];
+    const motion = still ? `<animateMotion dur="0.01s" fill="freeze" rotate="auto" keyPoints="${prog / 100};${prog / 100}" keyTimes="0;1" calcMode="linear" path="${P}"/>`
+      : stage === 'flying' ? `<animateMotion dur="5s" repeatCount="indefinite" rotate="auto" keyPoints="0.04;0.96" keyTimes="0;1" calcMode="spline" keySplines=".45 0 .55 1" path="${P}"/>`
+      : stage === 'arrived' ? `<animateMotion dur="2.6s" fill="freeze" rotate="auto" keyPoints="0.55;1" keyTimes="0;1" calcMode="spline" keySplines=".2 .7 .3 1" path="${P}"/>`
+      : `<animateMotion dur="0.01s" fill="freeze" rotate="auto" keyPoints="0;0" keyTimes="0;1" calcMode="linear" path="${P}"/>`;
+    const text = { waiting: ['Achat en préparation', "Votre article va être acheté chez notre fournisseur en France."],
+      bought: ['Acheté en France', "Votre article attend son vol à Paris."],
+      flying: ["En vol vers Pointe-Noire", "Votre colis traverse le ciel avec notre société de fret aérien."],
+      arrived: ['Arrivé à Pointe-Noire !', isPickup(o) ? 'Il vous attend bientôt au point relais.' : `Livraison sous ${lg.deliveryHours ?? 24} h.`] }[stage];
+    const when = lg.arrivedAt ? (lg.deliverBy && !isPickup(o) ? `À livrer avant le ${longDate(lg.deliverBy)}` : '') : lg.to ? `Arrivée prévue entre le ${dayLong(lg.from)} et le ${dayLong(lg.to)}` : '';
+    return `<div class="voyage st-${stage}${still ? ' still' : ''}" aria-label="${esc(text[0])}">
+      <div class="vy-head"><b>${esc(text[0])}</b><span>${esc(text[1])}</span></div>
+      <svg viewBox="0 0 320 128" class="vy-map" aria-hidden="true">
+        <path d="${P}" class="vy-track" pathLength="100"/>
+        <path d="${P}" class="vy-trail" pathLength="100" style="stroke-dashoffset:${100 - prog}"/>
+        <g class="vy-pin vy-fr"><circle cx="34" cy="96" r="7"/><rect x="26" y="104" width="5.3" height="8" fill="#0055A4"/><rect x="31.3" y="104" width="5.3" height="8" fill="#fff"/><rect x="36.6" y="104" width="5.3" height="8" fill="#EF4135"/></g>
+        <g class="vy-pin vy-cg"><circle cx="286" cy="96" r="7"/><path d="M278 104h16l-16 8z" fill="#009543"/><path d="M294 104v8h-16z" fill="#DC241F"/><path d="M290 104h4l-12 8h-4z" fill="#FBDE4A"/></g>
+        ${stage === 'arrived' ? '<circle class="vy-ping" cx="286" cy="96" r="7"/>' : ''}
+        <g class="vy-plane"><g transform="rotate(90)"><use href="/icons.svg?v=15#airplane-fill" x="-13" y="-13" width="26" height="26"/></g>${motion}</g>
+      </svg>
+      <div class="vy-labels"><span>Paris, France</span><span>Pointe-Noire</span></div>
+      ${when ? `<p class="vy-when">${icon('clock-bold')} ${esc(when)}</p>` : ''}
+    </div>`;
+  }
+
   async function viewTracking(id) {
     renderNav(null);
     app.innerHTML = '<p class="empty">Chargement…</p>';
@@ -2022,23 +2176,8 @@
     const agencyStep = expired
       ? 'Le délai de réservation est dépassé : vos articles ne sont plus réservés. Contactez-nous ou repassez commande.'
       : `Rendez-vous au point relais <strong>${esc(ag.name)}</strong> (${esc(ag.city)}) avant le <strong>${longDate(o.pickupDeadline)}</strong> et payez <strong>${fcfa(o.total)}</strong> en espèces.`;
-    const steps = isPickup(o)
-      ? [
-          ['Commande réservée', o.createdAt, agencyStep],
-          ['Payée au point relais', o.paidAt || at('paid'), 'Paiement reçu. Votre commande vous est remise au point relais.'],
-          ['Retirée', at('delivered'), 'Vous avez retiré votre commande. Merci pour votre confiance !'],
-        ]
-      : [
-          ['Commande passée', o.createdAt, payAg ? agencyStep : 'Nous avons bien reçu votre commande.'],
-          payAg
-            ? ['Payée au point relais', o.paidAt || at('paid'), 'Paiement reçu. Nous préparons votre colis et vous appelons pour la livraison.']
-            : o.paymentPlan === 'cod'
-            ? ['Commande confirmée', o.confirmedAt || at('confirmed'), `${o.deposit ? `Acompte de ${fcfa(o.deposit)} reçu. ` : ''}Vous paierez ${fcfa(o.balance ?? o.total)} à la livraison. Nous préparons votre colis et vous appelons.`]
-            : ['Paiement confirmé', o.paidAt || at('paid'), 'Votre paiement est validé. Nous préparons votre colis et vous appelons.'],
-          ['En livraison', at('shipped'), `Le livreur arrive à ${esc(o.customer.city || 'votre adresse')}. Gardez votre téléphone allumé et préparez votre code de livraison.`],
-          ['Livrée', at('delivered'), 'Votre commande a été livrée. Merci pour votre confiance !'],
-        ];
-    const current = Math.max(0, stepIndex(o));
+    const steps = trackSteps(o, agencyStep, payAg);
+    const current = Math.max(0, steps.reduce((n, st, i) => (st[1] ? i : n), 0));
     const cancelled = o.status === 'cancelled';
     app.innerHTML = `
       <div class="crumbs"><a href="#/compte">Mon compte</a> › Suivi de commande</div>
@@ -2046,6 +2185,7 @@
         <div class="panel">
           <div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><h1 style="margin:0">${esc(o.id)}</h1>${statusBadge(o)}</div>
           <p class="hint">Passée le ${longDate(o.createdAt)}</p>
+          ${mobileBox(o)}
           ${cancelled ? `<div class="alert err">Cette commande a été annulée${at('cancelled') ? ' le ' + longDate(at('cancelled')) : ''}. Si vous avez payé, notre service client vous recontacte pour le remboursement.</div>` : `
           <ol class="timeline">
             ${steps.map(([label, when, text], i) => `
@@ -2056,6 +2196,7 @@
                 ${i === current ? `<p class="hint" style="margin:4px 0 0">${text}</p>` : ''}
               </li>`).join('')}
           </ol>
+          ${voyageCard(o)}
           ${!['delivered', 'cancelled'].includes(o.status) ? pushCard(o.id) : ''}
           ${o.status === 'shipped' && !isPickup(o) ? '<div class="live-box" id="liveBox"></div>' : ''}
           ${o.planned && !['delivered', 'cancelled'].includes(o.status) && !isPickup(o) ? `<div class="plan-box">${icon('clock-bold')}<span><b>Livraison prévue le ${new Date(o.planned.date + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</b><small>${esc(o.planned.label)} · nous vous appelons avant de passer. Gardez votre code de livraison.</small></span></div>` : ''}
@@ -2342,7 +2483,7 @@
       }
       if (parts[0] === 'suivi' || parts[0] === 'merci') {
         const o = await api('/orders/' + enc(parts[1]), { headers: orderHeaders(tokenOf(parts[1]) || '') });
-        return JSON.stringify([o.status, o.paidAt, o.attempts, o.fulfillment, o.planned, o.parcels]);
+        return JSON.stringify([o.status, o.paidAt, o.attempts, o.fulfillment, o.planned, o.parcels, o.mobilePay]);
       }
     } catch {}
     return null;

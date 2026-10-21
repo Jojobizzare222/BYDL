@@ -1,7 +1,7 @@
 #!/bin/zsh
 # Toute la batterie de tests (une base neuve par suite). Lancer depuis le projet :  zsh tests/run-all.sh
 # Résumé : nom de la suite, nombre de OK, nombre d'échecs. Détail de chaque suite : tests/.run/out-<nom>.txt
-D=${0:A:h}; S=$D/.run; mkdir -p $S/push $S/idc $S/idm $S/rt/id $S/ui/id $S/id-p3
+D=${0:A:h}; S=$D/.run; mkdir -p $S/push $S/idmob $S/idc $S/idm $S/rt/id $S/ui/id $S/id-p3
 cd $D
 R=$S/run-all.txt; : > $R
 # Faux serveur de notifications : certificat de test créé une fois
@@ -51,3 +51,4 @@ t sans-mode --
 t provenance --
 t fiches PRICE_WATCH_ALLOW_HTTP=1 PRICE_WATCH_DELAY_MS=0 --
 t codes ID_DIR=$S/idc -- $D/id.jpg
+t mobile ID_DIR=$S/idmob -- $D/id.jpg

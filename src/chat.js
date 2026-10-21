@@ -74,7 +74,7 @@ function botAnswer(text, { customer, conv }) {
     case 'hello': return { text: `Mbote${customer ? ' ' + customer.name.split(' ')[0] : ''} ! Je suis l'assistant Zado. Que puis-je faire pour vous ?`, quick: MENU };
     case 'thanks': return { text: 'Avec plaisir ! Autre chose ?', quick: MENU };
     case 'human': return { handoff: true, text: '' };
-    case 'delivery': return { text: `Livraison rapide à Pointe-Noire (les autres villes ne sont pas encore livrées).\n${feesLine()}\nVous pouvez aussi retirer votre commande gratuitement dans un point relais.\nÀ la livraison, donnez votre code de livraison au livreur seulement quand vous avez le colis en main.`, quick: ['Paiement', 'Points relais', 'Ma commande', 'Parler à un conseiller'] };
+    case 'delivery': return { text: `Nos articles viennent de France : ${(() => { const f = require('./freight').freightSettings(); return `achat et vol vers Pointe-Noire en ${f.logisticsMin} à ${f.logisticsMax} jours, puis livraison sous ${f.deliveryHours} h`; })()} (Pointe-Noire seulement pour le moment). Le transport depuis la France est facturé ${require('./freight').freightSettings().eurPerKg} € par kilo, 1 kg minimum par article.\n${feesLine()}\nVous pouvez aussi retirer votre commande gratuitement dans un point relais.\nÀ la livraison, donnez votre code de livraison au livreur seulement quand vous avez le colis en main.`, quick: ['Paiement', 'Points relais', 'Ma commande', 'Parler à un conseiller'] };
     case 'payment': return { text: cashOnly
       ? `Le paiement se fait en espèces dans nos points relais (à choisir sur la carte au moment de commander). Vous réservez en ligne (articles gardés ${Number(process.env.PICKUP_HOLD_HOURS || 48)} h), vous payez au point relais, puis vous repartez avec votre commande ou nous vous la livrons.\n\nNos points relais :\n${agencyList()}`
       : `Moyens de paiement proposés : ${Object.entries(sales.methods).filter(([, v]) => v).map(([k]) => ({ cash: 'espèces en agence', momo: 'Mobile Money (MTN, Airtel)', card: 'carte bancaire', cod: 'paiement à la réception' })[k]).join(', ')}.`,
@@ -117,4 +117,13 @@ function teamConversation() {
 
 // Fil « Fournisseur ↔ Zado » : un par fournisseur (identifiant fixe)
 
-module.exports = { addMessage, botAnswer, WELCOME, MENU, TEAM_ID, teamConversation, sha256, newId };
+/** Message automatique de Zado dans la conversation « Aide » du client (créée au besoin), avec pastille « non lu ». */
+function notifyCustomer(customer, text, extra = {}) {
+  if (!customer?.id) return null;
+  let conv = conversations.all().filter((x) => x.kind === 'support' && x.status !== 'closed' && x.customerId === customer.id).sort((a, b) => (a.lastAt < b.lastAt ? 1 : -1))[0];
+  if (!conv) conv = conversations.insert({ id: newId('CONV'), kind: 'support', status: 'bot', customerId: customer.id, guestHash: null, name: customer.name || null, phone: customer.phone || null, messages: [], unreadStaff: 0, unreadCustomer: 0, createdAt: new Date().toISOString() });
+  const r = addMessage(conv, { from: 'bot', text, ...extra });
+  return conversations.update(r.conv.id, { unreadCustomer: (r.conv.unreadCustomer || 0) + 1 });
+}
+
+module.exports = { notifyCustomer, addMessage, botAnswer, WELCOME, MENU, TEAM_ID, teamConversation, sha256, newId };

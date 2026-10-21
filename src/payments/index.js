@@ -4,6 +4,7 @@
 const config = require('../config');
 const simulation = require('./providers/simulation');
 const cash = require('./providers/cash');
+const transfer = require('./providers/transfer');
 const cardSimulation = require('./providers/card-simulation');
 
 const live = {
@@ -11,6 +12,7 @@ const live = {
   airtel: require('./providers/airtel-money'),
   card: require('./providers/card'),
   cash,
+  transfer,
 };
 
 const simulated = {
@@ -18,6 +20,7 @@ const simulated = {
   airtel: simulation.create('airtel', 'Airtel Money'),
   card: cardSimulation,
   cash, // les espèces fonctionnent pareil en test et en réel
+  transfer, // dépôt sur le numéro de Zado : confirmé à la main, en test comme en réel
 };
 
 function getProvider(operator) {

@@ -1436,3 +1436,50 @@ body[data-route="p"] .id-timer { bottom: calc(148px + env(safe-area-inset-bottom
 @keyframes idv-burst { 0% { opacity: 0; transform: rotate(var(--a)) translateY(0) scale(.6); } 30% { opacity: 1; } 100% { opacity: 0; transform: rotate(var(--a)) translateY(-78px) scale(1); } }
 html[data-motion="reduce"] .idv-c { transform: none; } html[data-motion="reduce"] .idv-k { stroke-dashoffset: 0; } html[data-motion="reduce"] .idv-seal i { display: none; }
 @media (prefers-reduced-motion: reduce) { .idv-c { animation: none !important; transform: none; } .idv-k { animation: none !important; stroke-dashoffset: 0; } .idv-seal i { display: none; } }
+/* Détail du prix (prix fournisseur + marge Zado + transport) et paiement Mobile Money en deux temps (21/10/2026) */
+.price-detail { margin: 6px 0 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--soft); font-size: .88rem; }
+.price-detail summary { cursor: pointer; padding: 8px 12px; font-weight: 600; color: var(--brand-text); display: flex; align-items: center; gap: 6px; list-style: none; }
+.price-detail summary::-webkit-details-marker { display: none; }
+.price-detail table { width: 100%; border-collapse: collapse; }
+.price-detail td { padding: 6px 12px; border-top: 1px solid var(--line-soft); vertical-align: top; }
+.price-detail td:last-child { text-align: right; white-space: nowrap; font-weight: 600; }
+.price-detail td small { display: block; color: var(--muted); font-size: .76rem; font-weight: 400; }
+.price-detail tr.sub td { color: var(--muted); }
+.price-detail tr.tot td { font-weight: 700; color: var(--brand-text); border-top: 2px solid var(--line); }
+#cartTransport:empty { display: none; }
+.op.off { opacity: .55; }
+.pay-box { display: flex; gap: 12px; align-items: flex-start; margin: 14px 0; padding: 14px 16px; border-radius: var(--radius-sm); background: var(--mango-soft); border: 1px solid rgba(255,179,0,.4); }
+.pay-box > .ico { flex: none; width: 26px; height: 26px; color: var(--mango-dark); margin-top: 2px; }
+.pay-box > div { display: grid; gap: 6px; min-width: 0; }
+.pay-box b { font-size: .98rem; } .pay-box span { line-height: 1.45; } .pay-box small { color: var(--muted); }
+.pay-box .pb-num { font-size: 1.1rem; letter-spacing: .04em; white-space: nowrap; }
+.pay-box .btn { justify-self: start; }
+.pay-box.done { background: var(--violet-soft); border-color: transparent; } .pay-box.done > .ico { color: var(--ok); }
+.pay-box.warn { background: var(--coral-soft); border-color: rgba(255,90,60,.35); } .pay-box.warn > .ico { color: var(--accent-dark); }
+/* Voyage du colis France → Pointe-Noire (suivi client, 21/10/2026) */
+.voyage { margin: 16px 0; padding: 14px 16px 12px; border-radius: var(--radius); background: linear-gradient(160deg, #EAF2FF, #F7FAFF 60%, #FFF6E0); border: 1px solid var(--line); overflow: hidden; position: relative; }
+.vy-head { display: grid; gap: 2px; } .vy-head b { font-size: 1rem; color: var(--brand-text); } .vy-head span { color: var(--muted); font-size: .88rem; }
+.vy-map { display: block; width: 100%; max-width: 560px; margin: 6px auto 0; overflow: visible; }
+.vy-track { fill: none; stroke: #B9C7DD; stroke-width: 2; stroke-dasharray: 2 3; }
+.vy-trail { fill: none; stroke: var(--mango); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 100; transition: stroke-dashoffset 1.6s ease; }
+.vy-pin circle { fill: var(--brand); stroke: #fff; stroke-width: 3; }
+.st-arrived .vy-cg circle { fill: var(--ok); }
+.vy-plane use { color: var(--brand); filter: drop-shadow(0 3px 4px rgba(16,38,74,.3)); }
+.st-flying .vy-plane use { color: var(--accent); }
+.st-bought:not(.still) .vy-plane { animation: vy-wait 1.6s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.st-waiting .vy-plane { opacity: .35; }
+.st-flying:not(.still) .vy-trail { animation: vy-dash 2.4s linear infinite; stroke-dasharray: 6 4; stroke-dashoffset: 0 !important; }
+.vy-ping { fill: none; stroke: var(--ok); stroke-width: 2; transform-box: fill-box; transform-origin: center; animation: vy-ping 1.8s 2.4s ease-out infinite; opacity: 0; }
+.vy-labels { display: flex; justify-content: space-between; max-width: 560px; margin: -2px auto 0; font-size: .78rem; font-weight: 600; color: var(--brand-text); }
+.vy-when { display: flex; align-items: center; gap: 6px; margin: 8px 0 0; font-size: .86rem; color: var(--ink); }
+.vy-when .ico { color: var(--mango-dark); }
+@keyframes vy-wait { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
+@keyframes vy-dash { to { stroke-dashoffset: -20; } }
+@keyframes vy-ping { 0% { opacity: .9; transform: scale(1); } 100% { opacity: 0; transform: scale(3.2); } }
+html[data-theme="dark"] .voyage { background: linear-gradient(160deg, #14213A, #141C2A 60%, #2A2412); }
+html[data-theme="dark"] .vy-track { stroke: #3A4A66; } html[data-theme="dark"] .vy-plane use { color: #9DBBFF; }
+html[data-motion="reduce"] .vy-plane, html[data-motion="reduce"] .vy-trail, html[data-motion="reduce"] .vy-ping { animation: none !important; }
+/* Chronologie : l'étape en cours respire, les étapes faites se cochent avec un petit rebond */
+.timeline li.current .dot { animation: tl-pulse 2s ease-in-out infinite; }
+@keyframes tl-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(255,179,0,.55); } 50% { box-shadow: 0 0 0 7px rgba(255,179,0,0); } }
+html[data-motion="reduce"] .timeline li.current .dot { animation: none; }

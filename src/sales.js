@@ -4,7 +4,8 @@
 //    de retirer sa commande à l'agence ou de se faire livrer. Les autres moyens restent dans le code, désactivés.
 const { settings } = require('./store');
 
-const DEFAULTS = { accountRequired: true, methods: { momo: false, card: false, cod: false, cash: true } };
+// mobile : acompte de 500 FCFA puis le reste par retrait (demande sur le téléphone) ou par dépôt (décision Joseph 21/10/2026)
+const DEFAULTS = { accountRequired: true, methods: { mobile: true, momo: false, card: false, cod: false, cash: true } };
 
 function salesSettings() {
   try {

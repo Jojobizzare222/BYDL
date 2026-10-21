@@ -5,7 +5,7 @@ const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-
 
 // Ce que voient les clients : jamais le prix fournisseur, le fournisseur ni les informations internes.
 // Données internes jamais montrées en boutique (anciens champs de l'achat en Europe compris)
-const publicProduct = ({ supplierPrice, costPrice, supplierId, createdBy, updatedBy, pending, approvedAt, sourceUrl, priceEur, weightKg, origin, lastPurchasePrice, priceRefs, priceRefsPublic, ...p }) => ({
+const publicProduct = ({ supplierPrice, costPrice, supplierId, createdBy, updatedBy, pending, approvedAt, sourceUrl, priceEur, origin, lastPurchasePrice, priceRefs, priceRefsPublic, ...p }) => ({
   ...p,
   // Prix constatés en France : visibles du client seulement si l'équipe l'a choisi pour ce produit (sinon : outil interne de Zado Pro)
   ...(priceRefsPublic && (priceRefs || []).length ? { priceRefs } : {}),

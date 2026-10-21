@@ -10,7 +10,7 @@ const crypto = require('crypto');
 const { settings, orders, products, payments, staff } = require('./store');
 const { normalizeLocal } = require('./utils/phone');
 
-const DEFAULTS = { enabled: true, deposit: 2000, depositPercent: 0, trustedAfter: 2, maxRefusals: 2 };
+const DEFAULTS = { enabled: true, deposit: 500, depositPercent: 0, trustedAfter: 2, maxRefusals: 2 };
 function codSettings() {
   try { return { ...DEFAULTS, ...JSON.parse(settings.get('cod') || '{}') }; } catch { return { ...DEFAULTS }; }
 }

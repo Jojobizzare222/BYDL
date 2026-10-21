@@ -32,7 +32,7 @@ function hasAccess(order, token) {
 const clientLines = (lines) => (lines || []).map(({ unitCost, supplierId, ...l }) => l);
 // Données internes de livraison et de caisse : jamais montrées au client
 const INTERNAL = ['courierId', 'cashHeldBy', 'cashRemittedAt', 'cashRemittedTo', 'codeFails', 'codeLocked', 'codeVerifiedAt', 'callConfirmedBy',
-  'callAttempts', 'deliveredBy', 'deliveredWithoutCode', 'depositPaymentId', 'refused', 'depositRetained', 'refundedAt', 'supplierReady', 'liveStartKm', 'nearNotified', 'arrivedNotified'];
+  'callAttempts', 'deliveredBy', 'deliveredWithoutCode', 'depositPaymentId', 'refused', 'depositRetained', 'refundedAt', 'supplierReady', 'liveStartKm', 'nearNotified', 'arrivedNotified', 'payPhone', 'restPaymentId'];
 function clientOrder({ accessToken, note, paidAfterCancel, ...order }) {
   for (const k of INTERNAL) delete order[k];
   if (order.attempts) order.attempts = order.attempts.map(({ at, label }) => ({ at, label }));
@@ -40,7 +40,21 @@ function clientOrder({ accessToken, note, paidAfterCancel, ...order }) {
   if (order.balancePaid) order.balancePaid = { method: order.balancePaid.method, at: order.balancePaid.at };
   // Factures / reçus / avoirs de la commande (liens avec la clé secrète de chaque document)
   const docs = order.id ? billing.forOrder(order.id).map(billing.publicDoc) : [];
-  return { ...order, lines: clientLines(order.lines), documents: docs, parcels: order.id ? require('../parcels').clientParcels(order.id) : [] };
+  // Mobile Money en deux temps : où en est le paiement (acompte, reste) et, pour un dépôt, le numéro de Zado
+  let mobilePay = null;
+  if (order.paymentPlan === 'mobile') {
+    const { payments } = require('../store');
+    const mp = require('../mobile-pay');
+    const mine = payments.all().filter((p) => p.orderId === order.id && ['deposit', 'rest'].includes(p.purpose));
+    const last = (k) => mine.filter((p) => p.purpose === k).pop() || null;
+    const stage = order.status === 'pending_payment' ? 'deposit' : order.status === 'confirmed' ? 'rest' : null;
+    const cur = stage && last(stage);
+    const to = order.payMode === 'push' ? mp.depositNumber(cur?.network || order.payOperator) : null;
+    mobilePay = { mode: order.payMode, deposit: order.deposit, balance: order.balance, stage, status: cur?.status || null, reason: cur?.reason || null, amount: cur?.amount ?? (stage === 'deposit' ? order.deposit : order.balance),
+      expiresAt: cur?.expiresAt || null, depositTo: to ? { ...to, display: mp.spaced(to.number) } : null, operator: order.payOperator || null };
+  }
+  return { ...order, lines: clientLines(order.lines), documents: docs, parcels: order.id ? require('../parcels').clientParcels(order.id) : [], ...(mobilePay ? { mobilePay } : {}),
+    logistics: order.id ? require('../logistics').clientLogistics(order) : null };
 }
 const publicOrder = clientOrder;
 
@@ -105,18 +119,22 @@ router.post('/', (req, res) => {
       }
       chosen = parts.join(' · ');
     }
-    lines.push({ productId, name: product.name, unitPrice: product.price, qty: quantity, total: product.price * quantity, ...(chosen ? { variant: chosen } : {}) });
+    lines.push({ productId, name: product.name, unitPrice: product.price, qty: quantity, total: product.price * quantity, ...(chosen ? { variant: chosen } : {}),
+      ...(Number(product.weightKg) > 0 ? { weightKg: Number(product.weightKg) } : {}) });
   }
 
   const subtotal = lines.reduce((s, l) => s + l.total, 0);
+  // Transport France → Pointe-Noire (src/freight.js) : 13 €/kg, 1 kg minimum par article ; recalculé ici, jamais pris du navigateur
+  const freight = require('../freight').orderFreight(lines);
   const order = orders.insert({
     id: newOrderId(),
     accessToken: crypto.randomBytes(16).toString('hex'),
     customerId: account?.id || null, // commande rattachée au compte si le client est connecté
     lines,
     subtotal,
+    transportFee: freight.fee, transportKg: freight.kg, transportPerKg: freight.perKg,
     deliveryFee: 0, // fixé au paiement selon la ville / le quartier (src/fees.js) ; retrait au point relais : gratuit
-    total: subtotal,
+    total: subtotal + freight.fee,
     currency: 'XAF',
     customer: {
       name: customer.name.trim(),
@@ -137,10 +155,19 @@ router.post('/', (req, res) => {
 });
 
 // La clé est transmise dans un en-tête (jamais dans l'adresse, pour ne pas la laisser dans les journaux).
-router.get('/:id', (req, res) => {
-  const order = orders.get(req.params.id);
+router.get('/:id', async (req, res) => {
+  let order = orders.get(req.params.id);
   if (!order || !(hasAccess(order, req.get('X-Order-Token')) || isOwner(req, order))) {
     return res.status(404).json({ error: 'Commande introuvable' });
+  }
+  // Mobile Money en deux temps : la page de suivi interroge l'opérateur pour l'acompte et le reste en attente
+  if (order.paymentPlan === 'mobile' && ['pending_payment', 'confirmed'].includes(order.status)) {
+    const { payments } = require('../store');
+    const { refreshStatus } = require('./payments');
+    for (const p of payments.all().filter((x) => x.orderId === order.id && x.status === 'PENDING' && ['deposit', 'rest'].includes(x.purpose))) {
+      try { await refreshStatus(p); } catch (err) { console.error('[paiement] vérification impossible :', err.message); }
+    }
+    order = orders.get(order.id);
   }
   res.json(publicOrder(order));
 });

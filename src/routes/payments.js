@@ -10,7 +10,8 @@ const { hasAccess } = require('./orders');
 const { notifyPaidOrder, notifyReservation } = require('../notify');
 const delivery = require('../delivery');
 const { salesSettings, methodAllowed } = require('../sales');
-const { staff } = require('../store');
+const { staff, customers } = require('../store');
+const mobilePay = require('../mobile-pay');
 
 router.get('/operators', (req, res) => {
   res.json({ mode: config.paymentMode, operators: listOperators() });
@@ -28,6 +29,8 @@ router.get('/methods', (req, res) => {
     cash: allowed.cash && active.length > 0,
     cashDelivery: true, // espèces : le client choisit retrait en agence OU livraison à domicile après paiement
     cod: { enabled: allowed.cod && cod.enabled, deposit: cod.deposit, depositPercent: cod.depositPercent },
+    // Mobile Money en deux temps : acompte puis le reste par retrait (demande sur le téléphone) ou par dépôt (numéro de Zado)
+    mobile: (() => { const m = mobilePay.mobileSettings(); return { enabled: allowed.mobile, deposit: m.deposit, push: Boolean(m.numbers.mtn || m.numbers.airtel), modes: mobilePay.MODES }; })(),
     accountRequired: salesSettings().accountRequired,
     pickupHoldHours: config.pickupHoldHours,
     agencies: active.map(({ id, name, city, address, hours, phone, kind, lat, lng }) => ({ id, name, city, address, hours, phone, kind: kind || 'agency', lat: lat ?? null, lng: lng ?? null })),
@@ -40,8 +43,9 @@ router.get('/methods', (req, res) => {
 //    - card : le client est redirigé vers la page sécurisée du prestataire ;
 //    - cash : l'article est réservé, le client paie en espèces à l'agence (l'admin confirme).
 router.post('/', async (req, res) => {
-  const { orderId, phone, operator, token, method = 'momo', agencyId, fulfillment } = req.body || {};
-  if (!['momo', 'card', 'cash', 'cod'].includes(method)) return res.status(400).json({ error: 'Moyen de paiement inconnu' });
+  const { orderId, phone, operator, token, method = 'momo', agencyId, fulfillment, mode } = req.body || {};
+  const payMode = mode === 'push' ? 'push' : 'pull'; // Mobile Money en deux temps : retrait (pull) ou dépôt (push)
+  if (!['momo', 'card', 'cash', 'cod', 'mobile'].includes(method)) return res.status(400).json({ error: 'Moyen de paiement inconnu' });
   if (!methodAllowed(method)) return res.status(400).json({ error: "Ce moyen de paiement n'est pas proposé pour le moment" });
   // Espèces en agence : retrait à l'agence (par défaut) ou livraison à domicile une fois payé
   const cashMode = method === 'cash' && fulfillment === 'delivery' ? 'delivery' : 'pickup';
@@ -85,7 +89,10 @@ router.post('/', async (req, res) => {
   let op = method;
   let phoneLocal = null;
   let agency = null;
-  if (method === 'momo' || (method === 'cod' && quote.deposit > 0)) {
+  if (method === 'mobile' && payMode === 'push' && !mobilePay.depositNumber(detectOperator(normalizeLocal(phone)) || operator || 'mtn')) {
+    return res.status(400).json({ error: "Le dépôt n'est pas encore possible (numéro de Zado non renseigné) : choisissez « Par retrait »" });
+  }
+  if (method === 'momo' || method === 'mobile' || (method === 'cod' && quote.deposit > 0)) {
     phoneLocal = normalizeLocal(phone);
     if (!phoneLocal) return res.status(400).json({ error: 'Numéro Mobile Money invalide' });
     op = operator || detectOperator(phoneLocal);
@@ -117,7 +124,8 @@ router.post('/', async (req, res) => {
     const willDeliver = method !== 'cash' || cashMode === 'delivery';
     const f = willDeliver ? feeFor(order.customer?.city, order.customer?.zone, subtotal) : { deliverable: true, fee: 0 };
     if (!f.deliverable) return res.status(400).json({ error: `Pas encore de livraison à ${order.customer?.city || 'cette ville'} : choisissez le retrait au point relais.`, noDelivery: true });
-    if (order.deliveryFee !== f.fee || order.total !== subtotal + f.fee) order = orders.update(order.id, { subtotal, deliveryFee: f.fee, total: subtotal + f.fee });
+    const transport = order.transportFee || 0; // transport France → Pointe-Noire, fixé à la création de la commande
+    if (order.deliveryFee !== f.fee || order.total !== subtotal + transport + f.fee) order = orders.update(order.id, { subtotal, deliveryFee: f.fee, total: subtotal + transport + f.fee });
   }
 
   // Plan de paiement de la commande : à la réception (acompte + reste) ou payée en ligne / en agence
@@ -129,10 +137,19 @@ router.post('/', async (req, res) => {
       notifyPaidOrder(confirmed);
       return res.status(201).json({ id: null, orderId: order.id, operator: 'cod', amount: 0, currency: order.currency, status: 'SUCCESSFUL', reason: null, cod: true, deposit: 0 });
     }
-  } else if (order.paymentPlan === 'cod') {
-    orders.update(order.id, { paymentPlan: null, deposit: null, balance: null });
+  } else if (method === 'mobile') {
+    if (order.fulfillment === 'pickup') orders.update(order.id, { fulfillment: 'delivery', agency: null, pickupDeadline: null });
+    const deposit = Math.min(order.total, mobilePay.mobileSettings().deposit);
+    order = orders.update(order.id, { paymentPlan: 'mobile', payMode, payPhone: phoneLocal, payOperator: op, deposit, balance: order.total - deposit });
+    if (deposit === 0) { // acompte réglé à 0 dans Zado Pro : commande confirmée tout de suite, on passe au reste
+      const confirmed = afterDeposit(orders.get(order.id), null);
+      return res.status(201).json({ id: null, orderId: order.id, operator: payMode === 'push' ? 'transfer' : op, amount: 0, currency: order.currency, status: 'SUCCESSFUL', reason: null, mobile: true, deposit: 0, orderStatus: confirmed.status });
+    }
+  } else if (['cod', 'mobile'].includes(order.paymentPlan)) {
+    orders.update(order.id, { paymentPlan: null, deposit: null, balance: null, payMode: null });
   }
-  const amount = method === 'cod' ? quote.deposit : order.total;
+  const amount = method === 'cod' || method === 'mobile' ? orders.get(order.id).deposit : order.total;
+  if (method === 'mobile' && payMode === 'push') op = 'transfer'; // dépôt : le client envoie l'argent lui-même
 
   const now = Date.now();
   const payment = {
@@ -140,7 +157,8 @@ router.post('/', async (req, res) => {
     orderId: order.id,
     operator: op,
     phone: phoneLocal,
-    purpose: method === 'cod' ? 'deposit' : 'full',
+    purpose: method === 'cod' || method === 'mobile' ? 'deposit' : 'full',
+    ...(op === 'transfer' ? { network: detectOperator(phoneLocal) || operator || 'mtn', expiresAt: new Date(now + mobilePay.mobileSettings().transferHours * 3600e3).toISOString() } : {}),
     amount,
     currency: order.currency,
     status: 'PENDING',
@@ -169,13 +187,14 @@ router.post('/', async (req, res) => {
       reference: order.id,
       amount,
       phoneLocal,
-      description: `${config.shopName} - ${method === 'cod' ? 'acompte ' : ''}commande ${order.id}`,
+      description: `${config.shopName} - ${method === 'cod' || method === 'mobile' ? 'acompte ' : ''}commande ${order.id}`,
       callbackUrl: `${config.publicUrl}/api/payments/callback/${op}`,
     });
     payment.providerRef = providerRef;
     payments.insert(payment);
     if (method === 'cash') notifyReservation(orders.get(order.id)); // l'admin prépare l'article
-    res.status(201).json({ ...publicPayment(payment), redirectUrl: redirectUrl || null, cod: method === 'cod', deposit: method === 'cod' ? amount : undefined });
+    if (op === 'transfer') notifyCustomerTransfer(orders.get(order.id), payment); // instructions de dépôt dans « Aide »
+    res.status(201).json({ ...publicPayment(payment), redirectUrl: redirectUrl || null, cod: method === 'cod', mobile: method === 'mobile', deposit: method === 'cod' || method === 'mobile' ? amount : undefined });
   } catch (err) {
     // Pas de réponse (délai dépassé, réseau) : l'opérateur a peut-être reçu la demande.
     // On l'enregistre quand même pour pouvoir vérifier son statut, sinon un paiement pourrait être perdu.
@@ -261,6 +280,24 @@ function settleSuccessfulPayment(payment) {
     }
     return order;
   }
+  // Mobile Money en deux temps : le reste est arrivé → commande payée
+  if (order && payment.purpose === 'rest') {
+    if (['confirmed', 'pending_payment'].includes(order.status) && order.paymentPlan === 'mobile') {
+      const now = new Date().toISOString();
+      const paid = orders.update(order.id, {
+        status: 'paid', paidAt: now,
+        balancePaid: { method: payment.operator === 'transfer' ? 'transfer' : 'momo', at: now, paymentId: payment.id, operator: payment.operator === 'transfer' ? payment.network : payment.operator },
+        lines: order.lines.map((l) => (l.productId ? { ...l, ...costSnapshot(products.get(l.productId)) } : l)),
+        history: [...(order.history || []), { status: 'paid', at: now }],
+      });
+      notifyPaidOrder(paid);
+      tellCustomer(paid, `Paiement complet reçu pour la commande ${paid.id} ✓ Merci ! Votre commande est en préparation, nous vous prévenons dès qu'elle part en livraison.`);
+      return paid;
+    }
+    return order;
+  }
+  // Mobile Money en deux temps : acompte reçu → commande confirmée, récapitulatif, puis le reste
+  if (order && order.status === 'pending_payment' && order.paymentPlan === 'mobile' && payment.purpose === 'deposit') return afterDeposit(order, payment.id);
   // Acompte reçu : commande à payer à la réception confirmée (articles réservés, à livrer)
   if (order && order.status === 'pending_payment' && order.paymentPlan === 'cod' && payment.purpose === 'deposit') {
     const confirmed = delivery.confirmCod(order, { depositPaymentId: payment.id });
@@ -292,6 +329,83 @@ function settleSuccessfulPayment(payment) {
   return order;
 }
 
+// ---------- Mobile Money en deux temps (décision Joseph 21/10/2026) ----------
+const fm = (n) => `${Number(n || 0).toLocaleString('fr-FR').replace(/\u202f|\u00a0/g, ' ')} FCFA`;
+const OPN = { mtn: 'MTN Mobile Money', airtel: 'Airtel Money' };
+function tellCustomer(order, text) {
+  try {
+    const c = order.customerId && customers.get(order.customerId);
+    if (!c) return;
+    require('../chat').notifyCustomer(c, text, { links: [{ label: 'Suivre ma commande', href: `#/suivi/${order.id}` }] });
+    require('../push').notifyCustomer(c.id, `Commande ${order.id}`, text.split('\n')[0].slice(0, 140), `/#/suivi/${order.id}`, `zado-cmd-${order.id}`);
+  } catch (err) { console.error('[message client]', err.message); }
+}
+/** Récapitulatif envoyé au client quand l'acompte confirme la commande. */
+function recapText(o) {
+  const lines = o.lines.map((l) => `• ${l.qty} × ${l.name}${l.variant ? ` (${l.variant})` : ''} : ${fm(l.total)}`).join('\n');
+  return [`Commande ${o.id} confirmée ✓ Merci ${String(o.customer?.name || '').split(' ')[0]} !`, '', 'Récapitulatif :', lines,
+    o.transportFee ? `• Transport France → Pointe-Noire (${String(o.transportKg).replace('.', ',')} kg facturés) : ${fm(o.transportFee)}` : null,
+    o.deliveryFee ? `• Livraison : ${fm(o.deliveryFee)}` : null,
+    `Total : ${fm(o.total)}`, `Acompte reçu : − ${fm(o.deposit)}`, `Reste à payer : ${fm(o.balance)}`].filter((x) => x !== null).join('\n');
+}
+function instructionsText(o, p) {
+  if (o.payMode === 'push') {
+    const d = mobilePay.depositNumber(p?.network || o.payOperator);
+    return d ? `Pour finaliser : envoyez ${fm(p?.amount ?? o.balance)} par dépôt ${OPN[d.operator]} au ${mobilePay.spaced(d.number)} (${d.holder}), en indiquant la référence ${o.id}. Zado confirme dès réception.`
+      : 'Pour finaliser : un conseiller Zado vous indique le numéro de dépôt.';
+  }
+  return `Pour finaliser : une demande de ${fm(o.balance)} vient d'être envoyée sur votre téléphone (${OPN[o.payOperator] || 'Mobile Money'}). Tapez votre code secret pour valider.`;
+}
+function notifyCustomerTransfer(o, p) {
+  const d = mobilePay.depositNumber(p.network || o.payOperator);
+  tellCustomer(o, p.purpose === 'deposit'
+    ? `Commande ${o.id} enregistrée. Pour la confirmer, envoyez l'acompte de ${fm(p.amount)} par dépôt ${OPN[d?.operator] || 'Mobile Money'} au ${mobilePay.spaced(d?.number) || '—'} (${d?.holder || 'Zado'}), référence ${o.id}.`
+    : instructionsText(o, p));
+}
+/** Acompte reçu : commande confirmée (articles réservés), récapitulatif envoyé, puis demande du reste. */
+function afterDeposit(order, depositPaymentId) {
+  const confirmed = delivery.confirmCod(order, { depositPaymentId });
+  notifyPaidOrder(confirmed);
+  tellCustomer(confirmed, recapText(confirmed));
+  if (confirmed.balance > 0) startRest(confirmed).catch((err) => console.error('[reste]', err.message));
+  else settleSuccessfulPayment({ purpose: 'rest', orderId: confirmed.id, operator: confirmed.payOperator, id: null });
+  return orders.get(confirmed.id);
+}
+/** Demande du reste : retrait (demande sur le téléphone) ou dépôt (attente de l'argent sur le numéro de Zado). */
+async function startRest(order) {
+  const o = orders.get(order.id);
+  if (!o || o.paymentPlan !== 'mobile' || o.status !== 'confirmed' || !(o.balance > 0)) return null;
+  const fresh = payments.all().find((p) => p.orderId === o.id && p.purpose === 'rest' && isFreshPending(p));
+  if (fresh) return fresh;
+  const push = o.payMode === 'push';
+  const now = Date.now();
+  const payment = { id: 'PAY-' + crypto.randomUUID(), orderId: o.id, operator: push ? 'transfer' : o.payOperator, phone: o.payPhone, purpose: 'rest', amount: o.balance, currency: o.currency, status: 'PENDING', providerRef: null, reason: null, createdAt: new Date(now).toISOString(),
+    ...(push ? { network: o.payOperator, expiresAt: new Date(now + mobilePay.mobileSettings().transferHours * 3600e3).toISOString() } : {}) };
+  try {
+    const r = await getProvider(payment.operator).requestPayment({ paymentId: payment.id, reference: o.id, amount: payment.amount, phoneLocal: o.payPhone, description: `${config.shopName} - solde commande ${o.id}`, callbackUrl: `${config.publicUrl}/api/payments/callback/${payment.operator}` });
+    payment.providerRef = r.providerRef;
+  } catch (err) {
+    if (!(err.uncertain && err.providerRef)) { payment.status = 'FAILED'; payment.reason = 'La demande n\'a pas pu être envoyée'; }
+    else payment.providerRef = err.providerRef;
+  }
+  payments.insert(payment);
+  orders.update(o.id, { restPaymentId: payment.id });
+  if (payment.status === 'PENDING') tellCustomer(orders.get(o.id), instructionsText(orders.get(o.id), payment));
+  return payment;
+}
+// Le client relance la demande du reste (retrait) ou consulte où en est son paiement (page de suivi)
+router.post('/rest', async (req, res) => {
+  const { orderId, token } = req.body || {};
+  const order = orders.get(orderId);
+  const owner = order && require('../customer/auth').currentCustomer(req)?.id === order.customerId && order.customerId;
+  if (!order || !(hasAccess(order, token) || owner)) return res.status(404).json({ error: 'Commande introuvable' });
+  if (order.paymentPlan !== 'mobile' || order.status !== 'confirmed') return res.status(409).json({ error: 'Aucun reste à payer pour cette commande', orderStatus: order.status });
+  for (const p of payments.all().filter((x) => x.orderId === order.id && x.purpose === 'rest' && x.status === 'PENDING')) { try { await refreshStatus(p); } catch {} }
+  const p = await startRest(orders.get(order.id));
+  if (!p) return res.status(409).json({ error: 'Aucun reste à payer pour cette commande', orderStatus: orders.get(order.id).status });
+  res.status(201).json(publicPayment(payments.get(p.id) || p));
+});
+
 const publicPayment = (p) => ({
   id: p.id,
   orderId: p.orderId,
@@ -301,9 +415,12 @@ const publicPayment = (p) => ({
   status: p.status,
   reason: p.reason,
   expiresAt: p.expiresAt || null,
-  purpose: p.purpose || 'full', // 'deposit' = acompte d'une commande payée à la réception
+  purpose: p.purpose || 'full', // 'deposit' = acompte · 'rest' = reste (Mobile Money en deux temps) · 'balance' = payé à la livraison
+  ...(p.operator === 'transfer' ? { network: p.network || null, depositTo: (() => { const d = mobilePay.depositNumber(p.network || 'mtn'); return d ? { ...d, display: mobilePay.spaced(d.number) } : null; })() } : {}),
 });
 
 module.exports = router;
 module.exports.settleSuccessfulPayment = settleSuccessfulPayment;
 module.exports.refreshStatus = refreshStatus;
+module.exports.startRest = startRest;
+module.exports.recapText = recapText;

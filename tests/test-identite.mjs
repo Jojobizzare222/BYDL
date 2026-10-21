@@ -57,5 +57,5 @@ await call(null,'/payments',{body:{orderId:o2.id,token:o2.token,method:'cash',ag
 ok((await call(A,'/admin/orders')).data.orders.find((x)=>x.id===o2.id).fulfillment==='pickup','espèces en agence + retrait à l\'agence');
 // réglages
 ok((await call(CAT,'/admin/settings/sales')).status===403,'règles de vente : réservées à l\'admin');
-ok((await call(A,'/admin/settings/sales',{method:'PUT',body:{methods:{momo:false,card:false,cod:false,cash:false}}})).status===400,'impossible de retirer tous les moyens de paiement');
+ok((await call(A,'/admin/settings/sales',{method:'PUT',body:{methods:{mobile:false,momo:false,card:false,cod:false,cash:false}}})).status===400,'impossible de retirer tous les moyens de paiement');
 console.log(fails? fails+' ÉCHEC(S)':'TOUT EST OK');

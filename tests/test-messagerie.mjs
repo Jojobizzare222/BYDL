@@ -11,7 +11,7 @@ const g0=(await call(null,'/chat')).data;
 ok(g0.conversation===null && g0.welcome.quick.length>3,'visiteur : message d\'accueil avec sujets');
 const m1=await call(null,'/chat/messages',{body:{text:'Bonjour, quels sont vos délais de livraison ?'}});
 const tok=m1.data.token;
-ok(m1.status===201 && /^[a-f0-9]{32}$/.test(tok) && m1.data.conversation.messages.at(-1).from==='bot' && /Livraison rapide/.test(m1.data.conversation.messages.at(-1).text),'assistant : répond tout de suite (livraison)');
+ok(m1.status===201 && /^[a-f0-9]{32}$/.test(tok) && m1.data.conversation.messages.at(-1).from==='bot' && /viennent de France/.test(m1.data.conversation.messages.at(-1).text) && /livraison sous 24 h/.test(m1.data.conversation.messages.at(-1).text),'assistant : répond tout de suite (livraison : France, puis 24 h)');
 const H={'X-Chat-Token':tok};
 const m2=await call(null,'/chat/messages',{body:{text:'Paiement'},headers:H});
 ok(/agence/i.test(m2.data.conversation.messages.at(-1).text) && /Agence Centre/.test(m2.data.conversation.messages.at(-1).text),'assistant : paiement en agence + liste des agences');

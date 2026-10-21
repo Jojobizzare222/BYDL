@@ -56,7 +56,7 @@
   addEventListener('resize', markScrollers);
   new MutationObserver(() => requestAnimationFrame(markScrollers)).observe(document.getElementById('app'), { childList: true });
   // ---------- Outils d'affichage ----------
-  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=14#${name}"></use></svg>`;
+  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=15#${name}"></use></svg>`;
   // En-tête de page façon « Espace pro › Commandes » + titre + description + boutons d'action à droite
   const pageHead = ({ crumb, title, desc = '', actions = '' }) => `
     <div class="page-head">
@@ -434,15 +434,31 @@
     if (o.paidAfterCancel) return ['Rembourser le client', 'Il a payé alors que la commande était annulée : remboursez-le puis notez-le.', '#note', 'danger'];
     if (o.status === 'cancelled') return ['Commande annulée', o.cancelReason || 'Rien à faire.', null, 'done'];
     if (o.status === 'delivered') return [isPickup(o) ? 'Commande remise au client' : 'Commande livrée', 'Terminé. La facture et le reçu sont dans « Documents ».', null, 'done'];
+    // Mobile Money en deux temps : acompte puis reste (retrait = demande sur le téléphone ; dépôt = argent envoyé au numéro Zado)
+    if (o.paymentPlan === 'mobile' && ['pending_payment', 'confirmed'].includes(o.status)) {
+      const m = o.mobile || {}, stage = o.status === 'pending_payment' ? 'deposit' : 'rest', p = m[stage], amt = stage === 'deposit' ? o.deposit : o.balance;
+      const what = stage === 'deposit' ? "l'acompte" : 'le reste';
+      if (m.mode === 'push') return [`Vérifier le dépôt de ${what} : ${fcfa(amt)}`, `Quand l'argent arrive sur le numéro Mobile Money de Zado (référence ${o.id}), cliquez « Dépôt reçu ».${p?.status === 'FAILED' ? ' Le délai est dépassé : appelez le client.' : ''}`, '#transferBtn', p?.status === 'FAILED' ? 'warn' : ''];
+      return [stage === 'deposit' ? "En attente de l'acompte" : `En attente du reste : ${fcfa(amt)}`, stage === 'deposit' ? 'Le client valide la demande sur son téléphone (code secret).' : p?.status === 'FAILED' ? 'La demande a échoué ou a expiré : renvoyez-la au client.' : 'Une demande de paiement a été envoyée sur le téléphone du client.', stage === 'rest' ? '#restBtn' : null, p?.status === 'FAILED' ? 'warn' : 'wait'];
+    }
     if (o.status === 'pending_payment') {
       if (paysAtAgency(o)) return late
         ? ['Délai de paiement dépassé', `Appelez ${o.customer.name} : s'il vient encore, encaissez ; sinon annulez la commande.`, '#cashBtn', 'warn']
         : [`Encaisser ${fcfa(o.total)} en espèces à ${o.agency?.name || 'l\'agence'}`, `Quand ${o.customer.name} paie, cliquez « Paiement reçu en agence ».${isPickup(o) ? ' Préparez déjà les articles.' : ''}`, '#cashBtn', ''];
       return ['En attente du paiement du client', 'Rien à faire pour l\'instant. Sans paiement, la commande s\'annule toute seule.', null, 'wait'];
     }
+    // Logistique France → Pointe-Noire (2 à 5 jours annoncés au client), puis livraison sous 24 h
+    const L = o.logistics || {}, eta = o.logisticsEta || {};
+    const dshort = (iso) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' }) : '');
+    if ((o.status === 'paid' || (o.status === 'confirmed' && o.paymentPlan !== 'mobile')) && !(L.arrivedAt || L.localAt)) {
+      if (!L.boughtAt) return ["Acheter l'article en France", `Commandez-le chez le fournisseur, puis cliquez « Acheté en France ». Arrivée annoncée au client entre le ${dshort(eta.from)} et le ${dshort(eta.to)}. Article déjà en stock à Pointe-Noire : « Déjà sur place ».`, '#logiBox', ''];
+      if (!L.flyingAt) return ['Confier le colis au transporteur', "Quand le colis est remis à la société de fret aérien, cliquez « Dans l'avion ».", '#logiBox', ''];
+      return ["Colis dans l'avion", `Arrivée annoncée au plus tard le ${dshort(eta.to)}. À l'arrivée à Pointe-Noire, cliquez « Arrivé à Pointe-Noire » : le client est prévenu et la livraison sous 24 h commence.`, '#logiBox', Date.now() > Date.parse(eta.to || 0) ? 'warn' : 'wait'];
+    }
     if (o.status === 'shipped') return [`En livraison${o.courierName ? ' avec ' + o.courierName : ''}`, 'Le livreur valide la remise avec le code du client. En cas de problème : « Livraison ratée ».', null, 'wait'];
     if (isPickup(o)) return ['Remettre les articles au client', `Au point relais ${o.agency?.name || ''}, contre son code de retrait à 4 chiffres.`, '[data-status="delivered"]', ''];
-    if (!o.callConfirmedAt) return ['Appeler le client', `Confirmez l'adresse et le créneau avec ${o.customer.name} (${o.customer.phone}).`, '#callOk', ''];
+    const by = eta.deliverBy ? ` À livrer avant le ${new Date(eta.deliverBy).toLocaleString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })} (promesse de ${eta.deliveryHours} h).` : '';
+    if (!o.callConfirmedAt) return ['Appeler le client', `Confirmez l'adresse et le créneau avec ${o.customer.name} (${o.customer.phone}).${by}`, '#callOk', by && Date.now() > Date.parse(eta.deliverBy) ? 'warn' : ''];
     if (!o.planned) return ['Planifier la livraison', 'Choisissez la date et le créneau.', '#planBox', ''];
     return ['Confier le colis à un livreur', `Livraison prévue le ${frDate(o.planned.date)}. Choisissez le livreur puis « Confier au livreur ».`, '#courierSel', ''];
   }
@@ -450,6 +466,23 @@
     const [t, d, target, cls] = nextStep(o);
     return `<div class="next-step ${cls}"><span class="ns-ico">${icon(cls === 'done' ? 'check-circle-duotone' : cls === 'wait' ? 'clock-bold' : cls === 'danger' ? 'warning-duotone' : 'arrow-right-bold')}</span><div><small>${cls === 'done' ? 'État' : 'Prochaine étape'}</small><strong>${esc(t)}</strong><span>${esc(d)}</span></div>${target ? `<button class="btn small" data-goto='${esc(target)}'>Y aller</button>` : ''}</div>`;
   };
+
+  // Logistique France → Pointe-Noire : l'équipe note chaque étape, le client est prévenu (message + notification)
+  function logisticsPanel(o) {
+    if (['pending_payment', 'cancelled'].includes(o.status) || (o.status === 'confirmed' && o.paymentPlan === 'mobile')) return '';
+    const L = o.logistics || {}, eta = o.logisticsEta || {};
+    if (!L.boughtAt && !L.localAt && ['shipped', 'delivered'].includes(o.status)) return '';
+    const when = (iso) => (iso ? `<small>${date(iso)}</small>` : '');
+    const rows = L.localAt ? [['Déjà en stock à Pointe-Noire', L.localAt]] : [['Acheté chez le fournisseur en France', L.boughtAt], ["Dans l'avion (fret aérien)", L.flyingAt], ['Arrivé à Pointe-Noire', L.arrivedAt]];
+    const done = Boolean(L.arrivedAt || L.localAt), open = !['shipped', 'delivered'].includes(o.status);
+    const btn = (step, label, cls = 'btn') => `<button type="button" class="${cls}" data-logi="${step}">${label}</button>`;
+    return `<div class="panel logi-panel" id="logiBox">
+      <h2>${icon('airplane-tilt')} Logistique France → Pointe-Noire</h2>
+      <ol class="logi-steps">${rows.map(([t, at]) => `<li class="${at ? 'done' : ''}">${icon(at ? 'check-circle-duotone' : 'clock-bold')}<span>${esc(t)}${when(at)}</span></li>`).join('')}</ol>
+      <p class="muted">${done ? `Livraison promise au client avant le <b>${date(eta.deliverBy)}</b> (${eta.deliveryHours} h après l'arrivée).` : `Annoncé au client : arrivée entre le <b>${date(eta.from).split(' ')[0]}</b> et le <b>${date(eta.to).split(' ')[0]}</b> (${eta.minDays} à ${eta.maxDays} jours), puis livraison sous ${eta.deliveryHours} h.`}</p>
+      ${open ? `<div class="row">${!L.boughtAt && !L.localAt ? btn('bought', `${icon('storefront')} Acheté en France`) + btn('local', 'Déjà sur place', 'ghost') : ''}${L.boughtAt && !L.flyingAt ? btn('flying', `${icon('airplane-takeoff')} Dans l'avion`) : ''}${L.flyingAt && !L.arrivedAt ? btn('arrived', `${icon('airplane-landing')} Arrivé à Pointe-Noire`, 'btn green') : ''}${L.boughtAt || L.localAt ? btn('undo', 'Annuler la dernière étape', 'ghost') : ''}</div>` : ''}
+    </div>`;
+  }
 
   function viewOrder(id) {
     const o = state.orders.find((x) => x.id === id);
@@ -492,6 +525,7 @@
         </form>
       </div>
 
+      ${logisticsPanel(o)}
       ${deliveryPanel(o)}
 
       <div class="panel">
@@ -500,6 +534,8 @@
         ${isPickup(o) ? `<p style="margin:0 0 10px"><span class="tag">${icon('storefront')} Retrait en agence</span> <strong>${esc(o.agency?.name)}</strong> (${esc(o.agency?.city)})${o.status === 'pending_payment' && o.pickupDeadline ? `<br><span class="muted">Réservé jusqu'au ${date(o.pickupDeadline)}${Date.now() > Date.parse(o.pickupDeadline) ? ' — <strong style="color:var(--err)">délai dépassé</strong>' : ''}</span>` : ''}</p>` : ''}
         <div class="row">
           ${paysAtAgency(o) ? `<button class="btn green" id="cashBtn">${icon('money-duotone')} Paiement reçu en agence (${fcfa(o.total)})</button>` : ''}
+          ${o.paymentPlan === 'mobile' && o.mobile?.mode === 'push' && ['pending_payment', 'confirmed'].includes(o.status) ? `<button class="btn green" id="transferBtn">${icon('money-duotone')} Dépôt reçu (${fcfa(o.status === 'pending_payment' ? o.deposit : o.balance)})</button>` : ''}
+          ${o.paymentPlan === 'mobile' && o.mobile?.mode !== 'push' && o.status === 'confirmed' ? `<button class="ghost" id="restBtn">${icon('arrows-clockwise')} Renvoyer la demande du reste (${fcfa(o.balance)})</button>` : ''}
           ${(o.transitions || []).filter((s) => !(s === 'shipped' && o.status !== 'delivered')).map((s) => { // mise en livraison : « Confier au livreur » (bloc Livraison)
             const [label, cls] = ACTIONS[isPickup(o) && s === 'delivered' ? 'handed' : s];
             return `<button class="${cls}" data-status="${s}">${label}</button>`;
@@ -563,6 +599,32 @@
     $('#saveNote').addEventListener('click', () => save({ note: $('#note').value }, 'Note enregistrée'));
     if (o.account) $('#newCodeBtn').addEventListener('click', () => newCode(o.account, $('#newCodeBox')));
     bindDeliveryPanel(o);
+    app.querySelectorAll('[data-logi]').forEach((b) => b.addEventListener('click', async () => {
+      if (b.dataset.logi === 'undo' && !confirm('Annuler la dernière étape logistique notée ?')) return;
+      b.disabled = true;
+      try {
+        const updated = await api('/orders/' + enc(o.id) + '/logistics', { method: 'POST', body: { step: b.dataset.logi } });
+        state.orders = state.orders.map((x) => (x.id === o.id ? updated : x));
+        toast(b.dataset.logi === 'undo' ? 'Étape annulée' : 'Étape enregistrée, client prévenu ✓'); viewOrder(o.id);
+      } catch (err) { toast('❌ ' + err.message); b.disabled = false; }
+    }));
+    $('#transferBtn')?.addEventListener('click', async () => {
+      const amt = o.status === 'pending_payment' ? o.deposit : o.balance;
+      if (!confirm(`Confirmer avoir reçu le dépôt de ${fcfa(amt)} de ${c.name} (référence ${o.id}) sur le numéro Mobile Money de Zado ?`)) return;
+      try {
+        const updated = await api('/orders/' + enc(o.id) + '/transfer-received', { method: 'POST' });
+        state.orders = state.orders.map((x) => (x.id === o.id ? updated : x));
+        await loadOrders().catch(() => {});
+        toast('Dépôt enregistré ✓'); viewOrder(o.id);
+      } catch (err) { toast('❌ ' + err.message); }
+    });
+    $('#restBtn')?.addEventListener('click', async () => {
+      try {
+        const updated = await api('/orders/' + enc(o.id) + '/rest-request', { method: 'POST' });
+        state.orders = state.orders.map((x) => (x.id === o.id ? updated : x));
+        toast('Demande envoyée sur le téléphone du client'); viewOrder(o.id);
+      } catch (err) { toast('❌ ' + err.message); }
+    });
     $('#cashBtn')?.addEventListener('click', async () => {
       if (!confirm(`Confirmer avoir reçu ${fcfa(o.total)} en espèces de ${c.name} ?\n\nLa commande passera en « Payée » et le stock sera décompté.`)) return;
       try {
@@ -826,8 +888,8 @@
 
   // ---------- Réglages du paiement à la réception (admin) ----------
   async function viewSettings() {
-    let c, sl, co, fe, mt;
-    try { [c, sl, co, fe, mt] = await Promise.all([api('/settings/cod'), api('/settings/sales'), api('/documents/company'), api('/settings/fees'), api('/settings/maintenance')]); } catch { return; }
+    let c, sl, co, fe, mt, tr;
+    try { [c, sl, co, fe, mt, tr] = await Promise.all([api('/settings/cod'), api('/settings/sales'), api('/documents/company'), api('/settings/fees'), api('/settings/maintenance'), api('/settings/transport')]); } catch { return; }
     const localDT = (iso) => { if (!iso) return ''; const d = new Date(iso); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 16); };
     const zonesText = (zones) => zones.map((z) => `${z.name} : ${z.fee}`).join('\n');
     const cityRow = (ct = { city: '', fee: 0, zones: [] }) => `<div class="fee-city">
@@ -838,7 +900,7 @@
       </div>`;
     const cp = co.company;
     const coField = (k, label, ph = '', wide = false) => `<div${wide ? ' style="grid-column:1/-1"' : ''}><label for="co_${k}">${label}${co.missing.includes(k) ? ' <span class="tag warn">à compléter</span>' : ''}</label><input id="co_${k}" type="text" data-co="${k}" value="${esc(cp[k] || '')}" placeholder="${esc(ph)}"></div>`;
-    const PAY = [['cash', 'Espèces en agence (retrait ou livraison)'], ['momo', 'Mobile Money (MTN, Airtel)'], ['card', 'Carte bancaire (prestataire à brancher)'], ['cod', 'Paiement à la réception']];
+    const PAY = [['mobile', 'Mobile Money en deux temps (acompte, puis retrait ou dépôt)'], ['cash', 'Espèces en agence (retrait ou livraison)'], ['momo', 'Mobile Money (MTN, Airtel)'], ['card', 'Carte bancaire (prestataire à brancher)'], ['cod', 'Paiement à la réception']];
     app.innerHTML = pageHead({ crumb: 'Gestion', title: 'Réglages', desc: 'Maintenance, règles de vente, frais de livraison, société (factures et reçus) et paiement à la réception.' }) + `
       <form class="panel maint-panel ${mt.enabled ? 'on' : ''}" id="maintForm" style="max-width:760px">
         <h2>${icon('warning-duotone')} Mode maintenance de la boutique ${mt.enabled ? '<span class="tag danger">ACTIVÉ</span>' : '<span class="tag ok">Boutique ouverte</span>'}</h2>
@@ -862,6 +924,29 @@
         ${PAY.map(([k, l]) => `<label class="check"><input type="checkbox" data-pay="${k}" ${sl.methods[k] ? 'checked' : ''}> ${esc(l)}</label>`).join('')}
         <p class="muted">Les espèces ne sont proposées que s'il existe au moins une agence active (onglet Agences).</p>
         <div id="slMsg"></div>
+        <button class="btn" style="margin-top:14px">Enregistrer</button>
+      </form>
+      <form class="panel" id="trForm" style="max-width:760px">
+        <h2>${icon('airplane-tilt')} Transport, délais et acompte</h2>
+        <p class="muted" style="margin-top:0">Le transport France → Pointe-Noire est ajouté au prix des articles, à la commande, selon le poids saisi dans chaque fiche produit (${fcfa(tr.perKg)} le kilo aujourd'hui).</p>
+        <div class="grid2">
+          <div><label for="trEur">Prix du transport (€ par kg)</label><input id="trEur" type="number" min="0" step="0.5" value="${tr.freight.eurPerKg}"></div>
+          <div><label for="trMin">Poids minimum facturé (kg)</label><input id="trMin" type="number" min="0" step="0.1" value="${tr.freight.minKg}"></div>
+        </div>
+        <label class="check"><input type="checkbox" id="trPerArt" ${tr.freight.perArticle ? 'checked' : ''}> Minimum appliqué à <b>chaque article</b> (sinon : à la commande entière)</label>
+        <label class="check"><input type="checkbox" id="trOn" ${tr.freight.enabled ? 'checked' : ''}> Facturer le transport aux clients</label>
+        <div class="grid2" style="margin-top:10px">
+          <div><label for="trL1">Logistique : délai minimum (jours)</label><input id="trL1" type="number" min="0" max="60" value="${tr.freight.logisticsMin}"></div>
+          <div><label for="trL2">Logistique : délai maximum (jours)</label><input id="trL2" type="number" min="0" max="60" value="${tr.freight.logisticsMax}"></div>
+          <div><label for="trDH">Livraison après l'arrivée à Pointe-Noire (heures)</label><input id="trDH" type="number" min="0" max="240" value="${tr.freight.deliveryHours}"></div>
+          <div><label for="trDep">Acompte Mobile Money qui confirme la commande (FCFA)</label><input id="trDep" type="number" min="0" step="100" value="${tr.mobile.deposit}"></div>
+          <div><label for="trMtn">Numéro MTN de Zado pour les dépôts</label><input id="trMtn" type="tel" value="${esc(tr.mobile.numbers.mtn || '')}" placeholder="06 000 00 00"></div>
+          <div><label for="trAir">Numéro Airtel de Zado pour les dépôts</label><input id="trAir" type="tel" value="${esc(tr.mobile.numbers.airtel || '')}" placeholder="05 000 00 00"></div>
+          <div><label for="trHolder">Nom affiché pour le dépôt</label><input id="trHolder" type="text" maxlength="60" value="${esc(tr.mobile.holder || 'Zado')}"></div>
+          <div><label for="trHours">Délai pour faire un dépôt (heures)</label><input id="trHours" type="number" min="1" max="168" value="${tr.mobile.transferHours}"></div>
+        </div>
+        <p class="muted">Sans numéro de dépôt, les clients ne peuvent choisir que « Par retrait » (demande envoyée sur leur téléphone).</p>
+        <div id="trMsg"></div>
         <button class="btn" style="margin-top:14px">Enregistrer</button>
       </form>
       <form class="panel" id="feesForm" style="max-width:760px">
@@ -945,6 +1030,15 @@
       app.querySelectorAll('[data-co]').forEach((i) => { body[i.dataset.co] = i.value; });
       try { await api('/documents/company', { method: 'PUT', body }); toast('Société enregistrée ✓'); $('#coMsg').innerHTML = ''; route({ keep: true }); }
       catch (err) { $('#coMsg').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; }
+    });
+    $('#trForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      try {
+        await api('/settings/transport', { method: 'PUT', body: {
+          freight: { enabled: $('#trOn').checked, eurPerKg: $('#trEur').value, minKg: $('#trMin').value, perArticle: $('#trPerArt').checked, logisticsMin: $('#trL1').value, logisticsMax: $('#trL2').value, deliveryHours: $('#trDH').value },
+          mobile: { deposit: Number($('#trDep').value || 0), numbers: { mtn: $('#trMtn').value, airtel: $('#trAir').value }, holder: $('#trHolder').value, transferHours: Number($('#trHours').value || 24) } } });
+        toast('Transport et acompte enregistrés ✓'); $('#trMsg').innerHTML = ''; route({ keep: true });
+      } catch (err) { $('#trMsg').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; }
     });
     $('#salesForm').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -2029,7 +2123,10 @@
           <div><label for="oldPrice">Prix barré (facultatif)</label><input id="oldPrice" type="number" inputmode="numeric" min="1" step="1" value="${esc(p.oldPrice ?? '')}"></div>` : ''}
           <div><label for="costPrice">Prix d'achat rendu Pointe-Noire (FCFA)</label><input id="costPrice" type="number" inputmode="numeric" min="0" step="1" value="${esc(p.costPrice ?? '')}" placeholder="achat Europe + fret + douane"></div>
           <div><label for="stock">Stock disponible *</label><input id="stock" type="number" inputmode="numeric" min="0" step="1" value="${esc(p.stock)}"></div>
+          <div><label for="sourcePrice">Prix fournisseur montré au client (FCFA)</label><input id="sourcePrice" type="number" inputmode="numeric" min="1" step="1" value="${esc(p.sourcePrice ?? '')}" placeholder="ex. prix Apple Store converti"></div>
+          <div><label for="weightKg">Poids avec emballage (kg)</label><input id="weightKg" type="text" inputmode="decimal" value="${p.weightKg != null ? String(p.weightKg).replace('.', ',') : ''}" placeholder="ex. 0,45"></div>
         </div>
+        <p class="muted" id="priceBreak"></p>
         <p class="muted">Prix d'achat rendu : ce que l'article coûte à Zado une fois à Pointe-Noire (prix payé en Europe + fret aérien + douane). Il sert au calcul de la marge et n'est visible que par l'administrateur et le responsable catalogue.</p>
         ${margin != null ? `<p class="muted">Marge actuelle : <strong>${fcfa(margin)}</strong> par article.</p>` : ''}
         <label class="check"><input id="active" type="checkbox" ${p.active !== false ? 'checked' : ''}> Visible sur la boutique</label>
@@ -2144,6 +2241,17 @@
       b.disabled = false; b.innerHTML = t;
     });
 
+    // Ce que verra le client : prix fournisseur + marge Zado = prix de l'article, + transport (1 kg minimum par article)
+    const showBreak = () => {
+      const pr = Number($('#price')?.value || p.price) || 0, src = Number($('#sourcePrice')?.value) || 0, w = Number(String($('#weightKg')?.value || '').replace(',', '.')) || 0;
+      const fr = state.config?.freight || { eurPerKg: 13, minKg: 1, perArticle: true, enabled: true };
+      const kg = fr.perArticle ? Math.max(fr.minKg, w) : w, tr = fr.enabled ? Math.round(kg * fr.eurPerKg * 655.957) : 0;
+      $('#priceBreak').innerHTML = `Le client verra : ${src ? `prix fournisseur ${fcfa(src)} + marge Zado <b class="${pr - src < 0 ? 'bad' : ''}">${fcfa(pr - src)}</b> = ` : ''}prix de l'article ${fcfa(pr)}${tr ? ` + transport ${fcfa(tr)} (${String(kg).replace('.', ',')} kg facturé${kg > 1 ? 's' : ''})` : ''}.${src && pr - src < 0 ? ' <b class="bad">Attention : le prix de vente est inférieur au prix fournisseur.</b>' : ''}`;
+    };
+    ['#price', '#sourcePrice', '#weightKg'].forEach((sel) => $(sel)?.addEventListener('input', showBreak));
+    showBreak();
+    if (!state.config) fetch('/api/config').then((r) => r.json()).then((cfg) => { state.config = cfg; if ($('#priceBreak')) showBreak(); }).catch(() => {});
+
     const val = (sel) => $(sel)?.value;
     $('#pform').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -2159,6 +2267,8 @@
         };
         if (showSale) Object.assign(body, { price: val('#price'), oldPrice: val('#oldPrice') });
         body.costPrice = val('#costPrice');
+        body.sourcePrice = val('#sourcePrice');
+        body.weightKg = val('#weightKg');
         body.options = val('#options');
         Object.assign(body, { active: $('#active').checked, featured: $('#featured').checked });
       }
@@ -2741,7 +2851,7 @@
     $('#userName').textContent = u.name;
     $('#userRole').textContent = u.company || ROLE_LABELS[u.role] || u.role;
     const m = window.kamwaTheme?.mode() || 'light';
-    $('#themeTopIco').setAttribute('href', `/icons.svg?v=14#${m === 'dark' ? 'moon' : m === 'auto' ? 'circle-half' : 'sun'}`);
+    $('#themeTopIco').setAttribute('href', `/icons.svg?v=15#${m === 'dark' ? 'moon' : m === 'auto' ? 'circle-half' : 'sun'}`);
     $('#themeTop').title = `Apparence : ${m === 'dark' ? 'sombre' : m === 'auto' ? 'automatique' : 'claire'} (cliquer pour changer)`;
     const todo = $('#todoCount'); const chat = $('#chatCount');
     const n = (todo && !todo.hidden ? parseInt(todo.textContent, 10) || 0 : 0) + (chat && !chat.hidden ? parseInt(chat.textContent, 10) || 0 : 0);

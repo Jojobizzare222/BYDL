@@ -15,9 +15,11 @@ const TYPES = {
   receipt: { prefix: 'RC', label: 'Reçu' },
   credit: { prefix: 'AV', label: 'Avoir' },
 };
-const METHOD_LABEL = { cash: 'Espèces', momo: 'Mobile Money', card: 'Carte bancaire' };
-const OPERATOR_METHOD = { mtn: 'momo', airtel: 'momo', card: 'card', cash: 'cash' };
-const OPERATOR_LABEL = { mtn: 'MTN Mobile Money', airtel: 'Airtel Money', card: 'Carte bancaire', cash: 'Espèces' };
+const METHOD_LABEL = { cash: 'Espèces', momo: 'Mobile Money', card: 'Carte bancaire', transfer: 'Dépôt Mobile Money' };
+const OPERATOR_METHOD = { mtn: 'momo', airtel: 'momo', card: 'card', cash: 'cash', transfer: 'transfer' };
+const OPERATOR_LABEL = { mtn: 'MTN Mobile Money', airtel: 'Airtel Money', card: 'Carte bancaire', cash: 'Espèces', transfer: 'Dépôt Mobile Money' };
+// Libellé d'un paiement Mobile Money : retrait (demande sur le téléphone) ou dépôt sur le numéro de Zado
+const payLabel = (p) => (p?.operator === 'transfer' ? `Dépôt ${OPERATOR_LABEL[p.network] || 'Mobile Money'}` : OPERATOR_LABEL[p?.operator] || 'Mobile Money');
 
 // ---------- Société (en-tête des documents) — Zado Pro → Réglages [admin] ----------
 const TODO = 'À compléter';
@@ -146,7 +148,9 @@ function sync(orderOrId) {
   if (!o || !o.lines) return [];
   const pay = o.paymentId && payments.get(o.paymentId);
   const lines = snapshotLines(o);
-  const base = { lines, subtotal: o.subtotal ?? o.total, deliveryFee: o.deliveryFee || 0, total: o.total };
+  const base = { lines, subtotal: o.subtotal ?? o.total, transportFee: o.transportFee || 0, transportKg: o.transportKg || 0, deliveryFee: o.deliveryFee || 0, total: o.total,
+    // Acompte déjà versé : déduit du total sur la facture (décision Joseph 21/10/2026)
+    ...(o.depositPaidAt && o.deposit ? { depositPaid: o.deposit, depositAt: o.depositPaidAt } : {}) };
   const agency = o.agency ? { name: o.agency.name || '', city: o.agency.city || '' } : null;
 
   // 1) Facture (vente réalisée)
@@ -156,27 +160,32 @@ function sync(orderOrId) {
     const method = o.paymentPlan === 'cod' ? 'cod' : OPERATOR_METHOD[pay?.operator] || 'momo';
     invoice = issue('invoice', `${o.id}:invoice`, o, {
       ...base, saleAt, taxes: taxes(o.total, company()),
-      paymentLabel: o.paymentPlan === 'cod' ? 'Payée à la réception' : `Payée — ${OPERATOR_LABEL[pay?.operator] || METHOD_LABEL[method] || 'Mobile Money'}`,
+      paymentLabel: o.paymentPlan === 'cod' ? 'Payée à la réception' : o.paymentPlan === 'mobile' ? `Payée — acompte puis solde (${payLabel(o.balancePaid?.paymentId && payments.get(o.balancePaid.paymentId)) || 'Mobile Money'})` : `Payée — ${OPERATOR_LABEL[pay?.operator] || METHOD_LABEL[method] || 'Mobile Money'}`,
       fulfillment: o.fulfillment || 'delivery', agency,
     });
   }
 
   // 2) Reçus : chaque somme reçue
   const receipt = (kind, amount, method, at, extra = {}) => amount > 0 && issue('receipt', `${o.id}:${kind}`, o, {
-    purpose: kind, amount, method, methodLabel: extra.operator ? OPERATOR_LABEL[extra.operator] : METHOD_LABEL[method] || method,
+    purpose: kind, amount, method, methodLabel: extra.label || (extra.operator ? OPERATOR_LABEL[extra.operator] : METHOD_LABEL[method] || method),
     receivedAt: at, issuedAt: at, total: o.total, invoiceNumber: invoice?.number || null, agency: method === 'cash' && kind === 'pay' ? agency : null,
     collectedBy: extra.collectedBy || null, lines,
   });
-  if (o.paymentPlan !== 'cod') {
+  if (!['cod', 'mobile'].includes(o.paymentPlan)) {
     if (pay && pay.status === 'SUCCESSFUL' && (o.paidAt || o.paidAfterCancel)) {
       receipt('pay', o.total, OPERATOR_METHOD[pay.operator] || 'momo', o.paidAt || pay.confirmedAt || pay.updatedAt, { operator: pay.operator, collectedBy: pay.confirmedBy || null });
     }
   } else {
     if (o.depositPaidAt && o.deposit) {
       const dp = o.depositPaymentId && payments.get(o.depositPaymentId);
-      receipt('deposit', o.deposit, OPERATOR_METHOD[dp?.operator] || 'momo', o.depositPaidAt, { operator: dp?.operator });
+      receipt('deposit', o.deposit, OPERATOR_METHOD[dp?.operator] || 'momo', o.depositPaidAt, { operator: dp?.operator, label: dp ? payLabel(dp) : null, collectedBy: dp?.confirmedBy || null });
     }
-    if (o.balancePaid && o.balance) {
+    // Mobile Money en deux temps : le reste payé (retrait ou dépôt)
+    if (o.paymentPlan === 'mobile' && o.balancePaid && o.balance) {
+      const rp = o.balancePaid.paymentId && payments.get(o.balancePaid.paymentId);
+      receipt('rest', o.balance, OPERATOR_METHOD[rp?.operator] || 'momo', o.balancePaid.at, { operator: rp?.operator, label: rp ? payLabel(rp) : null, collectedBy: rp?.confirmedBy || null });
+    }
+    if (o.paymentPlan === 'cod' && o.balancePaid && o.balance) {
       receipt('balance', o.balance, o.balancePaid.method === 'cash' ? 'cash' : 'momo', o.balancePaid.at, { collectedBy: staffName(o.balancePaid.by) });
     }
   }
@@ -223,7 +232,7 @@ const logo = () => {
   return LOGO;
 };
 const todo = (v) => (v ? esc(v) : `<span class="todo">${TODO}</span>`);
-const PURPOSE = { pay: 'Règlement de la commande', deposit: 'Acompte sur la commande', balance: 'Solde payé à la livraison de la commande' };
+const PURPOSE = { pay: 'Règlement de la commande', deposit: 'Acompte sur la commande', balance: 'Solde payé à la livraison de la commande', rest: 'Solde de la commande' };
 
 function companyBlock(c) {
   return `<div class="co"><div class="logo">${logo()}</div>
@@ -240,9 +249,12 @@ function linesTable(d) {
 function totalsBlock(d, sign = '') {
   const t = d.taxes;
   return `<table class="totals">
-    ${d.deliveryFee ? `<tr><td>Sous-total</td><td>${sign}${fcfa(d.subtotal)}</td></tr><tr><td>Livraison</td><td>${sign}${fcfa(d.deliveryFee)}</td></tr>` : ''}
+    ${d.deliveryFee || d.transportFee ? `<tr><td>Articles</td><td>${sign}${fcfa(d.subtotal)}</td></tr>` : ''}
+    ${d.transportFee ? `<tr><td>Transport France → Pointe-Noire${d.transportKg ? ` (${String(d.transportKg).replace('.', ',')} kg facturés)` : ''}</td><td>${sign}${fcfa(d.transportFee)}</td></tr>` : ''}
+    ${d.deliveryFee ? `<tr><td>Livraison</td><td>${sign}${fcfa(d.deliveryFee)}</td></tr>` : ''}
     ${t ? `<tr><td>Total hors taxes</td><td>${sign}${fcfa(t.ht)}</td></tr><tr><td>TVA ${t.rate} %</td><td>${sign}${fcfa(t.vat)}</td></tr>${t.extra ? `<tr><td>Centime additionnel ${t.extraRate} %</td><td>${sign}${fcfa(t.extra)}</td></tr>` : ''}` : ''}
-    <tr class="grand"><td>Total ${t ? 'TTC' : ''}</td><td>${sign}${fcfa(d.total)}</td></tr></table>`;
+    <tr class="grand"><td>Total ${t ? 'TTC' : ''}</td><td>${sign}${fcfa(d.total)}</td></tr>
+    ${!sign && d.depositPaid ? `<tr class="dep"><td>Acompte déjà versé${d.depositAt ? ` le ${dateFr(d.depositAt)}` : ''}</td><td>− ${fcfa(d.depositPaid)}</td></tr><tr class="net"><td>${d.type === 'invoice' ? 'Solde réglé' : 'Reste à payer'}</td><td>${fcfa(d.total - d.depositPaid)}</td></tr>` : ''}</table>`;
 }
 
 function render(d, { format = 'a4', admin = false } = {}) {
@@ -281,16 +293,16 @@ function render(d, { format = 'a4', admin = false } = {}) {
 @font-face { font-family: "Plus Jakarta Sans"; src: url(/fonts/plus-jakarta-sans-latin-ext-wght-normal.woff2) format("woff2"); font-weight: 200 800; unicode-range: U+0100-024F, U+1E00-1EFF, U+20A0-20CF, U+2C60-2C7F, U+A720-A7FF; }
 * { box-sizing: border-box; }
 body { margin: 0; font-family: "Plus Jakarta Sans", Arial, sans-serif; color: #1B1530; background: #EEEAF7; font-size: 13px; line-height: 1.45; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-.bar { position: sticky; top: 0; display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; padding: 10px; background: #2D1B69; }
+.bar { position: sticky; top: 0; display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; padding: 10px; background: #10264A; }
 .bar a, .bar button { font: inherit; font-weight: 600; color: #fff; background: rgba(255,255,255,.12); border: 0; border-radius: 999px; padding: 8px 16px; text-decoration: none; cursor: pointer; }
-.bar .main { background: #FFB300; color: #2D1B69; }
+.bar .main { background: #FFB300; color: #10264A; }
 .sheet { background: #fff; margin: 20px auto; padding: 36px 40px; width: 210mm; max-width: calc(100% - 24px); min-height: 280mm; box-shadow: 0 10px 40px rgba(45,27,105,.15); position: relative; overflow: hidden; }
-.sheet::before { content: ""; position: absolute; inset: 0 0 auto; height: 6px; background: linear-gradient(90deg, #2D1B69, #FF5A3C, #FFB300); }
+.sheet::before { content: ""; position: absolute; inset: 0 0 auto; height: 6px; background: linear-gradient(90deg, #10264A, #FF5A3C, #FFB300); }
 .head { display: flex; justify-content: space-between; gap: 20px; align-items: flex-start; }
 .logo svg { height: 34px; width: auto; display: block; margin-bottom: 8px; }
 .co p { margin: 0; color: #4A4466; font-size: 12px; }
 .doc { text-align: right; }
-.doc h1 { margin: 0; font-size: 26px; letter-spacing: .02em; color: #2D1B69; text-transform: uppercase; }
+.doc h1 { margin: 0; font-size: 26px; letter-spacing: .02em; color: #10264A; text-transform: uppercase; }
 .doc .num { font-size: 15px; font-weight: 700; margin-top: 2px; } .doc .date { color: #6B6585; }
 .stamp { display: inline-block; margin-top: 8px; padding: 4px 12px; border-radius: 999px; font-weight: 700; font-size: 12px; background: #E1F5EC; color: #0E8A66; }
 .stamp.credit { background: #FFE6DF; color: #C62E1F; }
@@ -298,18 +310,19 @@ body { margin: 0; font-family: "Plus Jakarta Sans", Arial, sans-serif; color: #1
 .parties > div { background: #F6F4FC; border-radius: 12px; padding: 12px 14px; }
 .lbl { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: #6B6585; margin-bottom: 4px; font-weight: 600; }
 table { width: 100%; border-collapse: collapse; }
-.lines th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: #fff; background: #2D1B69; padding: 8px 10px; }
+.lines th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: #fff; background: #10264A; padding: 8px 10px; }
 .lines th:first-child { border-radius: 8px 0 0 8px; } .lines th:last-child { border-radius: 0 8px 8px 0; }
 .lines td { padding: 9px 10px; border-bottom: 1px solid #ECE9F5; vertical-align: top; } .lines small { color: #6B6585; }
 .n, .lines th.n { text-align: right; white-space: nowrap; }
 .totals { width: 300px; margin: 14px 0 0 auto; } .totals td { padding: 5px 10px; } .totals td:last-child { text-align: right; white-space: nowrap; }
-.totals .grand td { font-size: 16px; font-weight: 700; color: #2D1B69; border-top: 2px solid #2D1B69; padding-top: 8px; }
+.totals .dep td { color: #0E8A66; } .totals .net td { font-weight: 700; color: #10264A; }
+.totals .grand td { font-size: 16px; font-weight: 700; color: #10264A; border-top: 2px solid #10264A; padding-top: 8px; }
 .words { margin: 22px 0 6px; } .note { color: #6B6585; margin: 4px 0; }
-.big { margin: 28px 0 18px; padding: 18px; border-radius: 14px; background: linear-gradient(135deg, #2D1B69, #4B2FB0); color: #fff; text-align: center; }
+.big { margin: 28px 0 18px; padding: 18px; border-radius: 14px; background: linear-gradient(135deg, #10264A, #1B3A6B); color: #fff; text-align: center; }
 .big span { display: block; opacity: .8; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
 .big strong { display: block; font-size: 30px; margin: 4px 0; } .big em { font-style: normal; color: #FFD27A; }
 .kv td { padding: 7px 0; border-bottom: 1px solid #ECE9F5; vertical-align: top; } .kv td:first-child { color: #6B6585; width: 170px; }
-h3 { margin: 24px 0 8px; font-size: 13px; color: #2D1B69; }
+h3 { margin: 24px 0 8px; font-size: 13px; color: #10264A; }
 .foot { position: absolute; left: 40px; right: 40px; bottom: 24px; border-top: 1px solid #ECE9F5; padding-top: 10px; color: #6B6585; font-size: 11px; display: flex; justify-content: space-between; gap: 12px; }
 .todo { background: #FFF1CC; color: #8A5A00; padding: 0 4px; border-radius: 4px; }
 .warn { max-width: 210mm; margin: 12px auto 0; padding: 10px 14px; border-radius: 10px; background: #FFF1CC; color: #8A5A00; font-size: 12px; }
