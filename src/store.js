@@ -86,6 +86,7 @@ function createCollection(name) {
 }
 
 module.exports = {
+  DB_FILE,
   db,
   settings,
   transaction,

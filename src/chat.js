@@ -80,12 +80,12 @@ function botAnswer(text, { customer, conv }) {
       : `Moyens de paiement proposés : ${Object.entries(sales.methods).filter(([, v]) => v).map(([k]) => ({ cash: 'espèces en agence', momo: 'Mobile Money (MTN, Airtel)', card: 'carte bancaire', cod: 'paiement à la réception' })[k]).join(', ')}.`,
       quick: ['Points relais', 'Livraison', 'Parler à un conseiller'] };
     case 'agency': return { text: `Nos points relais :\n${agencyList()}`, quick: ['Paiement', 'Livraison', 'Parler à un conseiller'] };
-    case 'account': return { text: `Pour commander, il faut un compte Zado vérifié : créez-le avec votre numéro (ou e-mail) et la photo de votre pièce d'identité (passeport, CNI ou NIU). Zado la vérifie, en général sous 24 h.\nVous vous connectez ensuite avec votre numéro + votre code Zado à 6 chiffres.\nCode oublié ? Demandez un conseiller : il vous en donnera un nouveau.`,
+    case 'account': return { text: `Pour commander, il faut un compte Zado vérifié : créez-le avec votre numéro (ou e-mail) et la photo de votre pièce d'identité (passeport, CNI ou NIU). Zado la vérifie, en général en 1 minute.\nVous vous connectez ensuite avec votre numéro + votre code Zado à 6 chiffres.\nCode oublié ? Demandez un conseiller : il vous en donnera un nouveau.`,
       links: customer ? [{ label: 'Mon compte', href: '#/compte' }] : [{ label: 'Créer mon compte', href: '#/compte/creer' }, { label: 'Me connecter', href: '#/compte' }], quick: ['Parler à un conseiller', 'Paiement'] };
     case 'identity': {
       if (!customer) return { text: "Zado vérifie la pièce d'identité de chaque client (passeport, CNI ou NIU) avant sa première commande, pour lutter contre les fausses commandes. Connectez-vous pour voir où en est la vôtre.", links: [{ label: 'Me connecter', href: '#/compte' }], quick: ['Mon compte', 'Parler à un conseiller'] };
       const st = customer.idStatus || 'missing';
-      const msg = { verified: 'Votre pièce est vérifiée : vous pouvez commander.', pending: "Votre pièce est en cours de vérification (en général sous 24 h). Vous serez prévenu sur votre compte dès qu'elle sera validée.",
+      const msg = { verified: 'Votre pièce est vérifiée : vous pouvez commander.', pending: "Votre pièce est en cours de vérification (en général en 1 minute). Vous serez prévenu sur votre compte dès qu'elle sera validée.",
         rejected: `Votre pièce a été refusée${customer.idRejectReason ? ' : ' + customer.idRejectReason : ''}. Envoyez une nouvelle photo depuis votre compte.`, missing: "Vous n'avez pas encore envoyé votre pièce d'identité : ajoutez-la depuis votre compte." }[st];
       return { text: msg, links: [{ label: 'Mon compte', href: '#/compte' }], quick: ['Parler à un conseiller'] };
     }

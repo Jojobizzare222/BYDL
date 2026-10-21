@@ -48,7 +48,7 @@
     b.setAttribute('aria-label', 'Vos choix en matière de cookies');
     b.innerHTML = `
       <button type="button" class="skip" data-c="none">Continuer sans accepter</button>
-      <h2><svg class="ico" aria-hidden="true"><use href="/icons.svg?v=13#cookie"></use></svg>Vos choix en matière de cookies</h2>
+      <h2><svg class="ico" aria-hidden="true"><use href="/icons.svg?v=14#cookie"></use></svg>Vos choix en matière de cookies</h2>
       <p>Zado utilise des cookies indispensables au fonctionnement du site (panier, connexion à votre compte, commande en cours).
       Avec votre accord, nous pourrons aussi en utiliser pour mesurer l'audience et améliorer le site. Vous pouvez changer d'avis à tout moment
       via « Gérer les cookies » en bas de page. <a href="#/legal/confidentialite">Politique de confidentialité</a></p>

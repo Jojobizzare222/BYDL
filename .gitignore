@@ -22,3 +22,5 @@ Documents administratifs/
 
 # Fichiers produits par les tests
 tests/.run/
+# Clé de chiffrement des codes clients (Zado Pro → Clients → Afficher le code) : jamais sur GitHub
+data/code.key

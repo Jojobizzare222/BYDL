@@ -1,5 +1,7 @@
 // Comptes clients : identifiant = numéro de téléphone OU e-mail + code Zado à 6 chiffres attribué par le site.
-//  - le code n'est jamais stocké en clair (empreinte scrypt) ; il n'est montré qu'une fois, à la création ;
+//  - le code n'est jamais stocké en clair : empreinte scrypt pour la connexion + copie CHIFFRÉE (AES-256-GCM, `codeSealed`)
+//    que seul l'administrateur peut afficher dans Zado Pro (décision Joseph 21/10/2026 : voir et corriger le code des clients ;
+//    chaque affichage est inscrit au journal). Clé : CUSTOMER_CODE_KEY dans .env, sinon fichier code.key à côté de la base ;
 //  - le code seul ne suffit pas (900 000 possibilités) : il faut aussi le numéro ou l'e-mail ;
 //  - 5 essais ratés sur un compte => compte bloqué 15 minutes ; 20 essais ratés depuis une même adresse => 15 minutes.
 const crypto = require('crypto');
@@ -18,6 +20,35 @@ const sha256 = (s) => crypto.createHash('sha256').update(s).digest('hex');
 
 /** Code à 6 chiffres, de 100000 à 999999 (jamais de 0 en tête). */
 const newCode = () => String(crypto.randomInt(100000, 1000000));
+const validCode = (c) => /^[1-9]\d{5}$/.test(String(c || ''));
+
+// ---- Copie chiffrée du code (lisible par l'administrateur seulement) ----
+let codeKey = null;
+function key() {
+  if (codeKey) return codeKey;
+  const env = process.env.CUSTOMER_CODE_KEY;
+  if (env && /^[0-9a-f]{64}$/i.test(env)) return (codeKey = Buffer.from(env, 'hex'));
+  const file = require('path').join(require('path').dirname(require('../store').DB_FILE), 'code.key');
+  try { codeKey = Buffer.from(require('fs').readFileSync(file, 'utf8').trim(), 'hex'); } catch { /* pas encore de clé */ }
+  if (!codeKey || codeKey.length !== 32) { codeKey = crypto.randomBytes(32); require('fs').writeFileSync(file, codeKey.toString('hex'), { mode: 0o600 }); }
+  return codeKey;
+}
+function sealCode(code) {
+  const iv = crypto.randomBytes(12), c = crypto.createCipheriv('aes-256-gcm', key(), iv);
+  const enc = Buffer.concat([c.update(String(code), 'utf8'), c.final()]);
+  return `v1.${iv.toString('base64url')}.${c.getAuthTag().toString('base64url')}.${enc.toString('base64url')}`;
+}
+function openCode(sealed) {
+  const [v, iv, tag, enc] = String(sealed || '').split('.');
+  if (v !== 'v1' || !iv || !tag || !enc) return null;
+  try {
+    const d = crypto.createDecipheriv('aes-256-gcm', key(), Buffer.from(iv, 'base64url'));
+    d.setAuthTag(Buffer.from(tag, 'base64url'));
+    return Buffer.concat([d.update(Buffer.from(enc, 'base64url')), d.final()]).toString('utf8');
+  } catch { return null; } // clé changée : code illisible, l'admin en crée un nouveau
+}
+/** Champs à enregistrer pour un code : empreinte (connexion) + copie chiffrée (affichage admin). */
+const codeFields = (code) => ({ codeHash: hashCode(code), codeSealed: sealCode(code) });
 
 function hashCode(code) {
   const salt = crypto.randomBytes(16).toString('hex');
@@ -49,7 +80,7 @@ function findByIdentifier(identifier) {
 // Données renvoyées au navigateur (jamais l'empreinte du code)
 // Jamais l'empreinte du code ni le nom du fichier de la pièce d'identité
 // ni le résultat du contrôle automatique (réservé à l'admin)
-const publicCustomer = ({ codeHash, idPhoto, idCheckedBy, idAuto, idAutoAt, ...c }) => ({ ...c, idStatus: c.idStatus || 'missing' });
+const publicCustomer = ({ codeHash, codeSealed, idPhoto, idCheckedBy, idAuto, idAutoAt, ...c }) => ({ ...c, idStatus: c.idStatus || 'missing' });
 
 function readCookie(req) {
   const match = (req.get('Cookie') || '').match(new RegExp(`(?:^|;\\s*)${COOKIE}=([a-f0-9]{64})`));
@@ -108,10 +139,11 @@ function verifyLogin(req, identifier, code) {
   return { customer };
 }
 
-/** Nouveau code pour un compte (création ou « code oublié » via l'admin). Renvoie le code en clair, à montrer une seule fois. */
-function assignNewCode(customerId) {
-  const code = newCode();
-  customers.update(customerId, { codeHash: hashCode(code), codeChangedAt: new Date().toISOString() });
+/** Nouveau code pour un compte (« code oublié », changement par le client, correction par l'admin). Code choisi par l'admin possible. */
+function assignNewCode(customerId, chosen = null) {
+  const code = chosen != null ? String(chosen).trim() : newCode();
+  if (!validCode(code)) throw Object.assign(new Error('Le code doit avoir 6 chiffres et ne pas commencer par 0'), { status: 400 });
+  customers.update(customerId, { ...codeFields(code), codeChangedAt: new Date().toISOString() });
   db.prepare('DELETE FROM customer_sessions WHERE customer_id = ?').run(customerId); // déconnecte les anciens appareils
   failures.delete('acc:' + customerId);
   // Alerte de sécurité sur les téléphones du client (jamais le code lui-même)
@@ -122,6 +154,9 @@ function assignNewCode(customerId) {
 module.exports = {
   newCode,
   hashCode,
+  codeFields,
+  openCode,
+  validCode,
   normEmail,
   findByIdentifier,
   publicCustomer,

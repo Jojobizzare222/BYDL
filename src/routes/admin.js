@@ -505,16 +505,38 @@ router.get('/customers', requireRole(), (req, res) => {
   const all = orders.all();
   const list = customers
     .all()
-    .map((c) => ({ ...customerAuth.publicCustomer(c), idCheckedBy: c.idCheckedBy || null, hasIdPhoto: Boolean(c.idPhoto), idAuto: c.idAuto || null, idAutoAt: c.idAutoAt || null, idIsPdf: /\.pdf$/.test(c.idPhoto || ''), orders: all.filter((o) => o.customerId === c.id).length }))
+    .map((c) => ({ ...customerAuth.publicCustomer(c), idCheckedBy: c.idCheckedBy || null, hasIdPhoto: Boolean(c.idPhoto), hasCode: Boolean(c.codeSealed), idAuto: c.idAuto || null, idAutoAt: c.idAutoAt || null, idIsPdf: /\.pdf$/.test(c.idPhoto || ''), orders: all.filter((o) => o.customerId === c.id).length }))
     .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
   res.json(list);
 });
 
+// Client absent. Sur la démo Vercel, plusieurs copies du serveur tournent, chacune avec SA base temporaire :
+// un compte créé sur une copie n'existe pas sur les autres (et disparaît quand la copie redémarre). La vraie boutique n'a qu'une base.
+const CUSTOMER_404 = () => (config.demo
+  ? 'Client introuvable sur cette copie de la démo : la démo en ligne fonctionne avec plusieurs copies temporaires qui ne partagent pas leurs comptes clients. Rechargez la page Clients ; si le client n\'y est plus, recréez le compte puis validez-le aussitôt. Ce problème n\'existe pas sur la vraie boutique.'
+  : 'Client introuvable (compte supprimé ou lien périmé) : rechargez la liste des clients.');
+
 // « Code oublié » : un nouveau code est généré et montré UNE fois à l'admin, qui le transmet au client (WhatsApp, appel…).
+// Corriger le code : code choisi par l'admin (6 chiffres) ou tiré au hasard. Les appareils du client sont déconnectés.
 router.post('/customers/:id/new-code', requireRole(), (req, res) => {
   const customer = customers.get(req.params.id);
-  if (!customer) return res.status(404).json({ error: 'Client introuvable' });
-  res.json({ code: customerAuth.assignNewCode(customer.id) });
+  if (!customer) return res.status(404).json({ error: CUSTOMER_404() });
+  const chosen = req.body?.code ? String(req.body.code).replace(/\s/g, '') : null;
+  try {
+    const code = customerAuth.assignNewCode(customer.id, chosen);
+    log(req, 'Code client modifié', { id: customer.id, name: customer.name }, chosen ? 'code choisi par l\'administrateur' : 'nouveau code tiré au hasard');
+    res.json({ code });
+  } catch (err) { res.status(err.status || 500).json({ error: err.status ? err.message : 'Impossible de changer le code' }); }
+});
+// Afficher le code actuel d'un client (administrateur seulement ; chaque affichage est inscrit au journal)
+router.get('/customers/:id/code', requireRole(), (req, res) => {
+  const customer = customers.get(req.params.id);
+  if (!customer) return res.status(404).json({ error: CUSTOMER_404() });
+  const code = customerAuth.openCode(customer.codeSealed);
+  res.set('Cache-Control', 'no-store');
+  if (!code) return res.json({ code: null, reason: 'Code créé avant le 21/10/2026 (non conservé) : créez-en un nouveau pour le connaître.' });
+  log(req, 'Code client affiché', { id: customer.id, name: customer.name });
+  res.json({ code });
 });
 
 // ---------- Pièces d'identité des clients (admin seulement) ----------
@@ -537,7 +559,7 @@ router.post('/customers/:id/identity-check', requireRole(), async (req, res) => 
 // Décision : « verify » (le client peut commander) ou « reject » (motif montré au client, qui renvoie une photo)
 router.post('/customers/:id/identity', requireRole(), (req, res) => {
   const customer = customers.get(req.params.id);
-  if (!customer) return res.status(404).json({ error: 'Client introuvable' });
+  if (!customer) return res.status(404).json({ error: CUSTOMER_404() });
   if (!customer.idPhoto) return res.status(400).json({ error: "Ce client n'a pas encore envoyé de pièce" });
   const decision = req.body?.decision;
   const reason = String(req.body?.reason || '').trim().slice(0, 200);

@@ -55,7 +55,7 @@ router.post('/register', async (req, res) => {
     name: cleanName,
     phone: p || null,
     email: e || null,
-    codeHash: auth.hashCode(code),
+    ...auth.codeFields(code),
     ...id.fields,
     createdAt: new Date().toISOString(),
   });

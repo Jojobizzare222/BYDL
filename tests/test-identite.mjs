@@ -35,6 +35,7 @@ await call(A,'/admin/customers/'+id+'/identity',{body:{decision:'reject',reason:
 const me=(await call(C,'/account/me')).data.customer;
 ok(me.idStatus==='rejected' && me.idRejectReason==='Photo floue','client : voit le refus et son motif');
 const re=await call(C,'/account/identity',{body:{idType:'passeport',idPhoto:photo}});
+for(let i=0;i<20&&fs.readdirSync(IDD).length!==1;i++)await new Promise(r=>setTimeout(r,50)); // l'ancienne photo est effacée juste après la réponse
 ok(re.status===200 && re.data.customer.idStatus==='pending' && fs.readdirSync(IDD).length===1,'nouvelle photo envoyée, l\'ancienne supprimée');
 const st=(await call(A,'/admin/stats?days=30')).data;
 ok(st.todo.idToCheck===1,'tableau de bord : 1 pièce à vérifier');

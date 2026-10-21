@@ -56,7 +56,7 @@
   addEventListener('resize', markScrollers);
   new MutationObserver(() => requestAnimationFrame(markScrollers)).observe(document.getElementById('app'), { childList: true });
   // ---------- Outils d'affichage ----------
-  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=13#${name}"></use></svg>`;
+  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=14#${name}"></use></svg>`;
   // En-tête de page façon « Espace pro › Commandes » + titre + description + boutons d'action à droite
   const pageHead = ({ crumb, title, desc = '', actions = '' }) => `
     <div class="page-head">
@@ -962,19 +962,49 @@
   }
 
   // « Code oublié » : génère un nouveau code et l'affiche une seule fois, à transmettre au client.
-  async function newCode(account, box) {
-    if (!confirm(`Créer un nouveau code pour ${account.name} ?\n\nL'ancien code ne marchera plus.`)) return;
+  // Code Zado d'un client : afficher (administrateur, inscrit au journal) et modifier (code choisi ou tiré au hasard).
+  const fmtCode = (c) => `${c.slice(0, 3)} ${c.slice(3)}`;
+  async function showCode(account, btn) {
+    const cell = btn.parentElement.querySelector('[data-codeval]');
+    if (cell.dataset.shown) { cell.innerHTML = '<b class="cc-mask">••• •••</b>'; delete cell.dataset.shown; btn.innerHTML = icon('eye'); return; }
     try {
-      const { code } = await api('/customers/' + enc(account.id) + '/new-code', { method: 'POST' });
-      const who = account.phone || account.email;
-      const msg = `Bonjour ${account.name}, voici votre nouveau code Zado : ${code}. Connectez-vous avec ${who} et ce code.`;
-      box.innerHTML = `
-        <div class="alert ok">Nouveau code : <strong style="font-size:1.3rem;letter-spacing:.15em">${code.slice(0, 3)} ${code.slice(3)}</strong><br>
-        Transmettez-le au client. Il ne sera plus affiché.</div>
-        ${account.phone ? `<a class="btn green" target="_blank" rel="noopener" href="https://wa.me/242${esc(account.phone)}?text=${enc(msg)}">Envoyer par WhatsApp</a>` : ''}`;
-    } catch (err) {
-      toast('❌ ' + err.message);
-    }
+      const r = await api('/customers/' + enc(account.id) + '/code');
+      if (!r.code) { toast(r.reason || 'Code non disponible'); return; }
+      cell.innerHTML = `<b class="cc-val">${fmtCode(r.code)}</b>`; cell.dataset.shown = '1'; btn.innerHTML = icon('eye-slash');
+      setTimeout(() => { if (cell.dataset.shown) btn.click(); }, 30000); // masqué de nouveau après 30 s
+    } catch (err) { toast(err.message); }
+  }
+  async function newCode(account, box) {
+    const who = account.phone || account.email;
+    const rnd = () => String(100000 + Math.floor(Math.random() * 900000));
+    box.innerHTML = `
+      <form class="panel code-edit" id="codeForm" novalidate>
+        <h2>${icon('pencil-simple')} Modifier le code de ${esc(account.name)}</h2>
+        <p class="muted">Le client se connecte avec <strong>${esc(who || '—')}</strong> + ce code. L'ancien code ne marchera plus et ses appareils seront déconnectés ; il reçoit une alerte de sécurité.</p>
+        <label for="codeNew">Nouveau code (6 chiffres, pas de 0 au début)</label>
+        <div class="code-row"><input id="codeNew" type="text" inputmode="numeric" maxlength="7" autocomplete="off" placeholder="Ex. 482 913">
+          <button type="button" class="ghost" id="codeRnd">${icon('shuffle')} Au hasard</button></div>
+        <div id="codeErr"></div>
+        <div class="code-row"><button class="btn" id="codeSave">Enregistrer le code</button><button type="button" class="ghost" id="codeCancel">Annuler</button></div>
+      </form>`;
+    box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    $('#codeRnd').addEventListener('click', () => { $('#codeNew').value = fmtCode(rnd()); });
+    $('#codeCancel').addEventListener('click', () => { box.innerHTML = ''; });
+    $('#codeForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const v = $('#codeNew').value.replace(/\s/g, '');
+      if (!/^[1-9]\d{5}$/.test(v)) { $('#codeErr').innerHTML = '<div class="alert err">Le code doit avoir 6 chiffres et ne pas commencer par 0.</div>'; return; }
+      if (!confirm(`Remplacer le code de ${account.name} par ${fmtCode(v)} ?`)) return;
+      try {
+        const { code } = await api('/customers/' + enc(account.id) + '/new-code', { method: 'POST', body: { code: v } });
+        const msg = `Bonjour ${account.name}, voici votre nouveau code Zado : ${code}. Connectez-vous avec ${who} et ce code.`;
+        box.innerHTML = `
+          <div class="alert ok">Code de ${esc(account.name)} modifié : <strong style="font-size:1.3rem;letter-spacing:.15em">${fmtCode(code)}</strong><br>
+          Vous pourrez le revoir à tout moment avec ${icon('eye')} dans la liste.</div>
+          ${account.phone ? `<a class="btn green" target="_blank" rel="noopener" href="https://wa.me/242${esc(account.phone)}?text=${enc(msg)}">Envoyer par WhatsApp</a>` : ''}`;
+        toast('Code modifié ✓');
+      } catch (err) { $('#codeErr').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; }
+    });
   }
 
   // ---------- Agences ----------
@@ -1758,7 +1788,7 @@
     const f = state.custFilter || (list.some((c) => c.idStatus === 'pending') ? 'pending' : 'all');
     const TABS = [['pending', 'À vérifier'], ['verified', 'Vérifiés'], ['other', 'Refusés / sans pièce'], ['all', 'Tous']];
     const match = (c, k) => k === 'all' || c.idStatus === k || (k === 'other' && ['missing', 'rejected'].includes(c.idStatus));
-    app.innerHTML = pageHead({ title: 'Clients', desc: "Un compte client ne peut commander qu'après vérification de sa pièce d'identité. Comparez la photo avec le nom du compte, puis validez ou refusez (le motif est montré au client). Code oublié : « Nouveau code », puis envoyez-le par WhatsApp.", actions: exportBtn('customers') })
+    app.innerHTML = pageHead({ title: 'Clients', desc: "Un compte client ne peut commander qu'après vérification de sa pièce d'identité. Comparez la photo avec le nom du compte, puis validez ou refusez (le motif est montré au client). Le code Zado de chaque client se voit avec l'œil (chaque affichage est inscrit au journal) et se corrige avec « Modifier », puis s'envoie par WhatsApp.", actions: exportBtn('customers') })
       + tabsBar(TABS.map(([k, l]) => [k, l, list.filter((c) => match(c, k)).length]), f, 'cf')
       + '<div id="idBox"></div><div id="codeBox"></div><div id="tbl"></div>';
     app.querySelectorAll('[data-cf]').forEach((b) => b.addEventListener('click', () => { state.custFilter = b.dataset.cf; viewCustomers(); }));
@@ -1770,14 +1800,17 @@
         { key: 'phone', label: 'Téléphone', render: (c) => esc(c.phone || '—') },
         { key: 'email', label: 'E-mail', render: (c) => esc(c.email || '—') },
         { key: 'idStatus', label: 'Identité', render: (c) => `<span class="tag ${ID_ST[c.idStatus]?.[1] || ''}">${esc(ID_ST[c.idStatus]?.[0] || c.idStatus)}</span>${c.idType ? `<br><span class="muted">${esc(ID_TYPES[c.idType] || '')}${c.idIsPdf ? ' · PDF' : ''}</span>` : ''}${c.idStatus === 'pending' && c.idAuto ? `<br><span class="tag ${c.idAuto.read && !(c.idAuto.flags || []).length ? 'ok' : 'warn'}">${c.idAuto.read && !(c.idAuto.flags || []).length ? 'Lecture : tout concorde' : 'Lecture : à regarder'}</span>` : ''}` },
+        { key: 'code', label: 'Code Zado', sortable: false, render: (c) => `<span class="cust-code" data-codeval="${esc(c.id)}">${c.hasCode ? '<b class="cc-mask">••• •••</b>' : '<span class="muted">non conservé</span>'}</span>${c.hasCode ? `<button class="ghost small" data-showcode="${esc(c.id)}" title="Afficher le code (inscrit au journal)">${icon('eye')}</button>` : ''}<button class="ghost small" data-code="${esc(c.id)}" title="Modifier le code">${icon('pencil-simple')} Modifier</button>` },
         { key: 'orders', label: 'Commandes', cls: 'num' },
         { key: 'createdAt', label: 'Inscrit le', render: (c) => date(c.createdAt).split(' ')[0] },
-        { key: 'act', label: '', sortable: false, render: (c) => `<div class="cell-actions">${c.hasIdPhoto ? `<button class="${c.idStatus === 'pending' ? 'btn small' : 'ghost'}" data-idc="${esc(c.id)}">${icon('identification-card')} ${c.idStatus === 'pending' ? 'Vérifier' : 'Voir la pièce'}</button>` : ''}<button class="ghost" data-code="${esc(c.id)}">${icon('key-bold')} Nouveau code</button></div>` },
+        { key: 'act', label: '', sortable: false, render: (c) => `<div class="cell-actions">${c.hasIdPhoto ? `<button class="${c.idStatus === 'pending' ? 'btn small' : 'ghost'}" data-idc="${esc(c.id)}">${icon('identification-card')} ${c.idStatus === 'pending' ? 'Vérifier' : 'Voir la pièce'}</button>` : ''}</div>` },
       ],
     });
     $('#tbl').addEventListener('click', (e) => {
       const idb = e.target.closest('[data-idc]');
       if (idb) return idReview(list.find((x) => x.id === idb.dataset.idc));
+      const sc = e.target.closest('[data-showcode]');
+      if (sc) return showCode(list.find((x) => x.id === sc.dataset.showcode), sc);
       const b = e.target.closest('[data-code]');
       if (b) newCode(list.find((x) => x.id === b.dataset.code), $('#codeBox'));
     });
@@ -2708,7 +2741,7 @@
     $('#userName').textContent = u.name;
     $('#userRole').textContent = u.company || ROLE_LABELS[u.role] || u.role;
     const m = window.kamwaTheme?.mode() || 'light';
-    $('#themeTopIco').setAttribute('href', `/icons.svg?v=13#${m === 'dark' ? 'moon' : m === 'auto' ? 'circle-half' : 'sun'}`);
+    $('#themeTopIco').setAttribute('href', `/icons.svg?v=14#${m === 'dark' ? 'moon' : m === 'auto' ? 'circle-half' : 'sun'}`);
     $('#themeTop').title = `Apparence : ${m === 'dark' ? 'sombre' : m === 'auto' ? 'automatique' : 'claire'} (cliquer pour changer)`;
     const todo = $('#todoCount'); const chat = $('#chatCount');
     const n = (todo && !todo.hidden ? parseInt(todo.textContent, 10) || 0 : 0) + (chat && !chat.hidden ? parseInt(chat.textContent, 10) || 0 : 0);

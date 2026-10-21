@@ -9,7 +9,7 @@
   // Univers et catégories affichés dans le menu : fournis par le serveur (src/catalog.js), même liste que l'admin
   let UNIVERSES = [];
   // Icônes Phosphor (fichier /icons.svg, récupérées via Iconify)
-  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=13#${name}"></use></svg>`;
+  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=14#${name}"></use></svg>`;
   const ICONS = { 'Téléphones': 'device-mobile-duotone', 'Tablettes': 'device-tablet-duotone', 'Ordinateurs': 'laptop-duotone', 'Montres': 'watch-duotone', 'Audio': 'headphones-duotone', 'TV & Maison': 'television-duotone', 'Jeux vidéo & consoles': 'game-controller-duotone', 'Composants': 'cpu-duotone', 'Accessoires': 'plug-duotone' };
   const catIcon = (cat, cls = '') => icon(ICONS[cat] || 'shopping-bag-duotone', cls);
   // Vignettes sans photo : une des trois teintes de la charte, selon la catégorie
@@ -186,7 +186,80 @@
     $('#accountHello').innerHTML = first ? `Mbote ${esc(first)} !${verifiedBadge(state.customer)}` : 'Mon espace';
     $('#accountLabel').textContent = first ? 'Mon compte' : 'Se connecter';
     $('#menuHello').innerHTML = first ? `Mbote ${esc(first)} !${verifiedBadge(state.customer)}` : 'Mon espace Zado';
+    try { idWatch(); } catch {}
   }
+  // ---------- Vérification de la pièce d'identité : compte à rebours fixe + animation « vérifiée » (demande Joseph 21/10/2026) ----------
+  // Tant que la pièce est en attente, une pastille reste à l'écran sur TOUTES les pages : décompte d'une minute à partir de l'envoi
+  // (heure du serveur : idSubmittedAt, donc le même après un changement de page ou un rechargement). Après la minute : « encore un instant ».
+  // Dès que Zado valide (signal instantané du serveur + vérification toutes les 5 s en secours), l'animation « Identité vérifiée » se joue une fois.
+  const ID_WAIT_S = 60;
+  const ID_KEY = 'kamwa-id-state';
+  let idTick = null, idPoll = null;
+  function idWatch() {
+    const c = state.customer;
+    let prev = null; try { prev = JSON.parse(localStorage.getItem(ID_KEY) || 'null'); } catch {}
+    if (!c) { idTimerHide(); return; }
+    const st = c.idStatus || 'missing';
+    if (prev && prev.id === c.id && prev.st === 'pending' && st === 'verified') idVerifiedShow(c);
+    else if (prev && prev.id === c.id && prev.st === 'pending' && st === 'rejected') toast('Votre pièce d\'identité a été refusée : voyez pourquoi dans Mon compte.', { label: 'Voir', run: () => { location.hash = '#/compte'; } });
+    if (!prev || prev.id !== c.id || prev.st !== st) try { localStorage.setItem(ID_KEY, JSON.stringify({ id: c.id, st })); } catch {}
+    if (st === 'pending') idTimerShow(c); else idTimerHide();
+  }
+  function idTimerShow(c) {
+    let el = document.getElementById('idTimer');
+    if (!el) {
+      el = document.createElement('a'); el.id = 'idTimer'; el.className = 'id-timer'; el.href = '#/compte';
+      el.setAttribute('role', 'status'); el.setAttribute('aria-live', 'polite');
+      el.innerHTML = `<span class="idt-ring"><svg viewBox="0 0 44 44" aria-hidden="true"><circle class="idt-bg" cx="22" cy="22" r="19"/><circle class="idt-fg" cx="22" cy="22" r="19"/></svg><b class="idt-s"></b></span>
+        <span class="idt-txt"><strong>Vérification de votre pièce</strong><small class="idt-sub"></small></span>`;
+      document.body.appendChild(el);
+      requestAnimationFrame(() => el.classList.add('show'));
+    }
+    const start = Date.parse(c.idSubmittedAt || '') || Date.now();
+    const draw = () => {
+      const left = Math.max(0, Math.ceil(ID_WAIT_S - (Date.now() - start) / 1000));
+      const fg = el.querySelector('.idt-fg'), C = 2 * Math.PI * 19;
+      fg.style.strokeDasharray = C; fg.style.strokeDashoffset = String(C * (left / ID_WAIT_S));
+      el.classList.toggle('late', left === 0);
+      el.querySelector('.idt-s').textContent = left ? String(left) : '';
+      el.querySelector('.idt-sub').textContent = left ? `Validation dans environ ${left} s` : 'Encore un instant, Zado termine la vérification…';
+    };
+    draw();
+    if (!idTick) idTick = setInterval(() => { if (state.customer?.idStatus === 'pending') draw(); }, 1000);
+    if (!idPoll) idPoll = setInterval(() => { if (!document.hidden && state.customer?.idStatus === 'pending') refreshCustomer(); }, 5000);
+  }
+  function idTimerHide() {
+    clearInterval(idTick); clearInterval(idPoll); idTick = idPoll = null;
+    const el = document.getElementById('idTimer');
+    if (el) { el.classList.remove('show'); setTimeout(() => el.remove(), 300); }
+  }
+  function idVerifiedShow(c) {
+    if (document.getElementById('idVerified')) return;
+    const hasCart = Object.keys(state.cart || {}).length > 0;
+    const first = (c.name || '').split(' ')[0];
+    const ov = document.createElement('div');
+    ov.id = 'idVerified'; ov.className = 'idv'; ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-modal', 'true'); ov.setAttribute('aria-labelledby', 'idvTitle');
+    ov.innerHTML = `<div class="idv-card">
+      <div class="idv-seal" aria-hidden="true">
+        ${Array.from({ length: 12 }, (_, i) => `<i style="--a:${i * 30}deg;--d:${(i % 3) * 60}ms"></i>`).join('')}
+        <svg viewBox="0 0 120 120"><circle class="idv-c" cx="60" cy="60" r="50"/><path class="idv-k" d="M38 62 l15 15 l30 -32"/></svg>
+      </div>
+      <h2 id="idvTitle">Identité vérifiée${first ? `, ${esc(first)}` : ''} !</h2>
+      <p>Zado a validé votre pièce d'identité. Vous pouvez commander dès maintenant${hasCart ? ' : votre panier vous attend' : ''}.</p>
+      <div class="idv-actions">
+        <a class="btn cta" href="${hasCart ? '#/commande' : '#/'}" data-close>${hasCart ? 'Passer ma commande' : 'Découvrir la boutique'}</a>
+        <button type="button" class="btn ghost" data-close>Fermer</button>
+      </div></div>`;
+    document.body.appendChild(ov);
+    const close = () => { ov.classList.remove('show'); setTimeout(() => ov.remove(), 250); document.removeEventListener('keydown', onKey); };
+    const onKey = (e) => { if (e.key === 'Escape') close(); };
+    ov.addEventListener('click', (e) => { if (e.target === ov || e.target.closest('[data-close]')) close(); });
+    document.addEventListener('keydown', onKey);
+    requestAnimationFrame(() => { ov.classList.add('show'); ov.querySelector('[data-close]')?.focus({ preventScroll: true }); });
+    try { navigator.vibrate?.([30, 60, 30]); } catch {}
+  }
+  window.kamwaIdDemo = () => idVerifiedShow(state.customer || { name: '' }); // aperçu de l'animation (console du navigateur)
+
   async function refreshCustomer() {
     try {
       const me = await api('/account/me'); state.customer = me.loggedIn ? me.customer : null;
@@ -510,8 +583,8 @@
     const c = state.customer;
     if (c && c.idStatus === 'verified') return '';
     const msg = !c
-      ? `<b>Première commande ?</b> Créez votre compte Zado avec la photo de votre pièce d'identité : nous la vérifions (en général sous 24 h), puis vous commandez. <a href="#/compte/creer">Créer mon compte</a> · <a href="#/compte">Me connecter</a>`
-      : c.idStatus === 'pending' ? `<b>Votre pièce d'identité est en cours de vérification.</b> Vous pourrez commander dès sa validation (en général sous 24 h). Votre panier est gardé.`
+      ? `<b>Première commande ?</b> Créez votre compte Zado avec la photo de votre pièce d'identité : nous la vérifions (en général en 1 minute), puis vous commandez. <a href="#/compte/creer">Créer mon compte</a> · <a href="#/compte">Me connecter</a>`
+      : c.idStatus === 'pending' ? `<b>Votre pièce d'identité est en cours de vérification.</b> Vous pourrez commander dès sa validation (en général en 1 minute). Votre panier est gardé.`
       : `<b>Pièce d'identité à envoyer</b> pour pouvoir commander. <a href="#/compte">Envoyer ma pièce</a>`;
     return `<div class="acct-hint ${where}">${icon('identification-card')}<span>${msg}</span></div>`;
   }
@@ -1131,7 +1204,7 @@
               <a class="btn cta block" href="#/compte/creer">Créer mon compte</a>
               <a class="btn ghost block" href="#/compte" style="margin-top:10px">J'ai déjà un compte : me connecter</a>`
             : st === 'pending' ? `<h1>Votre identité est en cours de vérification</h1>
-              <p class="hint">Zado vérifie votre pièce d'identité (en général sous 24 h). Vous pourrez commander dès qu'elle sera validée : votre panier vous attend.</p>
+              <p class="hint">Zado vérifie votre pièce d'identité (en général en 1 minute). Vous pourrez commander dès qu'elle sera validée : votre panier vous attend.</p>
               <a class="btn ghost block" href="#/compte">Voir mon compte</a>`
             : `<h1>Pièce d'identité ${st === 'rejected' ? 'refusée' : 'manquante'}</h1>
               <p class="hint">${st === 'rejected' && c.idRejectReason ? `Motif : ${esc(c.idRejectReason)}. ` : ''}Envoyez la photo de votre pièce d'identité depuis votre compte pour pouvoir commander.</p>
@@ -1701,7 +1774,7 @@
   function idStatusPanel(c) {
     const st = c.idStatus || 'missing';
     if (st === 'verified') return `<div class="alert ok id-status">${icon('seal-check-duotone')} <span><strong>Identité vérifiée</strong> — vous pouvez commander.</span></div>`;
-    if (st === 'pending') return `<div class="alert warn id-status">${icon('clock-countdown-duotone')} <span><strong>Pièce d'identité en cours de vérification.</strong> Vous pourrez commander dès sa validation par Zado (en général sous 24 h). Votre panier vous attend.</span></div>`;
+    if (st === 'pending') return `<div class="alert warn id-status">${icon('clock-countdown-duotone')} <span><strong>Pièce d'identité en cours de vérification.</strong> Vous pourrez commander dès sa validation par Zado (en général en 1 minute). Votre panier vous attend.</span></div>`;
     return `<form class="panel" id="idForm" novalidate>
       ${st === 'rejected' ? `<div class="alert err"><strong>Votre pièce a été refusée</strong>${c.idRejectReason ? ` : ${esc(c.idRejectReason)}` : ''}. Envoyez une nouvelle photo.</div>`
         : `<div class="alert warn">Pour commander, ajoutez la photo de votre pièce d'identité.</div>`}
@@ -1921,7 +1994,7 @@
             <div class="alert err" style="text-align:left"><strong>Notez-le bien</strong> (ou faites une capture d'écran) : il ne sera plus affiché.<br>
             Pour vous connecter : <strong>${esc(who)}</strong> + ce code.</div>
             ${res.claimed ? `<p class="hint">${res.claimed} commande(s) de ce téléphone ajoutée(s) à votre compte.</p>` : ''}
-            <div class="alert warn" style="text-align:left">${icon('clock-countdown-duotone')} Votre pièce d'identité est <strong>en cours de vérification</strong>. Vous pourrez commander dès sa validation par Zado (en général sous 24 h).</div>
+            <div class="alert warn" style="text-align:left">${icon('clock-countdown-duotone')} Votre pièce d'identité est <strong>en cours de vérification</strong>. Vous pourrez commander dès sa validation par Zado (en général en 1 minute).</div>
             <a class="btn cta block" href="#/compte" style="margin-top:14px">J'ai noté mon code</a>
           </div>`;
       } catch (err) {

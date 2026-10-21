@@ -798,3 +798,11 @@ html[data-theme="light"] .alert.info { background: #E0F5F7; color: #0E6E7A; }
 html[data-theme="light"] .maint-bar { background: #FDEEEC; color: #B3261E; }
 .maint-panel.on { border-color: var(--err); box-shadow: 0 0 0 2px rgba(255,107,107,.18); }
 @media (max-width: 900px) { .maint-bar { margin: 10px 14px 0; } }
+/* Code Zado des clients (21/10/2026) */
+.cust-code { display: inline-block; min-width: 64px; font-variant-numeric: tabular-nums; letter-spacing: .08em; margin-right: 4px; }
+.cust-code .cc-mask { color: var(--muted); }
+.cust-code .cc-val { color: var(--brand); font-size: 1.02rem; }
+.code-edit { max-width: 560px; }
+.code-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 8px; }
+.code-row input { flex: 1; min-width: 160px; font-size: 1.15rem; letter-spacing: .12em; font-variant-numeric: tabular-nums; }
+.ghost.small { min-height: 30px; padding: 4px 10px; font-size: .8rem; }
