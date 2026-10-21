@@ -2584,7 +2584,7 @@
 
   // ---------- Rail des modules + onglets du module (structure ERP : menu à gauche, pages du module en haut) ----------
   const MODULE_ICONS = { 'Ventes': 'receipt-duotone', 'Catalogue': 'package-duotone', 'Livraison': 'truck-duotone', 'Gestion': 'wallet-duotone', 'Équipe': 'users-three-duotone' };
-  const ROLE_LABELS = { admin: 'Administrateur', catalog: 'Catalogue', orders: 'Commandes', supplier: 'Fournisseur', courier: 'Livreur' };
+  const ROLE_LABELS = { admin: 'Administrateur', catalog: 'Responsable catalogue', orders: 'Commandes', courier: 'Livreur' };
   const linkInfo = (a) => {
     const c = a.cloneNode(true); c.querySelectorAll('.count').forEach((x) => x.remove());
     const use = a.querySelector('use'); const cnt = a.querySelector('.count');
