@@ -1626,12 +1626,21 @@
     return `<div class="panel">
       <h2>${icon('package')} Colis</h2>
       ${list.length ? `<ul class="doc-list">${list.map((p) => `<li><span><a href="#/colis/${enc(p.number)}"><strong class="mono">${esc(p.number)}</strong></a> ${pclTag(p.stage)}<br><span class="muted">Colis ${p.index}/${list.length} · ${esc(p.place?.name || '')} · depuis ${since(p.stageAt)}</span></span>
-        <div class="cell-actions"><a class="ghost" href="#/colis/${enc(p.number)}">Ouvrir</a></div></li>`).join('')}</ul>` : '<p class="muted" style="margin:0">Aucun colis pour le moment.</p>'}
+        <div class="cell-actions"><a class="ghost" href="#/colis/${enc(p.number)}">Ouvrir</a>${list.length > 1 && ['preparing', 'ready'].includes(p.stage) ? `<button class="ghost" data-pcl-del="${esc(p.id)}" data-num="${esc(p.number)}" title="Retirer ce colis ajouté par erreur">${icon('trash-bold')} Retirer</button>` : ''}</div></li>`).join('')}</ul>` : '<p class="muted" style="margin:0">Aucun colis pour le moment.</p>'}
       <div class="row" style="gap:8px;margin-top:10px;flex-wrap:wrap">
         ${list.length ? `<a class="btn" target="_blank" rel="noopener" href="${labelsUrl('order=' + enc(o.id))}">${icon('download-simple-bold')} Imprimer ${list.length > 1 ? 'les étiquettes' : "l'étiquette"}</a>` : ''}
         ${ready ? `<button class="ghost" data-pcl-add="${esc(o.id)}">${icon('plus-bold')} ${list.length ? 'Ajouter un colis (plusieurs cartons)' : 'Créer le colis'}</button>` : ''}
       </div></div>`;
   }
+  // Retirer un colis en trop (ajouté par erreur) : les autres sont renumérotés, étiquettes à réimprimer
+  app.addEventListener('click', async (e) => {
+    const b = e.target.closest('[data-pcl-del]');
+    if (!b) return;
+    if (!confirm(`Retirer le colis ${b.dataset.num} ? Les autres colis seront renumérotés : réimprimez leurs étiquettes.`)) return;
+    b.disabled = true;
+    try { await api(`/parcels/${enc(b.dataset.pclDel)}`, { method: 'DELETE' }); toast(`Colis ${b.dataset.num} retiré ✓`); await loadOrders(); route({ keep: true }); }
+    catch (err) { alert(err.message); b.disabled = false; }
+  });
   app.addEventListener('click', async (e) => {
     const b = e.target.closest('[data-pcl-add]');
     if (!b) return;

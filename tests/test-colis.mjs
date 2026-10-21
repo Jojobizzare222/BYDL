@@ -81,6 +81,24 @@ ok((await adminOrder(o3.id)).parcels[0].stage === 'returned', 'commande annulée
 // 4) Étiquettes, droits, liste
 const lab = await call(A, `/admin/parcels/labels?order=${o2.id}`);
 ok(lab.status === 200 && lab.data.includes('<svg') && lab.data.includes(p1.number) && lab.data.includes(p2.number) && lab.data.includes('LIVRAISON À DOMICILE'), 'étiquettes : QR + numéros + destination');
+// 4) Colis ajouté par erreur : on peut le retirer (jamais le dernier, jamais un colis déjà parti)
+const o4 = await order('delivery');
+await call(A, `/admin/orders/${o4.id}/cash-received`, { body: {} });
+await sleep(120);
+await call(A, `/admin/parcels/order/${o4.id}`, { body: {} });
+const three = (await call(A, `/admin/parcels/order/${o4.id}`, { body: {} })).data.parcels;
+ok(three.length === 3, '3 colis sur la commande');
+ok((await call(cat.J, `/admin/parcels/${three[1].id}`, { method: 'DELETE' })).status === 403, 'catalogue : ne peut pas retirer un colis');
+const del = await call(A, `/admin/parcels/${three[1].id}`, { method: 'DELETE' });
+ok(del.status === 200 && del.data.parcels.length === 2 && del.data.parcels.map((x) => x.index).join() === '1,2' && del.data.parcels[1].id === three[2].id && del.data.parcels[1].count === 2, 'colis du milieu retiré : il en reste 2, renumérotés 1/2 et 2/2');
+ok((await call(A, '/admin/parcels/lookup?code=' + three[1].number)).status === 404, 'le colis retiré n\'existe plus');
+await call(A, `/admin/parcels/${three[0].id}/action`, { body: { action: 'to_courier', courierId: cour.id } });
+const gone = await call(A, `/admin/parcels/${three[0].id}`, { method: 'DELETE' });
+ok(gone.status === 400 && /Chez le livreur/.test(gone.data.error), 'colis déjà chez le livreur : retrait refusé');
+ok((await call(A, `/admin/parcels/${three[2].id}`, { method: 'DELETE' })).status === 200, 'colis en trop encore à l\'entrepôt : retiré');
+const last = await call(A, `/admin/parcels/${three[0].id}`, { method: 'DELETE' });
+ok(last.status === 400 && /au moins un/.test(last.data.error), 'dernier colis de la commande : retrait refusé');
+ok((await call(A, '/admin/activity')).data.some((x) => x.action === 'Colis retiré'), 'retrait noté dans le journal');
 const lab1 = await call(A, `/admin/parcels/labels?ids=${c1.id}`);
 ok(lab1.data.includes('RETRAIT AU POINT RELAIS') && lab1.data.includes('Relais Tié-Tié'), 'étiquette retrait : point relais');
 ok((await call(cat.J, '/admin/parcels')).status === 403 && (await call(cour.J, `/admin/parcels/labels?order=${o2.id}`)).status === 403, 'catalogue : pas d\'accès ; livreur : pas d\'impression d\'étiquettes');

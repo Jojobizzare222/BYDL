@@ -67,6 +67,16 @@ function create(o, { stage = 'preparing', by = null } = {}) {
   });
 }
 
+/** Retire un colis ajouté par erreur (colis en trop). Les colis suivants sont renumérotés (2/3 → 1/2). */
+const REMOVABLE = ['preparing', 'ready'];
+function removeParcel(p) {
+  return transaction(() => {
+    parcels.remove(p.id);
+    forOrder(p.orderId).forEach((x, i) => { if (x.index !== i + 1) parcels.update(x.id, { index: i + 1 }); });
+    return forOrder(p.orderId);
+  });
+}
+
 /** Met les colis d'une commande à jour selon la commande (idempotent). */
 function sync(orderOrId) {
   const o = typeof orderOrId === 'string' ? orders.get(orderOrId) : orderOrId;
@@ -205,4 +215,4 @@ ${list.map(one).join('')}
 </body></html>`;
 }
 
-module.exports = { STAGES, OPEN, eligible, isPickup, forOrder, findByCode, move, create, sync, syncAll, watchOrders, clientParcels, labels, relayPlace, courierPlace, WAREHOUSE, scanUrl, qrSvg };
+module.exports = { STAGES, OPEN, eligible, isPickup, forOrder, findByCode, move, create, removeParcel, REMOVABLE, sync, syncAll, watchOrders, clientParcels, labels, relayPlace, courierPlace, WAREHOUSE, scanUrl, qrSvg };

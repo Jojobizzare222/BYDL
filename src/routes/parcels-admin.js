@@ -143,6 +143,19 @@ router.post('/order/:orderId', requireRole('orders'), (req, res) => {
   res.status(201).json({ parcels: P.forOrder(o.id).map((x) => view(req, x)) });
 });
 
+// Retirer un colis ajouté par erreur : seulement un colis encore à l'entrepôt (à préparer ou prêt),
+// et jamais le dernier colis de la commande (il en faut au moins un).
+router.delete('/:id', requireRole('orders'), (req, res) => {
+  const p = store.get(req.params.id) || P.findByCode(req.params.id);
+  if (!p) return res.status(404).json({ error: 'Colis introuvable' });
+  const list = P.forOrder(p.orderId);
+  if (list.length <= 1) return res.status(400).json({ error: 'C\'est le seul colis de la commande : il faut en garder au moins un' });
+  if (!P.REMOVABLE.includes(p.stage)) return res.status(400).json({ error: `Impossible : le colis est « ${P.STAGES[p.stage]} ». Faites-le d'abord revenir à l'entrepôt.` });
+  const left = P.removeParcel(p);
+  log(req, 'Colis retiré', { id: p.orderId, name: p.number }, `${left.length} colis restant${left.length > 1 ? 's' : ''}`);
+  res.json({ parcels: left.map((x) => view(req, x)) });
+});
+
 // Étiquettes (une ou plusieurs) : page à imprimer
 const origin = (req) => `${String(req.get('x-forwarded-proto') || req.protocol).split(',')[0]}://${req.get('host')}`;
 router.get('/labels', requireRole('orders'), (req, res) => {
