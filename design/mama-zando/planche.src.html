@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mama Zando — système de personnage</title>
+<style>
+/*FONT*/
+:root { --navy: #10264A; --navy2: #1B3A6B; --mango: #FFB300; --coral: #FF5A3C; --skin: #8A5A3C; --cream: #FFF6E0; --paper: #FAF8F3; --ink: #0E1424; --muted: #5F6B80; --line: #E4E0D6; --ok: #0E8A66; }
+* { box-sizing: border-box; }
+html { background: var(--paper); }
+body { margin: 0; font-family: "Plus Jakarta Sans", system-ui, sans-serif; color: var(--ink); font-size: 15px; line-height: 1.55; }
+.wrap { max-width: 1240px; margin: 0 auto; padding: 0 28px; }
+svg { display: block; }
+
+/* Couverture */
+.cover { background: var(--navy); color: #fff; overflow: hidden; position: relative; }
+.cover .wrap { display: grid; grid-template-columns: 1.15fr 1fr; gap: 40px; align-items: center; min-height: 620px; padding-top: 40px; padding-bottom: 40px; }
+.cover .kick { font-size: .78rem; letter-spacing: .18em; text-transform: uppercase; color: var(--mango); font-weight: 700; }
+.cover h1 { font-size: clamp(3rem, 7vw, 5.6rem); line-height: .95; margin: 18px 0 22px; letter-spacing: -.035em; font-weight: 800; }
+.cover h1 em { font-style: normal; color: var(--mango); }
+.cover p { color: #C8D3E8; max-width: 520px; font-size: 1.05rem; }
+.cover .meta { display: flex; gap: 28px; margin-top: 30px; font-size: .8rem; color: #9FB0CF; }
+.cover .meta b { display: block; color: #fff; font-size: .95rem; }
+.cover .hero { position: relative; display: grid; place-items: center; }
+.cover .hero .disc { position: absolute; width: 470px; height: 470px; border-radius: 50%; background: var(--mango); }
+.cover .hero .disc2 { position: absolute; width: 470px; height: 470px; border-radius: 50%; border: 2px dashed rgba(255,255,255,.25); transform: scale(1.18); }
+.cover .hero svg { position: relative; width: 420px; height: 490px; }
+
+/* Sections */
+section.s { padding: 84px 0 20px; }
+.sh { display: grid; grid-template-columns: 220px 1fr; gap: 30px; margin-bottom: 34px; border-top: 2px solid var(--navy); padding-top: 18px; }
+.sh .n { font-size: .8rem; letter-spacing: .16em; text-transform: uppercase; font-weight: 700; color: var(--muted); }
+.sh h2 { margin: 0 0 10px; font-size: 2.2rem; line-height: 1.05; letter-spacing: -.02em; }
+.sh p { margin: 0; color: #3A4660; max-width: 760px; }
+.grid { display: grid; gap: 18px; }
+.g2 { grid-template-columns: 1fr 1fr; } .g3 { grid-template-columns: repeat(3, 1fr); } .g4 { grid-template-columns: repeat(4, 1fr); } .g6 { grid-template-columns: repeat(6, 1fr); } .g8 { grid-template-columns: repeat(8, 1fr); }
+.tile { background: #fff; border: 1px solid var(--line); border-radius: 18px; overflow: hidden; }
+.tile .art { background: var(--cream); display: grid; place-items: center; }
+.tile .cap { padding: 12px 14px 14px; }
+.tile .cap b { display: block; font-size: .98rem; } .tile .cap span { color: var(--muted); font-size: .84rem; }
+.lbl { font-size: .7rem; letter-spacing: .14em; text-transform: uppercase; font-weight: 700; color: var(--muted); }
+
+/* Concept */
+.concept { display: grid; grid-template-columns: 1.1fr 1fr; gap: 26px; }
+.concept .quote { font-size: 1.9rem; line-height: 1.2; letter-spacing: -.015em; font-weight: 700; color: var(--navy); margin: 0; }
+.concept .quote em { font-style: normal; background: linear-gradient(transparent 62%, rgba(255,179,0,.55) 62%); }
+.traits { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.trait { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; }
+.trait b { display: block; font-size: 1.05rem; } .trait span { color: var(--muted); font-size: .88rem; }
+.trait i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; }
+
+/* Construction */
+.build { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.build .art { min-height: 520px; }
+.build .art svg { width: 380px; height: 444px; }
+.specs { display: grid; gap: 10px; align-content: start; }
+.spec { display: grid; grid-template-columns: 150px 1fr; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.spec b { font-size: .9rem; } .spec span { color: #3A4660; font-size: .9rem; }
+
+/* Palette */
+.sw { border-radius: 18px; overflow: hidden; border: 1px solid var(--line); background: #fff; }
+.sw .c { height: 130px; } .sw .t { padding: 10px 12px; font-size: .82rem; } .sw .t b { display: block; font-size: .95rem; }
+.sw .t code { color: var(--muted); }
+
+/* Animations */
+.anim .art { height: 300px; position: relative; }
+.anim .art svg { width: 240px; height: 280px; }
+.anim .cap { display: grid; gap: 4px; }
+.anim .rows { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; font-size: .8rem; margin-top: 6px; }
+.anim .rows dt { color: var(--muted); } .anim .rows dd { margin: 0; color: var(--ink); }
+.anim .replay { position: absolute; right: 10px; top: 10px; border: 1px solid var(--line); background: #fff; color: var(--navy); border-radius: 999px; font: inherit; font-size: .74rem; font-weight: 700; padding: 4px 10px; cursor: pointer; }
+.num { position: absolute; left: 12px; top: 10px; font-size: .72rem; font-weight: 800; color: var(--navy); opacity: .45; }
+
+/* Tailles */
+.sizes { display: flex; align-items: flex-end; gap: 26px; flex-wrap: wrap; background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 26px; }
+.sizes figure { margin: 0; display: grid; justify-items: center; gap: 8px; font-size: .78rem; color: var(--muted); }
+.onnavy { background: var(--navy); border-radius: 18px; padding: 26px; display: flex; gap: 26px; align-items: flex-end; flex-wrap: wrap; }
+.onnavy figure { margin: 0; display: grid; justify-items: center; gap: 8px; font-size: .78rem; color: #9FB0CF; }
+.halo { background: #fff; border-radius: 50%; display: grid; place-items: end center; overflow: hidden; }
+
+/* Règles */
+.dd { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.rule .art { height: 200px; position: relative; }
+.rule .art svg { width: 150px; height: 175px; }
+.rule .badge { position: absolute; left: 10px; top: 10px; font-weight: 800; font-size: .74rem; border-radius: 999px; padding: 3px 10px; color: #fff; }
+.rule.yes .badge { background: var(--ok); } .rule.no .badge { background: var(--coral); }
+.rule.no .art::after { content: ""; position: absolute; inset: 18px; border: 3px solid var(--coral); border-radius: 50%; opacity: .0; }
+
+/* Voix */
+.voice { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.say { background: #fff; border: 1px solid var(--line); border-radius: 18px; padding: 16px 18px; }
+.say q { display: block; font-size: 1.15rem; font-weight: 700; color: var(--navy); quotes: "« " " »"; margin: 6px 0 8px; }
+.say small { color: var(--muted); }
+
+/* Intégration */
+table.t { width: 100%; border-collapse: collapse; background: #fff; border: 1px solid var(--line); border-radius: 18px; overflow: hidden; font-size: .9rem; }
+table.t th { text-align: left; background: var(--navy); color: #fff; padding: 10px 14px; font-weight: 700; font-size: .8rem; letter-spacing: .04em; }
+table.t td { padding: 10px 14px; border-top: 1px solid var(--line); vertical-align: top; }
+.end { margin: 70px 0 0; background: var(--navy); color: #fff; }
+.end .wrap { display: grid; grid-template-columns: 1.3fr 1fr; gap: 30px; padding-top: 50px; padding-bottom: 50px; align-items: center; }
+.end h2 { font-size: 2.2rem; margin: 0 0 10px; letter-spacing: -.02em; } .end p { color: #C8D3E8; margin: 0; }
+.end ol { margin: 0; padding-left: 20px; color: #E8EDF5; } .end li { margin: 6px 0; }
+
+@media (max-width: 980px) { .cover .wrap, .concept, .build, .end .wrap { grid-template-columns: 1fr; } .g3, .g4, .dd, .voice { grid-template-columns: 1fr 1fr; } .g6, .g8 { grid-template-columns: repeat(4, 1fr); } .sh { grid-template-columns: 1fr; } }
+@media (max-width: 600px) { .g2, .g3, .g4, .dd, .voice { grid-template-columns: 1fr; } .g6, .g8 { grid-template-columns: repeat(3, 1fr); } .cover .hero .disc, .cover .hero .disc2 { width: 320px; height: 320px; } .cover .hero svg { width: 300px; height: 350px; } }
+
+/* ================= ANIMATIONS (CSS seulement) =================
+   Repères : épaule droite (141,166), épaule gauche (99,166), pieds (120,268), centre de la tête (120,108). */
+.mama .eyes { transform-box: fill-box; transform-origin: center; animation: z-blink 4.8s infinite; }
+@keyframes z-blink { 0%, 93%, 100% { transform: scaleY(1); } 96% { transform: scaleY(.08); } }
+.wave-r { transform-box: view-box; transform-origin: 141px 166px; animation: z-wave 1.1s ease-in-out infinite alternate; }
+@keyframes z-wave { from { transform: rotate(6deg); } to { transform: rotate(-16deg); } }
+.breath .figure { transform-box: view-box; transform-origin: 120px 268px; animation: z-breath 3.4s ease-in-out infinite; }
+@keyframes z-breath { 0%, 100% { transform: scale(1, 1); } 50% { transform: scale(1.012, .988); } }
+
+/* 01 Accueil : apparaît, salue, dit « Mbote ! » */
+.a-hello .figure { transform-box: view-box; transform-origin: 120px 268px; animation: z-pop 4.5s cubic-bezier(.2,.9,.3,1.35) infinite; }
+.a-hello .bub { transform-box: view-box; transform-origin: 64px 66px; animation: z-bub 4.5s ease-out infinite; }
+@keyframes z-pop { 0% { transform: scale(.2); opacity: 0; } 12% { transform: scale(1.06); opacity: 1; } 18%, 100% { transform: scale(1); } }
+@keyframes z-bub { 0%, 18% { transform: scale(0); opacity: 0; } 26% { transform: scale(1.1); opacity: 1; } 32%, 88% { transform: scale(1); opacity: 1; } 100% { transform: scale(.9); opacity: 0; } }
+
+/* 02 Chargement : le colis tourne autour de Mama Zando, les points avancent */
+.a-load .orbit { transform-box: view-box; transform-origin: 120px 108px; animation: z-spin 1.8s linear infinite; }
+.a-load .orbit .par { transform-box: fill-box; transform-origin: center; animation: z-spin 1.8s linear infinite reverse; }
+.a-load .dot { animation: z-dot 1.2s ease-in-out infinite; }
+.a-load .dot:nth-child(2) { animation-delay: .15s; } .a-load .dot:nth-child(3) { animation-delay: .3s; }
+@keyframes z-spin { to { transform: rotate(360deg); } }
+@keyframes z-dot { 0%, 100% { transform: translateY(0); opacity: .35; } 40% { transform: translateY(-7px); opacity: 1; } }
+
+/* 03 Ajouter au panier : le colis tombe dans ses bras, « +1 » */
+.a-cart .drop { animation: z-drop 2.8s cubic-bezier(.5,0,.75,0) infinite; }
+.a-cart .figure { transform-box: view-box; transform-origin: 120px 268px; animation: z-catch 2.8s ease-out infinite; }
+.a-cart .plus { transform-box: fill-box; transform-origin: center; animation: z-plus 2.8s ease-out infinite; }
+@keyframes z-drop { 0% { transform: translateY(-170px); opacity: 0; } 8% { opacity: 1; } 34% { transform: translateY(0); } 40% { transform: translateY(-6px); } 46%, 100% { transform: translateY(0); } }
+@keyframes z-catch { 0%, 33% { transform: scale(1, 1); } 38% { transform: scale(1.04, .95); } 46%, 100% { transform: scale(1, 1); } }
+@keyframes z-plus { 0%, 40% { transform: scale(0); opacity: 0; } 50% { transform: scale(1.2); opacity: 1; } 58%, 85% { transform: scale(1); opacity: 1; } 100% { opacity: 0; } }
+
+/* 04 Paiement Mobile Money en attente : le téléphone vibre, les ondes partent */
+.a-wait .buzz { transform-box: view-box; transform-origin: 166px 120px; animation: z-buzz 1.6s ease-in-out infinite; }
+.a-wait .ring { fill: none; stroke: var(--mango); stroke-width: 3; transform-box: fill-box; transform-origin: center; animation: z-ring 1.6s ease-out infinite; }
+.a-wait .ring.r2 { animation-delay: .5s; }
+@keyframes z-buzz { 0%, 50%, 100% { transform: rotate(0); } 6%, 18%, 30% { transform: rotate(-7deg); } 12%, 24%, 36% { transform: rotate(7deg); } }
+@keyframes z-ring { 0% { transform: scale(.6); opacity: .9; } 100% { transform: scale(1.9); opacity: 0; } }
+
+/* 05 Commande confirmée : elle saute de joie, confettis */
+.a-yes .figure { transform-box: view-box; transform-origin: 120px 268px; animation: z-jump 2.6s ease-in-out infinite; }
+.a-yes .conf { transform-box: fill-box; transform-origin: center; animation: z-conf 2.6s ease-out infinite; opacity: 0; }
+.a-yes .ok { transform-box: fill-box; transform-origin: center; animation: z-plus 2.6s ease-out infinite; }
+@keyframes z-jump { 0%, 100% { transform: translateY(0) scale(1, 1); } 8% { transform: translateY(0) scale(1.04, .94); } 22% { transform: translateY(-26px) scale(.98, 1.03); } 36% { transform: translateY(0) scale(1.03, .96); } 44% { transform: translateY(0) scale(1, 1); } }
+@keyframes z-conf { 0%, 14% { transform: translate(0, 0) rotate(0); opacity: 0; } 20% { opacity: 1; } 70% { transform: translate(var(--dx), var(--dy)) rotate(var(--r)); opacity: 1; } 100% { transform: translate(var(--dx), calc(var(--dy) + 40px)) rotate(var(--r)); opacity: 0; } }
+
+/* 06 Paiement non abouti : haussement d'épaules, « ? » */
+.a-no .head { transform-box: view-box; transform-origin: 120px 140px; animation: z-tilt 3s ease-in-out infinite; }
+.a-no .arm-l, .a-no .arm-r { animation: z-shrug 3s ease-in-out infinite; }
+.a-no .q { transform-box: fill-box; transform-origin: center; animation: z-q 3s ease-in-out infinite; }
+@keyframes z-tilt { 0%, 100% { transform: rotate(0); } 30%, 60% { transform: rotate(-7deg); } }
+@keyframes z-shrug { 0%, 100% { transform: translateY(0); } 30%, 60% { transform: translateY(-6px); } }
+@keyframes z-q { 0%, 15% { transform: scale(0) rotate(-20deg); } 28% { transform: scale(1.15) rotate(6deg); } 36%, 80% { transform: scale(1) rotate(0); } 100% { transform: scale(0); } }
+
+/* 07 Panier vide : elle regarde dans son panier, il se balance */
+.a-empty .head { transform-box: view-box; transform-origin: 120px 140px; animation: z-peek 3.4s ease-in-out infinite; }
+.a-empty .swing { transform-box: view-box; transform-origin: 120px 172px; animation: z-swing 3.4s ease-in-out infinite; }
+@keyframes z-peek { 0%, 100% { transform: rotate(0) translateY(0); } 35%, 70% { transform: rotate(9deg) translateY(3px); } }
+@keyframes z-swing { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-4deg); } 55% { transform: rotate(4deg); } }
+
+/* 08 Vérification d'identité : la loupe balaie la pièce, puis validée */
+.a-id .scan { animation: z-scan 3.2s ease-in-out infinite; }
+.a-id .ok { transform-box: fill-box; transform-origin: center; animation: z-okid 3.2s ease-out infinite; }
+@keyframes z-scan { 0%, 100% { transform: translate(0, 0); } 20% { transform: translate(-42px, 6px); } 40% { transform: translate(-14px, 16px); } 60% { transform: translate(-40px, 20px); } 75% { transform: translate(0, 0); } }
+@keyframes z-okid { 0%, 72% { transform: scale(0); } 80% { transform: scale(1.2); } 86%, 100% { transform: scale(1); } }
+
+/* 09 Le colis part en avion : elle salue l'avion */
+.a-fly .figure .wave-r { animation-duration: .9s; }
+
+/* 10 Livraison : elle arrive avec le colis et le tend */
+.a-deliver .walk { animation: z-walk 4.2s ease-out infinite; }
+.a-deliver .figure { transform-box: view-box; transform-origin: 120px 268px; animation: z-step 4.2s linear infinite; }
+.a-deliver .ok { transform-box: fill-box; transform-origin: center; animation: z-okdel 4.2s ease-out infinite; }
+@keyframes z-walk { 0% { transform: translateX(-200px); } 45%, 100% { transform: translateX(0); } }
+@keyframes z-step { 0%, 45%, 100% { transform: translateY(0) rotate(0); } 6%, 18%, 30% { transform: translateY(-5px) rotate(-2deg); } 12%, 24%, 36% { transform: translateY(0) rotate(2deg); } }
+@keyframes z-okdel { 0%, 50% { transform: scale(0); } 58% { transform: scale(1.2); } 64%, 92% { transform: scale(1); } 100% { transform: scale(0); } }
+
+/* 11 Aide : elle écrit, les trois points */
+.a-chat .mouth { transform-box: fill-box; transform-origin: center top; animation: z-talk .5s ease-in-out infinite alternate; }
+.a-chat .tdot { animation: z-dot 1.2s ease-in-out infinite; }
+.a-chat .tdot:nth-child(3) { animation-delay: .15s; } .a-chat .tdot:nth-child(4) { animation-delay: .3s; }
+@keyframes z-talk { from { transform: scaleY(.45); } to { transform: scaleY(1); } }
+
+/* 12 Pas de réseau : les barres clignotent, elle patiente */
+.a-off .bar { animation: z-bar 1.6s steps(1) infinite; }
+.a-off .bar.b2 { animation-delay: .4s; } .a-off .bar.b3 { animation-delay: .8s; }
+.a-off .head { transform-box: view-box; transform-origin: 120px 140px; animation: z-tilt 4s ease-in-out infinite; }
+@keyframes z-bar { 0% { opacity: .2; } 50% { opacity: 1; } }
+
+/* 13 Maintenance : elle tient la pancarte, qui se balance */
+.a-maint .sign { transform-box: view-box; transform-origin: 120px 150px; animation: z-swing 2.6s ease-in-out infinite; }
+
+/* 14 Pièce vérifiée : elle montre sa pièce, le tampon tombe */
+.a-ver .stamp { transform-box: fill-box; transform-origin: center; animation: z-stamp 3s ease-out infinite; }
+.a-ver .figure { transform-box: view-box; transform-origin: 120px 268px; animation: z-hop 3s ease-in-out infinite; }
+@keyframes z-stamp { 0%, 20% { transform: scale(2.4) rotate(-14deg); opacity: 0; } 32% { transform: scale(.92) rotate(-10deg); opacity: 1; } 38%, 100% { transform: scale(1) rotate(-10deg); opacity: 1; } }
+@keyframes z-hop { 0%, 30%, 100% { transform: translateY(0); } 40% { transform: translateY(-10px); } 50% { transform: translateY(0); } }
+
+/* 15 Indicateur compact (dans un bouton) */
+.mini-load path { animation: z-mini 1s ease-in-out infinite; }
+.mini-load path:nth-child(2) { animation-delay: .15s; } .mini-load path:nth-child(3) { animation-delay: .3s; }
+@keyframes z-mini { 0%, 100% { opacity: .25; transform: translateX(0); } 50% { opacity: 1; transform: translateX(3px); } }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; } }
+</style>
+</head>
+<body>
+<header class="cover">
+  <div class="wrap">
+    <div>
+      <div class="kick">Zado · Proposition graphique · Personnage de marque</div>
+      <h1>Mama<br><em>Zando</em></h1>
+      <p>Zado vient de <b>zando</b>, le marché. Mama Zando est la commerçante de confiance du quartier, passée au numérique : elle accueille, conseille, rassure pendant le paiement et célèbre chaque livraison. Un trait unique, six couleurs, un nœud de foulard qui dessine le chevron du logo.</p>
+      <div class="meta"><span><b>v1.0</b>Version</span><span><b>21 octobre 2026</b>Date</span><span><b>14 animations</b>Système</span><span><b>SVG + CSS</b>Technique</span></div>
+    </div>
+    <div class="hero"><span class="disc2"></span><span class="disc"></span><svg viewBox="0 0 240 280" id="coverArt" class="breath"></svg></div>
+  </div>
+</header>
+
+<section class="s"><div class="wrap">
+  <div class="sh"><div class="n">01 — Concept</div><div><h2>La commerçante qu'on connaît tous</h2><p>Au marché, on achète chez quelqu'un. Mama Zando donne un visage humain et local à une boutique en ligne qui vend de l'électronique venue de France : elle incarne la confiance, la proximité et le soin du colis.</p></div></div>
+  <div class="concept">
+    <p class="quote">« Elle connaît ses clients, elle choisit le bon produit, elle <em>emballe avec soin</em>, et elle ne vous lâche pas avant que le colis soit chez vous. »</p>
+    <div class="traits">
+      <div class="trait"><b><i style="background:var(--mango)"></i>Chaleureuse</b><span>Elle accueille par « Mbote ! », sourit, et vouvoie toujours avec affection.</span></div>
+      <div class="trait"><b><i style="background:var(--navy)"></i>Fiable</b><span>Elle explique clairement, ne promet que ce qui sera tenu.</span></div>
+      <div class="trait"><b><i style="background:var(--coral)"></i>Débrouillarde</b><span>Smartphone en main, elle trouve toujours une solution.</span></div>
+      <div class="trait"><b><i style="background:var(--ok)"></i>Fière</b><span>Elle célèbre chaque commande comme une victoire.</span></div>
+    </div>
+  </div>
+</div></section>
+
+<section class="s"><div class="wrap">
+  <div class="sh"><div class="n">02 — Construction</div><div><h2>Formes simples, trait unique</h2><p>Le personnage se construit avec un cercle (la tête), une cloche (la robe) et un chevron (le nœud du foulard). Un seul trait de 5 unités pour tout le dessin, bouts arrondis, aucun dégradé : il reste net de 24 pixels à l'affiche.</p></div></div>
+  <div class="build">
+    <div class="tile"><div class="art" id="buildArt"></div></div>
+    <div class="specs">
+      <div class="spec"><b>Cadre</b><span>240 × 280 unités. Pieds posés sur la ligne de sol (y = 268), centre vertical sur x = 120.</span></div>
+      <div class="spec"><b>Proportions</b><span>Tête (foulard compris) = 2/5 de la hauteur : un personnage attachant, lisible en petit.</span></div>
+      <div class="spec"><b>Trait</b><span>5 unités partout (cerne marine #10264A). Détails intérieurs : 2,5 à 3,5 unités.</span></div>
+      <div class="spec"><b>Bras</b><span>Un seul trait couleur peau cerné de marine ; le bout arrondi fait la main (pas de doigts).</span></div>
+      <div class="spec"><b>Signature</b><span>Le nœud du foulard dessine le chevron du logo Zado. La bande du pagne répète ce chevron.</span></div>
+      <div class="spec"><b>Visage</b><span>Yeux en amande pleins + un reflet, sourcils fins, pas de nez, joues corail à 35 %.</span></div>
+      <div class="spec"><b>Aplats</b><span>Aucun dégradé, aucune ombre portée sur le personnage (seulement l'ombre au sol, 12 %).</span></div>
+    </div>
+  </div>
+</div></section>
+
+<section class="s"><div class="wrap">
+  <div class="sh"><div class="n">03 — Couleurs</div><div><h2>Six couleurs, celles de Zado</h2><p>La mascotte n'utilise que la palette de la boutique : elle s'intègre partout sans rien ajouter.</p></div></div>
+  <div class="grid g6" id="palette"></div>
+</div></section>
+
+<section class="s"><div class="wrap">
+  <div class="sh"><div class="n">04 — Expressions</div><div><h2>Huit expressions</h2><p>Chaque moment du parcours a son visage : de l'accueil au petit souci de paiement, jusqu'à la joie de la livraison.</p></div></div>
+  <div class="grid g8" id="faces"></div>
+</div></section>
+
+<section class="s"><div class="wrap">
+  <div class="sh"><div class="n">05 — Poses</div><div><h2>Poses de base</h2><p>Bras interchangeables à partir des deux épaules : chaque pose se combine avec chaque expression et chaque accessoire (colis, téléphone, panier, pièce d'identité, loupe, pancarte).</p></div></div>
+  <div class="grid g4" id="poses"></div>
+</div></section>
+
+<section class="s"><div class="wrap">
+  <div class="sh"><div class="n">06 — Animations</div><div><h2>Quatorze moments animés</h2><p>Des animations courtes, en SVG et CSS (quelques kilo-octets chacune, aucune vidéo), pensées pour les téléphones et les connexions lentes. Toutes s'arrêtent si le client a choisi « Réduire les animations ».</p></div></div>
+  <div class="grid g3" id="anims"></div>
+</div></section>
+
+<section class="s"><div class="wrap">
+  <div class="sh"><div class="n">07 — Tailles</div><div><h2>Du bouton à l'affiche</h2><p>En dessous de 64 pixels, on n'utilise que la tête. En dessous de 32 pixels, la tête sans le nœud. Sur fond marine, la mascotte se pose sur un disque blanc ou mangue.</p></div></div>
+  <div class="sizes" id="sizes"></div>
+  <div style="height:16px"></div>
+  <div class="onnavy" id="onnavy"></div>
+</div></section>
+
+<section class="s"><div class="wrap">
+  <div class="sh"><div class="n">08 — Règles</div><div><h2>À faire, à éviter</h2><p>Pour qu'elle reste reconnaissable et respectueuse, quels que soient le support et la personne qui l'utilise.</p></div></div>
+  <div class="dd" id="rules"></div>
+</div></section>
+
+<section class="s"><div class="wrap">
+  <div class="sh"><div class="n">09 — Voix</div><div><h2>Comment elle parle</h2><p>Phrases courtes, vouvoiement chaleureux, un mot de lingala de temps en temps, jamais de pression commerciale.</p></div></div>
+  <div class="voice">
+    <div class="say"><span class="lbl">Accueil</span><q>Mbote ! Qu'est-ce qui vous ferait plaisir aujourd'hui ?</q><small>Animation 01 · bulle « Aide »</small></div>
+    <div class="say"><span class="lbl">Paiement</span><q>J'ai envoyé la demande sur votre téléphone. Tapez votre code, je patiente.</q><small>Animation 04</small></div>
+    <div class="say"><span class="lbl">Souci</span><q>Ça n'est pas passé. Pas de panique : on réessaie ensemble ?</q><small>Animation 06</small></div>
+    <div class="say"><span class="lbl">Panier vide</span><q>Mon panier est bien léger… On le remplit ?</q><small>Animation 07</small></div>
+    <div class="say"><span class="lbl">Logistique</span><q>Votre colis a pris l'avion à Paris. Je vous préviens dès qu'il atterrit.</q><small>Animation 09</small></div>
+    <div class="say"><span class="lbl">Livraison</span><q>Et voilà, c'est chez vous ! Merci pour votre confiance.</q><small>Animation 10</small></div>
+  </div>
+</div></section>
+
+<section class="s"><div class="wrap">
+  <div class="sh"><div class="n">10 — Intégration</div><div><h2>Où elle apparaît dans Zado</h2><p>Proposition d'emplacement dans la boutique. Chaque animation est un petit fichier SVG + CSS, chargé seulement quand on en a besoin.</p></div></div>
+  <table class="t">
+    <tr><th>Moment</th><th>Animation</th><th>Où</th><th>Comportement</th></tr>
+    <tr><td>Ouverture de l'application</td><td>01 Accueil « Mbote ! »</td><td>Écran d'ouverture (remplace l'animation du logo, ou à la suite)</td><td>Une fois par visite, ~2 s, toucher pour passer</td></tr>
+    <tr><td>Page qui se charge</td><td>02 Chargement · 15 compact</td><td>Toutes les pages, boutons « Payer », « Envoyer »</td><td>En boucle tant que ça charge</td></tr>
+    <tr><td>Ajout au panier</td><td>03 Colis dans les bras</td><td>Message « Ajouté au panier »</td><td>Une fois, 1,5 s</td></tr>
+    <tr><td>Paiement Mobile Money</td><td>04 Téléphone qui vibre</td><td>Page d'attente du paiement (acompte, reste)</td><td>En boucle jusqu'à la réponse</td></tr>
+    <tr><td>Commande confirmée</td><td>05 Saut de joie</td><td>Page « Merci »</td><td>Une fois, puis respiration</td></tr>
+    <tr><td>Paiement refusé</td><td>06 Haussement d'épaules</td><td>Page « Paiement non abouti »</td><td>Une fois</td></tr>
+    <tr><td>Panier vide</td><td>07 Panier</td><td>Panier, recherche sans résultat</td><td>Boucle lente</td></tr>
+    <tr><td>Pièce d'identité envoyée / validée</td><td>08 Loupe · 14 Tampon</td><td>Compte à rebours d'une minute, puis fenêtre « Identité vérifiée »</td><td>Boucle, puis une fois</td></tr>
+    <tr><td>Colis en vol</td><td>09 Elle salue l'avion</td><td>Suivi de commande (avec la carte Paris → Pointe-Noire)</td><td>Boucle lente</td></tr>
+    <tr><td>Livraison</td><td>10 Elle tend le colis</td><td>Suivi « Livrée », notification</td><td>Une fois</td></tr>
+    <tr><td>Messagerie</td><td>11 Elle écrit</td><td>Bulle « Aide » (avatar), réponse de l'assistant</td><td>Pendant la réponse</td></tr>
+    <tr><td>Hors ligne</td><td>12 Pas de réseau</td><td>Bandeau « pas de connexion »</td><td>Tant que hors ligne</td></tr>
+    <tr><td>Maintenance</td><td>13 Pancarte</td><td>Écran « Boutique en maintenance »</td><td>Boucle lente</td></tr>
+  </table>
+</div></section>
+
+<footer class="end"><div class="wrap">
+  <div><h2>Prochaines étapes</h2><p>Une fois la proposition validée, la mascotte est intégrée dans la boutique en une passe, avec les mêmes fichiers que ceux de cette planche.</p></div>
+  <ol><li>Valider le dessin, les expressions et les couleurs (retouches possibles).</li><li>Choisir les animations à intégrer en premier (chargement, panier, paiement, merci).</li><li>Intégration dans la boutique et Zado Pro, tests téléphone et connexion lente.</li><li>Déposer Mama Zando à l'OAPI avec la marque Zado.</li></ol>
+</div></footer>
+
+<script>/*MAMA*/</script>
+<script>
+const M = MamaZando, C = M.C, P = M.P;
+const svg = (inner, vb = '0 0 240 280', cls = '', w, h) => `<svg viewBox="${vb}" class="${cls}"${w ? ` width="${w}" height="${h}"` : ''}>${inner}</svg>`;
+
+// Couverture
+document.getElementById('coverArt').innerHTML = M.mama({ R: 'wave', armR: 'wave-r', face: 'smile', shadow: false });
+
+// Construction : le personnage + les repères
+document.getElementById('buildArt').innerHTML = svg(`
+  ${M.mama({ R: 'wave', face: 'smile' })}
+  <g fill="none" stroke="${C.coral}" stroke-width="1.2" stroke-dasharray="4 4">
+    <circle cx="120" cy="103" r="36.5"/>
+    <path d="M70 152h100M58 254h124M0 268h240M120 20v258"/>
+    <path d="M99 152L69 254M141 152l30 102"/>
+    <path d="M146 20l17 14-17 14"/>
+  </g>
+  <g font-size="7.5" font-weight="700" fill="${C.coral}">
+    <text x="6" y="264">SOL y=268</text><text x="124" y="284">AXE x=120</text>
+    <text x="166" y="96">TÊTE = cercle</text><text x="172" y="30">NŒUD = CHEVRON</text><text x="178" y="200">ROBE = CLOCHE</text>
+  </g>`, '0 0 240 290');
+
+// Palette
+const PAL = [['Marine', C.navy, 'Cerne, robe, textes', 'Trait unique'], ['Marine 2', C.navy2, 'Robe', ''], ['Mangue', C.mango, 'Foulard, nœud, bande', 'Couleur signature'], ['Corail', C.coral, 'Liseré, joues', ''], ['Peau', C.skin, 'Visage, bras', 'Un brun chaud, sans reflet'], ['Kraft', C.kraft, 'Colis', '']];
+document.getElementById('palette').innerHTML = PAL.map(([n, c, u, x]) => `<div class="sw"><div class="c" style="background:${c}"></div><div class="t"><b>${n}</b><code>${c}</code><br>${u}${x ? `<br><span style="color:var(--muted)">${x}</span>` : ''}</div></div>`).join('');
+
+// Expressions
+const FN = { smile: 'Sourire (accueil)', talk: 'Elle parle (Aide)', wink: 'Clin d’œil (bon plan)', joy: 'Joie (commande)', surprise: 'Surprise (nouveauté)', focus: 'Concentrée (vérification)', sorry: 'Désolée (souci)', proud: 'Fière (livré)' };
+document.getElementById('faces').innerHTML = Object.keys(M.FACES).map((f) => `<div class="tile"><div class="art">${svg(`<g class="mama">${M.head(f)}</g>`, '78 28 84 112', '', 120, 160)}</div><div class="cap"><span>${FN[f]}</span></div></div>`).join('');
+
+// Poses
+const POSES = [
+  ['Salut', { R: 'wave', armR: 'wave-r' }], ['Porte le colis', { L: 'hold', R: 'hold', face: 'joy', over: P.parcel(120, 200, 1.2) }],
+  ['Au téléphone', { R: 'phone', face: 'focus', over: P.phone(166, 120) }], ['Indique', { L: 'hip', R: 'point', face: 'wink' }],
+  ['Bras levés', { L: 'up', R: 'up', face: 'joy' }], ['Haussement', { L: 'shrug', R: 'shrug', face: 'sorry' }],
+  ['Le panier', { L: 'hold', R: 'hold', face: 'smile', over: P.basket(120, 202) }], ['Tend le colis', { L: 'down', R: 'give', face: 'proud', over: P.parcel(184, 186, 1) }],
+];
+document.getElementById('poses').innerHTML = POSES.map(([n, o]) => `<div class="tile"><div class="art" style="height:260px">${svg(M.mama(o), '0 0 240 280', 'breath', 200, 233)}</div><div class="cap"><b>${n}</b></div></div>`).join('');
+
+// Animations
+const conf = () => [[-70, -90, 200, C.mango], [60, -100, -160, C.coral], [-40, -120, 120, C.navy], [80, -60, 240, C.mango], [-90, -40, -200, C.coral], [30, -130, 300, C.ok], [-10, -150, 90, C.mango], [100, -110, -120, C.navy]]
+  .map(([dx, dy, r, c], i) => `<rect class="conf" x="${116 + (i % 3) * 3}" y="96" width="7" height="${i % 2 ? 7 : 11}" rx="2" fill="${c}" style="--dx:${dx}px;--dy:${dy}px;--r:${r}deg;animation-delay:${(i % 4) * .03}s"/>`).join('');
+const sign = `<g class="sign"><path d="M98 168v-6M142 168v-6" stroke="${C.navy}" stroke-width="4"/><rect x="72" y="166" width="96" height="46" rx="8" fill="${C.white}" stroke="${C.navy}" stroke-width="4.5"/><text x="120" y="186" text-anchor="middle" font-size="12" font-weight="800" fill="${C.navy}">On revient</text><text x="120" y="202" text-anchor="middle" font-size="12" font-weight="800" fill="${C.coral}">très vite !</text></g>`;
+const offScreen = `<rect class="bar" x="-6" y="2" width="3" height="5" fill="${C.white}"/><rect class="bar b2" x="-1.5" y="-2" width="3" height="9" fill="${C.white}"/><rect class="bar b3" x="3" y="-6" width="3" height="13" fill="${C.white}"/><path d="M-6 -12l12 0" stroke="${C.coral}" stroke-width="2.4" stroke-linecap="round"/>`;
+const ANIMS = [
+  ['a-hello', 'Accueil « Mbote ! »', 'Ouverture, bulle « Aide »', 'Une fois · 2 s', M.mama({ R: 'wave', armR: 'wave-r', face: 'talk', over: `<g class="bub">${P.bubble(62, 62, `<text x="0" y="5" text-anchor="middle" font-size="13" font-weight="800" fill="${C.navy}">Mbote !</text>`, 66)}</g>` })],
+  ['a-load', 'Chargement', 'Toutes les pages', 'Boucle', `<g class="mama">${M.head('smile')}<g class="orbit"><g class="par">${P.parcel(120, 32, .5)}</g></g><g transform="translate(0 6)"><circle class="dot" cx="106" cy="168" r="5" fill="${C.navy}"/><circle class="dot" cx="120" cy="168" r="5" fill="${C.mango}"/><circle class="dot" cx="134" cy="168" r="5" fill="${C.coral}"/></g></g>`, '40 10 160 190'],
+  ['a-cart', 'Ajouté au panier', 'Message « Ajouté au panier »', 'Une fois · 1,5 s', M.mama({ L: 'hold', R: 'hold', face: 'joy', over: `<g class="drop">${P.parcel(120, 200, 1.2)}</g>`, behind: `<g class="plus"><circle cx="190" cy="70" r="18" fill="${C.coral}"/><text x="190" y="76" text-anchor="middle" font-size="16" font-weight="800" fill="#fff">+1</text></g>` })],
+  ['a-wait', 'Paiement en attente', 'Mobile Money : « Tapez votre code »', 'Boucle', M.mama({ R: 'phone', face: 'focus', over: `<circle class="ring" cx="166" cy="120" r="20"/><circle class="ring r2" cx="166" cy="120" r="20"/><g class="buzz">${P.phone(166, 120)}</g>` })],
+  ['a-yes', 'Commande confirmée', 'Page « Merci »', 'Une fois · 1,5 s', M.mama({ L: 'up', R: 'up', face: 'joy', behind: conf(), over: `<g class="ok">${P.check(190, 60, 16)}</g>` })],
+  ['a-no', 'Paiement non abouti', 'Page d\'erreur de paiement', 'Une fois', M.mama({ L: 'shrug', R: 'shrug', face: 'sorry', behind: `<g class="q"><circle cx="186" cy="58" r="17" fill="${C.white}" stroke="${C.navy}" stroke-width="3.5"/><text x="186" y="65" text-anchor="middle" font-size="20" font-weight="800" fill="${C.coral}">?</text></g>` })],
+  ['a-empty', 'Panier vide', 'Panier, recherche sans résultat', 'Boucle lente', M.mama({ L: 'hold', R: 'hold', face: 'surprise', over: `<g class="swing">${P.basket(120, 202)}</g>` })],
+  ['a-id', 'Vérification de la pièce', 'Compte à rebours d\'une minute', 'Boucle', M.mama({ L: 'hold', R: 'magnify', face: 'focus', over: `${P.card(112, 196)}<g class="scan">${P.magnifier(160, 182)}</g><g class="ok">${P.check(138, 180, 11)}</g>` })],
+  ['a-fly', 'Le colis prend l\'avion', 'Suivi de commande', 'Boucle lente', M.mama({ R: 'wave', armR: 'wave-r', face: 'smile', behind: `<path id="skyArc" d="M-20 70 Q120 -30 260 60" fill="none" stroke="${C.navy}" stroke-width="2" stroke-dasharray="3 6" opacity=".35"/><g>${P.plane()}<animateMotion dur="4.5s" repeatCount="indefinite" rotate="auto"><mpath href="#skyArc"/></animateMotion></g>` })],
+  ['a-deliver', 'Livraison', 'Suivi « Livrée », notification', 'Une fois · 2 s', `<g class="walk">${M.mama({ L: 'down', R: 'give', face: 'proud', over: P.parcel(184, 186, 1) })}</g><g class="ok">${P.check(206, 150, 13)}</g>`],
+  ['a-chat', 'Elle vous répond', 'Bulle « Aide »', 'Pendant la réponse', M.mama({ R: 'hip', face: 'talk', over: P.bubble(60, 60, `<circle class="tdot" cx="-12" cy="0" r="4" fill="${C.navy}"/><circle class="tdot" cx="0" cy="0" r="4" fill="${C.navy}"/><circle class="tdot" cx="12" cy="0" r="4" fill="${C.navy}"/>`, 52) })],
+  ['a-off', 'Pas de réseau', 'Bandeau « pas de connexion »', 'Tant que hors ligne', M.mama({ R: 'phone', face: 'sorry', over: P.phone(166, 120, '', offScreen) })],
+  ['a-maint', 'Boutique en maintenance', 'Écran de maintenance', 'Boucle lente', M.mama({ L: 'hold', R: 'hold', face: 'wink', over: sign })],
+  ['a-ver', 'Identité vérifiée', 'Fenêtre « Identité vérifiée »', 'Une fois · 1,2 s', M.mama({ L: 'up', R: 'hold', face: 'joy', over: `${P.card(130, 196)}<g class="stamp"><circle cx="146" cy="186" r="15" fill="none" stroke="${C.ok}" stroke-width="3.5"/><path d="M139 186l5 5 9-9" fill="none" stroke="${C.ok}" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/></g>` })],
+];
+document.getElementById('anims').innerHTML = ANIMS.map(([cls, t, where, when, inner, vb], i) => `<div class="tile anim"><div class="art"><span class="num">${String(i + 1).padStart(2, '0')}</span><button class="replay" data-i="${i}">Rejouer</button><div class="holder ${cls}">${svg(inner, vb || '0 -8 240 288')}</div></div><div class="cap"><b>${t}</b><dl class="rows"><dt>Où</dt><dd>${where}</dd><dt>Durée</dt><dd>${when}</dd></dl></div></div>`).join('')
+  + `<div class="tile anim"><div class="art"><span class="num">15</span><div style="display:grid;gap:14px;justify-items:center"><span style="display:inline-flex;align-items:center;gap:10px;background:${C.navy};color:#fff;font-weight:700;border-radius:12px;padding:12px 22px">Paiement en cours <svg class="mini-load" viewBox="0 0 40 20" width="40" height="20"><path d="M4 4l6 6-6 6" fill="none" stroke="${C.mango}" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 4l6 6-6 6" fill="none" stroke="${C.mango}" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M28 4l6 6-6 6" fill="none" stroke="${C.mango}" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span style="display:inline-flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);font-weight:700;border-radius:12px;padding:10px 18px;color:${C.navy}">Chargement <svg class="mini-load" viewBox="0 0 40 20" width="40" height="20"><path d="M4 4l6 6-6 6" fill="none" stroke="${C.navy}" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 4l6 6-6 6" fill="none" stroke="${C.mango}" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M28 4l6 6-6 6" fill="none" stroke="${C.coral}" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div></div><div class="cap"><b>Indicateur compact</b><dl class="rows"><dt>Où</dt><dd>Boutons « Payer », « Envoyer » : les chevrons du nœud avancent</dd><dt>Durée</dt><dd>Boucle</dd></dl></div></div>`;
+// « Rejouer » : on remet l'animation à zéro
+document.querySelectorAll('.replay').forEach((b) => b.addEventListener('click', () => { const h = b.parentElement.querySelector('.holder'); const html = h.innerHTML; h.innerHTML = ''; requestAnimationFrame(() => { h.innerHTML = html; }); }));
+
+// Tailles
+const S = [[200, 'full'], [120, 'full'], [72, 'head'], [48, 'head'], [32, 'headNoKnot'], [24, 'headNoKnot']];
+const art = (k) => (k === 'full' ? M.mama({ R: 'wave' }) : `<g class="mama">${M.head('smile', { knot: k === 'head' })}</g>`);
+const vbOf = (k) => (k === 'full' ? '0 0 240 280' : k === 'head' ? '78 28 84 112' : '82 44 76 100');
+document.getElementById('sizes').innerHTML = S.map(([w, k]) => `<figure>${svg(art(k), vbOf(k), '', w, Math.round(w * (k === 'full' ? 280 / 240 : k === 'head' ? 112 / 84 : 100 / 76)))}<figcaption>${w} px · ${k === 'full' ? 'en pied' : k === 'head' ? 'tête' : 'tête sans nœud'}</figcaption></figure>`).join('');
+document.getElementById('onnavy').innerHTML = [[150, '#fff', 'Sur marine : disque blanc'], [150, C.mango, 'Sur marine : disque mangue'], [64, '#fff', 'Avatar « Aide »'], [40, C.mango, 'Notification']].map(([w, bg, t]) => `<figure><span class="halo" style="width:${w}px;height:${w}px;background:${bg}">${svg(`<g class="mama">${M.head('smile', { knot: w > 50 })}</g>`, '72 22 96 122', '', Math.round(w * .86), Math.round(w * .86 * 122 / 96))}</span><figcaption>${t}</figcaption></figure>`).join('');
+
+// Règles
+const R = [
+  ['yes', 'Respecter les couleurs', M.mama({ R: 'wave' })],
+  ['yes', 'Laisser de l\'espace autour', `<rect x="14" y="10" width="212" height="266" rx="16" fill="none" stroke="${C.ok}" stroke-width="3" stroke-dasharray="6 6"/>${M.mama({ face: 'smile' })}`],
+  ['yes', 'Un accessoire à la fois', M.mama({ L: 'hold', R: 'hold', face: 'joy', over: P.parcel(120, 200, 1.2) })],
+  ['yes', 'Garder le nœud-chevron', `<g>${M.mama({ face: 'wink' })}</g>`],
+  ['no', 'Ne pas déformer', `<g transform="translate(120 0) scale(1.45 .82) translate(-120 40)">${M.mama({})}</g>`],
+  ['no', 'Ne pas changer les couleurs', M.mama({}).replace(/#FFB300/g, '#7BC043').replace(/#1B3A6B/g, '#C0392B')],
+  ['no', 'Pas d\'ombres ni de dégradés', `<defs><filter id="sh"><feDropShadow dx="6" dy="8" stdDeviation="4" flood-opacity=".45"/></filter></defs><g filter="url(#sh)">${M.mama({})}</g>`],
+  ['no', 'Ne pas la surcharger', M.mama({ L: 'hold', R: 'phone', face: 'surprise', behind: P.card(58, 150), over: `${P.basket(120, 204)}${P.phone(166, 120)}${P.parcel(196, 220, .9)}${P.magnifier(52, 210)}` })],
+];
+document.getElementById('rules').innerHTML = R.map(([k, t, inner]) => `<div class="tile rule ${k}"><div class="art"><span class="badge">${k === 'yes' ? 'À FAIRE' : 'À ÉVITER'}</span>${svg(inner)}</div><div class="cap"><b>${t}</b></div></div>`).join('');
+</script>
+</body>
+</html>

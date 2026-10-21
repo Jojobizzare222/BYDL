@@ -1,0 +1,15 @@
+<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0;background:#F3F5F9;display:flex;flex-wrap:wrap;gap:10px;padding:10px} svg{width:230px;height:268px;background:#FFF6E0;border-radius:12px}</style></head><body><div id="o" style="display:contents"></div>
+<script>/*MAMA*/</script>
+<script>
+const M=MamaZando, o=document.getElementById('o');
+const s=(inner,vb='0 0 240 280')=>`<svg viewBox="${vb}">${inner}</svg>`;
+o.innerHTML = [
+ s(M.mama({R:'wave'})),
+ s(M.mama({L:'hold',R:'hold',face:'joy',front:M.P.parcel(120,198,1.15)})),
+ s(M.mama({R:'phone',face:'focus',over:M.P.phone(162,118)})),
+ s(M.mama({L:'up',R:'up',face:'joy'})),
+ s(M.mama({L:'shrug',R:'shrug',face:'sorry'})),
+ s(M.mama({L:'hip',R:'point',face:'wink'})),
+ ...Object.keys(M.FACES).map(f=>s(M.head(f),'70 30 100 110')),
+].join('');
+</script></body></html>

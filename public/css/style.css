@@ -1505,6 +1505,43 @@ html[data-theme="dark"] .bg-route .plane { color: #9DBBFF; }
 @keyframes rt-float { from { transform: translateY(-8px) rotate(var(--fr, -5deg)); } to { transform: translateY(10px) rotate(calc(var(--fr, -5deg) * -1)); } }
 
 @media (max-width: 760px) { .bg-route .plane { opacity: .4; } }
+/* Bas de page : l'étal de Mama Zando (scène SVG de scripts/mama-scene.js) */
+.mz-band { position: relative; z-index: 1; max-width: 1180px; margin: 56px auto 0; padding: 0 20px; display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); align-items: stretch; }
+.mz-band + .footer { margin-top: 0; }
+.mz-art { background: #FFF6E0; border: 1px solid var(--line); border-bottom: 0; border-radius: 18px 0 0 0; padding: 18px 18px 0; display: flex; align-items: flex-end; justify-content: center; overflow: hidden; }
+.mz-scene { display: block; width: 100%; max-width: 440px; height: auto; margin-bottom: -2px; }
+.mz-text { background: var(--paper); border: 1px solid var(--line); border-left: 0; border-bottom: 0; border-radius: 0 18px 0 0; padding: 28px 32px; display: flex; flex-direction: column; justify-content: center; gap: 10px; }
+.mz-kick { font-size: .72rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.mz-text h2 { margin: 0; font-size: 1.45rem; line-height: 1.15; font-weight: 700; letter-spacing: -.02em; color: var(--brand-text); }
+.mz-text p { margin: 0; color: var(--muted); max-width: 440px; }
+.mz-steps { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.mz-steps li { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); border-radius: 999px; padding: 5px 14px 5px 5px; font-weight: 600; font-size: .85rem; }
+.mz-steps b { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--mango); color: #10264A; font-size: .78rem; }
+/* Animation (7 s) : elle prépare le colis, puis elle vous le tend ; le colis est validé */
+.mz-scene .mz-eyes { transform-box: fill-box; transform-origin: center; animation: mz-blink 4.6s infinite; }
+.mz-scene .mz-pa { animation: mz-show-a 7s infinite; }
+.mz-scene .mz-pb { opacity: 0; animation: mz-show-b 7s infinite; }
+.mz-scene .mz-pb .mz-figure { transform-box: view-box; transform-origin: 120px 268px; animation: mz-hop 7s infinite; }
+.mz-scene .mz-tape { transform-box: fill-box; transform-origin: center; animation: mz-wiggle .7s ease-in-out infinite alternate; }
+.mz-scene .mz-ok { transform-box: fill-box; transform-origin: center; transform: scale(0); animation: mz-ok 7s infinite; }
+@keyframes mz-blink { 0%, 93%, 100% { transform: scaleY(1); } 96% { transform: scaleY(.08); } }
+@keyframes mz-show-a { 0%, 46% { opacity: 1; } 48%, 97% { opacity: 0; } 99%, 100% { opacity: 1; } }
+@keyframes mz-show-b { 0%, 46% { opacity: 0; } 48%, 97% { opacity: 1; } 99%, 100% { opacity: 0; } }
+@keyframes mz-hop { 0%, 47% { transform: translateY(0); } 52% { transform: translateY(-7px); } 57%, 100% { transform: translateY(0); } }
+@keyframes mz-wiggle { from { transform: rotate(-2.5deg); } to { transform: rotate(2.5deg); } }
+@keyframes mz-ok { 0%, 54% { transform: scale(0); } 60% { transform: scale(1.2); } 64%, 92% { transform: scale(1); } 96%, 100% { transform: scale(0); } }
+@media (max-width: 760px) {
+  .mz-band { grid-template-columns: 1fr; margin-top: 36px; padding: 0 12px; }
+  .mz-art { border-radius: 18px 18px 0 0; border-bottom: 0; padding: 14px 14px 0; }
+  .mz-scene { max-width: 320px; }
+  .mz-text { border-left: 1px solid var(--line); border-radius: 0; padding: 20px 18px 24px; }
+  .mz-text h2 { font-size: 1.2rem; }
+}
+/* Animations coupées : on garde Mama Zando qui tend le colis, validé */
+html[data-motion="reduce"] .mz-scene *, html[data-saver="on"] .mz-scene * { animation: none !important; }
+html[data-motion="reduce"] .mz-scene .mz-pa, html[data-saver="on"] .mz-scene .mz-pa { opacity: 0; }
+html[data-motion="reduce"] .mz-scene .mz-pb, html[data-saver="on"] .mz-scene .mz-pb, html[data-motion="reduce"] .mz-scene .mz-ok, html[data-saver="on"] .mz-scene .mz-ok { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) { .mz-scene * { animation: none !important; } .mz-scene .mz-pa { opacity: 0; } .mz-scene .mz-pb, .mz-scene .mz-ok { opacity: 1; transform: none; } }
 html[data-motion="reduce"] .bg-route * { animation: none !important; }
 @media (prefers-reduced-motion: reduce) { .bg-route * { animation: none !important; } }
 html[data-saver="on"] .bg-route { display: none; }

@@ -1,0 +1,103 @@
+<!doctype html><html><head><meta charset="utf-8"><style>body{margin:0;background:#F3F5F9;display:flex;flex-wrap:wrap;gap:10px;padding:10px} svg{width:230px;height:268px;background:#FFF6E0;border-radius:12px}</style></head><body><div id="o" style="display:contents"></div>
+<script>// Mama Zando — système de personnage (proposition graphique, 21/10/2026)
+// Un seul trait (5 unités dans un cadre de 240 × 280), bouts arrondis, aplats sans dégradé, 6 couleurs.
+// Le personnage est assemblé à partir de pièces : corps, tête, visage (expressions), bras (poses), accessoires.
+(function () {
+  const C = { navy: '#10264A', navy2: '#1B3A6B', mango: '#FFB300', coral: '#FF5A3C', skin: '#8A5A3C', cream: '#FFF6E0', white: '#FFFFFF', ok: '#0E8A66', kraft: '#E3B07A', screen: '#2D66D6' };
+  const W = 5; // l'épaisseur unique du trait
+
+  // ---------- Bras : un trait couleur peau cerné de marine, bout arrondi = la main ----------
+  const ARMS = {
+    L: { down: 'M99 166 Q86 196 92 222', hold: 'M99 166 Q86 194 110 204', hip: 'M99 166 Q74 186 96 204', up: 'M99 166 Q80 142 78 108', shrug: 'M99 166 Q76 170 70 150', wave: 'M99 166 Q70 154 62 120', give: 'M99 166 Q96 196 132 196', phone: 'M99 166 Q86 194 110 204' },
+    R: { down: 'M141 166 Q154 196 148 222', hold: 'M141 166 Q154 194 130 204', hip: 'M141 166 Q166 186 144 204', up: 'M141 166 Q160 142 162 108', shrug: 'M141 166 Q164 170 170 150', wave: 'M141 166 Q170 154 178 120', point: 'M141 166 Q170 166 198 154', phone: 'M141 166 Q172 168 166 132', give: 'M141 166 Q150 196 180 190', magnify: 'M141 166 Q168 176 174 150' },
+  };
+  const arm = (d, cls = '') => `<g class="${cls}"><path d="${d}" fill="none" stroke="${C.navy}" stroke-width="18" stroke-linecap="round"/><path d="${d}" fill="none" stroke="${C.skin}" stroke-width="8" stroke-linecap="round"/></g>`;
+
+  // ---------- Visage : expressions ----------
+  const eye = (x, y, rx = 4.2, ry = 5.6) => `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${C.navy}"/><circle cx="${x + 1.4}" cy="${y - 2}" r="1.3" fill="${C.white}"/>`;
+  const arc = (d, w = 3.4) => `<path d="${d}" fill="none" stroke="${C.navy}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>`;
+  const cheeks = `<circle cx="100" cy="122" r="5.5" fill="${C.coral}" opacity=".35"/><circle cx="140" cy="122" r="5.5" fill="${C.coral}" opacity=".35"/>`;
+  const FACES = {
+    smile: () => `<g class="eyes">${eye(109, 111)}${eye(131, 111)}</g>${arc('M103 100q6-4 12 0')}${arc('M125 100q6-4 12 0')}${arc('M110 123q10 9 20 0')}${cheeks}`,
+    talk: () => `<g class="eyes">${eye(109, 111)}${eye(131, 111)}</g>${arc('M103 100q6-4 12 0')}${arc('M125 100q6-4 12 0')}<path class="mouth" d="M110 122q10 12 20 0z" fill="${C.navy}"/>${cheeks}`,
+    wink: () => `<g class="eyes">${eye(109, 111)}</g>${arc('M126 112q5-5 10 0')}${arc('M103 100q6-4 12 0')}${arc('M125 99q6-3 12 1')}${arc('M110 123q10 9 20 0')}${cheeks}`,
+    joy: () => `${arc('M104 112q5-6 10 0')}${arc('M126 112q5-6 10 0')}${arc('M103 99q6-4 12 0')}${arc('M125 99q6-4 12 0')}<path d="M108 121q12 14 24 0z" fill="${C.navy}"/><path d="M113 126q7 4 14 0" fill="none" stroke="${C.coral}" stroke-width="3" stroke-linecap="round"/>${cheeks}`,
+    surprise: () => `<g class="eyes">${eye(109, 110, 4.6, 6.2)}${eye(131, 110, 4.6, 6.2)}</g>${arc('M103 97q6-5 12-1')}${arc('M125 96q6-4 12 1')}<ellipse cx="120" cy="125" rx="4.5" ry="5.5" fill="${C.navy}"/>${cheeks}`,
+    focus: () => `<g class="eyes">${eye(110, 113, 4, 4.4)}${eye(132, 113, 4, 4.4)}</g>${arc('M103 102l12 1')}${arc('M125 103l12-1')}${arc('M114 124h12')}`,
+    sorry: () => `<g class="eyes">${eye(109, 112, 4, 5)}${eye(131, 112, 4, 5)}</g>${arc('M103 101q6 -1 12-4')}${arc('M125 97q6 3 12 4')}${arc('M112 127q8-6 16 0')}${cheeks}`,
+    proud: () => `${arc('M104 112q5-6 10 0')}${arc('M126 112q5-6 10 0')}${arc('M103 99q6-4 12 0')}${arc('M125 99q6-4 12 0')}${arc('M108 122q12 11 24 0', 3.6)}${cheeks}`,
+  };
+
+  // ---------- Accessoires ----------
+  const P = {
+    parcel: (x, y, s = 1, cls = '') => `<g class="${cls}" transform="translate(${x} ${y}) scale(${s})"><rect x="-23" y="-20" width="46" height="40" rx="6" fill="${C.kraft}" stroke="${C.navy}" stroke-width="${W - 1}"/><rect x="-5" y="-20" width="10" height="40" fill="${C.mango}" stroke="${C.navy}" stroke-width="2.5"/><rect x="8" y="5" width="12" height="9" rx="1.5" fill="${C.white}" stroke="${C.navy}" stroke-width="1.8"/><path d="M12 7.5v4M13.5 7.5l3 2-3 2" fill="none" stroke="${C.navy}" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></g>`,
+    phone: (x, y, cls = '', screen = '') => `<g class="${cls}" transform="translate(${x} ${y})"><rect x="-13" y="-22" width="26" height="44" rx="6" fill="${C.navy}"/><rect x="-9.5" y="-17" width="19" height="32" rx="3" fill="${C.screen}"/>${screen || `<path d="M-3 -7v10M0 -7l6 5-6 5" fill="none" stroke="${C.mango}" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>`}<rect x="-4" y="17.5" width="8" height="2" rx="1" fill="${C.navy2}"/></g>`,
+    basket: (x, y, cls = '') => `<g class="${cls}" transform="translate(${x} ${y})"><path d="M-30 -22q30-34 60 0" fill="none" stroke="${C.navy}" stroke-width="${W}" stroke-linecap="round"/><path d="M-34 -22h68l-8 34h-52z" fill="#D9A46A" stroke="${C.navy}" stroke-width="${W - 1}" stroke-linejoin="round"/><path d="M-31 -10h62M-28 2h56" stroke="${C.navy}" stroke-width="2" opacity=".45"/><path d="M-16 -22l-3 34M0 -22v34M16 -22l3 34" stroke="${C.navy}" stroke-width="2" opacity=".45"/></g>`,
+    card: (x, y, cls = '') => `<g class="${cls}" transform="translate(${x} ${y})"><rect x="-30" y="-19" width="60" height="38" rx="5" fill="${C.white}" stroke="${C.navy}" stroke-width="${W - 1}"/><rect x="-23" y="-11" width="16" height="20" rx="3" fill="${C.cream}" stroke="${C.navy}" stroke-width="2"/><circle cx="-15" cy="-4" r="3.5" fill="${C.skin}"/><path d="M-2 -8h22M-2 -1h18M-2 6h14" stroke="${C.navy}" stroke-width="2.4" stroke-linecap="round"/></g>`,
+    magnifier: (x, y, cls = '') => `<g class="${cls}" transform="translate(${x} ${y})"><circle r="13" fill="rgba(255,255,255,.55)" stroke="${C.navy}" stroke-width="${W}"/><path d="M9 9l13 13" stroke="${C.navy}" stroke-width="7" stroke-linecap="round"/></g>`,
+    check: (x, y, r = 14, cls = '') => `<g class="${cls}" transform="translate(${x} ${y})"><circle r="${r}" fill="${C.ok}"/><path d="M${-r * .42} 0l${r * .3} ${r * .3} ${r * .55}-${r * .55}" fill="none" stroke="${C.white}" stroke-width="${r * .26}" stroke-linecap="round" stroke-linejoin="round"/></g>`,
+    bubble: (x, y, inner, w = 64, cls = '') => `<g class="${cls}" transform="translate(${x} ${y})"><path d="M${-w / 2} -16h${w}a8 8 0 0 1 8 8v16a8 8 0 0 1-8 8h-${w - 22}l-10 9 2-9h-${12}a8 8 0 0 1-8-8v-16a8 8 0 0 1 8-8z" fill="${C.white}" stroke="${C.navy}" stroke-width="3.5" stroke-linejoin="round"/>${inner}</g>`,
+    plane: (cls = '') => `<g class="${cls}"><path transform="translate(-14 -14) scale(.11)" fill="${C.navy}" d="M240 136v32a8 8 0 0 1-8 8a7.6 7.6 0 0 1-1.57-.16L156 161v23.73l17.66 17.65A8 8 0 0 1 176 208v24a8 8 0 0 1-11 7.43l-37-14.81l-37 14.81A8 8 0 0 1 80 232v-24a8 8 0 0 1 2.34-5.66L100 184.69V161l-74.43 14.84A7.6 7.6 0 0 1 24 176a8 8 0 0 1-8-8v-32a8 8 0 0 1 4.42-7.16L100 89.06V56a28 28 0 0 1 56 0v33.06l79.58 39.78A8 8 0 0 1 240 136"/></g>`,
+  };
+
+  // ---------- La tête : visage + foulard (le nœud forme le chevron du logo Zado) ----------
+  function head(face = 'smile', { knot = true } = {}) {
+    return `<g class="head">
+      <rect x="112" y="128" width="16" height="26" rx="6" fill="${C.skin}" stroke="${C.navy}" stroke-width="4"/>
+      <circle cx="120" cy="108" r="32" fill="${C.skin}" stroke="${C.navy}" stroke-width="${W}"/>
+      <circle cx="88.5" cy="122" r="4.5" fill="${C.mango}" stroke="${C.navy}" stroke-width="2.5"/><circle cx="151.5" cy="122" r="4.5" fill="${C.mango}" stroke="${C.navy}" stroke-width="2.5"/>
+      <g class="face">${FACES[face]()}</g>
+      <g class="gele">
+        <path d="M86.5 102C84 70 99 50 120 48.5C141 50 156 70 153.5 102C146 92 134 88 120 88S94 92 86.5 102z" fill="${C.mango}" stroke="${C.navy}" stroke-width="${W}" stroke-linejoin="round"/>
+        <path d="M91 95C102 87 138 87 149 95" fill="none" stroke="${C.coral}" stroke-width="4.5" stroke-linecap="round"/>
+        <path d="M100 71Q120 61 142 72" fill="none" stroke="${C.navy}" stroke-width="2.6" stroke-linecap="round" opacity=".35"/>
+        ${knot ? `<g class="knot"><path d="M143 35l15 12-15 12" fill="none" stroke="${C.navy}" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/><path d="M143 35l15 12-15 12" fill="none" stroke="${C.mango}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></g>` : ''}
+      </g>
+    </g>`;
+  }
+
+  // ---------- Le corps : robe en pagne (motif de chevrons Zado sur la bande) ----------
+  let uid = 0;
+  function body() {
+    const id = 'dc' + (++uid);
+    const chev = []; for (let x = 70; x <= 172; x += 13) chev.push(`M${x} 221l5 4.5-5 4.5`);
+    const dots = []; for (let y = 172; y <= 206; y += 14) for (let x = 84 + ((y / 14) % 2) * 7; x <= 158; x += 14) dots.push(`<circle cx="${x}" cy="${y}" r="2" fill="${C.mango}" opacity=".85"/>`);
+    return `<g class="body">
+      <ellipse class="feet" cx="104" cy="262" rx="13" ry="5.5" fill="${C.navy}"/><ellipse class="feet" cx="136" cy="262" rx="13" ry="5.5" fill="${C.navy}"/>
+      <clipPath id="${id}"><path d="M99 152Q120 145 141 152L171 254Q120 266 69 254Z"/></clipPath>
+      <path d="M99 152Q120 145 141 152L171 254Q120 266 69 254Z" fill="${C.navy2}" stroke="${C.navy}" stroke-width="${W}" stroke-linejoin="round"/>
+      <g clip-path="url(#${id})"><rect x="60" y="214" width="120" height="22" fill="${C.mango}"/><path d="${chev.join('')}" fill="none" stroke="${C.navy}" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><rect x="60" y="240" width="120" height="5" fill="${C.coral}"/></g>
+      <path d="M99 152Q120 145 141 152L171 254Q120 266 69 254Z" fill="none" stroke="${C.navy}" stroke-width="${W}" stroke-linejoin="round"/>
+      <path d="M109 151l11 13 11-13z" fill="${C.skin}" stroke="${C.navy}" stroke-width="3.5" stroke-linejoin="round"/>
+    </g>`;
+  }
+
+  /**
+   * Assemble Mama Zando.
+   * opt : { face, L, R, behind, front, over, shadow, cls }  — behind/front/over = accessoires (SVG) dessinés derrière le corps, devant le corps (sous les bras), par-dessus les bras.
+   */
+  function mama(opt = {}) {
+    const { face = 'smile', L = 'down', R = 'down', behind = '', front = '', over = '', shadow = true, armL = '', armR = '', fig = '' } = opt;
+    return `<g class="mama ${fig}">
+      ${shadow ? `<ellipse class="shadow" cx="120" cy="268" rx="58" ry="6" fill="${C.navy}" opacity=".12"/>` : ''}
+      ${behind}
+      <g class="figure">${body()}${front}${arm(ARMS.L[L], 'arm-l ' + armL)}${arm(ARMS.R[R], 'arm-r ' + armR)}<g class="headwrap" transform="translate(120 142) scale(1.14) translate(-120 -142)">${head(face)}</g>${over}</g>
+    </g>`;
+  }
+
+  window.MamaZando = { C, W, ARMS, FACES, P, head, body, mama, arm };
+})();
+</script>
+<script>
+const M=MamaZando, o=document.getElementById('o');
+const s=(inner,vb='0 0 240 280')=>`<svg viewBox="${vb}">${inner}</svg>`;
+o.innerHTML = [
+ s(M.mama({R:'wave'})),
+ s(M.mama({L:'hold',R:'hold',face:'joy',front:M.P.parcel(120,198,1.15)})),
+ s(M.mama({R:'phone',face:'focus',over:M.P.phone(162,118)})),
+ s(M.mama({L:'up',R:'up',face:'joy'})),
+ s(M.mama({L:'shrug',R:'shrug',face:'sorry'})),
+ s(M.mama({L:'hip',R:'point',face:'wink'})),
+ ...Object.keys(M.FACES).map(f=>s(M.head(f),'70 30 100 110')),
+].join('');
+</script></body></html>
