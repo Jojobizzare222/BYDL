@@ -1948,7 +1948,7 @@
   // Fiche produit : ajout depuis téléphone (appareil photo), tablette ou ordinateur.
   function viewProduct(id) {
     const isNew = id === 'nouveau';
-    const p = isNew ? { stock: 1, active: true, condition: 'neuf', images: [] } : state.products.find((x) => x.id === id);
+    const p = isNew ? { stock: 1, active: true, condition: 'neuf', provenance: 'France', images: [] } : state.products.find((x) => x.id === id);
     if (!p) { app.innerHTML = '<p class="empty">Produit introuvable. <a href="#/produits">Retour</a></p>'; return; }
     let images = [...(p.images?.length ? p.images : [p.image].filter(Boolean))];
     // Fournisseur sur un produit déjà publié : seuls le stock et son prix sont modifiables
@@ -1991,6 +1991,12 @@
         </div>
         <label for="condition">État</label>
         <select id="condition" ${dis}>${['neuf', 'reconditionné', 'occasion'].map((c) => `<option ${c === (p.condition || 'neuf') ? 'selected' : ''}>${c}</option>`).join('')}</select>
+        <label for="provenance">Provenance (affichée au client)</label>
+        <input id="provenance" list="provList" maxlength="40" value="${esc(p.provenance || '')}" placeholder="France" ${dis}>
+        <datalist id="provList"><option>France</option><option>Union européenne</option><option>Émirats (Dubaï)</option><option>Chine</option><option>Congo</option></datalist>
+        <label for="sourceSupplier">Fournisseur d'origine (affiché au client)</label>
+        <input id="sourceSupplier" maxlength="60" value="${esc(p.sourceSupplier || '')}" placeholder="Ex. Apple, Samsung, Fnac…" ${dis}>
+        <p class="muted" style="margin-top:4px">Affichés sur la fiche : « Provenance : France · Fournisseur : Apple ». Produits Apple : toujours « Apple Store » (rempli automatiquement). Pour les autres marques, n'indiquez la marque que si vous achetez réellement chez elle (sinon, le nom du revendeur).</p>
         <label for="description">Description</label>
         <textarea id="description" rows="4" placeholder="Points forts, contenu de la boîte, garantie…" ${dis}>${esc(p.description)}</textarea>
         <label for="options">Choix proposés au client (une ligne par choix)</label>
@@ -2092,7 +2098,7 @@
         body = { stock: val('#stock'), supplierPrice: val('#supplierPrice') };
       } else {
         body = {
-          name: val('#name'), brand: val('#brand'), category: val('#category'), condition: val('#condition'),
+          name: val('#name'), brand: val('#brand'), category: val('#category'), condition: val('#condition'), provenance: val('#provenance'), sourceSupplier: val('#sourceSupplier'),
           description: val('#description'), specs: val('#specs'), stock: val('#stock'), images,
         };
         if (showSale) Object.assign(body, { price: val('#price'), oldPrice: val('#oldPrice') });

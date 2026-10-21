@@ -537,7 +537,7 @@
           ${d ? `<span class="disc">-${d} %</span>` : ''}
         </a>
         <div class="card-body">
-          <div class="card-tag">${tag}</div>
+          <div class="card-tag">${tag}${p.provenance ? `<span class="orig">${icon('airplane-tilt')} ${esc(p.provenance)}</span>` : ''}</div>
           <a href="#/p/${p.id}"><h3>${esc(multi ? familyName(p) : p.name)}</h3></a>
           ${ratingLine(famRating(family))}
           ${multi ? `<div class="swatches" aria-label="${family.length} couleurs">${family.slice(0, 6).map((x) => `<i style="background:${colorOf(x)?.hex || '#ccc'}" title="${esc(colorOf(x)?.label || '')}"></i>`).join('')}<small>${family.length} couleurs</small></div>` : ''}
@@ -905,6 +905,7 @@
         </div>
         <div>
           <h1>${esc(p.name)}</h1>
+          ${p.provenance || p.sourceSupplier ? `<div class="origin-row">${p.provenance ? `<span>${icon('airplane-tilt')} Provenance : <b>${esc(p.provenance)}</b></span>` : ''}${p.sourceSupplier ? `<span>${icon('seal-check-duotone')} Fournisseur : <b>${esc(p.sourceSupplier)}</b></span>` : ''}</div>` : ''}
           <div class="pdp-meta">${p.rating ? `<a href="#reviews" class="rating-link" data-scroll="reviews">${ratingLine(p.rating)}</a>` : ''}<button type="button" class="share-btn" id="shareBtn">${icon('export')} Partager</button></div>
           ${(() => { const sib = siblings(p); return sib.length > 1 ? `<div class="color-pick"><span class="lbl">Couleur : <b>${esc(colorOf(p)?.label || '')}</b></span><div>${sib.map((x) => `<a href="#/p/${enc(x.id)}" class="${x.id === p.id ? 'on' : ''}" title="${esc(colorOf(x)?.label || x.name)}" aria-label="${esc(colorOf(x)?.label || x.name)}"><i style="background:${colorOf(x)?.hex || '#ccc'}"></i></a>`).join('')}</div></div>` : ''; })()}
           ${p.condition && p.condition !== 'neuf' ? `<span class="cond-tag">${esc(p.condition === 'reconditionné' ? 'Reconditionné' : 'Occasion')}</span>` : ''}

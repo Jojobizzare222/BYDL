@@ -1352,3 +1352,9 @@ html[data-theme="dark"] .card .thumb.no-img { background: var(--soft); }
 @media (max-width: 900px) { .sc-ico { position: static; margin: 8px auto 6px; width: 72px; height: 72px; font-size: 2.2rem; transform: none; } }
 html[data-theme="dark"] .sc-ico { background: var(--soft); color: var(--brand-text); }
 .card .thumb.no-img { background: var(--soft); font-size: 3.6rem; }
+/* Provenance et fournisseur d'origine (confiance, 21/10/2026) */
+.origin-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 10px; }
+.origin-row span { display: inline-flex; align-items: center; gap: 6px; background: var(--violet-soft); color: var(--brand-text); border-radius: 999px; padding: 5px 12px; font-size: .84rem; }
+.origin-row .ico { color: var(--link); }
+.card-tag { gap: 6px; align-items: center; }
+.card-tag .orig { display: inline-flex; align-items: center; gap: 4px; font-size: .7rem; font-weight: 600; color: var(--link); }

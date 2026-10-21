@@ -10,7 +10,9 @@
     "stock": 7,
     "description": "Écran 6,1\", 128 Go, port USB-C. Débloqué tous opérateurs, double SIM (nano + eSIM).",
     "color": "#E9ECF0",
-    "updatedAt": "2026-10-14T07:26:52.173Z"
+    "updatedAt": "2026-10-14T07:26:52.173Z",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a002",
@@ -23,7 +25,9 @@
     "stock": 8,
     "description": "Écran 6,1\", 128 Go, port USB-C. Débloqué tous opérateurs, double SIM (nano + eSIM).",
     "color": "#E9ECF0",
-    "featured": true
+    "featured": true,
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a003",
@@ -35,7 +39,9 @@
     "oldPrice": 690000,
     "stock": 8,
     "description": "Écran 6,1\", 128 Go, port USB-C. Débloqué tous opérateurs, double SIM (nano + eSIM).",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a004",
@@ -47,7 +53,9 @@
     "oldPrice": 690000,
     "stock": 8,
     "description": "Écran 6,1\", 128 Go, port USB-C. Débloqué tous opérateurs, double SIM (nano + eSIM).",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a005",
@@ -59,7 +67,9 @@
     "oldPrice": 770000,
     "stock": 5,
     "description": "Écran 6,1\", 256 Go, port USB-C. Débloqué tous opérateurs, double SIM (nano + eSIM).",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a006",
@@ -71,7 +81,9 @@
     "oldPrice": 770000,
     "stock": 5,
     "description": "Écran 6,1\", 256 Go, port USB-C. Débloqué tous opérateurs, double SIM (nano + eSIM).",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a007",
@@ -83,7 +95,9 @@
     "oldPrice": null,
     "stock": 4,
     "description": "Grand écran 6,7\", 128 Go. Débloqué tous opérateurs, double SIM (nano + eSIM).",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a008",
@@ -95,7 +109,9 @@
     "oldPrice": null,
     "stock": 4,
     "description": "Grand écran 6,7\", 128 Go. Débloqué tous opérateurs, double SIM (nano + eSIM).",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a009",
@@ -108,7 +124,9 @@
     "stock": 4,
     "description": "Écran 6,1\", 128 Go, châssis titane. Débloqué tous opérateurs, double SIM (nano + eSIM).",
     "color": "#E9ECF0",
-    "featured": true
+    "featured": true,
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a010",
@@ -120,7 +138,9 @@
     "oldPrice": 960000,
     "stock": 4,
     "description": "Écran 6,1\", 128 Go, châssis titane. Débloqué tous opérateurs, double SIM (nano + eSIM).",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a011",
@@ -132,7 +152,9 @@
     "oldPrice": 1050000,
     "stock": 4,
     "description": "Écran 6,1\", 256 Go, châssis titane. Débloqué tous opérateurs, double SIM (nano + eSIM).",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a012",
@@ -144,7 +166,9 @@
     "oldPrice": 1050000,
     "stock": 4,
     "description": "Écran 6,1\", 256 Go, châssis titane. Débloqué tous opérateurs, double SIM (nano + eSIM).",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a013",
@@ -156,7 +180,9 @@
     "oldPrice": 1190000,
     "stock": 3,
     "description": "Écran 6,7\", 256 Go, châssis titane. Débloqué tous opérateurs, double SIM (nano + eSIM).",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a014",
@@ -168,7 +194,9 @@
     "oldPrice": 1190000,
     "stock": 3,
     "description": "Écran 6,7\", 256 Go, châssis titane. Débloqué tous opérateurs, double SIM (nano + eSIM).",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a015",
@@ -180,7 +208,9 @@
     "oldPrice": null,
     "stock": 3,
     "description": "Écran 6,7\", 512 Go, châssis titane. Débloqué tous opérateurs, double SIM (nano + eSIM).",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a016",
@@ -192,7 +222,9 @@
     "oldPrice": 580000,
     "stock": 6,
     "description": "Écran 6,1\", 128 Go. Débloqué tous opérateurs, double SIM (nano + eSIM).",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a017",
@@ -204,7 +236,9 @@
     "oldPrice": 580000,
     "stock": 6,
     "description": "Écran 6,1\", 128 Go. Débloqué tous opérateurs, double SIM (nano + eSIM).",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a018",
@@ -216,7 +250,9 @@
     "oldPrice": 480000,
     "stock": 7,
     "description": "Écran 6,1\", 128 Go. Débloqué tous opérateurs, double SIM (nano + eSIM).",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a019",
@@ -228,7 +264,9 @@
     "oldPrice": 480000,
     "stock": 7,
     "description": "Écran 6,1\", 128 Go. Débloqué tous opérateurs, double SIM (nano + eSIM).",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a020",
@@ -240,7 +278,9 @@
     "oldPrice": 320000,
     "stock": 6,
     "description": "Format compact 4,7\", bouton principal, 64 Go. Débloqué tous opérateurs, double SIM (nano + eSIM).",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a021",
@@ -252,7 +292,9 @@
     "oldPrice": 320000,
     "stock": 6,
     "description": "Format compact 4,7\", bouton principal, 64 Go. Débloqué tous opérateurs, double SIM (nano + eSIM).",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a022",
@@ -265,7 +307,9 @@
     "stock": 6,
     "description": "Écran 10,9\", 64 Go, Wi-Fi, port USB-C.",
     "color": "#E9ECF0",
-    "featured": true
+    "featured": true,
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a023",
@@ -277,7 +321,9 @@
     "oldPrice": 370000,
     "stock": 6,
     "description": "Écran 10,9\", 64 Go, Wi-Fi, port USB-C.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a024",
@@ -289,7 +335,9 @@
     "oldPrice": 370000,
     "stock": 6,
     "description": "Écran 10,9\", 64 Go, Wi-Fi, port USB-C.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a025",
@@ -301,7 +349,9 @@
     "oldPrice": null,
     "stock": 3,
     "description": "Écran 10,9\", 256 Go, Wi-Fi.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a026",
@@ -313,7 +363,9 @@
     "oldPrice": 540000,
     "stock": 4,
     "description": "Écran 11\", puce M2, 128 Go.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a027",
@@ -325,7 +377,9 @@
     "oldPrice": 540000,
     "stock": 4,
     "description": "Écran 11\", puce M2, 128 Go.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a028",
@@ -337,7 +391,9 @@
     "oldPrice": 540000,
     "stock": 4,
     "description": "Écran 11\", puce M2, 128 Go.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a029",
@@ -349,7 +405,9 @@
     "oldPrice": null,
     "stock": 3,
     "description": "Écran 11\" Ultra Retina, puce M4, 256 Go.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a030",
@@ -361,7 +419,9 @@
     "oldPrice": null,
     "stock": 3,
     "description": "Écran 11\" Ultra Retina, puce M4, 256 Go.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a031",
@@ -373,7 +433,9 @@
     "oldPrice": null,
     "stock": 2,
     "description": "Écran 13\" Ultra Retina, puce M4, 512 Go.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a032",
@@ -385,7 +447,9 @@
     "oldPrice": 430000,
     "stock": 4,
     "description": "Format compact 8,3\", 128 Go.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a033",
@@ -397,7 +461,9 @@
     "oldPrice": 430000,
     "stock": 4,
     "description": "Format compact 8,3\", 128 Go.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a034",
@@ -410,7 +476,9 @@
     "stock": 5,
     "description": "Puce M2, 8 Go de mémoire, SSD 256 Go, clavier AZERTY.",
     "color": "#E9ECF0",
-    "featured": true
+    "featured": true,
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a035",
@@ -422,7 +490,9 @@
     "oldPrice": 800000,
     "stock": 5,
     "description": "Puce M2, 8 Go de mémoire, SSD 256 Go, clavier AZERTY.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a036",
@@ -434,7 +504,9 @@
     "oldPrice": null,
     "stock": 4,
     "description": "Puce M3, 16 Go de mémoire, SSD 256 Go, clavier AZERTY.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a037",
@@ -446,7 +518,9 @@
     "oldPrice": null,
     "stock": 4,
     "description": "Puce M3, 16 Go de mémoire, SSD 256 Go, clavier AZERTY.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a038",
@@ -458,7 +532,9 @@
     "oldPrice": 1180000,
     "stock": 3,
     "description": "Écran 15\", puce M3, 16 Go, SSD 512 Go, clavier AZERTY.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a039",
@@ -470,7 +546,9 @@
     "oldPrice": 1390000,
     "stock": 2,
     "description": "Puce M3, 8 Go, SSD 512 Go, clavier AZERTY.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a040",
@@ -482,7 +560,9 @@
     "oldPrice": 1390000,
     "stock": 2,
     "description": "Puce M3, 8 Go, SSD 512 Go, clavier AZERTY.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a041",
@@ -495,7 +575,9 @@
     "stock": 2,
     "description": "Puce M3 Pro, 18 Go, SSD 1 To, clavier AZERTY.",
     "color": "#E9ECF0",
-    "featured": true
+    "featured": true,
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a042",
@@ -507,7 +589,9 @@
     "oldPrice": null,
     "stock": 2,
     "description": "Écran 16\", puce M3 Pro, 18 Go, SSD 512 Go.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a043",
@@ -519,7 +603,9 @@
     "oldPrice": null,
     "stock": 2,
     "description": "Écran 16\", puce M3 Pro, 18 Go, SSD 512 Go.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a044",
@@ -531,7 +617,9 @@
     "oldPrice": null,
     "stock": 1,
     "description": "Écran 16\", puce M3 Max, 36 Go, SSD 1 To.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a045",
@@ -544,7 +632,9 @@
     "stock": 2,
     "description": "Tout-en-un 24\" 4,5K, puce M3, clavier et souris inclus.",
     "color": "#E9ECF0",
-    "featured": true
+    "featured": true,
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a046",
@@ -556,7 +646,9 @@
     "oldPrice": null,
     "stock": 2,
     "description": "Tout-en-un 24\" 4,5K, puce M3, clavier et souris inclus.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a047",
@@ -568,7 +660,9 @@
     "oldPrice": null,
     "stock": 2,
     "description": "Tout-en-un 24\" 4,5K, puce M3, clavier et souris inclus.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a048",
@@ -580,7 +674,9 @@
     "oldPrice": null,
     "stock": 2,
     "description": "Tout-en-un 24\" 4,5K, puce M3, clavier et souris inclus.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a049",
@@ -592,7 +688,9 @@
     "oldPrice": 495000,
     "stock": 4,
     "description": "Ordinateur compact, puce M2. Écran, clavier et souris non inclus.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a050",
@@ -604,7 +702,9 @@
     "oldPrice": null,
     "stock": 2,
     "description": "Puce M2 Pro, 16 Go, SSD 512 Go.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a051",
@@ -616,7 +716,9 @@
     "oldPrice": null,
     "stock": 1,
     "description": "Station de travail compacte, puce M2 Max.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a052",
@@ -628,7 +730,9 @@
     "oldPrice": null,
     "stock": 1,
     "description": "Puce M2 Ultra, 64 Go, SSD 1 To.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a053",
@@ -641,7 +745,9 @@
     "stock": 6,
     "description": "Boîtier aluminium 40 mm, bracelet sport.",
     "color": "#E9ECF0",
-    "featured": true
+    "featured": true,
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a054",
@@ -653,7 +759,9 @@
     "oldPrice": null,
     "stock": 5,
     "description": "Boîtier aluminium 44 mm, bracelet sport.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a055",
@@ -665,7 +773,9 @@
     "oldPrice": 310000,
     "stock": 4,
     "description": "Boîtier aluminium 41 mm, écran toujours allumé.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a056",
@@ -677,7 +787,9 @@
     "oldPrice": 330000,
     "stock": 4,
     "description": "Boîtier aluminium 45 mm, écran toujours allumé.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a057",
@@ -689,7 +801,9 @@
     "oldPrice": null,
     "stock": 3,
     "description": "Boîtier aluminium 45 mm, GPS + Cellular.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a058",
@@ -701,7 +815,9 @@
     "oldPrice": null,
     "stock": 2,
     "description": "Boîtier titane 49 mm, GPS + Cellular, pour le sport et l'aventure.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a059",
@@ -713,7 +829,9 @@
     "oldPrice": 110000,
     "stock": 10,
     "description": "Écouteurs sans fil avec boîtier de charge.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a060",
@@ -726,7 +844,9 @@
     "stock": 10,
     "description": "Audio spatial, boîtier de charge Lightning.",
     "color": "#E9ECF0",
-    "featured": true
+    "featured": true,
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a061",
@@ -739,7 +859,9 @@
     "stock": 6,
     "description": "Réduction active du bruit, boîtier USB-C.",
     "color": "#E9ECF0",
-    "featured": true
+    "featured": true,
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a062",
@@ -751,7 +873,9 @@
     "oldPrice": 420000,
     "stock": 2,
     "description": "Casque circum-auriculaire, réduction active du bruit.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a063",
@@ -763,7 +887,9 @@
     "oldPrice": 420000,
     "stock": 2,
     "description": "Casque circum-auriculaire, réduction active du bruit.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a064",
@@ -775,7 +901,9 @@
     "oldPrice": 420000,
     "stock": 2,
     "description": "Casque circum-auriculaire, réduction active du bruit.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a065",
@@ -787,7 +915,9 @@
     "oldPrice": null,
     "stock": 5,
     "description": "Boîtier TV 4K HDR avec télécommande.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a066",
@@ -799,7 +929,9 @@
     "oldPrice": null,
     "stock": 4,
     "description": "Boîtier TV 4K HDR, port Ethernet, 128 Go.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a067",
@@ -811,7 +943,9 @@
     "oldPrice": null,
     "stock": 3,
     "description": "Enceinte connectée, son haute fidélité.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a068",
@@ -823,7 +957,9 @@
     "oldPrice": null,
     "stock": 3,
     "description": "Enceinte connectée, son haute fidélité.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a069",
@@ -835,7 +971,9 @@
     "oldPrice": 80000,
     "stock": 6,
     "description": "Enceinte connectée compacte.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a070",
@@ -847,7 +985,9 @@
     "oldPrice": 80000,
     "stock": 6,
     "description": "Enceinte connectée compacte.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a071",
@@ -859,7 +999,9 @@
     "oldPrice": 80000,
     "stock": 6,
     "description": "Enceinte connectée compacte.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a072",
@@ -871,7 +1013,9 @@
     "oldPrice": null,
     "stock": 30,
     "description": "Charge rapide pour iPhone et iPad.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a073",
@@ -883,7 +1027,9 @@
     "oldPrice": null,
     "stock": 15,
     "description": "Deux ports USB-C, pour charger deux appareils.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a074",
@@ -895,7 +1041,9 @@
     "oldPrice": 38000,
     "stock": 15,
     "description": "Charge sans fil magnétique pour iPhone.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a075",
@@ -907,7 +1055,9 @@
     "oldPrice": null,
     "stock": 30,
     "description": "Câble de charge et de synchronisation tressé.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a076",
@@ -919,7 +1069,9 @@
     "oldPrice": null,
     "stock": 20,
     "description": "Pour la charge rapide des MacBook.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a077",
@@ -931,7 +1083,9 @@
     "oldPrice": null,
     "stock": 25,
     "description": "Pour iPhone 14 et modèles antérieurs.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a078",
@@ -943,7 +1097,9 @@
     "oldPrice": 42000,
     "stock": 15,
     "description": "Silicone doux, intérieur microfibre, compatible MagSafe.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a079",
@@ -955,7 +1111,9 @@
     "oldPrice": 42000,
     "stock": 15,
     "description": "Silicone doux, intérieur microfibre, compatible MagSafe.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a080",
@@ -967,7 +1125,9 @@
     "oldPrice": 42000,
     "stock": 15,
     "description": "Silicone doux, intérieur microfibre, compatible MagSafe.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a081",
@@ -979,7 +1139,9 @@
     "oldPrice": null,
     "stock": 15,
     "description": "Transparente, compatible MagSafe.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a082",
@@ -991,7 +1153,9 @@
     "oldPrice": null,
     "stock": 8,
     "description": "Clavier sans fil rechargeable.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a083",
@@ -1003,7 +1167,9 @@
     "oldPrice": null,
     "stock": 6,
     "description": "Clavier sans fil avec pavé numérique.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a084",
@@ -1015,7 +1181,9 @@
     "oldPrice": 70000,
     "stock": 8,
     "description": "Souris sans fil multi-touch.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a085",
@@ -1027,7 +1195,9 @@
     "oldPrice": null,
     "stock": 5,
     "description": "Souris sans fil multi-touch, surface noire.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a086",
@@ -1039,7 +1209,9 @@
     "oldPrice": null,
     "stock": 5,
     "description": "Pavé tactile sans fil, Force Touch.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a087",
@@ -1051,7 +1223,9 @@
     "oldPrice": 110000,
     "stock": 6,
     "description": "Stylet pour iPad compatible, charge magnétique.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a088",
@@ -1063,7 +1237,9 @@
     "oldPrice": null,
     "stock": 8,
     "description": "Stylet pour iPad, recharge par USB-C.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a089",
@@ -1075,7 +1251,9 @@
     "oldPrice": null,
     "stock": 20,
     "description": "Localisez vos clés, sac ou bagages.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "a090",
@@ -1087,7 +1265,9 @@
     "oldPrice": 98000,
     "stock": 10,
     "description": "Quatre traceurs AirTag.",
-    "color": "#E9ECF0"
+    "color": "#E9ECF0",
+    "provenance": "France",
+    "sourceSupplier": "Apple Store"
   },
   {
     "id": "e009",
@@ -1100,7 +1280,8 @@
     "description": "DDR4 3200 MHz, format SO-DIMM pour PC portable.",
     "color": "#3B4A3F",
     "featured": true,
-    "active": false
+    "active": false,
+    "provenance": "France"
   },
   {
     "id": "e010",
@@ -1112,7 +1293,8 @@
     "stock": 15,
     "description": "DDR4 3200 MHz, format DIMM pour PC de bureau.",
     "color": "#40513F",
-    "active": false
+    "active": false,
+    "provenance": "France"
   },
   {
     "id": "e011",
@@ -1124,7 +1306,8 @@
     "stock": 20,
     "description": "Accélère fortement un ancien ordinateur.",
     "color": "#455A47",
-    "active": false
+    "active": false,
+    "provenance": "France"
   },
   {
     "id": "e012",
@@ -1136,6 +1319,7 @@
     "stock": 60,
     "description": "USB 3.0, rapide et compacte.",
     "color": "#4B5E4C",
-    "active": false
+    "active": false,
+    "provenance": "France"
   }
 ]

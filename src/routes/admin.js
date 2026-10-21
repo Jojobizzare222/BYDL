@@ -629,6 +629,10 @@ function cleanProduct(input, current, { role }) {
     if (input.condition && !CONDITIONS.includes(input.condition)) return { error: 'État invalide' };
     p.condition = input.condition || 'neuf';
   }
+  // Provenance et fournisseur d'origine, AFFICHÉS au client pour la confiance (décision Joseph 21/10/2026 : « Provenance : France, Fournisseur : Apple »)
+  if ('provenance' in input) p.provenance = str(input.provenance, 40) || null;
+  if ('sourceSupplier' in input) p.sourceSupplier = str(input.sourceSupplier, 60) || null;
+  if (/^apple$/i.test(String(p.brand || '').trim())) p.sourceSupplier = 'Apple Store'; // produits Apple : TOUJOURS « Apple Store » (décision Joseph 21/10/2026)
   // Caractéristiques : liste « libellé : valeur » (ex. Couleur : Noir)
   if ('specs' in input) {
     const lines = Array.isArray(input.specs) ? input.specs : String(input.specs || '').split('\n');
@@ -699,7 +703,7 @@ function productFor(user, p) {
 const canSee = (user, p) => user.role !== 'supplier' || p.supplierId === user.id;
 
 // Résumé lisible des changements, pour le journal
-const TRACKED = { name: 'nom', price: 'prix', oldPrice: 'prix barré', supplierPrice: 'prix fournisseur', costPrice: 'prix d\'achat', stock: 'stock', category: 'catégorie', active: 'visible', featured: 'mis en avant', condition: 'état' };
+const TRACKED = { name: 'nom', price: 'prix', oldPrice: 'prix barré', supplierPrice: 'prix fournisseur', costPrice: 'prix d\'achat', stock: 'stock', category: 'catégorie', active: 'visible', featured: 'mis en avant', condition: 'état', provenance: 'provenance', sourceSupplier: 'fournisseur d\'origine' };
 // Valeur comparable et lisible (« visible » est vrai par défaut, « mis en avant » faux par défaut)
 const shown = (k, v) => {
   if (k === 'active') return v !== false ? 'oui' : 'non';
@@ -722,7 +726,7 @@ router.get('/products', requireRole('catalog', 'supplier'), (req, res) => {
 
 router.post('/products', requireRole('catalog', 'supplier'), (req, res) => {
   const role = req.user.role;
-  const base = { active: true, condition: 'neuf', pending: role !== 'admin', supplierId: role === 'supplier' ? req.user.id : null };
+  const base = { active: true, condition: 'neuf', provenance: 'France', pending: role !== 'admin', supplierId: role === 'supplier' ? req.user.id : null };
   const { error, value } = cleanProduct(req.body || {}, base, { role });
   if (error) return res.status(400).json({ error });
   const now = new Date().toISOString();

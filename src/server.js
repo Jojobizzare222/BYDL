@@ -151,6 +151,22 @@ require('./demo').seed();
   settings.set('migr:photos-illustration', new Date().toISOString());
   if (n) console.log(`[photos] ${n} produit(s) : photos d'illustration retirées`);
 })();
+// Provenance affichée au client (décision Joseph 21/10/2026 : le matériel vient principalement de France) : une seule fois
+// par base, les produits sans provenance reçoivent « France » et, comme fournisseur d'origine, leur marque (modifiable dans Zado Pro) ;
+// les produits Apple ont toujours « Apple Store ».
+(() => {
+  const { products, settings } = require('./store');
+  if (settings.get('migr:provenance-france')) return;
+  let n = 0;
+  for (const p of products.all()) {
+    const apple = /^apple$/i.test(String(p.brand || '').trim());
+    if (p.provenance && (!apple || p.sourceSupplier === 'Apple Store')) continue;
+    products.update(p.id, { provenance: p.provenance || 'France', sourceSupplier: apple ? 'Apple Store' : p.sourceSupplier || p.brand || null });
+    n++;
+  }
+  settings.set('migr:provenance-france', new Date().toISOString());
+  if (n) console.log(`[provenance] ${n} produit(s) : provenance France`);
+})();
 billing.syncAll(); // documents manquants (anciennes commandes, données de démo), dans l'ordre des ventes
 parcels.syncAll(); // colis des commandes prêtes
 
