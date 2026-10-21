@@ -5,7 +5,11 @@ const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-
 
 // Ce que voient les clients : jamais le prix fournisseur, le fournisseur ni les informations internes.
 // Données internes jamais montrées en boutique (anciens champs de l'achat en Europe compris)
-const publicProduct = ({ supplierPrice, costPrice, supplierId, createdBy, updatedBy, pending, approvedAt, sourceUrl, priceEur, weightKg, origin, lastPurchasePrice, ...p }) => p;
+const publicProduct = ({ supplierPrice, costPrice, supplierId, createdBy, updatedBy, pending, approvedAt, sourceUrl, priceEur, weightKg, origin, lastPurchasePrice, priceRefs, priceRefsPublic, ...p }) => ({
+  ...p,
+  // Prix constatés en France : visibles du client seulement si l'équipe l'a choisi pour ce produit (sinon : outil interne de Zado Pro)
+  ...(priceRefsPublic && (priceRefs || []).length ? { priceRefs } : {}),
+});
 // Visible sur la boutique : actif, validé par l'admin et d'un rayon qui existe encore (ex. plus de Mode depuis le 19/10/2026)
 const { inCatalog } = require('../catalog');
 const isPublic = (p) => p.active !== false && !p.pending && inCatalog(p);

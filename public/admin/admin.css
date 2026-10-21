@@ -212,7 +212,7 @@ table.dt { width: 100%; border-collapse: collapse; }
 .alert.warn { background: #3A2A12; color: #FFD27A; border: 1px solid #6B4A12; }
 .alert.ok { background: #143327; color: #8EE6C1; }
 label { display: block; font-weight: 600; font-size: .85rem; margin: 14px 0 6px; color: var(--ink); }
-input[type=text], input[type=password], input[type=number], input[type=tel], input[type=search], input[type=email], select, textarea {
+input[type=text], input[type=password], input[type=number], input[type=tel], input[type=search], input[type=email], input[type=url], select, textarea {
   width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink); min-height: 42px;
 }
 input:focus, select:focus, textarea:focus { outline: 2px solid var(--brand); border-color: transparent; }
@@ -628,8 +628,8 @@ html[data-theme="light"] .ghost { background: var(--paper); }
 .btn.small { min-height: 30px; padding: 3px 10px; font-size: .8rem; }
 .todo a { border-radius: 10px; box-shadow: none; font-size: .84rem; padding: 7px 12px; }
 .side-nav a.on { box-shadow: none; }
-input[type=text], input[type=password], input[type=number], input[type=tel], input[type=search], input[type=email], input[type=date], select, textarea { border-radius: 10px; min-height: 38px; padding: 8px 12px; }
-html[data-theme="light"] input[type=text], html[data-theme="light"] input[type=password], html[data-theme="light"] input[type=number], html[data-theme="light"] input[type=tel], html[data-theme="light"] input[type=search], html[data-theme="light"] input[type=email], html[data-theme="light"] input[type=date], html[data-theme="light"] select, html[data-theme="light"] textarea { background: #fff; }
+input[type=text], input[type=password], input[type=number], input[type=tel], input[type=search], input[type=email], input[type=url], input[type=date], select, textarea { border-radius: 10px; min-height: 38px; padding: 8px 12px; }
+html[data-theme="light"] input[type=text], html[data-theme="light"] input[type=password], html[data-theme="light"] input[type=number], html[data-theme="light"] input[type=tel], html[data-theme="light"] input[type=search], html[data-theme="light"] input[type=email], html[data-theme="light"] input[type=url], html[data-theme="light"] input[type=date], html[data-theme="light"] select, html[data-theme="light"] textarea { background: #fff; }
 html[data-theme="light"] input[type=date] { color-scheme: light; }
 label { margin: 10px 0 5px; font-size: .82rem; }
 .alert { border-radius: 10px; }

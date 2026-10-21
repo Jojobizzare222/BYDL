@@ -95,6 +95,7 @@ const billing = require('./billing');
 billing.watchOrders(); // factures, reçus, avoirs créés automatiquement à chaque étape d'une commande
 const parcels = require('./parcels');
 parcels.watchOrders(); // colis créés et mis à jour avec la commande
+require('./price-watch').start(); // prix constatés en France : relevés une fois par jour (à partir de 6 h, heure du Congo)
 require('./abandon').start(); // commandes jamais payées annulées automatiquement (toutes les 10 min ; sur Vercel : à la lecture)
 // Rafraîchissement instantané des écrans ouverts (boutique) : seulement ce qui concerne ce client
 const events = require('./events');
@@ -132,6 +133,12 @@ app.post('/api/push/subscribe', (req, res) => {
   if (r.error) return res.status(400).json(r);
   res.json({ ok: true });
 });
+// Tâche planifiée de Vercel (vercel.json « crons ») : relevé quotidien des prix en France. Protégée par CRON_SECRET (sinon désactivée).
+app.get('/api/cron/prices', async (req, res) => {
+  const secret = process.env.CRON_SECRET;
+  if (!secret || req.get('authorization') !== `Bearer ${secret}`) return res.status(401).json({ error: 'Non autorisé' });
+  res.json(await require('./price-watch').runAll({ budgetMs: 45000 }));
+});
 app.use('/api/admin', require('./routes/admin'));
 // Vitrine de démo (Vercel) : comptes et données d'exemple, créés une fois par démarrage de la base temporaire
 require('./demo').seed();
@@ -166,6 +173,24 @@ require('./demo').seed();
   }
   settings.set('migr:provenance-france', new Date().toISOString());
   if (n) console.log(`[provenance] ${n} produit(s) : provenance France`);
+})();
+// Fiches détaillées (21/10/2026) : points forts, réparabilité, vidéo, prix en France du catalogue de départ copiés UNE fois
+// dans une base existante, seulement pour les produits qui n'en ont pas encore (rien n'est écrasé).
+(() => {
+  const { products, settings } = require('./store');
+  if (settings.get('migr:fiches-v1')) return;
+  let start = [];
+  try { start = JSON.parse(require('fs').readFileSync(require('path').join(__dirname, '..', 'data', 'products.json'), 'utf8')); } catch { return; }
+  let n = 0;
+  for (const ref of start) {
+    const p = products.get(ref.id);
+    if (!p || p.name !== ref.name) continue;
+    const add = {};
+    for (const k of ['highlights', 'repair', 'video', 'priceRefs']) if (ref[k] && !(p[k] && (Array.isArray(p[k]) ? p[k].length : true))) add[k] = ref[k];
+    if (Object.keys(add).length) { products.update(p.id, add); n++; }
+  }
+  settings.set('migr:fiches-v1', new Date().toISOString());
+  if (n) console.log(`[fiches] ${n} produit(s) : fiche détaillée ajoutée`);
 })();
 billing.syncAll(); // documents manquants (anciennes commandes, données de démo), dans l'ordre des ventes
 parcels.syncAll(); // colis des commandes prêtes

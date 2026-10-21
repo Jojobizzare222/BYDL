@@ -56,7 +56,7 @@
   addEventListener('resize', markScrollers);
   new MutationObserver(() => requestAnimationFrame(markScrollers)).observe(document.getElementById('app'), { childList: true });
   // ---------- Outils d'affichage ----------
-  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=12#${name}"></use></svg>`;
+  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=13#${name}"></use></svg>`;
   // En-tête de page façon « Espace pro › Commandes » + titre + description + boutons d'action à droite
   const pageHead = ({ crumb, title, desc = '', actions = '' }) => `
     <div class="page-head">
@@ -1941,18 +1941,54 @@
         <label for="condition">État</label>
         <select id="condition" ${dis}>${['neuf', 'reconditionné', 'occasion'].map((c) => `<option ${c === (p.condition || 'neuf') ? 'selected' : ''}>${c}</option>`).join('')}</select>
         <label for="provenance">Provenance (affichée au client)</label>
-        <input id="provenance" list="provList" maxlength="40" value="${esc(p.provenance || '')}" placeholder="France" ${dis}>
+        <input id="provenance" type="text" list="provList" maxlength="40" value="${esc(p.provenance || '')}" placeholder="France" ${dis}>
         <datalist id="provList"><option>France</option><option>Union européenne</option><option>Émirats (Dubaï)</option><option>Chine</option><option>Congo</option></datalist>
         <label for="sourceSupplier">Fournisseur d'origine (affiché au client)</label>
-        <input id="sourceSupplier" maxlength="60" value="${esc(p.sourceSupplier || '')}" placeholder="Ex. Apple, Samsung, Fnac…" ${dis}>
+        <input id="sourceSupplier" type="text" maxlength="60" value="${esc(p.sourceSupplier || '')}" placeholder="Ex. Apple, Samsung, Fnac…" ${dis}>
         <p class="muted" style="margin-top:4px">Affichés sur la fiche : « Provenance : France · Fournisseur : Apple ». Produits Apple : toujours « Apple Store » (rempli automatiquement). Pour les autres marques, n'indiquez la marque que si vous achetez réellement chez elle (sinon, le nom du revendeur).</p>
         <label for="description">Description</label>
-        <textarea id="description" rows="4" placeholder="Points forts, contenu de la boîte, garantie…" ${dis}>${esc(p.description)}</textarea>
+        <textarea id="description" rows="6" maxlength="4000" placeholder="Présentation du produit, contenu de la boîte, garantie… (laissez une ligne vide entre deux paragraphes)" ${dis}>${esc(p.description)}</textarea>
         <label for="options">Choix proposés au client (une ligne par choix)</label>
         <textarea id="options" rows="2" placeholder="Couleur : Noir, Bleu, Rouge&#10;Capacité : 128 Go, 256 Go" ${dis}>${esc((p.options || []).map((o) => `${o.name} : ${o.values.join(', ')}`).join('\n'))}</textarea>
         <p class="muted" style="margin-top:4px">Le client devra choisir avant d'ajouter au panier.</p>
         <label for="specs">Caractéristiques (une par ligne)</label>
         <textarea id="specs" rows="4" placeholder="Couleur : Noir&#10;Capacité : 128 Go&#10;Écran : 6,1 pouces" ${dis}>${esc((p.specs || []).map((x) => `${x.label} : ${x.value}`).join('\n'))}</textarea>
+        <h2 style="margin-top:18px">Fiche détaillée</h2>
+        <p class="muted">Ce qui rassure le client avant d'acheter : les points forts, la réparabilité, une vidéo d'analyse, et les prix pratiqués en France.</p>
+        <label for="highlights">Points forts (un par ligne, 8 au plus)</label>
+        <textarea id="highlights" rows="4" placeholder="Puce A16 Bionic : rapide pendant des années&#10;Appareil photo 48 Mpx&#10;Port USB-C" ${dis}>${esc((p.highlights || []).join('\n'))}</textarea>
+        <div class="grid2">
+          <div><label for="repairKind">Réparabilité</label>
+            <select id="repairKind" ${dis}>
+              <option value="">Non renseignée</option>
+              <option value="fr" ${p.repair?.kind === 'fr' ? 'selected' : ''}>Indice de réparabilité France (sur 10)</option>
+              <option value="eu" ${p.repair?.kind === 'eu' ? 'selected' : ''}>Classe UE de réparabilité (A à E)</option>
+              <option value="ifixit" ${p.repair?.kind === 'ifixit' ? 'selected' : ''}>Note iFixit (sur 10)</option>
+            </select></div>
+          <div><label for="repairValue">Note ou classe</label><input id="repairValue" type="text" maxlength="4" value="${esc(p.repair?.value || '')}" placeholder="Ex. 7,1 ou B" ${dis}></div>
+        </div>
+        <label for="repairUrl">Source de la note (lien, facultatif)</label>
+        <input id="repairUrl" type="url" maxlength="400" value="${esc(p.repair?.url || '')}" placeholder="https://www.apple.com/fr/…" ${dis}>
+        <label for="repairNote">Précision (facultatif)</label>
+        <input id="repairNote" type="text" maxlength="200" value="${esc(p.repair?.note || '')}" placeholder="Ex. batterie remplaçable chez un réparateur agréé" ${dis}>
+        <label for="videoUrl">Vidéo d'analyse sur YouTube (lien)</label>
+        <input id="videoUrl" type="url" maxlength="300" value="${esc(p.video?.url || '')}" placeholder="https://www.youtube.com/watch?v=…" ${dis}>
+        <div class="grid2">
+          <div><label for="videoTitle">Titre de la vidéo</label><input id="videoTitle" type="text" maxlength="120" value="${esc(p.video?.title || '')}" ${dis}></div>
+          <div><label for="videoChannel">Chaîne</label><input id="videoChannel" type="text" maxlength="60" value="${esc(p.video?.channel || '')}" placeholder="Ex. Les Numériques" ${dis}></div>
+        </div>
+        <p class="muted" style="margin-top:4px">Rechercher : <a href="https://www.youtube.com/results?search_query=${enc((p.name || '') + ' test avis')}" target="_blank" rel="noopener">une vidéo sur YouTube</a> · <a href="https://www.google.com/search?q=${enc((p.name || '') + ' indice de réparabilité')}" target="_blank" rel="noopener">l'indice de réparabilité</a></p>
+
+        <h3 style="margin-top:14px">Prix constatés en France</h3>
+        <p class="muted">Collez le lien de la page du produit chez chaque vendeur. <b>Les prix sont relevés automatiquement chaque matin</b> (et avec « Actualiser maintenant »). Certains sites refusent les robots (Fnac, Darty, Boulanger, Amazon…) : leur prix reste celui saisi à la main et doit être vérifié.</p>
+        <div id="refRows"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin:8px 0">
+          <button type="button" class="ghost" id="refAdd">${icon('plus-bold')} Ajouter un vendeur</button>
+          ${isNew ? '' : `<button type="button" class="ghost" id="refRefresh">${icon('arrows-clockwise')} Actualiser maintenant</button>`}
+        </div>
+        <p class="muted" id="refSummary"></p>
+        <p class="muted">Trouver les vendeurs : <a href="https://www.idealo.fr/prechcat.html?q=${enc(p.name || '')}" target="_blank" rel="noopener">idealo</a> · <a href="https://www.google.com/search?tbm=shop&q=${enc(p.name || '')}" target="_blank" rel="noopener">Google Shopping</a> · <a href="https://www.apple.com/fr/search/${enc(p.name || '')}" target="_blank" rel="noopener">Apple Store</a> · <a href="https://www.fnac.com/SearchResult/ResultList.aspx?Search=${enc(p.name || '')}" target="_blank" rel="noopener">Fnac</a></p>
+        <label class="check"><input id="priceRefsPublic" type="checkbox" ${p.priceRefsPublic ? 'checked' : ''}> Montrer ces prix aux clients sur la fiche (sinon, ils restent dans Zado Pro)</label>
 
         <h2 style="margin-top:18px">Prix et disponibilité</h2>
         <div class="grid2">
@@ -2030,6 +2066,51 @@
 
     $('#files')?.addEventListener('change', (e) => { addFiles(e.target.files); e.target.value = ''; });
 
+    // ---- Prix constatés en France ----
+    let refs = (p.priceRefs || []).map((r) => ({ ...r }));
+    const REF_STATUS = { ok: ['ok', 'Relevé automatiquement'], manual: ['info', 'Saisi à la main'], blocked: ['warn', 'Site fermé aux robots : à vérifier à la main'], robots: ['warn', 'Lecture automatique interdite par le site'], noprice: ['danger', 'Prix introuvable sur la page'], error: ['danger', 'Page inaccessible'] };
+    const EUR = 655.957;
+    const renderRefs = () => {
+      $('#refRows').innerHTML = refs.length ? refs.map((r, i) => {
+        const st = REF_STATUS[r.status] || REF_STATUS.manual;
+        const old = r.date && (Date.now() - new Date(r.date).getTime()) > 3 * 864e5;
+        return `<div class="panel" style="padding:10px;margin:6px 0" data-ref="${i}">
+          <div class="grid2">
+            <div><label>Vendeur</label><input data-f="store" type="text" maxlength="40" value="${esc(r.store || '')}" placeholder="Apple Store, Fnac, Boulanger…"></div>
+            <div><label>Prix (€)</label><input data-f="priceEur" type="text" inputmode="decimal" value="${r.priceEur != null ? String(r.priceEur).replace('.', ',') : ''}" placeholder="969,00"></div>
+          </div>
+          <label>Lien de la page produit</label><input data-f="url" type="url" maxlength="400" value="${esc(r.url || '')}" placeholder="https://…">
+          <p class="muted" style="margin:6px 0 0;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+            <span class="tag ${st[0]}">${esc(st[1])}</span>
+            ${r.priceEur ? `<span>≈ ${fcfa(Math.round(r.priceEur * EUR))}${r.from ? ' (à partir de)' : ''}</span>` : ''}
+            ${r.date ? `<span class="${old ? 'warn' : ''}">prix du ${esc(new Date(r.date).toLocaleDateString('fr-FR'))}${old ? ' : ancien' : ''}</span>` : ''}
+            ${r.checkedAt ? `<span>dernier passage du robot : ${esc(new Date(r.checkedAt).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }))}</span>` : ''}
+            ${(r.history || []).length > 1 ? `<span>${r.history.length} relevés (min ${Math.min(...r.history.map((h) => h.priceEur)).toLocaleString('fr-FR')} €, max ${Math.max(...r.history.map((h) => h.priceEur)).toLocaleString('fr-FR')} €)</span>` : ''}
+            <button type="button" class="ghost" data-refdel="${i}" style="margin-left:auto">${icon('trash-bold')} Retirer</button>
+          </p>${r.detail && r.status !== 'ok' ? `<p class="muted" style="margin:4px 0 0">${esc(r.detail)}</p>` : ''}
+        </div>`;
+      }).join('') : '<p class="muted">Aucun prix en France pour le moment.</p>';
+      $('#refRows').querySelectorAll('[data-ref]').forEach((row) => row.querySelectorAll('[data-f]').forEach((inp) => inp.addEventListener('input', () => { refs[Number(row.dataset.ref)][inp.dataset.f] = inp.value; })));
+      $('#refRows').querySelectorAll('[data-refdel]').forEach((b) => b.addEventListener('click', () => { refs.splice(Number(b.dataset.refdel), 1); renderRefs(); }));
+      const okRefs = refs.filter((r) => Number(String(r.priceEur).replace(',', '.')) > 0);
+      const low = okRefs.length ? Math.min(...okRefs.map((r) => Number(String(r.priceEur).replace(',', '.')))) : null;
+      const sale = Number($('#price')?.value || p.price) || null;
+      $('#refSummary').innerHTML = low ? `Prix le plus bas en France : <b>${low.toLocaleString('fr-FR', { minimumFractionDigits: 2 })} €</b> ≈ ${fcfa(Math.round(low * EUR))} TTC${sale ? ` · prix Zado : ${fcfa(sale)} (${sale >= low * EUR ? '+' : ''}${Math.round((sale / (low * EUR) - 1) * 100)} %)` : ''}` : '';
+    };
+    renderRefs();
+    $('#refAdd').addEventListener('click', () => { refs.push({ store: '', priceEur: '', url: '' }); renderRefs(); $('#refRows').lastElementChild?.querySelector('input')?.focus(); });
+    $('#refRefresh')?.addEventListener('click', async (e) => {
+      const b = e.currentTarget; b.disabled = true; const t = b.innerHTML; b.textContent = 'Lecture des pages…';
+      try {
+        const saved = await api('/products/' + enc(p.id) + '/prices/refresh', { method: 'POST' });
+        state.products = state.products.map((x) => (x.id === saved.id ? saved : x));
+        refs = (saved.priceRefs || []).map((r) => ({ ...r })); p.priceRefs = saved.priceRefs; renderRefs();
+        const n = refs.filter((r) => r.status === 'ok').length;
+        toast(`${n} prix relevé${n > 1 ? 's' : ''} automatiquement`);
+      } catch (err) { toast(err.message); }
+      b.disabled = false; b.innerHTML = t;
+    });
+
     const val = (sel) => $(sel)?.value;
     $('#pform').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -2038,6 +2119,10 @@
         body = {
           name: val('#name'), brand: val('#brand'), category: val('#category'), condition: val('#condition'), provenance: val('#provenance'), sourceSupplier: val('#sourceSupplier'),
           description: val('#description'), specs: val('#specs'), stock: val('#stock'), images,
+          highlights: val('#highlights'),
+          repair: { kind: val('#repairKind'), value: val('#repairValue'), url: val('#repairUrl'), note: val('#repairNote') },
+          video: { url: val('#videoUrl'), title: val('#videoTitle'), channel: val('#videoChannel') },
+          priceRefs: refs.map(({ store, priceEur, url, date }) => ({ store, priceEur, url, date })), priceRefsPublic: $('#priceRefsPublic').checked,
         };
         if (showSale) Object.assign(body, { price: val('#price'), oldPrice: val('#oldPrice') });
         body.costPrice = val('#costPrice');
@@ -2623,7 +2708,7 @@
     $('#userName').textContent = u.name;
     $('#userRole').textContent = u.company || ROLE_LABELS[u.role] || u.role;
     const m = window.kamwaTheme?.mode() || 'light';
-    $('#themeTopIco').setAttribute('href', `/icons.svg?v=12#${m === 'dark' ? 'moon' : m === 'auto' ? 'circle-half' : 'sun'}`);
+    $('#themeTopIco').setAttribute('href', `/icons.svg?v=13#${m === 'dark' ? 'moon' : m === 'auto' ? 'circle-half' : 'sun'}`);
     $('#themeTop').title = `Apparence : ${m === 'dark' ? 'sombre' : m === 'auto' ? 'automatique' : 'claire'} (cliquer pour changer)`;
     const todo = $('#todoCount'); const chat = $('#chatCount');
     const n = (todo && !todo.hidden ? parseInt(todo.textContent, 10) || 0 : 0) + (chat && !chat.hidden ? parseInt(chat.textContent, 10) || 0 : 0);

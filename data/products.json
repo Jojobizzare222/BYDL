@@ -12,7 +12,28 @@
     "color": "#E9ECF0",
     "updatedAt": "2026-10-14T07:26:52.173Z",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Dynamic Island et écran 6,1 pouces très lumineux (jusqu'à 2 000 nits en extérieur)",
+      "Appareil photo principal 48 Mpx, zoom 2x de qualité optique",
+      "Puce A16 Bionic",
+      "Port USB-C : le même câble que les Mac et iPad récents",
+      "Dos en verre teinté dans la masse, cadre en aluminium",
+      "Résistant à l'eau et à la poussière (IP68)",
+      "Jusqu'à 20 h de lecture vidéo (donnée Apple)"
+    ],
+    "repair": {
+      "kind": "ifixit",
+      "value": "7",
+      "url": "https://iphonesoft.fr/2024/10/10/ifixit-augmente-fortement-score-reparabilite-iphone-15",
+      "note": "Note relevée par iFixit en octobre 2024 (de 4 à 7/10) grâce à l'outil de réparation d'Apple"
+    },
+    "video": {
+      "url": "https://www.youtube.com/watch?v=qaUFa3ZY2fo",
+      "id": "qaUFa3ZY2fo",
+      "title": "Test iPhone 15 : ceci n'est pas une révolution",
+      "channel": "Les Numériques"
+    }
   },
   {
     "id": "a002",
@@ -27,7 +48,28 @@
     "color": "#E9ECF0",
     "featured": true,
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Dynamic Island et écran 6,1 pouces très lumineux (jusqu'à 2 000 nits en extérieur)",
+      "Appareil photo principal 48 Mpx, zoom 2x de qualité optique",
+      "Puce A16 Bionic",
+      "Port USB-C : le même câble que les Mac et iPad récents",
+      "Dos en verre teinté dans la masse, cadre en aluminium",
+      "Résistant à l'eau et à la poussière (IP68)",
+      "Jusqu'à 20 h de lecture vidéo (donnée Apple)"
+    ],
+    "repair": {
+      "kind": "ifixit",
+      "value": "7",
+      "url": "https://iphonesoft.fr/2024/10/10/ifixit-augmente-fortement-score-reparabilite-iphone-15",
+      "note": "Note relevée par iFixit en octobre 2024 (de 4 à 7/10) grâce à l'outil de réparation d'Apple"
+    },
+    "video": {
+      "url": "https://www.youtube.com/watch?v=qaUFa3ZY2fo",
+      "id": "qaUFa3ZY2fo",
+      "title": "Test iPhone 15 : ceci n'est pas une révolution",
+      "channel": "Les Numériques"
+    }
   },
   {
     "id": "a003",
@@ -41,7 +83,28 @@
     "description": "Écran 6,1\", 128 Go, port USB-C. Débloqué tous opérateurs, double SIM (nano + eSIM).",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Dynamic Island et écran 6,1 pouces très lumineux (jusqu'à 2 000 nits en extérieur)",
+      "Appareil photo principal 48 Mpx, zoom 2x de qualité optique",
+      "Puce A16 Bionic",
+      "Port USB-C : le même câble que les Mac et iPad récents",
+      "Dos en verre teinté dans la masse, cadre en aluminium",
+      "Résistant à l'eau et à la poussière (IP68)",
+      "Jusqu'à 20 h de lecture vidéo (donnée Apple)"
+    ],
+    "repair": {
+      "kind": "ifixit",
+      "value": "7",
+      "url": "https://iphonesoft.fr/2024/10/10/ifixit-augmente-fortement-score-reparabilite-iphone-15",
+      "note": "Note relevée par iFixit en octobre 2024 (de 4 à 7/10) grâce à l'outil de réparation d'Apple"
+    },
+    "video": {
+      "url": "https://www.youtube.com/watch?v=qaUFa3ZY2fo",
+      "id": "qaUFa3ZY2fo",
+      "title": "Test iPhone 15 : ceci n'est pas une révolution",
+      "channel": "Les Numériques"
+    }
   },
   {
     "id": "a004",
@@ -55,7 +118,28 @@
     "description": "Écran 6,1\", 128 Go, port USB-C. Débloqué tous opérateurs, double SIM (nano + eSIM).",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Dynamic Island et écran 6,1 pouces très lumineux (jusqu'à 2 000 nits en extérieur)",
+      "Appareil photo principal 48 Mpx, zoom 2x de qualité optique",
+      "Puce A16 Bionic",
+      "Port USB-C : le même câble que les Mac et iPad récents",
+      "Dos en verre teinté dans la masse, cadre en aluminium",
+      "Résistant à l'eau et à la poussière (IP68)",
+      "Jusqu'à 20 h de lecture vidéo (donnée Apple)"
+    ],
+    "repair": {
+      "kind": "ifixit",
+      "value": "7",
+      "url": "https://iphonesoft.fr/2024/10/10/ifixit-augmente-fortement-score-reparabilite-iphone-15",
+      "note": "Note relevée par iFixit en octobre 2024 (de 4 à 7/10) grâce à l'outil de réparation d'Apple"
+    },
+    "video": {
+      "url": "https://www.youtube.com/watch?v=qaUFa3ZY2fo",
+      "id": "qaUFa3ZY2fo",
+      "title": "Test iPhone 15 : ceci n'est pas une révolution",
+      "channel": "Les Numériques"
+    }
   },
   {
     "id": "a005",
@@ -69,7 +153,28 @@
     "description": "Écran 6,1\", 256 Go, port USB-C. Débloqué tous opérateurs, double SIM (nano + eSIM).",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Dynamic Island et écran 6,1 pouces très lumineux (jusqu'à 2 000 nits en extérieur)",
+      "Appareil photo principal 48 Mpx, zoom 2x de qualité optique",
+      "Puce A16 Bionic",
+      "Port USB-C : le même câble que les Mac et iPad récents",
+      "Dos en verre teinté dans la masse, cadre en aluminium",
+      "Résistant à l'eau et à la poussière (IP68)",
+      "Jusqu'à 20 h de lecture vidéo (donnée Apple)"
+    ],
+    "repair": {
+      "kind": "ifixit",
+      "value": "7",
+      "url": "https://iphonesoft.fr/2024/10/10/ifixit-augmente-fortement-score-reparabilite-iphone-15",
+      "note": "Note relevée par iFixit en octobre 2024 (de 4 à 7/10) grâce à l'outil de réparation d'Apple"
+    },
+    "video": {
+      "url": "https://www.youtube.com/watch?v=qaUFa3ZY2fo",
+      "id": "qaUFa3ZY2fo",
+      "title": "Test iPhone 15 : ceci n'est pas une révolution",
+      "channel": "Les Numériques"
+    }
   },
   {
     "id": "a006",
@@ -83,7 +188,28 @@
     "description": "Écran 6,1\", 256 Go, port USB-C. Débloqué tous opérateurs, double SIM (nano + eSIM).",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Dynamic Island et écran 6,1 pouces très lumineux (jusqu'à 2 000 nits en extérieur)",
+      "Appareil photo principal 48 Mpx, zoom 2x de qualité optique",
+      "Puce A16 Bionic",
+      "Port USB-C : le même câble que les Mac et iPad récents",
+      "Dos en verre teinté dans la masse, cadre en aluminium",
+      "Résistant à l'eau et à la poussière (IP68)",
+      "Jusqu'à 20 h de lecture vidéo (donnée Apple)"
+    ],
+    "repair": {
+      "kind": "ifixit",
+      "value": "7",
+      "url": "https://iphonesoft.fr/2024/10/10/ifixit-augmente-fortement-score-reparabilite-iphone-15",
+      "note": "Note relevée par iFixit en octobre 2024 (de 4 à 7/10) grâce à l'outil de réparation d'Apple"
+    },
+    "video": {
+      "url": "https://www.youtube.com/watch?v=qaUFa3ZY2fo",
+      "id": "qaUFa3ZY2fo",
+      "title": "Test iPhone 15 : ceci n'est pas une révolution",
+      "channel": "Les Numériques"
+    }
   },
   {
     "id": "a007",
@@ -97,7 +223,27 @@
     "description": "Grand écran 6,7\", 128 Go. Débloqué tous opérateurs, double SIM (nano + eSIM).",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Grand écran 6,7 pouces avec Dynamic Island",
+      "Très grande autonomie : jusqu'à 26 h de lecture vidéo (donnée Apple)",
+      "Appareil photo principal 48 Mpx, zoom 2x de qualité optique",
+      "Puce A16 Bionic",
+      "Port USB-C",
+      "Résistant à l'eau et à la poussière (IP68)"
+    ],
+    "repair": {
+      "kind": "ifixit",
+      "value": "7",
+      "url": "https://iphonesoft.fr/2024/10/10/ifixit-augmente-fortement-score-reparabilite-iphone-15",
+      "note": "Note relevée par iFixit en octobre 2024 (de 4 à 7/10) grâce à l'outil de réparation d'Apple"
+    },
+    "video": {
+      "url": "https://www.youtube.com/watch?v=Vh5-51hwLMk",
+      "id": "Vh5-51hwLMk",
+      "title": "iPhone 15 Plus - Un VRAI BON PLAN ?",
+      "channel": "Monsieur GRrr"
+    }
   },
   {
     "id": "a008",
@@ -111,7 +257,27 @@
     "description": "Grand écran 6,7\", 128 Go. Débloqué tous opérateurs, double SIM (nano + eSIM).",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Grand écran 6,7 pouces avec Dynamic Island",
+      "Très grande autonomie : jusqu'à 26 h de lecture vidéo (donnée Apple)",
+      "Appareil photo principal 48 Mpx, zoom 2x de qualité optique",
+      "Puce A16 Bionic",
+      "Port USB-C",
+      "Résistant à l'eau et à la poussière (IP68)"
+    ],
+    "repair": {
+      "kind": "ifixit",
+      "value": "7",
+      "url": "https://iphonesoft.fr/2024/10/10/ifixit-augmente-fortement-score-reparabilite-iphone-15",
+      "note": "Note relevée par iFixit en octobre 2024 (de 4 à 7/10) grâce à l'outil de réparation d'Apple"
+    },
+    "video": {
+      "url": "https://www.youtube.com/watch?v=Vh5-51hwLMk",
+      "id": "Vh5-51hwLMk",
+      "title": "iPhone 15 Plus - Un VRAI BON PLAN ?",
+      "channel": "Monsieur GRrr"
+    }
   },
   {
     "id": "a009",
@@ -126,7 +292,28 @@
     "color": "#E9ECF0",
     "featured": true,
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Cadre en titane, plus léger que l'acier",
+      "Puce A17 Pro : jeux de qualité console et Apple Intelligence",
+      "Téléobjectif 3x et appareil photo principal 48 Mpx",
+      "Écran 6,1 pouces ProMotion 120 Hz, toujours activé",
+      "Bouton Action personnalisable",
+      "Port USB-C rapide (USB 3, jusqu'à 10 Gb/s)",
+      "Jusqu'à 23 h de lecture vidéo (donnée Apple)"
+    ],
+    "repair": {
+      "kind": "ifixit",
+      "value": "7",
+      "url": "https://iphonesoft.fr/2024/10/10/ifixit-augmente-fortement-score-reparabilite-iphone-15",
+      "note": "Note relevée par iFixit en octobre 2024 (de 4 à 7/10) grâce à l'outil de réparation d'Apple"
+    },
+    "video": {
+      "url": "https://www.youtube.com/watch?v=QetI5H0C-dQ",
+      "id": "QetI5H0C-dQ",
+      "title": "Test iPhone 15 Pro un mois après : que vaut-il VRAIMENT ?",
+      "channel": "Presse-citron"
+    }
   },
   {
     "id": "a010",
@@ -140,7 +327,28 @@
     "description": "Écran 6,1\", 128 Go, châssis titane. Débloqué tous opérateurs, double SIM (nano + eSIM).",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Cadre en titane, plus léger que l'acier",
+      "Puce A17 Pro : jeux de qualité console et Apple Intelligence",
+      "Téléobjectif 3x et appareil photo principal 48 Mpx",
+      "Écran 6,1 pouces ProMotion 120 Hz, toujours activé",
+      "Bouton Action personnalisable",
+      "Port USB-C rapide (USB 3, jusqu'à 10 Gb/s)",
+      "Jusqu'à 23 h de lecture vidéo (donnée Apple)"
+    ],
+    "repair": {
+      "kind": "ifixit",
+      "value": "7",
+      "url": "https://iphonesoft.fr/2024/10/10/ifixit-augmente-fortement-score-reparabilite-iphone-15",
+      "note": "Note relevée par iFixit en octobre 2024 (de 4 à 7/10) grâce à l'outil de réparation d'Apple"
+    },
+    "video": {
+      "url": "https://www.youtube.com/watch?v=QetI5H0C-dQ",
+      "id": "QetI5H0C-dQ",
+      "title": "Test iPhone 15 Pro un mois après : que vaut-il VRAIMENT ?",
+      "channel": "Presse-citron"
+    }
   },
   {
     "id": "a011",
@@ -154,7 +362,28 @@
     "description": "Écran 6,1\", 256 Go, châssis titane. Débloqué tous opérateurs, double SIM (nano + eSIM).",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Cadre en titane, plus léger que l'acier",
+      "Puce A17 Pro : jeux de qualité console et Apple Intelligence",
+      "Téléobjectif 3x et appareil photo principal 48 Mpx",
+      "Écran 6,1 pouces ProMotion 120 Hz, toujours activé",
+      "Bouton Action personnalisable",
+      "Port USB-C rapide (USB 3, jusqu'à 10 Gb/s)",
+      "Jusqu'à 23 h de lecture vidéo (donnée Apple)"
+    ],
+    "repair": {
+      "kind": "ifixit",
+      "value": "7",
+      "url": "https://iphonesoft.fr/2024/10/10/ifixit-augmente-fortement-score-reparabilite-iphone-15",
+      "note": "Note relevée par iFixit en octobre 2024 (de 4 à 7/10) grâce à l'outil de réparation d'Apple"
+    },
+    "video": {
+      "url": "https://www.youtube.com/watch?v=QetI5H0C-dQ",
+      "id": "QetI5H0C-dQ",
+      "title": "Test iPhone 15 Pro un mois après : que vaut-il VRAIMENT ?",
+      "channel": "Presse-citron"
+    }
   },
   {
     "id": "a012",
@@ -168,7 +397,28 @@
     "description": "Écran 6,1\", 256 Go, châssis titane. Débloqué tous opérateurs, double SIM (nano + eSIM).",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Cadre en titane, plus léger que l'acier",
+      "Puce A17 Pro : jeux de qualité console et Apple Intelligence",
+      "Téléobjectif 3x et appareil photo principal 48 Mpx",
+      "Écran 6,1 pouces ProMotion 120 Hz, toujours activé",
+      "Bouton Action personnalisable",
+      "Port USB-C rapide (USB 3, jusqu'à 10 Gb/s)",
+      "Jusqu'à 23 h de lecture vidéo (donnée Apple)"
+    ],
+    "repair": {
+      "kind": "ifixit",
+      "value": "7",
+      "url": "https://iphonesoft.fr/2024/10/10/ifixit-augmente-fortement-score-reparabilite-iphone-15",
+      "note": "Note relevée par iFixit en octobre 2024 (de 4 à 7/10) grâce à l'outil de réparation d'Apple"
+    },
+    "video": {
+      "url": "https://www.youtube.com/watch?v=QetI5H0C-dQ",
+      "id": "QetI5H0C-dQ",
+      "title": "Test iPhone 15 Pro un mois après : que vaut-il VRAIMENT ?",
+      "channel": "Presse-citron"
+    }
   },
   {
     "id": "a013",
@@ -182,7 +432,28 @@
     "description": "Écran 6,7\", 256 Go, châssis titane. Débloqué tous opérateurs, double SIM (nano + eSIM).",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Cadre en titane, plus léger que l'acier",
+      "Puce A17 Pro : jeux de qualité console et Apple Intelligence",
+      "Téléobjectif 5x et appareil photo principal 48 Mpx",
+      "Écran 6,7 pouces ProMotion 120 Hz, toujours activé",
+      "Bouton Action personnalisable",
+      "Port USB-C rapide (USB 3, jusqu'à 10 Gb/s)",
+      "Jusqu'à 29 h de lecture vidéo (donnée Apple)"
+    ],
+    "repair": {
+      "kind": "ifixit",
+      "value": "7",
+      "url": "https://iphonesoft.fr/2024/10/10/ifixit-augmente-fortement-score-reparabilite-iphone-15",
+      "note": "Note relevée par iFixit en octobre 2024 (de 4 à 7/10) grâce à l'outil de réparation d'Apple"
+    },
+    "video": {
+      "url": "https://www.youtube.com/watch?v=F4Faktx9ZPk",
+      "id": "F4Faktx9ZPk",
+      "title": "Test de l'iPhone 15 Pro MAX - Le plus titanesque des smartphones",
+      "channel": "Les Numériques"
+    }
   },
   {
     "id": "a014",
@@ -196,7 +467,28 @@
     "description": "Écran 6,7\", 256 Go, châssis titane. Débloqué tous opérateurs, double SIM (nano + eSIM).",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Cadre en titane, plus léger que l'acier",
+      "Puce A17 Pro : jeux de qualité console et Apple Intelligence",
+      "Téléobjectif 5x et appareil photo principal 48 Mpx",
+      "Écran 6,7 pouces ProMotion 120 Hz, toujours activé",
+      "Bouton Action personnalisable",
+      "Port USB-C rapide (USB 3, jusqu'à 10 Gb/s)",
+      "Jusqu'à 29 h de lecture vidéo (donnée Apple)"
+    ],
+    "repair": {
+      "kind": "ifixit",
+      "value": "7",
+      "url": "https://iphonesoft.fr/2024/10/10/ifixit-augmente-fortement-score-reparabilite-iphone-15",
+      "note": "Note relevée par iFixit en octobre 2024 (de 4 à 7/10) grâce à l'outil de réparation d'Apple"
+    },
+    "video": {
+      "url": "https://www.youtube.com/watch?v=F4Faktx9ZPk",
+      "id": "F4Faktx9ZPk",
+      "title": "Test de l'iPhone 15 Pro MAX - Le plus titanesque des smartphones",
+      "channel": "Les Numériques"
+    }
   },
   {
     "id": "a015",
@@ -210,7 +502,28 @@
     "description": "Écran 6,7\", 512 Go, châssis titane. Débloqué tous opérateurs, double SIM (nano + eSIM).",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Cadre en titane, plus léger que l'acier",
+      "Puce A17 Pro : jeux de qualité console et Apple Intelligence",
+      "Téléobjectif 5x et appareil photo principal 48 Mpx",
+      "Écran 6,7 pouces ProMotion 120 Hz, toujours activé",
+      "Bouton Action personnalisable",
+      "Port USB-C rapide (USB 3, jusqu'à 10 Gb/s)",
+      "Jusqu'à 29 h de lecture vidéo (donnée Apple)"
+    ],
+    "repair": {
+      "kind": "ifixit",
+      "value": "7",
+      "url": "https://iphonesoft.fr/2024/10/10/ifixit-augmente-fortement-score-reparabilite-iphone-15",
+      "note": "Note relevée par iFixit en octobre 2024 (de 4 à 7/10) grâce à l'outil de réparation d'Apple"
+    },
+    "video": {
+      "url": "https://www.youtube.com/watch?v=F4Faktx9ZPk",
+      "id": "F4Faktx9ZPk",
+      "title": "Test de l'iPhone 15 Pro MAX - Le plus titanesque des smartphones",
+      "channel": "Les Numériques"
+    }
   },
   {
     "id": "a016",
@@ -224,7 +537,27 @@
     "description": "Écran 6,1\", 128 Go. Débloqué tous opérateurs, double SIM (nano + eSIM).",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Écran OLED 6,1 pouces Super Retina XDR",
+      "Puce A15 Bionic à 5 cœurs graphiques",
+      "Appareil photo 12 Mpx amélioré en basse lumière, mode Action pour des vidéos stables",
+      "Détection des accidents",
+      "Résistant à l'eau et à la poussière (IP68)",
+      "Jusqu'à 20 h de lecture vidéo (donnée Apple)"
+    ],
+    "repair": {
+      "kind": "fr",
+      "value": "6.9",
+      "url": "https://support.apple.com/content/dam/edam/applecare/images/fr_FR/otherassets/compliance/pdf/220824-indice-de-reparabilite-a2882.pdf",
+      "note": "Indice officiel déclaré par Apple pour la France"
+    },
+    "video": {
+      "url": "https://www.youtube.com/watch?v=Y9NTI-6S14Y",
+      "id": "Y9NTI-6S14Y",
+      "title": "iPhone 14 et iPhone 14 Plus : LE TEST COMPLET",
+      "channel": "Mac4Ever"
+    }
   },
   {
     "id": "a017",
@@ -238,7 +571,27 @@
     "description": "Écran 6,1\", 128 Go. Débloqué tous opérateurs, double SIM (nano + eSIM).",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Écran OLED 6,1 pouces Super Retina XDR",
+      "Puce A15 Bionic à 5 cœurs graphiques",
+      "Appareil photo 12 Mpx amélioré en basse lumière, mode Action pour des vidéos stables",
+      "Détection des accidents",
+      "Résistant à l'eau et à la poussière (IP68)",
+      "Jusqu'à 20 h de lecture vidéo (donnée Apple)"
+    ],
+    "repair": {
+      "kind": "fr",
+      "value": "6.9",
+      "url": "https://support.apple.com/content/dam/edam/applecare/images/fr_FR/otherassets/compliance/pdf/220824-indice-de-reparabilite-a2882.pdf",
+      "note": "Indice officiel déclaré par Apple pour la France"
+    },
+    "video": {
+      "url": "https://www.youtube.com/watch?v=Y9NTI-6S14Y",
+      "id": "Y9NTI-6S14Y",
+      "title": "iPhone 14 et iPhone 14 Plus : LE TEST COMPLET",
+      "channel": "Mac4Ever"
+    }
   },
   {
     "id": "a018",
@@ -252,7 +605,27 @@
     "description": "Écran 6,1\", 128 Go. Débloqué tous opérateurs, double SIM (nano + eSIM).",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Écran OLED 6,1 pouces Super Retina XDR",
+      "Puce A15 Bionic : encore très rapide",
+      "Double appareil photo 12 Mpx avec mode Cinématique",
+      "Face avant Ceramic Shield",
+      "Résistant à l'eau et à la poussière (IP68)",
+      "Jusqu'à 19 h de lecture vidéo (donnée Apple)"
+    ],
+    "repair": {
+      "kind": "fr",
+      "value": "6.4",
+      "url": "https://support.apple.com/content/dam/edam/applecare/images/fr_FR/otherassets/compliance/pdf/220221-indice-de-reparabilite-a2633.pdf",
+      "note": "Indice officiel déclaré par Apple pour la France"
+    },
+    "video": {
+      "url": "https://www.youtube.com/watch?v=HETEwXESyx8",
+      "id": "HETEwXESyx8",
+      "title": "Test iPhone 13 : notre verdict sur toute la gamme",
+      "channel": "Les Numériques"
+    }
   },
   {
     "id": "a019",
@@ -266,7 +639,27 @@
     "description": "Écran 6,1\", 128 Go. Débloqué tous opérateurs, double SIM (nano + eSIM).",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Écran OLED 6,1 pouces Super Retina XDR",
+      "Puce A15 Bionic : encore très rapide",
+      "Double appareil photo 12 Mpx avec mode Cinématique",
+      "Face avant Ceramic Shield",
+      "Résistant à l'eau et à la poussière (IP68)",
+      "Jusqu'à 19 h de lecture vidéo (donnée Apple)"
+    ],
+    "repair": {
+      "kind": "fr",
+      "value": "6.4",
+      "url": "https://support.apple.com/content/dam/edam/applecare/images/fr_FR/otherassets/compliance/pdf/220221-indice-de-reparabilite-a2633.pdf",
+      "note": "Indice officiel déclaré par Apple pour la France"
+    },
+    "video": {
+      "url": "https://www.youtube.com/watch?v=HETEwXESyx8",
+      "id": "HETEwXESyx8",
+      "title": "Test iPhone 13 : notre verdict sur toute la gamme",
+      "channel": "Les Numériques"
+    }
   },
   {
     "id": "a020",
@@ -280,7 +673,26 @@
     "description": "Format compact 4,7\", bouton principal, 64 Go. Débloqué tous opérateurs, double SIM (nano + eSIM).",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Le plus compact et le plus abordable des iPhone",
+      "Puce A15 Bionic, la même que l'iPhone 13",
+      "5G",
+      "Bouton principal avec Touch ID",
+      "Résistant aux éclaboussures et à la poussière (IP67)"
+    ],
+    "repair": {
+      "kind": "fr",
+      "value": "6.4",
+      "url": "https://support.apple.com/content/dam/edam/applecare/images/fr_FR/otherassets/compliance/pdf/220221-indice-de-reparabilite-a2783.pdf",
+      "note": "Indice officiel déclaré par Apple pour la France"
+    },
+    "video": {
+      "url": "https://www.youtube.com/watch?v=Gh3CptvXLbM",
+      "id": "Gh3CptvXLbM",
+      "title": "TEST iPhone SE (3eme génération) : Un bon achat ?",
+      "channel": "STEVEN"
+    }
   },
   {
     "id": "a021",
@@ -294,7 +706,26 @@
     "description": "Format compact 4,7\", bouton principal, 64 Go. Débloqué tous opérateurs, double SIM (nano + eSIM).",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Le plus compact et le plus abordable des iPhone",
+      "Puce A15 Bionic, la même que l'iPhone 13",
+      "5G",
+      "Bouton principal avec Touch ID",
+      "Résistant aux éclaboussures et à la poussière (IP67)"
+    ],
+    "repair": {
+      "kind": "fr",
+      "value": "6.4",
+      "url": "https://support.apple.com/content/dam/edam/applecare/images/fr_FR/otherassets/compliance/pdf/220221-indice-de-reparabilite-a2783.pdf",
+      "note": "Indice officiel déclaré par Apple pour la France"
+    },
+    "video": {
+      "url": "https://www.youtube.com/watch?v=Gh3CptvXLbM",
+      "id": "Gh3CptvXLbM",
+      "title": "TEST iPhone SE (3eme génération) : Un bon achat ?",
+      "channel": "STEVEN"
+    }
   },
   {
     "id": "a022",
@@ -309,7 +740,21 @@
     "color": "#E9ECF0",
     "featured": true,
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Écran Liquid Retina 10,9 pouces",
+      "Puce A14 Bionic",
+      "Port USB-C",
+      "Caméra avant 12 Mpx placée sur le côté long : idéale en visio",
+      "Touch ID dans le bouton du haut",
+      "Jusqu'à 10 h d'autonomie (donnée Apple)"
+    ],
+    "video": {
+      "url": "https://www.youtube.com/watch?v=kXizU509CvU",
+      "id": "kXizU509CvU",
+      "title": "Test iPad 10 (2022) : Pour qui et pour quoi ?",
+      "channel": "TheiMika"
+    }
   },
   {
     "id": "a023",
@@ -323,7 +768,21 @@
     "description": "Écran 10,9\", 64 Go, Wi-Fi, port USB-C.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Écran Liquid Retina 10,9 pouces",
+      "Puce A14 Bionic",
+      "Port USB-C",
+      "Caméra avant 12 Mpx placée sur le côté long : idéale en visio",
+      "Touch ID dans le bouton du haut",
+      "Jusqu'à 10 h d'autonomie (donnée Apple)"
+    ],
+    "video": {
+      "url": "https://www.youtube.com/watch?v=kXizU509CvU",
+      "id": "kXizU509CvU",
+      "title": "Test iPad 10 (2022) : Pour qui et pour quoi ?",
+      "channel": "TheiMika"
+    }
   },
   {
     "id": "a024",
@@ -337,7 +796,21 @@
     "description": "Écran 10,9\", 64 Go, Wi-Fi, port USB-C.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Écran Liquid Retina 10,9 pouces",
+      "Puce A14 Bionic",
+      "Port USB-C",
+      "Caméra avant 12 Mpx placée sur le côté long : idéale en visio",
+      "Touch ID dans le bouton du haut",
+      "Jusqu'à 10 h d'autonomie (donnée Apple)"
+    ],
+    "video": {
+      "url": "https://www.youtube.com/watch?v=kXizU509CvU",
+      "id": "kXizU509CvU",
+      "title": "Test iPad 10 (2022) : Pour qui et pour quoi ?",
+      "channel": "TheiMika"
+    }
   },
   {
     "id": "a025",
@@ -351,7 +824,21 @@
     "description": "Écran 10,9\", 256 Go, Wi-Fi.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Écran Liquid Retina 10,9 pouces",
+      "Puce A14 Bionic",
+      "Port USB-C",
+      "Caméra avant 12 Mpx placée sur le côté long : idéale en visio",
+      "Touch ID dans le bouton du haut",
+      "Jusqu'à 10 h d'autonomie (donnée Apple)"
+    ],
+    "video": {
+      "url": "https://www.youtube.com/watch?v=kXizU509CvU",
+      "id": "kXizU509CvU",
+      "title": "Test iPad 10 (2022) : Pour qui et pour quoi ?",
+      "channel": "TheiMika"
+    }
   },
   {
     "id": "a026",
@@ -365,7 +852,21 @@
     "description": "Écran 11\", puce M2, 128 Go.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Puce M2 : la puissance d'un ordinateur",
+      "Écran Liquid Retina 11 pouces",
+      "Compatible Apple Pencil Pro et Magic Keyboard",
+      "Caméra avant sur le côté long, pour la visio",
+      "Touch ID, Wi-Fi 6E",
+      "Compatible Apple Intelligence"
+    ],
+    "video": {
+      "url": "https://www.youtube.com/watch?v=nfrk4U5Xncw",
+      "id": "nfrk4U5Xncw",
+      "title": "Test iPad Air M2 - Il n'a d'Air que son nom",
+      "channel": "TheiCollection"
+    }
   },
   {
     "id": "a027",
@@ -379,7 +880,21 @@
     "description": "Écran 11\", puce M2, 128 Go.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Puce M2 : la puissance d'un ordinateur",
+      "Écran Liquid Retina 11 pouces",
+      "Compatible Apple Pencil Pro et Magic Keyboard",
+      "Caméra avant sur le côté long, pour la visio",
+      "Touch ID, Wi-Fi 6E",
+      "Compatible Apple Intelligence"
+    ],
+    "video": {
+      "url": "https://www.youtube.com/watch?v=nfrk4U5Xncw",
+      "id": "nfrk4U5Xncw",
+      "title": "Test iPad Air M2 - Il n'a d'Air que son nom",
+      "channel": "TheiCollection"
+    }
   },
   {
     "id": "a028",
@@ -393,7 +908,21 @@
     "description": "Écran 11\", puce M2, 128 Go.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Puce M2 : la puissance d'un ordinateur",
+      "Écran Liquid Retina 11 pouces",
+      "Compatible Apple Pencil Pro et Magic Keyboard",
+      "Caméra avant sur le côté long, pour la visio",
+      "Touch ID, Wi-Fi 6E",
+      "Compatible Apple Intelligence"
+    ],
+    "video": {
+      "url": "https://www.youtube.com/watch?v=nfrk4U5Xncw",
+      "id": "nfrk4U5Xncw",
+      "title": "Test iPad Air M2 - Il n'a d'Air que son nom",
+      "channel": "TheiCollection"
+    }
   },
   {
     "id": "a029",
@@ -407,7 +936,21 @@
     "description": "Écran 11\" Ultra Retina, puce M4, 256 Go.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Écran Ultra Retina XDR OLED « tandem » : contraste et luminosité exceptionnels",
+      "Puce M4",
+      "Extrêmement fin : 5,3 mm (11 pouces) et 5,1 mm (13 pouces)",
+      "Face ID et port Thunderbolt / USB 4",
+      "Compatible Apple Pencil Pro et Magic Keyboard",
+      "Compatible Apple Intelligence"
+    ],
+    "video": {
+      "url": "https://www.youtube.com/watch?v=22ePTW2p3jo",
+      "id": "22ePTW2p3jo",
+      "title": "Test iPad Pro 13 pouces (M4 2024) : votre prochain ordinateur ?",
+      "channel": "TheiMika"
+    }
   },
   {
     "id": "a030",
@@ -421,7 +964,21 @@
     "description": "Écran 11\" Ultra Retina, puce M4, 256 Go.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Écran Ultra Retina XDR OLED « tandem » : contraste et luminosité exceptionnels",
+      "Puce M4",
+      "Extrêmement fin : 5,3 mm (11 pouces) et 5,1 mm (13 pouces)",
+      "Face ID et port Thunderbolt / USB 4",
+      "Compatible Apple Pencil Pro et Magic Keyboard",
+      "Compatible Apple Intelligence"
+    ],
+    "video": {
+      "url": "https://www.youtube.com/watch?v=22ePTW2p3jo",
+      "id": "22ePTW2p3jo",
+      "title": "Test iPad Pro 13 pouces (M4 2024) : votre prochain ordinateur ?",
+      "channel": "TheiMika"
+    }
   },
   {
     "id": "a031",
@@ -435,7 +992,21 @@
     "description": "Écran 13\" Ultra Retina, puce M4, 512 Go.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Écran Ultra Retina XDR OLED « tandem » : contraste et luminosité exceptionnels",
+      "Puce M4",
+      "Extrêmement fin : 5,3 mm (11 pouces) et 5,1 mm (13 pouces)",
+      "Face ID et port Thunderbolt / USB 4",
+      "Compatible Apple Pencil Pro et Magic Keyboard",
+      "Compatible Apple Intelligence"
+    ],
+    "video": {
+      "url": "https://www.youtube.com/watch?v=22ePTW2p3jo",
+      "id": "22ePTW2p3jo",
+      "title": "Test iPad Pro 13 pouces (M4 2024) : votre prochain ordinateur ?",
+      "channel": "TheiMika"
+    }
   },
   {
     "id": "a032",
@@ -449,7 +1020,14 @@
     "description": "Format compact 8,3\", 128 Go.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Format 8,3 pouces qui tient dans une main",
+      "Puce A17 Pro",
+      "Compatible Apple Pencil Pro",
+      "Compatible Apple Intelligence",
+      "Port USB-C et Touch ID"
+    ]
   },
   {
     "id": "a033",
@@ -463,7 +1041,14 @@
     "description": "Format compact 8,3\", 128 Go.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Format 8,3 pouces qui tient dans une main",
+      "Puce A17 Pro",
+      "Compatible Apple Pencil Pro",
+      "Compatible Apple Intelligence",
+      "Port USB-C et Touch ID"
+    ]
   },
   {
     "id": "a034",
@@ -478,7 +1063,27 @@
     "color": "#E9ECF0",
     "featured": true,
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Fin (11,3 mm) et léger (1,24 kg)",
+      "Puce M2, sans ventilateur : totalement silencieux",
+      "Écran Liquid Retina 13,6 pouces",
+      "Recharge MagSafe + 2 ports Thunderbolt",
+      "Jusqu'à 18 h d'autonomie (donnée Apple)",
+      "Caméra 1080p, quatre haut-parleurs"
+    ],
+    "repair": {
+      "kind": "fr",
+      "value": "6.6",
+      "url": "https://support.apple.com/content/dam/edam/applecare/images/fr_FR/otherassets/compliance/pdf/220830-indice-de-reparabilite-a2681.pdf",
+      "note": "Indice officiel déclaré par Apple pour la France"
+    },
+    "video": {
+      "url": "https://www.youtube.com/watch?v=6VCd3Wg1FLw",
+      "id": "6VCd3Wg1FLw",
+      "title": "ATTENTION avant de craquer ! Test du MacBook Air M2 (& nos conseils)",
+      "channel": "Frandroid"
+    }
   },
   {
     "id": "a035",
@@ -492,7 +1097,27 @@
     "description": "Puce M2, 8 Go de mémoire, SSD 256 Go, clavier AZERTY.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Fin (11,3 mm) et léger (1,24 kg)",
+      "Puce M2, sans ventilateur : totalement silencieux",
+      "Écran Liquid Retina 13,6 pouces",
+      "Recharge MagSafe + 2 ports Thunderbolt",
+      "Jusqu'à 18 h d'autonomie (donnée Apple)",
+      "Caméra 1080p, quatre haut-parleurs"
+    ],
+    "repair": {
+      "kind": "fr",
+      "value": "6.6",
+      "url": "https://support.apple.com/content/dam/edam/applecare/images/fr_FR/otherassets/compliance/pdf/220830-indice-de-reparabilite-a2681.pdf",
+      "note": "Indice officiel déclaré par Apple pour la France"
+    },
+    "video": {
+      "url": "https://www.youtube.com/watch?v=6VCd3Wg1FLw",
+      "id": "6VCd3Wg1FLw",
+      "title": "ATTENTION avant de craquer ! Test du MacBook Air M2 (& nos conseils)",
+      "channel": "Frandroid"
+    }
   },
   {
     "id": "a036",
@@ -506,7 +1131,21 @@
     "description": "Puce M3, 16 Go de mémoire, SSD 256 Go, clavier AZERTY.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Puce M3, sans ventilateur : totalement silencieux",
+      "16 Go de mémoire : prêt pour Apple Intelligence",
+      "Écran Liquid Retina 13,6 pouces",
+      "Deux écrans externes possibles (écran du Mac fermé)",
+      "Wi-Fi 6E, recharge MagSafe",
+      "Jusqu'à 18 h d'autonomie (donnée Apple)"
+    ],
+    "video": {
+      "url": "https://www.youtube.com/watch?v=xIZnyp6uJkA",
+      "id": "xIZnyp6uJkA",
+      "title": "Macbook Air M3 (13 pouces) : test et présentation du dernier né d'Apple",
+      "channel": "JVTECH"
+    }
   },
   {
     "id": "a037",
@@ -520,7 +1159,21 @@
     "description": "Puce M3, 16 Go de mémoire, SSD 256 Go, clavier AZERTY.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Puce M3, sans ventilateur : totalement silencieux",
+      "16 Go de mémoire : prêt pour Apple Intelligence",
+      "Écran Liquid Retina 13,6 pouces",
+      "Deux écrans externes possibles (écran du Mac fermé)",
+      "Wi-Fi 6E, recharge MagSafe",
+      "Jusqu'à 18 h d'autonomie (donnée Apple)"
+    ],
+    "video": {
+      "url": "https://www.youtube.com/watch?v=xIZnyp6uJkA",
+      "id": "xIZnyp6uJkA",
+      "title": "Macbook Air M3 (13 pouces) : test et présentation du dernier né d'Apple",
+      "channel": "JVTECH"
+    }
   },
   {
     "id": "a038",
@@ -534,7 +1187,21 @@
     "description": "Écran 15\", puce M3, 16 Go, SSD 512 Go, clavier AZERTY.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Grand écran Liquid Retina 15,3 pouces dans un portable fin",
+      "Puce M3, sans ventilateur : totalement silencieux",
+      "16 Go de mémoire : prêt pour Apple Intelligence",
+      "Six haut-parleurs",
+      "Deux écrans externes possibles (écran du Mac fermé)",
+      "Jusqu'à 18 h d'autonomie (donnée Apple)"
+    ],
+    "video": {
+      "url": "https://www.youtube.com/watch?v=OVLx2GQtgcM",
+      "id": "OVLx2GQtgcM",
+      "title": "Macbook Air M3 - Que VAUT-IL ? Mon TEST complet !",
+      "channel": "Nowa"
+    }
   },
   {
     "id": "a039",
@@ -548,7 +1215,20 @@
     "description": "Puce M3, 8 Go, SSD 512 Go, clavier AZERTY.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Puce M3 avec ventilateur : performances qui tiennent dans la durée",
+      "Écran Liquid Retina XDR 14,2 pouces (jusqu'à 1 600 nits en HDR)",
+      "Ports HDMI, carte SD et MagSafe",
+      "Six haut-parleurs",
+      "Jusqu'à 22 h d'autonomie (donnée Apple)"
+    ],
+    "video": {
+      "url": "https://www.youtube.com/watch?v=oUfGdd1mG1A",
+      "id": "oUfGdd1mG1A",
+      "title": "Macbook Pro M3 - très surpris",
+      "channel": "bazze tv"
+    }
   },
   {
     "id": "a040",
@@ -562,7 +1242,20 @@
     "description": "Puce M3, 8 Go, SSD 512 Go, clavier AZERTY.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Puce M3 avec ventilateur : performances qui tiennent dans la durée",
+      "Écran Liquid Retina XDR 14,2 pouces (jusqu'à 1 600 nits en HDR)",
+      "Ports HDMI, carte SD et MagSafe",
+      "Six haut-parleurs",
+      "Jusqu'à 22 h d'autonomie (donnée Apple)"
+    ],
+    "video": {
+      "url": "https://www.youtube.com/watch?v=oUfGdd1mG1A",
+      "id": "oUfGdd1mG1A",
+      "title": "Macbook Pro M3 - très surpris",
+      "channel": "bazze tv"
+    }
   },
   {
     "id": "a041",
@@ -577,7 +1270,20 @@
     "color": "#E9ECF0",
     "featured": true,
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Puce M3 Pro et 18 Go de mémoire : montage vidéo, photo, développement",
+      "Écran Liquid Retina XDR (jusqu'à 1 600 nits en HDR)",
+      "Ports HDMI, carte SD, MagSafe et Thunderbolt 4",
+      "Six haut-parleurs et micros de qualité studio",
+      "Très grande autonomie (jusqu'à 18 h en 14 pouces, 22 h en 16 pouces, données Apple)"
+    ],
+    "video": {
+      "url": "https://www.youtube.com/watch?v=J8ySxDwAVBU",
+      "id": "J8ySxDwAVBU",
+      "title": "Macbook Pro M3 Pro - Un monstre de puissance ! Mon TEST complet",
+      "channel": "Nowa"
+    }
   },
   {
     "id": "a042",
@@ -591,7 +1297,20 @@
     "description": "Écran 16\", puce M3 Pro, 18 Go, SSD 512 Go.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Puce M3 Pro et 18 Go de mémoire : montage vidéo, photo, développement",
+      "Écran Liquid Retina XDR (jusqu'à 1 600 nits en HDR)",
+      "Ports HDMI, carte SD, MagSafe et Thunderbolt 4",
+      "Six haut-parleurs et micros de qualité studio",
+      "Très grande autonomie (jusqu'à 18 h en 14 pouces, 22 h en 16 pouces, données Apple)"
+    ],
+    "video": {
+      "url": "https://www.youtube.com/watch?v=J8ySxDwAVBU",
+      "id": "J8ySxDwAVBU",
+      "title": "Macbook Pro M3 Pro - Un monstre de puissance ! Mon TEST complet",
+      "channel": "Nowa"
+    }
   },
   {
     "id": "a043",
@@ -605,7 +1324,20 @@
     "description": "Écran 16\", puce M3 Pro, 18 Go, SSD 512 Go.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Puce M3 Pro et 18 Go de mémoire : montage vidéo, photo, développement",
+      "Écran Liquid Retina XDR (jusqu'à 1 600 nits en HDR)",
+      "Ports HDMI, carte SD, MagSafe et Thunderbolt 4",
+      "Six haut-parleurs et micros de qualité studio",
+      "Très grande autonomie (jusqu'à 18 h en 14 pouces, 22 h en 16 pouces, données Apple)"
+    ],
+    "video": {
+      "url": "https://www.youtube.com/watch?v=J8ySxDwAVBU",
+      "id": "J8ySxDwAVBU",
+      "title": "Macbook Pro M3 Pro - Un monstre de puissance ! Mon TEST complet",
+      "channel": "Nowa"
+    }
   },
   {
     "id": "a044",
@@ -619,7 +1351,20 @@
     "description": "Écran 16\", puce M3 Max, 36 Go, SSD 1 To.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Puce M3 Max : pour la vidéo 8K, la 3D et les gros calculs",
+      "Écran Liquid Retina XDR (jusqu'à 1 600 nits en HDR)",
+      "Ports HDMI, carte SD, MagSafe et Thunderbolt 4",
+      "Six haut-parleurs et micros de qualité studio",
+      "Ventilation active pour les longs travaux"
+    ],
+    "video": {
+      "url": "https://www.youtube.com/watch?v=XAyXUO9hqmY",
+      "id": "XAyXUO9hqmY",
+      "title": "Test du MacBook Pro 14 M3 Max, le meilleur pc portable d'Apple.",
+      "channel": "Les Numériques"
+    }
   },
   {
     "id": "a045",
@@ -634,7 +1379,20 @@
     "color": "#E9ECF0",
     "featured": true,
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Écran Retina 4,5K de 24 pouces",
+      "Tout-en-un de 11,5 mm d'épaisseur",
+      "Puce M3",
+      "Caméra 1080p, trois micros et six haut-parleurs",
+      "Clavier et souris assortis fournis"
+    ],
+    "video": {
+      "url": "https://www.youtube.com/watch?v=tJUsZoamcB0",
+      "id": "tJUsZoamcB0",
+      "title": "Test iMac M3 - Basique, Simple et Efficace !",
+      "channel": "TheiCollection"
+    }
   },
   {
     "id": "a046",
@@ -648,7 +1406,20 @@
     "description": "Tout-en-un 24\" 4,5K, puce M3, clavier et souris inclus.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Écran Retina 4,5K de 24 pouces",
+      "Tout-en-un de 11,5 mm d'épaisseur",
+      "Puce M3",
+      "Caméra 1080p, trois micros et six haut-parleurs",
+      "Clavier et souris assortis fournis"
+    ],
+    "video": {
+      "url": "https://www.youtube.com/watch?v=tJUsZoamcB0",
+      "id": "tJUsZoamcB0",
+      "title": "Test iMac M3 - Basique, Simple et Efficace !",
+      "channel": "TheiCollection"
+    }
   },
   {
     "id": "a047",
@@ -662,7 +1433,20 @@
     "description": "Tout-en-un 24\" 4,5K, puce M3, clavier et souris inclus.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Écran Retina 4,5K de 24 pouces",
+      "Tout-en-un de 11,5 mm d'épaisseur",
+      "Puce M3",
+      "Caméra 1080p, trois micros et six haut-parleurs",
+      "Clavier et souris assortis fournis"
+    ],
+    "video": {
+      "url": "https://www.youtube.com/watch?v=tJUsZoamcB0",
+      "id": "tJUsZoamcB0",
+      "title": "Test iMac M3 - Basique, Simple et Efficace !",
+      "channel": "TheiCollection"
+    }
   },
   {
     "id": "a048",
@@ -676,7 +1460,20 @@
     "description": "Tout-en-un 24\" 4,5K, puce M3, clavier et souris inclus.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Écran Retina 4,5K de 24 pouces",
+      "Tout-en-un de 11,5 mm d'épaisseur",
+      "Puce M3",
+      "Caméra 1080p, trois micros et six haut-parleurs",
+      "Clavier et souris assortis fournis"
+    ],
+    "video": {
+      "url": "https://www.youtube.com/watch?v=tJUsZoamcB0",
+      "id": "tJUsZoamcB0",
+      "title": "Test iMac M3 - Basique, Simple et Efficace !",
+      "channel": "TheiCollection"
+    }
   },
   {
     "id": "a049",
@@ -690,7 +1487,20 @@
     "description": "Ordinateur compact, puce M2. Écran, clavier et souris non inclus.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Le Mac le plus abordable",
+      "Puce M2 dans un boîtier de 19,7 cm de côté",
+      "Ports Thunderbolt 4, HDMI, USB-A et Ethernet",
+      "Wi-Fi 6E, silencieux au quotidien",
+      "Se branche sur votre écran, clavier et souris"
+    ],
+    "video": {
+      "url": "https://www.youtube.com/watch?v=CvjxwuHcxPU",
+      "id": "CvjxwuHcxPU",
+      "title": "TEST du MAC MINI M2, que vaut réellement le moins cher de tous les Mac ?",
+      "channel": "FRED"
+    }
   },
   {
     "id": "a050",
@@ -704,7 +1514,19 @@
     "description": "Puce M2 Pro, 16 Go, SSD 512 Go.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Puce M2 Pro dans un boîtier de 19,7 cm de côté",
+      "Quatre ports Thunderbolt 4, HDMI, Ethernet",
+      "Plusieurs écrans externes",
+      "Silencieux au quotidien"
+    ],
+    "video": {
+      "url": "https://www.youtube.com/watch?v=3GHMElRvkHM",
+      "id": "3GHMElRvkHM",
+      "title": "Test Mac mini M2 Pro - Juste parfait !",
+      "channel": "TheiCollection"
+    }
   },
   {
     "id": "a051",
@@ -718,7 +1540,13 @@
     "description": "Station de travail compacte, puce M2 Max.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Puissance de station de travail dans un boîtier compact",
+      "Nombreux ports : Thunderbolt 4, HDMI, lecteur SD, Ethernet 10 Gb",
+      "Plusieurs écrans externes",
+      "Refroidissement efficace et silencieux"
+    ]
   },
   {
     "id": "a052",
@@ -732,7 +1560,13 @@
     "description": "Puce M2 Ultra, 64 Go, SSD 1 To.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Puissance de station de travail dans un boîtier compact",
+      "Nombreux ports : Thunderbolt 4, HDMI, lecteur SD, Ethernet 10 Gb",
+      "Plusieurs écrans externes",
+      "Refroidissement efficace et silencieux"
+    ]
   },
   {
     "id": "a053",
@@ -747,7 +1581,20 @@
     "color": "#E9ECF0",
     "featured": true,
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "L'Apple Watch la plus abordable",
+      "Suivi de l'activité, du sport et du sommeil",
+      "Détection des chutes et des accidents",
+      "Étanche jusqu'à 50 m",
+      "Notifications et appels depuis le poignet (avec un iPhone)"
+    ],
+    "video": {
+      "url": "https://www.youtube.com/watch?v=Vpa3_mCoTvY",
+      "id": "Vpa3_mCoTvY",
+      "title": "Test Apple Watch SE 2 - Toujours excellente !",
+      "channel": "TheiCollection"
+    }
   },
   {
     "id": "a054",
@@ -761,7 +1608,20 @@
     "description": "Boîtier aluminium 44 mm, bracelet sport.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "L'Apple Watch la plus abordable",
+      "Suivi de l'activité, du sport et du sommeil",
+      "Détection des chutes et des accidents",
+      "Étanche jusqu'à 50 m",
+      "Notifications et appels depuis le poignet (avec un iPhone)"
+    ],
+    "video": {
+      "url": "https://www.youtube.com/watch?v=Vpa3_mCoTvY",
+      "id": "Vpa3_mCoTvY",
+      "title": "Test Apple Watch SE 2 - Toujours excellente !",
+      "channel": "TheiCollection"
+    }
   },
   {
     "id": "a055",
@@ -775,7 +1635,20 @@
     "description": "Boîtier aluminium 41 mm, écran toujours allumé.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Puce S9 et geste « Toucher deux fois »",
+      "Écran très lumineux (jusqu'à 2 000 nits)",
+      "Applications ECG et oxygène sanguin",
+      "Détection des chutes et des accidents",
+      "Étanche jusqu'à 50 m"
+    ],
+    "video": {
+      "url": "https://www.youtube.com/watch?v=GCLi0JjqwVA",
+      "id": "GCLi0JjqwVA",
+      "title": "Apple Watch Series 9 : EXCELLENTE mais pas pour tout le monde",
+      "channel": "GeekEtc"
+    }
   },
   {
     "id": "a056",
@@ -789,7 +1662,20 @@
     "description": "Boîtier aluminium 45 mm, écran toujours allumé.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Puce S9 et geste « Toucher deux fois »",
+      "Écran très lumineux (jusqu'à 2 000 nits)",
+      "Applications ECG et oxygène sanguin",
+      "Détection des chutes et des accidents",
+      "Étanche jusqu'à 50 m"
+    ],
+    "video": {
+      "url": "https://www.youtube.com/watch?v=GCLi0JjqwVA",
+      "id": "GCLi0JjqwVA",
+      "title": "Apple Watch Series 9 : EXCELLENTE mais pas pour tout le monde",
+      "channel": "GeekEtc"
+    }
   },
   {
     "id": "a057",
@@ -803,7 +1689,20 @@
     "description": "Boîtier aluminium 45 mm, GPS + Cellular.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Puce S9 et geste « Toucher deux fois »",
+      "Écran très lumineux (jusqu'à 2 000 nits)",
+      "Applications ECG et oxygène sanguin",
+      "Détection des chutes et des accidents",
+      "Étanche jusqu'à 50 m"
+    ],
+    "video": {
+      "url": "https://www.youtube.com/watch?v=GCLi0JjqwVA",
+      "id": "GCLi0JjqwVA",
+      "title": "Apple Watch Series 9 : EXCELLENTE mais pas pour tout le monde",
+      "channel": "GeekEtc"
+    }
   },
   {
     "id": "a058",
@@ -817,7 +1716,21 @@
     "description": "Boîtier titane 49 mm, GPS + Cellular, pour le sport et l'aventure.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Boîtier en titane de 49 mm, verre saphir",
+      "Écran le plus lumineux d'Apple (jusqu'à 3 000 nits)",
+      "Jusqu'à 36 h d'autonomie, 72 h en mode économie (données Apple)",
+      "GPS double fréquence très précis",
+      "Étanche 100 m, plongée loisir jusqu'à 40 m",
+      "Bouton Action et sirène de 86 dB"
+    ],
+    "video": {
+      "url": "https://www.youtube.com/watch?v=FhDMaOpoJKE",
+      "id": "FhDMaOpoJKE",
+      "title": "Test Apple Watch Ultra 2 - Mieux, et moins chère !",
+      "channel": "TheiCollection"
+    }
   },
   {
     "id": "a059",
@@ -831,7 +1744,13 @@
     "description": "Écouteurs sans fil avec boîtier de charge.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Les AirPods les plus abordables",
+      "Connexion instantanée à l'iPhone",
+      "Jusqu'à 5 h d'écoute, plus de 24 h avec le boîtier (données Apple)",
+      "« Dis Siri » sans les mains"
+    ]
   },
   {
     "id": "a060",
@@ -846,7 +1765,19 @@
     "color": "#E9ECF0",
     "featured": true,
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Audio spatial avec suivi des mouvements de la tête",
+      "Égaliseur adaptatif",
+      "Résistants à la sueur et à l'eau (IPX4)",
+      "Jusqu'à 6 h d'écoute, 30 h avec le boîtier (données Apple)"
+    ],
+    "video": {
+      "url": "https://www.youtube.com/watch?v=8qBFaCNRXLY",
+      "id": "8qBFaCNRXLY",
+      "title": "AirPods 3 : Les PIRES et MEILLEURS Écouteurs d'Apple !",
+      "channel": "Frandroid"
+    }
   },
   {
     "id": "a061",
@@ -861,7 +1792,21 @@
     "color": "#E9ECF0",
     "featured": true,
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Réduction active du bruit jusqu'à 2 fois plus efficace que la 1re génération",
+      "Mode Transparence adaptative",
+      "Audio spatial personnalisé",
+      "Boîtier USB-C avec haut-parleur pour le retrouver (Localiser)",
+      "Résistants à la poussière, à la sueur et à l'eau (IP54)",
+      "Jusqu'à 6 h d'écoute, 30 h avec le boîtier (données Apple)"
+    ],
+    "video": {
+      "url": "https://www.youtube.com/watch?v=1LS7u848qAo",
+      "id": "1LS7u848qAo",
+      "title": "AirPods Pro 2 : LE TEST COMPLET",
+      "channel": "Mac4Ever"
+    }
   },
   {
     "id": "a062",
@@ -875,7 +1820,20 @@
     "description": "Casque circum-auriculaire, réduction active du bruit.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Casque à réduction active du bruit",
+      "Audio spatial avec suivi des mouvements de la tête",
+      "Coussinets en mousse à mémoire de forme, arceau en maille",
+      "Digital Crown pour le volume",
+      "Jusqu'à 20 h d'autonomie (donnée Apple)"
+    ],
+    "video": {
+      "url": "https://www.youtube.com/watch?v=kVZwXIOs80g",
+      "id": "kVZwXIOs80g",
+      "title": "Test AirPods Max - Une exception",
+      "channel": "TheiCollection"
+    }
   },
   {
     "id": "a063",
@@ -889,7 +1847,20 @@
     "description": "Casque circum-auriculaire, réduction active du bruit.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Casque à réduction active du bruit",
+      "Audio spatial avec suivi des mouvements de la tête",
+      "Coussinets en mousse à mémoire de forme, arceau en maille",
+      "Digital Crown pour le volume",
+      "Jusqu'à 20 h d'autonomie (donnée Apple)"
+    ],
+    "video": {
+      "url": "https://www.youtube.com/watch?v=kVZwXIOs80g",
+      "id": "kVZwXIOs80g",
+      "title": "Test AirPods Max - Une exception",
+      "channel": "TheiCollection"
+    }
   },
   {
     "id": "a064",
@@ -903,7 +1874,20 @@
     "description": "Casque circum-auriculaire, réduction active du bruit.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Casque à réduction active du bruit",
+      "Audio spatial avec suivi des mouvements de la tête",
+      "Coussinets en mousse à mémoire de forme, arceau en maille",
+      "Digital Crown pour le volume",
+      "Jusqu'à 20 h d'autonomie (donnée Apple)"
+    ],
+    "video": {
+      "url": "https://www.youtube.com/watch?v=kVZwXIOs80g",
+      "id": "kVZwXIOs80g",
+      "title": "Test AirPods Max - Une exception",
+      "channel": "TheiCollection"
+    }
   },
   {
     "id": "a065",
@@ -917,7 +1901,19 @@
     "description": "Boîtier TV 4K HDR avec télécommande.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Films et séries en 4K HDR (Dolby Vision, HDR10+)",
+      "Son Dolby Atmos",
+      "Puce A15 Bionic : menus et jeux fluides",
+      "Télécommande Siri Remote rechargeable en USB-C"
+    ],
+    "video": {
+      "url": "https://www.youtube.com/watch?v=wHI4EmG5QLM",
+      "id": "wHI4EmG5QLM",
+      "title": "Test Apple TV 4K (2022) - Est-ce vraiment encore utile ?",
+      "channel": "TheiCollection"
+    }
   },
   {
     "id": "a066",
@@ -931,7 +1927,19 @@
     "description": "Boîtier TV 4K HDR, port Ethernet, 128 Go.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Films et séries en 4K HDR (Dolby Vision, HDR10+)",
+      "Son Dolby Atmos",
+      "Puce A15 Bionic : menus et jeux fluides",
+      "Télécommande Siri Remote rechargeable en USB-C"
+    ],
+    "video": {
+      "url": "https://www.youtube.com/watch?v=wHI4EmG5QLM",
+      "id": "wHI4EmG5QLM",
+      "title": "Test Apple TV 4K (2022) - Est-ce vraiment encore utile ?",
+      "channel": "TheiCollection"
+    }
   },
   {
     "id": "a067",
@@ -945,7 +1953,19 @@
     "description": "Enceinte connectée, son haute fidélité.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Son haute fidélité qui s'adapte à la pièce",
+      "Audio spatial et Dolby Atmos",
+      "Capteur de température et d'humidité",
+      "Deux HomePod peuvent former une paire stéréo"
+    ],
+    "video": {
+      "url": "https://www.youtube.com/watch?v=jfbqTgH07Bc",
+      "id": "jfbqTgH07Bc",
+      "title": "Apple HomePod 2 : la meilleure enceinte pour la musique ? (TEST et COMPARAISONS)",
+      "channel": "Numerama"
+    }
   },
   {
     "id": "a068",
@@ -959,7 +1979,19 @@
     "description": "Enceinte connectée, son haute fidélité.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Son haute fidélité qui s'adapte à la pièce",
+      "Audio spatial et Dolby Atmos",
+      "Capteur de température et d'humidité",
+      "Deux HomePod peuvent former une paire stéréo"
+    ],
+    "video": {
+      "url": "https://www.youtube.com/watch?v=jfbqTgH07Bc",
+      "id": "jfbqTgH07Bc",
+      "title": "Apple HomePod 2 : la meilleure enceinte pour la musique ? (TEST et COMPARAISONS)",
+      "channel": "Numerama"
+    }
   },
   {
     "id": "a069",
@@ -973,7 +2005,13 @@
     "description": "Enceinte connectée compacte.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Son à 360° dans une petite enceinte",
+      "Siri pour la musique, les minuteurs et la maison",
+      "Capteur de température et d'humidité",
+      "Fonction Interphone entre les pièces"
+    ]
   },
   {
     "id": "a070",
@@ -987,7 +2025,13 @@
     "description": "Enceinte connectée compacte.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Son à 360° dans une petite enceinte",
+      "Siri pour la musique, les minuteurs et la maison",
+      "Capteur de température et d'humidité",
+      "Fonction Interphone entre les pièces"
+    ]
   },
   {
     "id": "a071",
@@ -1001,7 +2045,13 @@
     "description": "Enceinte connectée compacte.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Son à 360° dans une petite enceinte",
+      "Siri pour la musique, les minuteurs et la maison",
+      "Capteur de température et d'humidité",
+      "Fonction Interphone entre les pièces"
+    ]
   },
   {
     "id": "a072",
@@ -1015,7 +2065,29 @@
     "description": "Charge rapide pour iPhone et iPad.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Charge rapide de l'iPhone (environ 50 % en 30 min, donnée Apple)",
+      "Compact et léger",
+      "Port USB-C universel"
+    ],
+    "priceRefs": [
+      {
+        "store": "Apple Store",
+        "priceEur": 19,
+        "url": "https://www.apple.com/fr/shop/product/md3j4zm/a/adaptateur-secteur-usb%E2%80%91c-20-w",
+        "date": "2026-10-21",
+        "status": "ok",
+        "auto": true,
+        "checkedAt": "2026-10-21T15:30:00.000Z",
+        "history": [
+          {
+            "date": "2026-10-21",
+            "priceEur": 19
+          }
+        ]
+      }
+    ]
   },
   {
     "id": "a073",
@@ -1029,7 +2101,29 @@
     "description": "Deux ports USB-C, pour charger deux appareils.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Charge deux appareils en même temps",
+      "35 W au total : iPhone, iPad ou MacBook Air",
+      "Format compact"
+    ],
+    "priceRefs": [
+      {
+        "store": "Apple Store",
+        "priceEur": 65,
+        "url": "https://www.apple.com/fr/shop/product/mw2k3zm/a/adaptateur-secteur-double-port-usb-c-35-w",
+        "date": "2026-10-21",
+        "status": "ok",
+        "auto": true,
+        "checkedAt": "2026-10-21T15:30:00.000Z",
+        "history": [
+          {
+            "date": "2026-10-21",
+            "priceEur": 65
+          }
+        ]
+      }
+    ]
   },
   {
     "id": "a074",
@@ -1043,7 +2137,29 @@
     "description": "Charge sans fil magnétique pour iPhone.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Recharge sans fil magnétique : le chargeur se place tout seul",
+      "Compatible avec les coques MagSafe",
+      "Fonctionne aussi avec les AirPods à boîtier compatible"
+    ],
+    "priceRefs": [
+      {
+        "store": "Apple Store",
+        "priceEur": 49,
+        "url": "https://www.apple.com/fr/shop/product/mgd74zm/a/chargeur-magsafe-1-m",
+        "date": "2026-10-21",
+        "status": "ok",
+        "auto": true,
+        "checkedAt": "2026-10-21T15:30:00.000Z",
+        "history": [
+          {
+            "date": "2026-10-21",
+            "priceEur": 49
+          }
+        ]
+      }
+    ]
   },
   {
     "id": "a075",
@@ -1057,7 +2173,29 @@
     "description": "Câble de charge et de synchronisation tressé.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Câble tressé solide",
+      "Charge et transfert de données",
+      "Pour iPhone 15, iPad, Mac et accessoires USB-C"
+    ],
+    "priceRefs": [
+      {
+        "store": "Apple Store",
+        "priceEur": 19,
+        "url": "https://www.apple.com/fr/shop/product/mw493zm/a/c%C3%A2ble-de-charge-usb%E2%80%91c-60-w-1-m",
+        "date": "2026-10-21",
+        "status": "ok",
+        "auto": true,
+        "checkedAt": "2026-10-21T15:30:00.000Z",
+        "history": [
+          {
+            "date": "2026-10-21",
+            "priceEur": 19
+          }
+        ]
+      }
+    ]
   },
   {
     "id": "a076",
@@ -1071,7 +2209,29 @@
     "description": "Pour la charge rapide des MacBook.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Jusqu'à 240 W : recharge même un MacBook Pro 16 pouces",
+      "Câble tressé de 2 m",
+      "Charge et transfert de données"
+    ],
+    "priceRefs": [
+      {
+        "store": "Apple Store",
+        "priceEur": 35,
+        "url": "https://www.apple.com/fr/shop/product/myqt3zm/a/c%C3%A2ble-de-charge-usb%E2%80%91c-240-w-2-m",
+        "date": "2026-10-21",
+        "status": "ok",
+        "auto": true,
+        "checkedAt": "2026-10-21T15:30:00.000Z",
+        "history": [
+          {
+            "date": "2026-10-21",
+            "priceEur": 35
+          }
+        ]
+      }
+    ]
   },
   {
     "id": "a077",
@@ -1085,7 +2245,28 @@
     "description": "Pour iPhone 14 et modèles antérieurs.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Charge rapide des iPhone à port Lightning (avec un adaptateur USB-C)",
+      "Synchronisation avec un Mac ou un PC"
+    ],
+    "priceRefs": [
+      {
+        "store": "Apple Store",
+        "priceEur": 19,
+        "url": "https://www.apple.com/fr/shop/product/muq93zm/a/c%C3%A2ble-usb-c-vers-lightning-1-m",
+        "date": "2026-10-21",
+        "status": "ok",
+        "auto": true,
+        "checkedAt": "2026-10-21T15:30:00.000Z",
+        "history": [
+          {
+            "date": "2026-10-21",
+            "priceEur": 19
+          }
+        ]
+      }
+    ]
   },
   {
     "id": "a078",
@@ -1099,7 +2280,29 @@
     "description": "Silicone doux, intérieur microfibre, compatible MagSafe.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Aimants MagSafe intégrés",
+      "Silicone doux au toucher, intérieur en microfibre",
+      "Conçue par Apple pour l'iPhone 15"
+    ],
+    "priceRefs": [
+      {
+        "store": "Apple Store",
+        "priceEur": 55,
+        "url": "https://www.apple.com/fr/shop/product/mxpf3zm/a/coque-en-silicone-avec-magsafe-pour-iphone-15-bleu-orage",
+        "date": "2026-10-21",
+        "status": "ok",
+        "auto": true,
+        "checkedAt": "2026-10-21T15:30:00.000Z",
+        "history": [
+          {
+            "date": "2026-10-21",
+            "priceEur": 55
+          }
+        ]
+      }
+    ]
   },
   {
     "id": "a079",
@@ -1113,7 +2316,29 @@
     "description": "Silicone doux, intérieur microfibre, compatible MagSafe.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Aimants MagSafe intégrés",
+      "Silicone doux au toucher, intérieur en microfibre",
+      "Conçue par Apple pour l'iPhone 15"
+    ],
+    "priceRefs": [
+      {
+        "store": "Apple Store",
+        "priceEur": 55,
+        "url": "https://www.apple.com/fr/shop/product/mxph3zm/a/coque-en-silicone-avec-magsafe-pour-iphone-15-rose-p%C3%A2le",
+        "date": "2026-10-21",
+        "status": "ok",
+        "auto": true,
+        "checkedAt": "2026-10-21T15:30:00.000Z",
+        "history": [
+          {
+            "date": "2026-10-21",
+            "priceEur": 55
+          }
+        ]
+      }
+    ]
   },
   {
     "id": "a080",
@@ -1127,7 +2352,29 @@
     "description": "Silicone doux, intérieur microfibre, compatible MagSafe.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Aimants MagSafe intégrés",
+      "Silicone doux au toucher, intérieur en microfibre",
+      "Conçue par Apple pour l'iPhone 15"
+    ],
+    "priceRefs": [
+      {
+        "store": "Apple Store",
+        "priceEur": 55,
+        "url": "https://www.apple.com/fr/shop/product/mxpd3zm/a/coque-en-silicone-avec-magsafe-pour-iphone-15-noir",
+        "date": "2026-10-21",
+        "status": "ok",
+        "auto": true,
+        "checkedAt": "2026-10-21T15:30:00.000Z",
+        "history": [
+          {
+            "date": "2026-10-21",
+            "priceEur": 55
+          }
+        ]
+      }
+    ]
   },
   {
     "id": "a081",
@@ -1141,7 +2388,12 @@
     "description": "Transparente, compatible MagSafe.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Laisse voir la couleur de l'iPhone",
+      "Aimants MagSafe intégrés",
+      "Conçue par Apple pour l'iPhone 15 Pro"
+    ]
   },
   {
     "id": "a082",
@@ -1155,7 +2407,29 @@
     "description": "Clavier sans fil rechargeable.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Clavier français AZERTY, frappe silencieuse et précise",
+      "Batterie rechargeable : environ un mois d'utilisation",
+      "Se connecte tout seul au Mac"
+    ],
+    "priceRefs": [
+      {
+        "store": "Apple Store",
+        "priceEur": 119,
+        "url": "https://www.apple.com/fr/shop/product/mxcl3f/a/magic-keyboard-usb-c-fran%C3%A7ais",
+        "date": "2026-10-21",
+        "status": "ok",
+        "auto": true,
+        "checkedAt": "2026-10-21T15:30:00.000Z",
+        "history": [
+          {
+            "date": "2026-10-21",
+            "priceEur": 119
+          }
+        ]
+      }
+    ]
   },
   {
     "id": "a083",
@@ -1169,7 +2443,12 @@
     "description": "Clavier sans fil avec pavé numérique.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Clavier français AZERTY complet avec pavé numérique",
+      "Batterie rechargeable : environ un mois d'utilisation",
+      "Se connecte tout seul au Mac"
+    ]
   },
   {
     "id": "a084",
@@ -1183,7 +2462,29 @@
     "description": "Souris sans fil multi-touch.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Surface Multi-Touch : faire défiler et balayer du doigt",
+      "Batterie rechargeable",
+      "Se connecte tout seul au Mac"
+    ],
+    "priceRefs": [
+      {
+        "store": "Apple Store",
+        "priceEur": 85,
+        "url": "https://www.apple.com/fr/shop/product/mxk53z/a/magic-mouse-usb%E2%80%91c-surface-multi%E2%80%91touch-blanc",
+        "date": "2026-10-21",
+        "status": "ok",
+        "auto": true,
+        "checkedAt": "2026-10-21T15:30:00.000Z",
+        "history": [
+          {
+            "date": "2026-10-21",
+            "priceEur": 85
+          }
+        ]
+      }
+    ]
   },
   {
     "id": "a085",
@@ -1197,7 +2498,29 @@
     "description": "Souris sans fil multi-touch, surface noire.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Surface Multi-Touch : faire défiler et balayer du doigt",
+      "Batterie rechargeable",
+      "Se connecte tout seul au Mac"
+    ],
+    "priceRefs": [
+      {
+        "store": "Apple Store",
+        "priceEur": 119,
+        "url": "https://www.apple.com/fr/shop/product/mxk63z/a/magic-mouse-usb%E2%80%91c-surface-multi-touch-noir",
+        "date": "2026-10-21",
+        "status": "ok",
+        "auto": true,
+        "checkedAt": "2026-10-21T15:30:00.000Z",
+        "history": [
+          {
+            "date": "2026-10-21",
+            "priceEur": 119
+          }
+        ]
+      }
+    ]
   },
   {
     "id": "a086",
@@ -1211,7 +2534,29 @@
     "description": "Pavé tactile sans fil, Force Touch.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Grande surface en verre avec Force Touch",
+      "Tous les gestes Multi-Touch du Mac",
+      "Batterie rechargeable"
+    ],
+    "priceRefs": [
+      {
+        "store": "Apple Store",
+        "priceEur": 139,
+        "url": "https://www.apple.com/fr/shop/product/mxk93z/a/magic-trackpad-usb%E2%80%91c-surface-multi%E2%80%91touch-blanc",
+        "date": "2026-10-21",
+        "status": "ok",
+        "auto": true,
+        "checkedAt": "2026-10-21T15:30:00.000Z",
+        "history": [
+          {
+            "date": "2026-10-21",
+            "priceEur": 139
+          }
+        ]
+      }
+    ]
   },
   {
     "id": "a087",
@@ -1225,7 +2570,13 @@
     "description": "Stylet pour iPad compatible, charge magnétique.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Se fixe et se recharge par aimant sur le côté de l'iPad",
+      "Double toucher pour changer d'outil",
+      "Sensible à la pression et à l'inclinaison",
+      "Vérifiez la compatibilité avec votre iPad"
+    ]
   },
   {
     "id": "a088",
@@ -1239,7 +2590,13 @@
     "description": "Stylet pour iPad, recharge par USB-C.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Précision au pixel pour écrire et dessiner",
+      "Se fixe par aimant sur le côté de l'iPad",
+      "Recharge par câble USB-C",
+      "Vérifiez la compatibilité avec votre iPad"
+    ]
   },
   {
     "id": "a089",
@@ -1253,7 +2610,30 @@
     "description": "Localisez vos clés, sac ou bagages.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Retrouvez vos clés ou votre sac avec l'app Localiser",
+      "Repose sur le réseau des appareils Apple à proximité",
+      "Pile bouton remplaçable (environ un an)",
+      "Résistant à l'eau et à la poussière (IP67)"
+    ],
+    "priceRefs": [
+      {
+        "store": "Apple Store",
+        "priceEur": 35,
+        "url": "https://www.apple.com/fr/shop/buy-airtag/airtag",
+        "date": "2026-10-21",
+        "status": "ok",
+        "auto": true,
+        "checkedAt": "2026-10-21T15:30:00.000Z",
+        "history": [
+          {
+            "date": "2026-10-21",
+            "priceEur": 35
+          }
+        ]
+      }
+    ]
   },
   {
     "id": "a090",
@@ -1267,7 +2647,30 @@
     "description": "Quatre traceurs AirTag.",
     "color": "#E9ECF0",
     "provenance": "France",
-    "sourceSupplier": "Apple Store"
+    "sourceSupplier": "Apple Store",
+    "highlights": [
+      "Quatre AirTag pour clés, sac, valise…",
+      "Localisation avec l'app Localiser (réseau des appareils Apple à proximité)",
+      "Pile bouton remplaçable (environ un an)",
+      "Résistant à l'eau et à la poussière (IP67)"
+    ],
+    "priceRefs": [
+      {
+        "store": "Apple Store",
+        "priceEur": 119,
+        "url": "https://www.apple.com/fr/shop/buy-airtag/airtag/pack-de-4",
+        "date": "2026-10-21",
+        "status": "ok",
+        "auto": true,
+        "checkedAt": "2026-10-21T15:30:00.000Z",
+        "history": [
+          {
+            "date": "2026-10-21",
+            "priceEur": 119
+          }
+        ]
+      }
+    ]
   },
   {
     "id": "e009",
@@ -1281,7 +2684,12 @@
     "color": "#3B4A3F",
     "featured": true,
     "active": false,
-    "provenance": "France"
+    "provenance": "France",
+    "highlights": [
+      "Plus de mémoire : plus d'applications ouvertes sans ralentir",
+      "Format portable (SO-DIMM)",
+      "Vérifiez la compatibilité avec votre ordinateur avant l'achat"
+    ]
   },
   {
     "id": "e010",
@@ -1294,7 +2702,12 @@
     "description": "DDR4 3200 MHz, format DIMM pour PC de bureau.",
     "color": "#40513F",
     "active": false,
-    "provenance": "France"
+    "provenance": "France",
+    "highlights": [
+      "Plus de mémoire : plus d'applications ouvertes sans ralentir",
+      "Format ordinateur de bureau (DIMM)",
+      "Vérifiez la compatibilité avec votre ordinateur avant l'achat"
+    ]
   },
   {
     "id": "e011",
@@ -1307,7 +2720,12 @@
     "description": "Accélère fortement un ancien ordinateur.",
     "color": "#455A47",
     "active": false,
-    "provenance": "France"
+    "provenance": "France",
+    "highlights": [
+      "Démarrage et ouverture des logiciels bien plus rapides qu'un disque dur",
+      "Format 2,5 pouces SATA, le plus répandu",
+      "Silencieux, résiste mieux aux chocs"
+    ]
   },
   {
     "id": "e012",
@@ -1320,6 +2738,11 @@
     "description": "USB 3.0, rapide et compacte.",
     "color": "#4B5E4C",
     "active": false,
-    "provenance": "France"
+    "provenance": "France",
+    "highlights": [
+      "64 Go pour transporter photos et documents",
+      "Se branche sur tous les ordinateurs à port USB",
+      "Petite et légère"
+    ]
   }
 ]

@@ -1358,3 +1358,35 @@ html[data-theme="dark"] .sc-ico { background: var(--soft); color: var(--brand-te
 .origin-row .ico { color: var(--link); }
 .card-tag { gap: 6px; align-items: center; }
 .card-tag .orig { display: inline-flex; align-items: center; gap: 4px; font-size: .7rem; font-weight: 600; color: var(--link); }
+
+/* « En détail » de la fiche produit : points forts, réparabilité, vidéo, prix en France (21/10/2026) */
+.dt { margin: 30px 0 6px; }
+.dt-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+.dt-card { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 8px; color: var(--ink); text-decoration: none; min-width: 0; }
+.dt-card h3 { display: flex; align-items: center; gap: 8px; font-size: .98rem; margin: 0 0 4px; color: var(--brand-text); }
+.dt-card h3 .ico { color: var(--link); width: 20px; height: 20px; }
+.dt-hl ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.dt-hl li { display: flex; gap: 8px; align-items: flex-start; font-size: .92rem; line-height: 1.4; }
+.dt-hl li .ico { color: var(--ok); flex: none; margin-top: 1px; }
+.dt-score { display: flex; align-items: baseline; gap: 3px; }
+.dt-score b { font-size: 2.1rem; line-height: 1; font-weight: 700; }
+.dt-score small { color: var(--muted); font-size: 1rem; }
+.dt-score.lv5 b, .dt-score.lv4 b { color: var(--ok); } .dt-score.lv3 b { color: var(--mango-dark); } .dt-score.lv2 b, .dt-score.lv1 b { color: var(--accent-dark); }
+.dt-sub { margin: 0; color: var(--muted); font-size: .86rem; }
+.dt-gauge { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+.dt-gauge i { height: 6px; border-radius: 3px; background: var(--line-soft); }
+.dt-gauge i.on.lv5, .dt-gauge i.on.lv4 { background: var(--ok); } .dt-gauge i.on.lv3 { background: var(--mango); } .dt-gauge i.on.lv2, .dt-gauge i.on.lv1 { background: var(--accent); }
+.dt-note { margin: 0; color: var(--muted); font-size: .84rem; line-height: 1.45; }
+.dt-link { display: inline-flex; align-items: center; gap: 5px; color: var(--link); font-size: .88rem; font-weight: 600; text-decoration: none; margin-top: auto; }
+.dt-video { transition: box-shadow .2s, transform .2s; }
+.dt-video:hover { box-shadow: var(--shadow-hover); transform: translateY(-2px); }
+.dt-video h3 .ico { color: #E0201A; }
+.dt-play { display: grid; place-items: center; height: 92px; border-radius: var(--radius-sm); background: linear-gradient(135deg, var(--brand), var(--brand-2)); color: #fff; }
+.dt-play .ico { width: 46px; height: 46px; }
+.dt-video b { font-size: .95rem; line-height: 1.35; } .dt-video small { color: var(--muted); }
+.dt-prices table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.dt-prices th { text-align: left; font-weight: 500; padding: 7px 8px 7px 0; border-bottom: 1px solid var(--line-soft); }
+.dt-prices th a { color: var(--link); text-decoration: none; }
+.dt-prices td { text-align: right; padding: 7px 0; border-bottom: 1px solid var(--line-soft); font-weight: 600; white-space: nowrap; }
+.dt-prices td small { display: block; font-weight: 400; color: var(--muted); font-size: .78rem; }
+.pdp p + p { margin-top: 8px; }

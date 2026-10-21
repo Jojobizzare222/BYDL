@@ -616,7 +616,7 @@ function cleanProduct(input, current, { role }) {
   const str = (v, max) => String(v ?? '').trim().slice(0, max);
   if ('name' in input) p.name = str(input.name, 120);
   if ('brand' in input) p.brand = str(input.brand, 60);
-  if ('description' in input) p.description = str(input.description, 2000);
+  if ('description' in input) p.description = str(input.description, 4000).replace(/\r/g, '').replace(/\n{3,}/g, '\n\n');
   if ('category' in input) {
     p.universe = universeOf(input.category);
     if (!p.universe) return { error: 'Catégorie inconnue' };
@@ -639,6 +639,27 @@ function cleanProduct(input, current, { role }) {
       .filter((x) => x.label && x.value)
       .slice(0, 15);
   }
+  // Fiche détaillée (décision Joseph 21/10/2026) : points forts, réparabilité, vidéo YouTube, prix constatés en France
+  if ('highlights' in input) {
+    const lines = Array.isArray(input.highlights) ? input.highlights : String(input.highlights || '').split('\n');
+    p.highlights = [...new Set(lines.map((l) => str(String(l).replace(/^[-•*·]\s*/, ''), 140)).filter(Boolean))].slice(0, 8);
+  }
+  if ('repair' in input) {
+    const r = cleanRepair(input.repair);
+    if (r.error) return r;
+    p.repair = r.value;
+  }
+  if ('video' in input) {
+    const v = cleanVideo(input.video);
+    if (v.error) return v;
+    p.video = v.value;
+  }
+  if ('priceRefs' in input) {
+    const r = cleanPriceRefs(input.priceRefs, current.priceRefs);
+    if (r.error) return r;
+    p.priceRefs = r.value;
+  }
+  if ('priceRefsPublic' in input) p.priceRefsPublic = Boolean(input.priceRefsPublic);
   if ('price' in input) p.price = input.price === '' || input.price === null ? null : toInt(input.price);
   if ('oldPrice' in input) p.oldPrice = input.oldPrice === '' || input.oldPrice === null ? null : toInt(input.oldPrice);
   if ('costPrice' in input && ['admin', 'catalog'].includes(role)) { // prix d'achat : admin et responsable catalogue (décision Joseph 21/10/2026)
@@ -677,6 +698,59 @@ function cleanProduct(input, current, { role }) {
   return { value: p };
 }
 
+// ---- Fiche détaillée : contrôles ----
+const httpsUrl = (v, max = 400) => { const u = String(v ?? '').trim().slice(0, max); if (!u) return ''; try { const x = new URL(u); return x.protocol === 'https:' || (process.env.PRICE_WATCH_ALLOW_HTTP === '1' && x.protocol === 'http:') ? x.href : null; } catch { return null; } }; // http : seulement pour les tests (faux magasin local)
+// Réparabilité : indice français (sur 10), classe européenne (A à E, étiquette des téléphones depuis juin 2025) ou note iFixit (sur 10)
+const REPAIR_KINDS = { fr: 'Indice de réparabilité (France)', eu: 'Classe de réparabilité (étiquette UE)', ifixit: 'Note de réparabilité iFixit' };
+function cleanRepair(r) {
+  if (!r || (typeof r === 'object' && !String(r.value ?? '').trim())) return { value: null };
+  const kind = REPAIR_KINDS[r.kind] ? r.kind : null;
+  if (!kind) return { error: 'Réparabilité : choisissez le type de note' };
+  let value = String(r.value).trim().replace(',', '.').toUpperCase();
+  if (kind === 'eu') { if (!/^[A-E]$/.test(value)) return { error: 'Réparabilité : la classe européenne va de A à E' }; }
+  else { const n = Number(value); if (!Number.isFinite(n) || n < 0 || n > 10) return { error: 'Réparabilité : note de 0 à 10' }; value = String(Math.round(n * 10) / 10); }
+  const url = httpsUrl(r.url); if (url === null) return { error: 'Réparabilité : lien invalide (https://…)' };
+  return { value: { kind, value, url: url || null, note: String(r.note ?? '').trim().slice(0, 200) || null } };
+}
+// Vidéo : seulement YouTube, enregistrée sous une forme unique (https://www.youtube.com/watch?v=ID)
+function cleanVideo(v) {
+  const raw = String((v && typeof v === 'object' ? v.url : v) ?? '').trim();
+  if (!raw) return { value: null };
+  let id = null;
+  try {
+    const u = new URL(raw);
+    const host = u.hostname.replace(/^(www|m)\./, '');
+    if (host === 'youtu.be') id = u.pathname.slice(1);
+    else if (host === 'youtube.com' || host === 'youtube-nocookie.com') id = u.searchParams.get('v') || (u.pathname.match(/^\/(?:shorts|embed|live)\/([\w-]+)/) || [])[1];
+  } catch { /* adresse illisible */ }
+  if (!id || !/^[\w-]{11}$/.test(id)) return { error: 'Vidéo : collez un lien YouTube (youtube.com/watch?v=… ou youtu.be/…)' };
+  const o = v && typeof v === 'object' ? v : {};
+  return { value: { url: `https://www.youtube.com/watch?v=${id}`, id, title: String(o.title ?? '').trim().slice(0, 120) || null, channel: String(o.channel ?? '').trim().slice(0, 60) || null } };
+}
+// Prix constatés chez des vendeurs en France (en euros), avec la date du relevé
+function cleanPriceRefs(list, previous = []) {
+  const rows = Array.isArray(list) ? list : [];
+  const out = [];
+  for (const r of rows.slice(0, 8)) {
+    const store = String(r?.store ?? '').trim().slice(0, 40);
+    const eur = Number(String(r?.priceEur ?? '').replace(/\s/g, '').replace(',', '.'));
+    if (!store && !r?.priceEur) continue;
+    if (!store) return { error: 'Prix en France : indiquez le vendeur' };
+    if (!Number.isFinite(eur) || eur <= 0 || eur > 100000) return { error: `Prix en France (${store}) : prix en euros invalide` };
+    const url = httpsUrl(r.url); if (url === null) return { error: `Prix en France (${store}) : lien invalide (https://…)` };
+    const date = String(r?.date ?? '').trim();
+    if (date && !/^\d{4}-\d{2}-\d{2}$/.test(date)) return { error: `Prix en France (${store}) : date invalide` };
+    const priceEur = Math.round(eur * 100) / 100;
+    // On garde le suivi automatique (dernier relevé, historique) du même vendeur ; un prix corrigé à la main est noté « saisi à la main »
+    const prev = (previous || []).find((x) => (url && x.url === url) || (!url && !x.url && x.store === store));
+    const keep = prev ? { checkedAt: prev.checkedAt || null, history: prev.history || [], from: prev.from || false } : {};
+    const manual = !prev || prev.priceEur !== priceEur;
+    out.push({ store, priceEur, url: url || null, date: date || (manual ? new Date().toISOString().slice(0, 10) : prev.date) || null, ...keep,
+      ...(manual ? { status: 'manual', auto: false, detail: null, from: false } : { status: prev.status || 'manual', auto: prev.auto || false, detail: prev.detail || null }) });
+  }
+  return { value: out.sort((a, b) => a.priceEur - b.priceEur) };
+}
+
 // Ce que chaque rôle voit d'un produit : prix d'achat pour l'admin et le responsable catalogue seulement
 function productFor(user, p) {
   const { supplierId, supplierPrice, ...out } = p; // anciens champs du dépôt-vente (volet fournisseur retiré le 21/10/2026)
@@ -686,7 +760,7 @@ function productFor(user, p) {
 const canSee = () => true;
 
 // Résumé lisible des changements, pour le journal
-const TRACKED = { name: 'nom', price: 'prix', oldPrice: 'prix barré', supplierPrice: 'prix fournisseur', costPrice: 'prix d\'achat', stock: 'stock', category: 'catégorie', active: 'visible', featured: 'mis en avant', condition: 'état', provenance: 'provenance', sourceSupplier: 'fournisseur d\'origine' };
+const TRACKED = { name: 'nom', price: 'prix', oldPrice: 'prix barré', supplierPrice: 'prix fournisseur', costPrice: 'prix d\'achat', stock: 'stock', category: 'catégorie', active: 'visible', featured: 'mis en avant', condition: 'état', provenance: 'provenance', sourceSupplier: 'fournisseur d\'origine', priceRefsPublic: 'prix France visibles' };
 // Valeur comparable et lisible (« visible » est vrai par défaut, « mis en avant » faux par défaut)
 const shown = (k, v) => {
   if (k === 'active') return v !== false ? 'oui' : 'non';
@@ -700,9 +774,22 @@ function changes(before, after) {
   if (JSON.stringify(before.images || [before.image].filter(Boolean)) !== JSON.stringify(after.images || [after.image].filter(Boolean))) out.push('photos modifiées');
   if ((before.description || '') !== (after.description || '')) out.push('description modifiée');
   if (JSON.stringify(before.specs || []) !== JSON.stringify(after.specs || [])) out.push('caractéristiques modifiées');
+  for (const [k, l] of [['highlights', 'points forts'], ['repair', 'réparabilité'], ['video', 'vidéo'], ['priceRefs', 'prix en France']]) if (JSON.stringify(before[k] || null) !== JSON.stringify(after[k] || null)) out.push(`${l} modifiés`.replace('réparabilité modifiés', 'réparabilité modifiée').replace('vidéo modifiés', 'vidéo modifiée'));
   return out.join(' ; ');
 }
 
+// Prix constatés en France : relevé automatique quotidien (src/price-watch.js) ; « Actualiser maintenant » pour un produit
+router.get('/prices/status', requireRole('catalog'), (req, res) => res.json({ last: require('../price-watch').lastRun(), robot: require('../price-watch').UA }));
+router.post('/products/:id/prices/refresh', requireRole('catalog'), async (req, res) => {
+  const p = products.get(req.params.id);
+  if (!p) return res.status(404).json({ error: 'Produit introuvable' });
+  if (!(p.priceRefs || []).some((r) => r.url)) return res.status(400).json({ error: 'Ajoutez d\'abord le lien de la page produit chez le vendeur' });
+  try {
+    const u = await require('../price-watch').refreshProduct(p);
+    log(req, 'Prix en France actualisés', { id: p.id, name: p.name }, (u.priceRefs || []).map((r) => `${r.store} : ${r.status === 'ok' ? r.priceEur + ' €' : r.status}`).join(', '));
+    res.json(productFor(req.user, u));
+  } catch (err) { res.status(500).json({ error: 'Actualisation impossible pour le moment' }); }
+});
 router.get('/products', requireRole('catalog'), (req, res) => {
   res.json(products.all().filter((p) => canSee(req.user, p)).map((p) => productFor(req.user, p)));
 });

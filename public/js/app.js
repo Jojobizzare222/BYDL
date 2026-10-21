@@ -9,7 +9,7 @@
   // Univers et catégories affichés dans le menu : fournis par le serveur (src/catalog.js), même liste que l'admin
   let UNIVERSES = [];
   // Icônes Phosphor (fichier /icons.svg, récupérées via Iconify)
-  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=12#${name}"></use></svg>`;
+  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=13#${name}"></use></svg>`;
   const ICONS = { 'Téléphones': 'device-mobile-duotone', 'Tablettes': 'device-tablet-duotone', 'Ordinateurs': 'laptop-duotone', 'Montres': 'watch-duotone', 'Audio': 'headphones-duotone', 'TV & Maison': 'television-duotone', 'Jeux vidéo & consoles': 'game-controller-duotone', 'Composants': 'cpu-duotone', 'Accessoires': 'plug-duotone' };
   const catIcon = (cat, cls = '') => icon(ICONS[cat] || 'shopping-bag-duotone', cls);
   // Vignettes sans photo : une des trois teintes de la charte, selon la catégorie
@@ -890,6 +890,40 @@
     });
   }
 
+  // Description en paragraphes (ligne vide = nouveau paragraphe)
+  const richText = (t) => String(t || '').split(/\n{2,}/).map((x) => x.trim()).filter(Boolean).map((x) => `<p>${esc(x).replace(/\n/g, '<br>')}</p>`).join('');
+  // « En détail » : points forts, réparabilité, vidéo d'analyse, prix constatés en France (décision Joseph 21/10/2026)
+  const REPAIR = { fr: ['Indice de réparabilité', '/10'], eu: ['Classe de réparabilité (UE)', ''], ifixit: ['Note de réparabilité iFixit', '/10'] };
+  const repairLevel = (r) => { if (r.kind === 'eu') return { A: 5, B: 4, C: 3, D: 2, E: 1 }[r.value] || 0; const n = Number(r.value); return n >= 8 ? 5 : n >= 6.5 ? 4 : n >= 5 ? 3 : n >= 3 ? 2 : 1; };
+  function detailSection(p) {
+    const hl = p.highlights || [], r = p.repair, v = p.video, refs = p.priceRefs || [];
+    if (!hl.length && !r && !v && !refs.length) return '';
+    const eurFcfa = 655.957;
+    const cards = [];
+    if (hl.length) cards.push(`<div class="dt-card dt-hl"><h3>${icon('sparkle')} Points forts</h3><ul>${hl.map((x) => `<li>${icon('check-circle-duotone')}<span>${esc(x)}</span></li>`).join('')}</ul></div>`);
+    if (r) {
+      const [label, unit] = REPAIR[r.kind] || ['Réparabilité', ''], lvl = repairLevel(r);
+      cards.push(`<div class="dt-card dt-repair"><h3>${icon('wrench')} Réparabilité</h3>
+        <div class="dt-score lv${lvl}"><b>${esc(String(r.value).replace('.', ','))}</b><small>${esc(unit)}</small></div>
+        <p class="dt-sub">${esc(label)}</p>
+        <div class="dt-gauge" aria-hidden="true">${[1, 2, 3, 4, 5].map((i) => `<i class="${i <= lvl ? 'on lv' + lvl : ''}"></i>`).join('')}</div>
+        ${r.note ? `<p class="dt-note">${esc(r.note)}</p>` : ''}
+        ${r.url ? `<a class="dt-link" href="${esc(r.url)}" target="_blank" rel="noopener noreferrer">Voir la source ${icon('arrow-square-out-bold')}</a>` : ''}</div>`);
+    }
+    if (v) cards.push(`<a class="dt-card dt-video" href="${esc(v.url)}" target="_blank" rel="noopener noreferrer">
+        <h3>${icon('youtube-logo')} L'avis d'un expert en vidéo</h3>
+        <span class="dt-play">${icon('play-circle')}</span>
+        <b>${esc(v.title || 'Voir l\'analyse du produit')}</b>${v.channel ? `<small>${esc(v.channel)} · YouTube</small>` : '<small>YouTube</small>'}
+        <span class="dt-link">Regarder sur YouTube ${icon('arrow-square-out-bold')}</span></a>`);
+    if (refs.length) {
+      const low = Math.min(...refs.map((x) => x.priceEur));
+      cards.push(`<div class="dt-card dt-prices"><h3>${icon('storefront')} Prix constatés en France</h3>
+        <table>${refs.map((x) => `<tr><th>${x.url ? `<a href="${esc(x.url)}" target="_blank" rel="noopener noreferrer nofollow">${esc(x.store)}</a>` : esc(x.store)}</th><td>${x.from ? '<small>dès </small>' : ''}${x.priceEur.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €<small>≈ ${fcfa(Math.round(x.priceEur * eurFcfa))}</small></td></tr>`).join('')}</table>
+        <p class="dt-note">Prix publics TTC en France${refs.some((x) => x.date) ? `, relevés le ${esc(new Date(refs.map((x) => x.date).filter(Boolean).sort().pop()).toLocaleDateString('fr-FR'))}` : ''}, hors frais d'acheminement jusqu'à Pointe-Noire. Chez Zado : <b>${fcfa(p.price)}</b>, produit déjà sur place, facture et garantie.</p></div>`);
+    }
+    return `<section class="dt"><div class="shelf-head"><div><p class="kicker">${esc(p.brand || p.category)}</p><h2>En détail</h2></div></div><div class="dt-grid">${cards.join('')}</div></section>`;
+  }
+
   function viewProduct(id) {
     const p = byId(id);
     if (!p) return viewHome();
@@ -909,7 +943,7 @@
           <div class="pdp-meta">${p.rating ? `<a href="#reviews" class="rating-link" data-scroll="reviews">${ratingLine(p.rating)}</a>` : ''}<button type="button" class="share-btn" id="shareBtn">${icon('export')} Partager</button></div>
           ${(() => { const sib = siblings(p); return sib.length > 1 ? `<div class="color-pick"><span class="lbl">Couleur : <b>${esc(colorOf(p)?.label || '')}</b></span><div>${sib.map((x) => `<a href="#/p/${enc(x.id)}" class="${x.id === p.id ? 'on' : ''}" title="${esc(colorOf(x)?.label || x.name)}" aria-label="${esc(colorOf(x)?.label || x.name)}"><i style="background:${colorOf(x)?.hex || '#ccc'}"></i></a>`).join('')}</div></div>` : ''; })()}
           ${p.condition && p.condition !== 'neuf' ? `<span class="cond-tag">${esc(p.condition === 'reconditionné' ? 'Reconditionné' : 'Occasion')}</span>` : ''}
-          <p>${esc(p.description)}</p>
+          ${richText(p.description)}
           ${(p.specs || []).length ? `<table class="specs">${p.specs.map((x) => `<tr><th>${esc(x.label)}</th><td>${esc(x.value)}</td></tr>`).join('')}</table>` : ''}
           <div class="buybox">
             ${d ? `<div><span class="old">${fcfa(p.oldPrice)}</span> <span class="save-tag">Économisez ${fcfa(p.oldPrice - p.price)}</span></div>` : ''}
@@ -926,6 +960,7 @@
           <div class="buybar"><span><small>${esc(p.name)}</small><b>${fcfa(p.price)}</b></span><button class="btn cta" type="button" id="buybarAdd" ${p.stock === 0 ? 'disabled' : ''}>${p.stock === 0 ? 'Épuisé' : 'Ajouter au panier'}</button></div>
         </div>
       </div>
+      ${detailSection(p)}
       <section class="reviews" id="reviews"></section>
       ${similar.length ? `<section class="shelf"><div class="shelf-head"><div><p class="kicker">${esc(p.category)}</p><h2>Vous aimerez aussi</h2></div></div>${railCarousel(similar)}</section>` : ''}`;
     loadReviews(p);

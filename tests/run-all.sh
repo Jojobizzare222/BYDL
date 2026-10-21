@@ -49,3 +49,4 @@ t codebarre LEGACY=1 -- $S/zx
 t maintenance LEGACY=1 --
 t sans-mode --
 t provenance --
+t fiches PRICE_WATCH_ALLOW_HTTP=1 PRICE_WATCH_DELAY_MS=0 --
