@@ -133,6 +133,30 @@
     </div>
   </aside>
 
+  <!-- Fond « Route aérienne » (choix Joseph 21/10/2026) : arcs France → Pointe-Noire, petits avions, colis qui flottent. Décor seulement. -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+      <symbol id="zbox" viewBox="0 0 40 36"><path class="bx" d="M4 11.5 20 4l16 7.5v16L20 34 4 27.5z"/><path class="bx" d="M4 11.5 20 19l16-7.5M20 19v15"/><path class="tp" d="m12 7.8 16 7.6v6.4"/><path class="lb" d="M24 24.5l7-3.2v4l-7 3.2z"/></symbol>
+      <symbol id="zplane" viewBox="0 0 256 256"><path fill="currentColor" d="M240 136v32a8 8 0 0 1-8 8a7.6 7.6 0 0 1-1.57-.16L156 161v23.73l17.66 17.65A8 8 0 0 1 176 208v24a8 8 0 0 1-11 7.43l-37-14.81l-37 14.81A8 8 0 0 1 80 232v-24a8 8 0 0 1 2.34-5.66L100 184.69V161l-74.43 14.84A7.6 7.6 0 0 1 24 176a8 8 0 0 1-8-8v-32a8 8 0 0 1 4.42-7.16L100 89.06V56a28 28 0 0 1 56 0v33.06l79.58 39.78A8 8 0 0 1 240 136"/></symbol>
+    </defs>
+  </svg>
+  <div class="bg-route" aria-hidden="true">
+    <svg viewBox="0 0 1200 800" preserveAspectRatio="xMidYMid slice">
+      <path id="zarc1" class="arc" d="M120 260 Q600 -40 1080 300"/>
+      <path id="zarc2" class="arc" d="M80 560 Q560 280 1120 620"/>
+      <path class="arc" d="M200 780 Q700 540 1150 790"/>
+      <circle class="pin" cx="120" cy="260" r="5"/><circle class="pin" cx="1080" cy="300" r="5"/><circle class="ring" cx="1080" cy="300" r="5"/>
+      <circle class="pin" cx="80" cy="560" r="5"/><circle class="pin" cx="1120" cy="620" r="5"/><circle class="ring" cx="1120" cy="620" r="5" style="animation-delay:1.6s"/>
+      <g class="plane"><g transform="rotate(90)"><use href="#zplane" x="-12" y="-12" width="24" height="24"/></g><animateMotion dur="36s" repeatCount="indefinite" rotate="auto"><mpath href="#zarc1"/></animateMotion></g>
+      <g class="plane"><g transform="rotate(90)"><use href="#zplane" x="-10" y="-10" width="20" height="20"/></g><animateMotion dur="48s" begin="-20s" repeatCount="indefinite" rotate="auto"><mpath href="#zarc2"/></animateMotion></g>
+      <use href="#zbox" class="fbox" x="40" y="120" width="44" height="40" style="--fd:11s;--fr:-6deg"/>
+      <use href="#zbox" class="fbox" x="1110" y="440" width="38" height="34" style="--fd:13s;--fr:5deg;animation-delay:-4s"/>
+      <use href="#zbox" class="fbox" x="560" y="700" width="34" height="31" style="--fd:12s;--fr:-4deg;animation-delay:-7s"/>
+      <use href="#zbox" class="fbox" x="1010" y="90" width="30" height="27" style="--fd:15s;--fr:7deg;animation-delay:-2s"/>
+      <use href="#zbox" class="fbox" x="260" y="420" width="28" height="25" style="--fd:14s;--fr:-8deg;animation-delay:-9s"/>
+    </svg>
+  </div>
+
   <main id="app" aria-live="polite"></main>
 
   <aside class="drawer" id="drawer" aria-hidden="true">
@@ -151,6 +175,43 @@
       </div>
     </div>
   </aside>
+
+  <!-- Bande « colisage » au-dessus du pied de page : l'équipe Zado emballe, scelle et étiquette les colis (décor animé) -->
+  <div class="pack-band" aria-hidden="true">
+    <p class="pack-cap">Chaque colis est vérifié, emballé et étiqueté à la main par l'équipe Zado, à Pointe-Noire.</p>
+    <svg viewBox="0 0 1200 150" preserveAspectRatio="xMidYMax slice">
+      <path class="floor" d="M0 136H1200"/>
+      <!-- Préparatrice : scotche un carton sur la table -->
+      <g class="packer">
+        <path class="desk" d="M130 92h150M145 92v44M265 92v44"/>
+        <use href="#zbox" x="196" y="54" width="46" height="41"/>
+        <circle class="skin" cx="170" cy="44" r="10"/>
+        <path class="body" d="M170 56v38M170 94l-9 42M170 94l9 42"/>
+        <g class="arm"><path class="body" d="M170 64l26 6"/><rect class="tape" x="192" y="64" width="11" height="8" rx="2"/></g>
+        <path class="body" d="M170 64l-14 18"/>
+      </g>
+      <!-- Tapis roulant : les colis avancent vers le départ -->
+      <g class="belt">
+        <rect x="330" y="104" width="560" height="11" rx="5.5"/>
+        <g class="rollers"><circle cx="350" cy="109.5" r="3.5"/><circle cx="430" cy="109.5" r="3.5"/><circle cx="510" cy="109.5" r="3.5"/><circle cx="590" cy="109.5" r="3.5"/><circle cx="670" cy="109.5" r="3.5"/><circle cx="750" cy="109.5" r="3.5"/><circle cx="830" cy="109.5" r="3.5"/><circle cx="870" cy="109.5" r="3.5"/></g>
+        <path class="desk" d="M360 115v21M860 115v21"/>
+        <use href="#zbox" class="ride" x="330" y="68" width="40" height="36" style="--rd:0s"/>
+        <use href="#zbox" class="ride" x="330" y="74" width="34" height="30" style="--rd:-4.5s"/>
+        <use href="#zbox" class="ride" x="330" y="64" width="44" height="40" style="--rd:-9s"/>
+        <use href="#zbox" class="ride" x="330" y="72" width="36" height="32" style="--rd:-13.5s"/>
+      </g>
+      <!-- Scanner de contrôle au-dessus du tapis -->
+      <g class="scan"><path class="desk" d="M600 40v24h44V40"/><path class="beam" d="M610 64l-8 40h40l-8-40"/></g>
+      <!-- Magasinier : pousse un diable chargé de colis -->
+      <g transform="translate(-80 0)"><g class="porter">
+        <use href="#zbox" x="1010" y="64" width="40" height="36"/>
+        <use href="#zbox" x="1012" y="30" width="36" height="32"/>
+        <path class="desk" d="M1056 22l-6 112M1006 134h50"/><circle class="wheel" cx="1050" cy="134" r="6"/>
+        <circle class="skin" cx="1092" cy="48" r="10"/>
+        <path class="body" d="M1090 60l-8 36M1082 96l-6 40M1082 96l12 40M1088 70l-30-4M1086 80l-28 8"/>
+      </g></g>
+    </svg>
+  </div>
 
   <footer class="footer">
     <div class="footer-inner">

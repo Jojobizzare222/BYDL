@@ -471,6 +471,9 @@
     h.setAttribute('data-text', p.textSize); h.setAttribute('data-density', p.density);
     h.setAttribute('data-motion', p.motion); h.setAttribute('data-saver', p.dataSaver ? 'on' : 'off');
     if (window.kamwaTheme && window.kamwaTheme.mode() !== p.theme) window.kamwaTheme.set(p.theme);
+    // Fond « Route aérienne » : les avions (animation SVG) s'arrêtent si le client réduit les animations ou économise les données
+    const route = document.querySelector('.bg-route svg');
+    if (route?.pauseAnimations) { const still = p.motion === 'reduce' || p.dataSaver || matchMedia('(prefers-reduced-motion: reduce)').matches; if (still) route.pauseAnimations(); else route.unpauseAnimations(); }
   }
   function savePrefs(patch, { remote = true } = {}) {
     state.prefs = { ...state.prefs, ...patch };

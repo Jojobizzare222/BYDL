@@ -1483,3 +1483,53 @@ html[data-motion="reduce"] .vy-plane, html[data-motion="reduce"] .vy-trail, html
 .timeline li.current .dot { animation: tl-pulse 2s ease-in-out infinite; }
 @keyframes tl-pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(255,179,0,.55); } 50% { box-shadow: 0 0 0 7px rgba(255,179,0,0); } }
 html[data-motion="reduce"] .timeline li.current .dot { animation: none; }
+/* ===== Fond « Route aérienne » + colis (choix Joseph 21/10/2026) =====
+   Couche fixe derrière la page : arcs pointillés France → Pointe-Noire, petits avions, destinations qui « pulsent », colis qui flottent.
+   Bande « colisage » au-dessus du pied de page : préparatrice, tapis roulant, scanner, magasinier. Coupés si « réduire les animations ». */
+:root { --rt-dot: rgba(16,38,74,.14); --rt-ink: rgba(16,38,74,.34); --rt-box: rgba(16,38,74,.22); --rt-boxfill: rgba(255,255,255,.75); }
+html[data-theme="dark"] { --rt-dot: rgba(157,187,255,.16); --rt-ink: rgba(157,187,255,.40); --rt-box: rgba(157,187,255,.30); --rt-boxfill: rgba(20,28,42,.85); }
+main#app { position: relative; z-index: 1; }
+.bg-route { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.bg-route svg { width: 100%; height: 100%; }
+.bg-route .arc { fill: none; stroke: var(--rt-dot); stroke-width: 1.6; stroke-dasharray: 2 7; stroke-linecap: round; }
+.bg-route .pin { fill: var(--rt-dot); }
+.bg-route .ring { fill: none; stroke: var(--mango); stroke-width: 1.5; transform-box: fill-box; transform-origin: center; animation: rt-ping 3.2s ease-out infinite; }
+.bg-route .plane { color: var(--brand); opacity: .5; }
+html[data-theme="dark"] .bg-route .plane { color: #9DBBFF; }
+.bg-route .fbox { transform-box: fill-box; transform-origin: center; animation: rt-float var(--fd, 12s) ease-in-out infinite alternate; }
+/* Le carton Zado (scotch mangue + étiquette) */
+.bx { fill: var(--rt-boxfill); stroke: var(--rt-box); stroke-width: 1.6; stroke-linejoin: round; }
+.tp { fill: none; stroke: var(--mango); stroke-width: 3; stroke-linecap: round; opacity: .85; }
+.lb { fill: var(--rt-box); opacity: .6; }
+@keyframes rt-ping { 0% { opacity: .8; transform: scale(1); } 100% { opacity: 0; transform: scale(4); } }
+@keyframes rt-float { from { transform: translateY(-8px) rotate(var(--fr, -5deg)); } to { transform: translateY(10px) rotate(calc(var(--fr, -5deg) * -1)); } }
+
+/* Bande « colisage » */
+.pack-band { position: relative; z-index: 1; max-width: 1180px; margin: 46px auto 0; padding: 0 20px; }
+.pack-band + .footer, .pack-band ~ .footer { margin-top: 0; }
+.pack-cap { margin: 0 0 4px; text-align: center; font-size: .82rem; color: var(--muted); }
+.pack-band svg { display: block; width: 100%; height: 150px; }
+.pack-band .floor { stroke: var(--rt-box); stroke-width: 1.5; stroke-dasharray: 3 6; }
+.pack-band .desk, .pack-band .body { fill: none; stroke: var(--rt-ink); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.pack-band .skin { fill: none; stroke: var(--rt-ink); stroke-width: 3; }
+.pack-band .tape { fill: var(--mango); }
+.pack-band .belt rect { fill: none; stroke: var(--rt-ink); stroke-width: 2.5; }
+.pack-band .rollers circle { fill: var(--rt-ink); }
+.pack-band .wheel { fill: none; stroke: var(--rt-ink); stroke-width: 3; }
+.pack-band .beam { fill: rgba(255,179,0,.16); stroke: none; animation: rt-scan 2.4s ease-in-out infinite; }
+.pack-band .arm { transform-box: fill-box; transform-origin: 0% 50%; animation: rt-tape 1.4s ease-in-out infinite alternate; }
+.pack-band .ride { animation: rt-ride 18s linear infinite; animation-delay: var(--rd, 0s); }
+.pack-band .porter { animation: rt-push 3s ease-in-out infinite alternate; }
+@keyframes rt-tape { from { transform: rotate(-14deg); } to { transform: rotate(10deg); } }
+@keyframes rt-ride { 0% { transform: translateX(0); opacity: 0; } 6% { opacity: 1; } 92% { opacity: 1; } 100% { transform: translateX(510px); opacity: 0; } }
+@keyframes rt-scan { 0%, 100% { opacity: .2; } 50% { opacity: 1; } }
+@keyframes rt-push { from { transform: translateX(0); } to { transform: translateX(-10px); } }
+@media (max-width: 760px) { .pack-band { margin-top: 28px; } .pack-band svg { height: 110px; } .pack-cap { font-size: .76rem; padding: 0 8px; } .bg-route .plane { opacity: .4; } }
+/* Sur téléphone, la barre d'onglets du bas recouvre le pied de page : la bande reste au-dessus */
+@media (max-width: 900px) { .pack-band { margin-bottom: 0; } }
+html[data-motion="reduce"] .bg-route *, html[data-motion="reduce"] .pack-band * { animation: none !important; }
+@media (prefers-reduced-motion: reduce) { .bg-route *, .pack-band * { animation: none !important; } }
+html[data-saver="on"] .bg-route { display: none; }
+html[data-saver="on"] .pack-band * { animation: none !important; }
+/* Pages de commande et de paiement : décor plus discret pour ne pas distraire */
+body[data-route="commande"] .bg-route, body[data-route="merci"] .bg-route { opacity: .5; }
