@@ -2125,7 +2125,7 @@
       ['Commande passée', o.createdAt, payAg ? agencyStep : 'Nous avons bien reçu votre commande.'],
       ...pay,
       ...france,
-      ['En livraison', at('shipped'), `Le livreur arrive à ${esc(o.customer.city || 'votre adresse')}. Gardez votre téléphone allumé et préparez votre code de livraison.`],
+      ['En livraison', at('shipped'), 'Votre colis est entre les mains de notre livreur, en route vers chez vous. Gardez votre téléphone allumé et préparez votre code de livraison.'],
       ['Livrée', at('delivered'), 'Votre commande a été livrée. Merci pour votre confiance !'],
     ];
   }
