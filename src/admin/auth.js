@@ -25,6 +25,9 @@ db.exec('CREATE TABLE IF NOT EXISTS admin_sessions (token_hash TEXT PRIMARY KEY,
 try {
   db.exec("ALTER TABLE admin_sessions ADD COLUMN user_id TEXT NOT NULL DEFAULT 'admin'");
 } catch {} // colonne déjà présente
+// « Se connecter en tant que » (décision Joseph 21/10/2026) : session d'un membre de l'équipe ouverte par l'administrateur
+try { db.exec('ALTER TABLE admin_sessions ADD COLUMN imp_by TEXT'); } catch {}
+const IMPERSONATE_HOURS = 8;
 
 const sha256 = (s) => crypto.createHash('sha256').update(s).digest('hex');
 
@@ -75,8 +78,8 @@ function readCookie(req) {
 const DEMO_KEY = process.env.DEMO_SESSION_SECRET || 'kamwa-demo-sessions-publiques';
 const b64 = (s) => Buffer.from(s).toString('base64url');
 const demoSign = (payload) => crypto.createHmac('sha256', DEMO_KEY).update(payload).digest('base64url');
-function demoToken(login, maxAgeSec) {
-  const payload = b64(JSON.stringify({ l: login, e: Date.now() + maxAgeSec * 1000 }));
+function demoToken(login, maxAgeSec, by = null) {
+  const payload = b64(JSON.stringify({ l: login, e: Date.now() + maxAgeSec * 1000, ...(by ? { b: by } : {}) }));
   return `d.${payload}.${demoSign(payload)}`;
 }
 function demoLogin(token) {
@@ -85,8 +88,8 @@ function demoLogin(token) {
   const expected = demoSign(payload);
   if (!sig || sig.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return null;
   try {
-    const { l, e } = JSON.parse(Buffer.from(payload, 'base64url').toString());
-    return e > Date.now() ? l : null;
+    const { l, e, b } = JSON.parse(Buffer.from(payload, 'base64url').toString());
+    return e > Date.now() ? { login: l, by: b || null } : null;
   } catch { return null; }
 }
 
@@ -134,16 +137,20 @@ function login(req, res) {
   failures.delete(ipKey);
   failures.delete(accKey);
 
-  const maxAge = SESSION_DAYS * 24 * 3600;
-  if (config.demo) {
-    res.setHeader('Set-Cookie', cookieHeader(req, demoToken(loginName, maxAge), maxAge));
-    return res.json({ ok: true });
-  }
+  openSession(req, res, userId, loginName);
+  res.json({ ok: true });
+}
+
+/** Ouvre une session (cookie) ; `by` = 'admin' quand l'administrateur se connecte en tant que ce membre. */
+function openSession(req, res, userId, loginName, { by = null } = {}) {
+  const maxAge = by ? IMPERSONATE_HOURS * 3600 : SESSION_DAYS * 24 * 3600;
+  const old = readCookie(req); // la session précédente de ce navigateur est fermée
+  if (old && !old.startsWith('d.')) db.prepare('DELETE FROM admin_sessions WHERE token_hash = ?').run(sha256(old));
+  if (config.demo) return res.setHeader('Set-Cookie', cookieHeader(req, demoToken(loginName, maxAge, by), maxAge));
   const token = crypto.randomBytes(32).toString('hex');
   db.prepare('DELETE FROM admin_sessions WHERE expires_at < ?').run(Date.now());
-  db.prepare('INSERT INTO admin_sessions (token_hash, expires_at, user_id) VALUES (?, ?, ?)').run(sha256(token), Date.now() + maxAge * 1000, userId);
+  db.prepare('INSERT INTO admin_sessions (token_hash, expires_at, user_id, imp_by) VALUES (?, ?, ?, ?)').run(sha256(token), Date.now() + maxAge * 1000, userId, by);
   res.setHeader('Set-Cookie', cookieHeader(req, token, maxAge));
-  res.json({ ok: true });
 }
 
 function logout(req, res) {
@@ -153,24 +160,30 @@ function logout(req, res) {
   res.json({ ok: true });
 }
 
-/** Personne connectée : { id, name, role, login, company?, mustChangePassword? } ou null. */
+/** Personne connectée : { id, name, role, login, company?, mustChangePassword?, impersonatedBy? } ou null. */
+const ADMIN_USER = () => ({ id: ADMIN_LOGIN, login: ADMIN_LOGIN, name: 'Administrateur', role: 'admin' });
+function staffUser(u, by) {
+  if (!u || u.active === false || RETIRED_ROLES.includes(u.role)) return null; // compte désactivé (ou rôle retiré) : accès coupé immédiatement
+  return {
+    id: u.id, login: u.login, name: u.name, role: u.role, company: u.company || null,
+    // l'administrateur qui « se connecte en tant que » n'a pas à changer le mot de passe de la personne
+    mustChangePassword: by ? false : Boolean(u.mustChangePassword),
+    ...(by === ADMIN_LOGIN ? { impersonatedBy: 'Administrateur' } : {}),
+  };
+}
 function currentUser(req) {
   const token = readCookie(req);
   if (!token) return null;
   if (token.startsWith('d.')) {
-    const login = demoLogin(token);
-    if (!login) return null;
-    if (login === ADMIN_LOGIN) return { id: ADMIN_LOGIN, login: ADMIN_LOGIN, name: 'Administrateur', role: 'admin' };
-    const u = findStaff(login);
-    if (!u || u.active === false || RETIRED_ROLES.includes(u.role)) return null;
-    return { id: u.id, login: u.login, name: u.name, role: u.role, company: u.company || null, mustChangePassword: Boolean(u.mustChangePassword) };
+    const d = demoLogin(token);
+    if (!d) return null;
+    if (d.login === ADMIN_LOGIN) return ADMIN_USER();
+    return staffUser(findStaff(d.login), d.by);
   }
-  const row = db.prepare('SELECT expires_at, user_id FROM admin_sessions WHERE token_hash = ?').get(sha256(token));
+  const row = db.prepare('SELECT expires_at, user_id, imp_by FROM admin_sessions WHERE token_hash = ?').get(sha256(token));
   if (!row || row.expires_at < Date.now()) return null;
-  if (row.user_id === ADMIN_LOGIN) return { id: ADMIN_LOGIN, login: ADMIN_LOGIN, name: 'Administrateur', role: 'admin' };
-  const u = staff.get(row.user_id);
-  if (!u || u.active === false || RETIRED_ROLES.includes(u.role)) return null; // compte désactivé (ou rôle retiré) : accès coupé immédiatement
-  return { id: u.id, login: u.login, name: u.name, role: u.role, company: u.company || null, mustChangePassword: Boolean(u.mustChangePassword) };
+  if (row.user_id === ADMIN_LOGIN) return ADMIN_USER();
+  return staffUser(staff.get(row.user_id), row.imp_by);
 }
 
 const isLoggedIn = (req) => Boolean(currentUser(req));
@@ -206,4 +219,5 @@ module.exports = {
   normLogin,
   findStaff,
   closeSessionsOf,
+  openSession,
 };

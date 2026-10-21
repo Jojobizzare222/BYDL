@@ -11,7 +11,7 @@ const billing = require('../billing');
 function log(req, action, target, details = '') {
   activity.insert({
     id: 'ACT-' + crypto.randomBytes(6).toString('hex'), at: new Date().toISOString(),
-    userId: req.user.id, userName: req.user.name, role: req.user.role,
+    userId: req.user.id, userName: req.user.impersonatedBy ? `${req.user.name} (par l'administrateur)` : req.user.name, role: req.user.role,
     action, targetId: target?.id || null, targetName: target?.name || null, details,
   });
 }

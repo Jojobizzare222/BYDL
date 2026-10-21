@@ -12,7 +12,7 @@ const config = require('../config');
 const customerAuth = require('../customer/auth');
 const {
   ROLES, ADMIN_LOGIN, login, logout, currentUser, isPasswordSet, requireStaff, requireRole,
-  hashPassword, checkPassword, tempPassword, normLogin, findStaff, closeSessionsOf,
+  hashPassword, checkPassword, tempPassword, normLogin, findStaff, closeSessionsOf, openSession,
 } = require('../admin/auth');
 const { UNIVERSES, universeOf } = require('../catalog');
 const demo = require('../demo');
@@ -76,7 +76,7 @@ function log(req, action, target, details = '') {
     id: 'ACT-' + crypto.randomBytes(6).toString('hex'),
     at: new Date().toISOString(),
     userId: req.user.id,
-    userName: req.user.name + (req.user.company ? ` (${req.user.company})` : ''),
+    userName: req.user.impersonatedBy ? `${req.user.name} (par l'administrateur)` : req.user.name + (req.user.company ? ` (${req.user.company})` : ''),
     role: req.user.role,
     action,
     targetId: target?.id || null,
@@ -944,7 +944,15 @@ router.delete('/products/:id', requireRole('catalog'), (req, res) => {
 });
 
 // ---------- Équipe (admin uniquement) ----------
-const publicStaff = ({ passwordHash, ...u }) => u;
+// Mot de passe affiché dans la liste de l'Équipe (décision Joseph 21/10/2026) : seulement le mot de passe PROVISOIRE
+// donné par l'administrateur (copie chiffrée AES-256-GCM, comme le code des clients). Dès que la personne choisit
+// son propre mot de passe, la copie est effacée : il n'est plus lisible par personne (« Choisi par la personne »).
+const publicStaff = ({ passwordHash, passwordSealed, ...u }) => ({
+  ...u,
+  password: demo.isDemoLogin(u.login) ? { state: 'demo', value: demo.publicAccounts()[0]?.password || null }
+    : u.mustChangePassword ? { state: 'temp', value: passwordSealed ? customerAuth.openCode(passwordSealed) : null }
+    : { state: 'own', value: null },
+});
 
 router.get('/staff', requireRole(), (req, res) => {
   const all = products.all();
@@ -974,6 +982,7 @@ router.post('/staff', requireRole(), (req, res) => {
     active: true,
     mustChangePassword: true,
     passwordHash: hashPassword(password),
+    passwordSealed: customerAuth.sealCode(password),
     createdAt: new Date().toISOString(),
   });
   log(req, 'Compte créé', { id: user.id, name: `${user.name} (${ROLES[role]})` }, `identifiant ${user.login}`);
@@ -999,21 +1008,44 @@ router.post('/staff/:id/reset-password', requireRole(), (req, res) => {
   if (!u) return res.status(404).json({ error: 'Compte introuvable' });
   if (demo.isDemoLogin(u.login)) return res.status(403).json({ error: 'Compte de démonstration : son mot de passe ne peut pas être changé' });
   const password = tempPassword();
-  staff.update(u.id, { passwordHash: hashPassword(password), mustChangePassword: true });
+  staff.update(u.id, { passwordHash: hashPassword(password), passwordSealed: customerAuth.sealCode(password), mustChangePassword: true });
   closeSessionsOf(u.id);
   log(req, 'Mot de passe réinitialisé', { id: u.id, name: u.name });
-  res.json({ password });
+  res.json({ password, user: publicStaff(staff.get(u.id)) });
+});
+
+// « Se connecter en tant que » : l'administrateur voit Zado Pro exactement comme ce membre de l'équipe (8 h au plus),
+// puis revient à son compte. Début et fin journalisés.
+router.post('/staff/:id/impersonate', requireRole(), (req, res) => {
+  if (req.user.impersonatedBy) return res.status(400).json({ error: 'Revenez d\'abord à votre compte' });
+  const u = staff.get(req.params.id);
+  if (!u || u.role === 'supplier') return res.status(404).json({ error: 'Compte introuvable' });
+  if (u.active === false) return res.status(400).json({ error: 'Compte désactivé : réactivez-le d\'abord' });
+  log(req, 'Connexion en tant que', { id: u.id, name: `${u.name} (${ROLES[u.role]})` });
+  openSession(req, res, u.id, u.login, { by: ADMIN_LOGIN });
+  res.json({ ok: true, user: { id: u.id, name: u.name, role: u.role } });
+});
+router.post('/me/impersonate/stop', (req, res) => {
+  if (!req.user.impersonatedBy) return res.status(400).json({ error: 'Vous êtes déjà sur votre compte' });
+  activity.insert({
+    id: 'ACT-' + crypto.randomBytes(6).toString('hex'), at: new Date().toISOString(),
+    userId: ADMIN_LOGIN, userName: 'Administrateur', role: 'admin',
+    action: 'Retour à son compte', targetId: req.user.id, targetName: `${req.user.name} (${ROLES[req.user.role]})`, details: '',
+  });
+  openSession(req, res, ADMIN_LOGIN, ADMIN_LOGIN);
+  res.json({ ok: true });
 });
 
 // Chacun peut changer son propre mot de passe (l'admin le fait avec npm run admin:password)
 router.post('/me/password', (req, res) => {
   if (req.user.role === 'admin') return res.status(400).json({ error: 'Admin : utilisez « npm run admin:password » dans le Terminal' });
+  if (req.user.impersonatedBy) return res.status(403).json({ error: 'Vous êtes connecté en tant que cette personne : elle seule peut choisir son mot de passe' });
   if (demo.isDemoLogin(req.user.login)) return res.status(403).json({ error: 'Compte de démonstration : son mot de passe ne peut pas être changé' });
   const { current, next } = req.body || {};
   const u = staff.get(req.user.id);
   if (!checkPassword(current || '', u.passwordHash)) return res.status(401).json({ error: 'Mot de passe actuel incorrect' });
   if (String(next || '').length < 10) return res.status(400).json({ error: 'Nouveau mot de passe : au moins 10 caractères' });
-  staff.update(u.id, { passwordHash: hashPassword(String(next)), mustChangePassword: false });
+  staff.update(u.id, { passwordHash: hashPassword(String(next)), passwordSealed: null, mustChangePassword: false });
   res.json({ ok: true });
 });
 

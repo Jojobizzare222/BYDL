@@ -793,6 +793,13 @@ html[data-theme="light"] .demo-box .ghost { background: #fff; color: #171C30; bo
 .alert.info { background: #12343B; color: #7FD9E6; }
 html[data-theme="light"] .alert.info { background: #E0F5F7; color: #0E6E7A; }
 /* Mode maintenance (18/10/2026) */
+/* Bandeau « connecté en tant que » (l'administrateur voit Zado Pro comme un membre de l'équipe) */
+.imp-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 14px 24px 0; padding: 10px 14px; border-radius: 10px; background: #FFB300; color: #10264A; font-size: .9rem; }
+.imp-bar svg { width: 20px; height: 20px; flex: none; }
+.imp-bar .btn { margin-left: auto; background: #10264A; color: #fff; }
+.pw-cell { display: inline-flex; align-items: center; gap: 4px; }
+.pw-cell .icon-only { padding: 4px 7px; }
+.pw-val { font-size: .95rem; font-weight: 700; letter-spacing: .03em; user-select: all; white-space: nowrap; }
 .maint-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 14px 24px 0; padding: 10px 14px; border-radius: 10px; background: #3B1C22; color: #FFB4B4; font-size: .9rem; }
 .maint-bar a { margin-left: auto; color: inherit; font-weight: 700; text-decoration: underline; }
 html[data-theme="light"] .maint-bar { background: #FDEEEC; color: #B3261E; }

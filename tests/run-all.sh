@@ -52,3 +52,4 @@ t provenance --
 t fiches PRICE_WATCH_ALLOW_HTTP=1 PRICE_WATCH_DELAY_MS=0 --
 t codes ID_DIR=$S/idc -- $D/id.jpg
 t mobile ID_DIR=$S/idmob -- $D/id.jpg
+t equipe --

@@ -880,6 +880,16 @@
   }
 
   // ---------- Mode maintenance : bandeau de rappel pour toute l'équipe ----------
+  // L'administrateur connecté « en tant que » un membre de l'équipe : bandeau permanent + retour à son compte
+  function renderImpBar() {
+    const bar = $('#impBar'); if (!bar) return;
+    const u = state.user;
+    bar.hidden = !u?.impersonatedBy;
+    bar.innerHTML = u?.impersonatedBy ? `${icon('user-circle-bold')} <span>Vous êtes connecté <b>en tant que ${esc(u.name)}</b> (${esc(ROLE_LABELS[u.role] || u.role)}) : vous voyez Zado Pro comme cette personne.</span><button class="btn" id="impStop">${icon('arrow-counter-clockwise')} Revenir à mon compte</button>` : '';
+    $('#impStop')?.addEventListener('click', async () => {
+      try { await api('/me/impersonate/stop', { method: 'POST' }); location.hash = '#/equipe'; location.reload(); } catch (err) { toast('❌ ' + err.message); }
+    });
+  }
   function renderMaintBar(on) {
     const bar = $('#maintBar'); if (!bar) return;
     bar.hidden = !on;
@@ -2390,14 +2400,27 @@
         { key: 'name', label: 'Nom', sortValue: (u) => norm(u.name), render: (u) => `<span class="cell-stack"><strong>${esc(u.name)}</strong>${u.company ? `<br><span class="muted">${esc(u.company)}</span>` : ''}${u.role === 'courier' ? `<br><span class="muted">${esc(u.vehicle || 'Véhicule non renseigné')}</span>` : ''}</span>` },
         { key: 'role', label: 'Rôle', sortValue: (u) => roleLabel(u.role), render: (u) => esc(roleLabel(u.role)) },
         { key: 'login', label: 'Identifiant', render: (u) => `<code>${esc(u.login)}</code>` },
+        // Mot de passe provisoire affiché tel quel (copie chiffrée côté serveur) ; une fois changé par la personne, plus lisible
+        { key: 'password', label: 'Mot de passe', sortable: false, render: (u) => (u.password?.value
+          ? `<span class="pw-cell"><code class="pw-val">${esc(u.password.value)}</code><button class="ghost icon-only" data-copy-pw="${esc(u.password.value)}" title="Copier">${icon('copy')}</button></span><br><span class="muted">${u.password.state === 'demo' ? 'Compte de démonstration' : 'Provisoire : à changer à la 1re connexion'}</span>`
+          : `<span class="muted">${u.password?.state === 'temp' ? 'Non conservé : cliquez « Nouveau mot de passe »' : 'Choisi par la personne (illisible)'}</span>`) },
         { key: 'active', label: 'Statut', sortValue: (u) => u.active !== false, render: (u) => (u.active === false ? '<span class="tag danger">Désactivé</span>' : '<span class="tag ok">Actif</span>') },
-        { key: 'act', label: '', sortable: false, render: (u) => `<div class="cell-actions"><button class="ghost" data-toggle="${esc(u.id)}" data-active="${u.active !== false}">${u.active === false ? 'Réactiver' : 'Désactiver'}</button><button class="ghost" data-reset="${esc(u.id)}">${icon('key-bold')} Mot de passe</button>${u.role === 'courier' ? `<button class="ghost" data-vehicle="${esc(u.id)}">${icon('truck-duotone')} Véhicule</button>` : ''}</div>` },
+        { key: 'act', label: '', sortable: false, render: (u) => `<div class="cell-actions">${u.active !== false ? `<button class="ghost" data-imp="${esc(u.id)}" title="Voir Zado Pro exactement comme cette personne">${icon('user-circle-bold')} Se connecter en tant que</button>` : ''}<button class="ghost" data-toggle="${esc(u.id)}" data-active="${u.active !== false}">${u.active === false ? 'Réactiver' : 'Désactiver'}</button><button class="ghost" data-reset="${esc(u.id)}">${icon('key-bold')} Nouveau mot de passe</button>${u.role === 'courier' ? `<button class="ghost" data-vehicle="${esc(u.id)}">${icon('truck-duotone')} Véhicule</button>` : ''}</div>` },
       ],
     });
     $('#tbl').addEventListener('click', async (e) => {
       const t = e.target.closest('[data-toggle]');
       const r = e.target.closest('[data-reset]');
       const v = e.target.closest('[data-vehicle]');
+      const cp = e.target.closest('[data-copy-pw]');
+      const im = e.target.closest('[data-imp]');
+      if (cp) { try { await navigator.clipboard.writeText(cp.dataset.copyPw); toast('Mot de passe copié'); } catch { toast('Copie impossible : sélectionnez le mot de passe'); } return; }
+      if (im) {
+        const u = data.staff.find((x) => x.id === im.dataset.imp);
+        if (!confirm(`Se connecter en tant que ${u.name} (${roleLabel(u.role)}) ?\nVous verrez Zado Pro exactement comme cette personne. Revenez à votre compte avec le bandeau en haut de la page.`)) return;
+        try { await api('/staff/' + enc(u.id) + '/impersonate', { method: 'POST' }); location.hash = '#/'; location.reload(); } catch (err) { toast('❌ ' + err.message); }
+        return;
+      }
       if (v) {
         const u = data.staff.find((x) => x.id === v.dataset.vehicle);
         const val = prompt('Véhicule du livreur (montré au client pendant la course) :\nType, couleur et plaque, ex. Moto Haojue rouge · PN 1234 AB', u?.vehicle || '');
@@ -2413,8 +2436,9 @@
       if (r) {
         if (!confirm("Créer un nouveau mot de passe provisoire ? L'ancien ne marchera plus.")) return;
         try {
-          const res = await api('/staff/' + enc(r.dataset.reset) + '/reset-password', { method: 'POST' });
-          showPassword(data.staff.find((u) => u.id === r.dataset.reset), res.password);
+          await api('/staff/' + enc(r.dataset.reset) + '/reset-password', { method: 'POST' });
+          toast('Nouveau mot de passe créé : il est affiché dans la colonne « Mot de passe »');
+          viewStaff();
         } catch (err) { toast('❌ ' + err.message); }
       }
     });
@@ -2990,6 +3014,7 @@
     const me = await api('/me');
     state.user = me.user;
     renderMaintBar(me.maintenance);
+    renderImpBar();
     await Promise.all([CAN.orders() ? loadOrders() : null, CAN.products() ? loadProducts() : null]);
     loadChatCounts();
     connectProEvents();

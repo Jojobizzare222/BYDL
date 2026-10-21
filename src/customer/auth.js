@@ -155,6 +155,7 @@ module.exports = {
   newCode,
   hashCode,
   codeFields,
+  sealCode,
   openCode,
   validCode,
   normEmail,
