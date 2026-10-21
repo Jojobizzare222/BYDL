@@ -1,0 +1,26 @@
+import fs from 'node:fs';
+const B='http://localhost:3999/api', PW=fs.readFileSync(process.argv[2],'utf8').trim();
+const j=(x)=>x; let fails=0; const ok=(c,m)=>{console.log((c?'OK    ':'ÉCHEC ')+m); if(!c)fails++;};
+const login=async(l,p)=>{const r=await fetch(B+'/admin/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({login:l,password:p})});return r.headers.get('set-cookie')?.split(';')[0];};
+const get=async(c,p)=>{const r=await fetch(B+p,{headers:{Cookie:c||''}});return {status:r.status,type:r.headers.get('content-type'),text:await r.text()};};
+const A=await login('admin',PW);
+const s=JSON.parse((await get(A,'/admin/stats?days=7')).text);
+ok(s.role==='admin'&&s.labels.length===7&&s.kpis.length>=4&&s.byPayment&&s.top&&s.series.length===2,'admin : stats complètes sur 7 jours');
+ok(JSON.parse((await get(A,'/admin/stats?days=999')).text).days===30,'période invalide → 30 jours');
+const csv=await get(A,'/admin/export/orders.csv'); ok(csv.status===200&&/text\/csv/.test(csv.type)&&csv.text.replace(/^\uFEFF/,'').startsWith('Commande;'),'export commandes CSV (Excel)');
+ok((await get(A,'/admin/export/customers.csv')).status===200,'export clients (admin)');
+ok((await get('', '/admin/stats')).status===401,'stats refusées sans connexion');
+// comptes créés par test-roles : mots de passe provisoires inconnus → on recrée des comptes ici
+const mk=async(body)=>{const r=await fetch(B+'/admin/staff',{method:'POST',headers:{'Content-Type':'application/json',Cookie:A},body:JSON.stringify(body)});return r.json();};
+const t=Date.now()%100000;
+const supRes=await fetch(B+'/admin/staff',{method:'POST',headers:{'Content-Type':'application/json',Cookie:A},body:JSON.stringify({name:'S',login:'s'+t,role:'supplier',company:'C'})});
+ok(supRes.status===400,'rôle fournisseur : refusé (volet retiré)');
+const cat=await mk({name:'C',login:'c'+t,role:'catalog'}), ord=await mk({name:'O',login:'o'+t,role:'orders'});
+const C=await login(cat.user.login,cat.password), O=await login(ord.user.login,ord.password);
+const cs=JSON.parse((await get(C,'/admin/stats')).text); ok(cs.role==='catalog'&&cs.byCategory&&!cs.series,'catalogue : stats du catalogue, pas de ventes');
+const cp=await get(C,'/admin/export/products.csv'); ok(cp.status===200&&cp.text.includes("Prix d'achat")&&cp.text.includes('Provenance')&&!cp.text.includes('Prix fournisseur'),'responsable catalogue : export produits avec prix d\'achat et provenance');
+ok((await get(O,'/admin/export/products.csv')).status===403,'commandes : pas d\'export produits (prix d\'achat)');
+ok((await get(C,'/admin/export/orders.csv')).status===403,'catalogue : pas d\'export commandes');
+const os=JSON.parse((await get(O,'/admin/stats')).text); ok(os.role==='orders'&&os.todo&&!os.byPayment&&!os.kpis.some(k=>k.format==='fcfa'),'commandes : à faire, sans chiffre d\'affaires');
+ok((await get(O,'/admin/export/orders.csv')).status===200&&(await get(O,'/admin/export/customers.csv')).status===403,'commandes : export commandes oui, clients non');
+console.log(fails?`${fails} ÉCHEC(S)`:'TOUT EST BON'); process.exit(fails?1:0);

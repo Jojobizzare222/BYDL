@@ -1,0 +1,36 @@
+// Mode maintenance : réglage admin, boutique fermée aux nouvelles commandes, le reste continue de fonctionner
+import fs from 'node:fs';
+const B = 'http://localhost:3999/api', PW = fs.readFileSync(process.argv[2], 'utf8').trim();
+let fails = 0; const ok = (c, m) => { console.log((c ? 'OK    ' : 'ÉCHEC ') + m); if (!c) fails++; };
+const call = async (j, p, o = {}) => { const r = await fetch(B + p, { method: o.method || (o.body ? 'POST' : 'GET'), headers: { 'Content-Type': 'application/json', Cookie: j?.c || '', ...o.headers }, body: o.body && JSON.stringify(o.body) }); const sc = r.headers.get('set-cookie'); if (sc && j) j.c = sc.split(';')[0]; const t = await r.text(); let data; try { data = JSON.parse(t); } catch { data = t; } return { status: r.status, data }; };
+const A = { c: '' }; await call(A, '/admin/login', { body: { login: 'admin', password: PW } });
+await call(A, '/admin/settings/sales', { method: 'PUT', body: { accountRequired: false } });
+const ag = (await call(A, '/admin/agencies', { body: { name: 'Agence Centre', city: 'Pointe-Noire', lat: -4.7792, lng: 11.8638 } })).data;
+const cust = { name: 'Awa', phone: '061234567', city: 'Pointe-Noire', address: 'Mpita' };
+ok((await call(null, '/config')).data.maintenance.enabled === false, 'par défaut : boutique ouverte');
+const before = (await call(null, '/orders', { body: { items: [{ productId: 'a002', qty: 1 }], customer: cust } })).data; // commande commencée avant la maintenance
+const cat = (await call(A, '/admin/staff', { body: { name: 'Clara', login: 'clara', role: 'catalog' } })).data;
+const C = { c: '' }; await call(C, '/admin/login', { body: { login: 'clara', password: cat.password } });
+ok((await call(C, '/admin/settings/maintenance', { method: 'PUT', body: { enabled: true } })).status === 403, 'employé : ne peut pas fermer la boutique');
+ok((await call(A, '/admin/settings/maintenance', { method: 'PUT', body: { enabled: true, until: 'pas une date' } })).status === 400, 'heure de retour invalide refusée');
+const until = new Date(Date.now() + 2 * 3600e3).toISOString();
+const on = await call(A, '/admin/settings/maintenance', { method: 'PUT', body: { enabled: true, message: 'Inventaire en cours, retour à 16 h.', until } });
+ok(on.status === 200 && on.data.enabled && on.data.by === 'Administrateur', 'admin : boutique mise en maintenance');
+const cfg = (await call(null, '/config')).data.maintenance;
+ok(cfg.enabled && cfg.message === 'Inventaire en cours, retour à 16 h.' && cfg.until === until && !('by' in cfg), 'boutique : message et heure de retour publiés (sans le nom de l\'admin)');
+ok((await call(C, '/admin/me')).data.maintenance === true, 'Kamwa Pro : toute l\'équipe voit le bandeau « maintenance »');
+const o = await call(null, '/orders', { body: { items: [{ productId: 'a002', qty: 1 }], customer: cust } });
+ok(o.status === 503 && o.data.maintenance && /Inventaire/.test(o.data.error), 'nouvelle commande refusée avec le message');
+ok((await call(null, '/payments', { body: { orderId: before.id, token: before.token, method: 'cash', agencyId: ag.id, fulfillment: 'pickup' } })).status === 503, 'nouvelle demande de paiement refusée');
+ok((await call(null, '/account/register', { body: { name: 'X', phone: '062222222' } })).status === 503, 'création de compte refusée');
+ok((await call(null, '/products')).status === 200 && (await call(null, '/orders/' + before.id, { headers: { 'X-Order-Token': before.token } })).status === 200, 'catalogue et suivi de commande toujours consultables');
+ok((await call(null, '/payments/callback/mtn', { body: {} })).status !== 503, 'retours des opérateurs de paiement jamais bloqués');
+ok((await call(null, '/chat', { headers: {} })).status !== 503, 'bulle Aide toujours disponible');
+ok((await call(A, '/admin/orders')).status === 200, 'Kamwa Pro jamais bloqué');
+const off = await call(A, '/admin/settings/maintenance', { method: 'PUT', body: { enabled: false } });
+ok(off.status === 200 && !off.data.enabled && off.data.message === 'Inventaire en cours, retour à 16 h.', 'boutique rouverte (message gardé pour la prochaine fois)');
+ok((await call(null, '/orders', { body: { items: [{ productId: 'a002', qty: 1 }], customer: cust } })).status === 201, 'commandes de nouveau possibles');
+const act = (await call(A, '/admin/activity')).data;
+ok(JSON.stringify(act).includes('Boutique mise en maintenance') && JSON.stringify(act).includes('Boutique rouverte'), 'journal : fermeture et réouverture enregistrées');
+console.log(fails ? fails + ' ÉCHEC(S)' : 'TOUT EST OK');
+process.exit(fails ? 1 : 0);

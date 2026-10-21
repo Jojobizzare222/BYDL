@@ -116,9 +116,5 @@ function teamConversation() {
 }
 
 // Fil « Fournisseur ↔ Zado » : un par fournisseur (identifiant fixe)
-const supplierConvId = (supplierId) => 'SUP-' + supplierId;
-function supplierThread(u) {
-  return conversations.get(supplierConvId(u.id)) || conversations.insert({ id: supplierConvId(u.id), kind: 'supplier', supplierId: u.id, title: u.company || u.name, messages: [], reads: {}, unreadStaff: 0, createdAt: new Date().toISOString() });
-}
 
-module.exports = { addMessage, botAnswer, WELCOME, MENU, TEAM_ID, teamConversation, supplierConvId, supplierThread, sha256, newId };
+module.exports = { addMessage, botAnswer, WELCOME, MENU, TEAM_ID, teamConversation, sha256, newId };

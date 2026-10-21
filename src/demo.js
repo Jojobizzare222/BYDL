@@ -8,8 +8,7 @@ const { hashPassword } = require('./admin/auth');
 const DEMO_PASSWORD = 'demo-kamwa';
 const DEMO_ACCOUNTS = [
   { label: 'Administrateur', login: 'admin', role: 'admin' },
-  { label: 'Fournisseur (Tech Pointe-Noire)', login: 'demo-fournisseur', role: 'supplier', name: 'Grâce Ngoma', company: 'Tech Pointe-Noire (démo)' },
-  { label: 'Employé Catalogue', login: 'demo-catalogue', role: 'catalog', name: 'Clara (démo)' },
+  { label: 'Responsable catalogue', login: 'demo-catalogue', role: 'catalog', name: 'Clara (démo)' },
   { label: 'Employé Commandes', login: 'demo-commandes', role: 'orders', name: 'Oscar (démo)' },
   { label: 'Livreur', login: 'demo-livreur', role: 'courier', name: 'Junior (démo)' },
 ];
@@ -40,21 +39,21 @@ function seed() {
       active: true, mustChangePassword: false, passwordHash: hashPassword(DEMO_PASSWORD), createdAt: now,
     });
   }
-  const sup = users.supplier.id;
+  const cat = users.catalog.id;
 
-  // Produits du fournisseur : un publié, un en attente de validation
+  // Produits d'exemple achetés en Europe : un publié, un proposé par le responsable catalogue (en attente de validation)
   const ecouteurs = products.insert({
-    id: 'pdemo1', name: 'Écouteurs sans fil Bluetooth', brand: 'Tech Pointe-Noire', universe: 'Électronique', category: 'Audio', condition: 'neuf',
-    price: 14500, oldPrice: 17000, supplierPrice: 8500, stock: 9, active: true, supplierId: sup, images: [],
+    id: 'pdemo1', name: 'Écouteurs sans fil Bluetooth', brand: 'JBL', universe: 'Électronique', category: 'Audio', condition: 'neuf', provenance: 'France', sourceSupplier: 'Revendeur agréé (Paris)',
+    price: 14500, oldPrice: 17000, costPrice: 9800, stock: 9, active: true, images: [],
     description: 'Écouteurs sans fil avec boîtier de charge, réduction du bruit. Produit de démonstration.',
     specs: [{ label: 'Connexion', value: 'Bluetooth 5.3' }, { label: 'Autonomie', value: '6 h (24 h avec le boîtier)' }],
-    createdAt: now, createdBy: sup,
+    createdAt: now, createdBy: cat,
   });
   products.insert({
-    id: 'pdemo2', name: 'Chargeur rapide USB-C 25 W', brand: 'Tech Pointe-Noire', universe: 'Électronique', category: 'Accessoires', condition: 'neuf',
-    price: null, supplierPrice: 7000, stock: 20, active: true, pending: true, supplierId: sup, images: [],
+    id: 'pdemo2', name: 'Chargeur rapide USB-C 25 W', brand: 'Belkin', universe: 'Électronique', category: 'Accessoires', condition: 'neuf', provenance: 'France', sourceSupplier: 'Revendeur agréé (Paris)',
+    price: null, costPrice: 7000, stock: 20, active: true, pending: true, images: [],
     description: 'Chargeur secteur USB-C, charge rapide. Produit de démonstration en attente de validation.',
-    specs: [{ label: 'Puissance', value: '25 W' }], createdAt: now, createdBy: sup,
+    specs: [{ label: 'Puissance', value: '25 W' }], createdAt: now, createdBy: cat,
   });
 
   // Une commande payée contenant le produit du fournisseur et un produit Zado
@@ -93,7 +92,7 @@ function seed() {
   entry(12, 'expense', 'marketing', 35000, 'momo', 'Publicité Facebook');
   entry(9, 'expense', 'delivery', 12000, 'cash', 'Carburant livreur');
   entry(6, 'transfer', 'transfer', 200000, 'bank', 'Retrait pour la caisse', { toMethod: 'cash' });
-  entry(3, 'expense', 'supplier', 15000, 'momo', 'Acompte Tech Pointe-Noire', { supplierId: sup });
+  entry(3, 'expense', 'freight', 52000, 'bank', 'Fret aérien Paris → Pointe-Noire (4 kg)');
 
   // Avis clients d'exemple (identifiants fixes : identiques dans chaque copie du serveur)
   const rv = (id, productId, rating, name, text, n) => products.get(productId) && reviews.insert({ id, productId, customerId: 'C-DEMO', orderId: 'CMD-DEMO-0000', rating, text, name, hidden: false, createdAt: new Date(Date.now() - n * 864e5).toISOString(), demo: true });

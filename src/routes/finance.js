@@ -18,7 +18,7 @@ const METHODS = { cash: 'Caisse espèces', momo: 'Mobile Money', card: 'Carte (p
 const CATEGORIES = {
   expense: [
     { key: 'stock', label: 'Achat de marchandises', accrual: false },
-    { key: 'supplier', label: 'Paiement fournisseur', accrual: false },
+    { key: 'freight', label: 'Fret aérien et dédouanement', accrual: true }, // achats en Europe (21/10/2026)
     { key: 'refund', label: 'Remboursement client', accrual: false },
     { key: 'delivery', label: 'Livraison et transport', accrual: true },
     { key: 'rent', label: 'Loyer et agence', accrual: true },
@@ -37,7 +37,8 @@ const CATEGORIES = {
   ],
   transfer: [{ key: 'transfer', label: 'Transfert entre caisses', accrual: false }],
 };
-const catOf = (type, key) => CATEGORIES[type]?.find((c) => c.key === key) || { key, label: key, accrual: true }; // anciennes catégories (achat en Europe) : affichées telles quelles
+const LEGACY_CATS = { supplier: { label: 'Paiement fournisseur (ancien dépôt-vente)', accrual: false } };
+const catOf = (type, key) => CATEGORIES[type]?.find((c) => c.key === key) || { key, label: key, accrual: true, ...(LEGACY_CATS[key] || {}) }; // anciennes catégories : affichées telles quelles
 const OPERATOR_METHOD = { mtn: 'momo', airtel: 'momo', card: 'card', cash: 'cash' };
 
 const day = (iso) => String(iso || '').slice(0, 10);
@@ -104,6 +105,7 @@ function cashHeld() {
   return [...by.values()].sort((a, b) => b.amount - a.amount);
 }
 
+// Anciennes dettes du dépôt-vente (volet fournisseur retiré le 21/10/2026) : gardées pour l'historique, plus affichées
 function supplierBalances() {
   const owed = new Map();
   for (const o of orders.all().filter(isSold)) {
@@ -197,7 +199,7 @@ router.get('/', (req, res) => {
     unknownCostLines: unknownCost.length,
     stockNoCost,
     balances: balancesUntil(to),
-    suppliers: supplierBalances(),
+    suppliers: [],
     purchaseDebts: require('../purchases').purchaseDebts(),
     monthly,
     byCategory: [...byCategory.entries()].map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value),
@@ -248,7 +250,7 @@ function cleanEntry(input) {
   const type = input.type;
   if (!CATEGORIES[type]) return { error: 'Type inconnu' };
   const category = type === 'transfer' ? 'transfer' : input.category;
-  if (!catOf(type, category)) return { error: 'Choisissez une catégorie' };
+  if (type !== 'transfer' && !CATEGORIES[type]?.some((c) => c.key === category)) return { error: 'Choisissez une catégorie' }; // catégories de la liste seulement (les anciennes restent lisibles)
   const amount = Number(String(input.amount ?? '').replace(/\s/g, ''));
   if (!Number.isInteger(amount) || amount <= 0 || amount > 10_000_000_000) return { error: 'Montant invalide (nombre entier en FCFA, plus grand que 0)' };
   if (!isDay(input.date)) return { error: 'Date invalide' };
@@ -269,11 +271,6 @@ function cleanEntry(input) {
     if (!bc) return { error: 'Bon de commande introuvable' };
     e.purchaseId = bc.id;
     if (!input.label) e.label = `Achat ${bc.number} — ${bc.supplier.name}`;
-  }
-  if (category === 'supplier') {
-    const u = staff.get(input.supplierId);
-    if (!u || u.role !== 'supplier') return { error: 'Choisissez le fournisseur payé' };
-    e.supplierId = u.id;
   }
   return { value: e };
 }

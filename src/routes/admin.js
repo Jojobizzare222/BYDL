@@ -35,7 +35,7 @@ router.use('/finance', requireRole(), require('./finance'));
 router.use('/chat', require('./chat-admin')); // messagerie : clients + salon de l'équipe
 router.use('/documents', require('./documents-admin')); // factures, reçus, avoirs [admin, orders]
 router.use('/parcels', require('./parcels-admin')); // colis, étiquettes, scan [admin, orders, courier]
-router.use('/purchases', require('./purchases-admin')); // bons de commande fournisseurs [admin, catalog ; supplier : les siens]
+router.use('/purchases', require('./purchases-admin')); // bons de commande aux fournisseurs (Europe) [admin, catalog]
 router.use('/stock', require('./purchases-admin').stockRouter); // mouvements de stock, inventaire [admin, catalog]
 
 // Rafraîchissement instantané de Zado Pro : signaux filtrés selon le rôle (jamais de données dans le signal)
@@ -48,13 +48,12 @@ router.get('/events', (req, res) => {
       if (!o) return null;
       if (ordersRole) return { topic: 'orders', id: o.id };
       if (role === 'courier' && (o.courierId === u.id || before?.courierId === u.id)) return { topic: 'orders', id: o.id };
-      if (role === 'supplier' && o.lines?.some((l) => l.supplierId === u.id || products.get(l.productId)?.supplierId === u.id)) return { topic: 'orders', id: o.id };
       return null;
     }
-    if (col === 'products') return ['admin', 'catalog'].includes(role) || (role === 'supplier' && (doc.supplierId === u.id)) ? { topic: 'products', id: doc.id } : null;
+    if (col === 'products') return ['admin', 'catalog'].includes(role) ? { topic: 'products', id: doc.id } : null;
     if (col === 'conversations') {
-      if (doc.kind === 'team') return role !== 'supplier' ? { topic: 'team' } : null;
-      if (doc.kind === 'supplier') return (role === 'supplier' ? doc.supplierId === u.id : ['admin', 'orders', 'catalog'].includes(role)) ? { topic: 'chat', id: doc.id } : null;
+      if (doc.kind === 'team') return { topic: 'team' };
+      if (doc.kind === 'supplier') return null; // anciens fils fournisseurs (volet retiré le 21/10/2026)
       return ordersRole ? { topic: 'chat', id: doc.id } : null;
     }
     if (col === 'maintenance') return { topic: 'maintenance' };
@@ -63,7 +62,7 @@ router.get('/events', (req, res) => {
     if (col === 'agencies') return role === 'admin' ? { topic: 'agencies' } : null;
     if (col === 'ledger') return role === 'admin' ? { topic: 'finance' } : null;
     if (col === 'documents') return ordersRole ? { topic: 'documents', id: doc.orderId } : null;
-    if (col === 'purchases') return ['admin', 'catalog'].includes(role) || (role === 'supplier' && doc.supplier?.supplierId === u.id) ? { topic: 'purchases', id: doc.id } : null;
+    if (col === 'purchases') return ['admin', 'catalog'].includes(role) ? { topic: 'purchases', id: doc.id } : null;
     if (col === 'stock_moves') return ['admin', 'catalog'].includes(role) ? { topic: 'stock' } : null;
     if (col === 'parcels') return ordersRole || (role === 'courier' && orders.get(doc.orderId)?.courierId === u.id) ? { topic: 'parcels', id: doc.orderId } : null;
     if (col === 'staff') return role === 'admin' && doc.livePos === before?.livePos ? { topic: 'staff' } : null;
@@ -87,8 +86,7 @@ function log(req, action, target, details = '') {
 }
 
 router.get('/meta', (req, res) => {
-  const suppliers = req.user.role === 'admin' ? staff.all().filter((u) => u.role === 'supplier').map((u) => ({ id: u.id, name: u.company || u.name })) : [];
-  res.json({ universes: UNIVERSES, suppliers });
+  res.json({ universes: UNIVERSES });
 });
 
 // ---------- Commandes ----------
@@ -607,9 +605,8 @@ router.put('/settings/sales', requireRole(), (req, res) => {
 // ---------- Produits ----------
 // Qui peut faire quoi :
 //  - admin : tout ; ses nouveaux produits sont publiés directement ; il valide ceux des autres ;
-//  - catalog (employé Catalogue) : crée (en attente de validation) et modifie les produits ; ne voit pas les prix fournisseur ;
-//  - supplier (fournisseur) : ne voit que SES produits ; en crée (en attente) ; sur un produit publié il ne change que
-//    le stock et son prix fournisseur ; il ne fixe jamais le prix de vente.
+//  - catalog (responsable catalogue) : crée (en attente de validation) et modifie les produits, saisit et voit le prix d'achat ;
+//  (le rôle « fournisseur partenaire » a été retiré le 21/10/2026 : Zado achète tout en Europe.)
 const toInt = (v) => (v === '' || v === null || v === undefined ? NaN : Number(v));
 const IMG_PATH = /^\/images\/(products|uploads|commons)\/[\w.-]+$/;
 const CONDITIONS = ['neuf', 'reconditionné', 'occasion'];
@@ -642,14 +639,11 @@ function cleanProduct(input, current, { role }) {
       .filter((x) => x.label && x.value)
       .slice(0, 15);
   }
-  if ('price' in input && role !== 'supplier') p.price = input.price === '' || input.price === null ? null : toInt(input.price);
-  if ('oldPrice' in input && role !== 'supplier') p.oldPrice = input.oldPrice === '' || input.oldPrice === null ? null : toInt(input.oldPrice);
-  if ('costPrice' in input && role === 'admin') {
+  if ('price' in input) p.price = input.price === '' || input.price === null ? null : toInt(input.price);
+  if ('oldPrice' in input) p.oldPrice = input.oldPrice === '' || input.oldPrice === null ? null : toInt(input.oldPrice);
+  if ('costPrice' in input && ['admin', 'catalog'].includes(role)) { // prix d'achat : admin et responsable catalogue (décision Joseph 21/10/2026)
     p.costPrice = input.costPrice === '' || input.costPrice === null ? null : toInt(input.costPrice);
     if (p.costPrice != null && (!Number.isInteger(p.costPrice) || p.costPrice < 0 || p.costPrice > 100000000)) return { error: "Prix d'achat invalide (nombre entier en FCFA)" };
-  }
-  if ('supplierPrice' in input && role !== 'catalog') {
-    p.supplierPrice = input.supplierPrice === '' || input.supplierPrice === null ? null : toInt(input.supplierPrice);
   }
   if ('stock' in input) p.stock = toInt(input.stock);
   // Choix proposés au client (ex. « Couleur : Noir, Bleu » / « Capacité : 128 Go, 256 Go »), une ligne par choix
@@ -667,40 +661,29 @@ function cleanProduct(input, current, { role }) {
     p.images = imgs;
     p.image = imgs[0] || undefined;
   }
-  if (role !== 'supplier') {
-    if ('featured' in input) p.featured = Boolean(input.featured);
-    if ('active' in input) p.active = Boolean(input.active);
-  }
-  if ('supplierId' in input && role === 'admin') {
-    if (input.supplierId && staff.get(input.supplierId)?.role !== 'supplier') return { error: 'Fournisseur inconnu' };
-    p.supplierId = input.supplierId || null;
-  }
+  if ('featured' in input) p.featured = Boolean(input.featured);
+  if ('active' in input) p.active = Boolean(input.active);
 
   if (!p.name) return { error: 'Le nom est obligatoire' };
   if (!p.category) return { error: 'La catégorie est obligatoire' };
-  // Prix de vente : obligatoire pour un produit publié ; un produit en attente (ex. proposé par un fournisseur) peut ne pas en avoir encore.
+  // Prix de vente : obligatoire pour un produit publié ; un produit en attente de validation peut ne pas en avoir encore.
   const priceOk = Number.isInteger(p.price) && p.price > 0 && p.price <= 100000000;
   if (p.price != null && !priceOk) return { error: 'Prix invalide (nombre entier en FCFA, sans espace ni point)' };
   if (!p.pending && !priceOk) return { error: 'Le prix de vente est obligatoire' };
   if (p.oldPrice != null && (!Number.isInteger(p.oldPrice) || !priceOk || p.oldPrice <= p.price)) {
     return { error: 'Le prix barré doit être un nombre entier plus grand que le prix (ou laissé vide)' };
   }
-  if (p.supplierPrice != null && (!Number.isInteger(p.supplierPrice) || p.supplierPrice < 0 || p.supplierPrice > 100000000)) {
-    return { error: 'Prix fournisseur invalide (nombre entier en FCFA)' };
-  }
-  if (role === 'supplier' && !Number.isInteger(p.supplierPrice)) return { error: 'Indiquez votre prix fournisseur' };
   if (!Number.isInteger(p.stock) || p.stock < 0 || p.stock > 100000) return { error: 'Stock invalide (nombre entier, 0 ou plus)' };
   return { value: p };
 }
 
-// Ce que chaque rôle voit d'un produit (le prix fournisseur reste entre Zado et le fournisseur)
+// Ce que chaque rôle voit d'un produit : prix d'achat pour l'admin et le responsable catalogue seulement
 function productFor(user, p) {
-  const out = { ...p, supplierName: p.supplierId ? staff.get(p.supplierId)?.company || staff.get(p.supplierId)?.name || null : null };
-  if (user.role === 'catalog') delete out.supplierPrice;
-  if (user.role !== 'admin') delete out.costPrice; // prix d'achat Zado : admin seulement
+  const { supplierId, supplierPrice, ...out } = p; // anciens champs du dépôt-vente (volet fournisseur retiré le 21/10/2026)
+  if (!['admin', 'catalog'].includes(user.role)) delete out.costPrice;
   return out;
 }
-const canSee = (user, p) => user.role !== 'supplier' || p.supplierId === user.id;
+const canSee = () => true;
 
 // Résumé lisible des changements, pour le journal
 const TRACKED = { name: 'nom', price: 'prix', oldPrice: 'prix barré', supplierPrice: 'prix fournisseur', costPrice: 'prix d\'achat', stock: 'stock', category: 'catégorie', active: 'visible', featured: 'mis en avant', condition: 'état', provenance: 'provenance', sourceSupplier: 'fournisseur d\'origine' };
@@ -720,13 +703,13 @@ function changes(before, after) {
   return out.join(' ; ');
 }
 
-router.get('/products', requireRole('catalog', 'supplier'), (req, res) => {
+router.get('/products', requireRole('catalog'), (req, res) => {
   res.json(products.all().filter((p) => canSee(req.user, p)).map((p) => productFor(req.user, p)));
 });
 
-router.post('/products', requireRole('catalog', 'supplier'), (req, res) => {
+router.post('/products', requireRole('catalog'), (req, res) => {
   const role = req.user.role;
-  const base = { active: true, condition: 'neuf', provenance: 'France', pending: role !== 'admin', supplierId: role === 'supplier' ? req.user.id : null };
+  const base = { active: true, condition: 'neuf', provenance: 'France', pending: role !== 'admin' };
   const { error, value } = cleanProduct(req.body || {}, base, { role });
   if (error) return res.status(400).json({ error });
   const now = new Date().toISOString();
@@ -735,14 +718,10 @@ router.post('/products', requireRole('catalog', 'supplier'), (req, res) => {
   res.status(201).json(productFor(req.user, product));
 });
 
-router.patch('/products/:id', requireRole('catalog', 'supplier'), (req, res) => {
+router.patch('/products/:id', requireRole('catalog'), (req, res) => {
   const current = products.get(req.params.id);
   if (!current || !canSee(req.user, current)) return res.status(404).json({ error: 'Produit introuvable' });
   let input = req.body || {};
-  // Fournisseur : sur un produit déjà publié, seuls le stock et son prix fournisseur sont modifiables
-  if (req.user.role === 'supplier' && !current.pending) {
-    input = Object.fromEntries(Object.entries(input).filter(([k]) => ['stock', 'supplierPrice'].includes(k)));
-  }
   const { error, value } = cleanProduct(input, current, { role: req.user.role });
   if (error) return res.status(400).json({ error });
   const diff = changes(current, value);
@@ -769,7 +748,7 @@ router.post('/products/:id/approve', requireRole(), (req, res) => {
 //  - admin : n'importe quel produit, sauf s'il est dans une commande en cours de paiement (le masquer plutôt) ;
 //    les commandes passées restent intactes (chaque ligne garde le nom et le prix au moment de l'achat) ;
 //  - fournisseur / employé : seulement un produit qu'il a proposé et qui n'est pas encore validé.
-router.delete('/products/:id', requireRole('catalog', 'supplier'), (req, res) => {
+router.delete('/products/:id', requireRole('catalog'), (req, res) => {
   const p = products.get(req.params.id);
   if (!p || !canSee(req.user, p)) return res.status(404).json({ error: 'Produit introuvable' });
   if (req.user.role !== 'admin' && !(p.pending && p.createdBy === req.user.id)) {
@@ -791,60 +770,14 @@ router.delete('/products/:id', requireRole('catalog', 'supplier'), (req, res) =>
   res.json({ ok: true });
 });
 
-// ---------- Espace fournisseur : commandes contenant ses produits ----------
-// Zado livre : le fournisseur voit les articles, quantités et statuts, JAMAIS les coordonnées des clients.
-router.get('/supplier/orders', requireRole('supplier'), (req, res) => {
-  const mine = new Set(products.all().filter((p) => p.supplierId === req.user.id || req.user.role === 'admin').map((p) => p.id));
-  const list = orders
-    .all()
-    .filter((o) => o.status !== 'pending_payment')
-    .map((o) => ({ o, lines: o.lines.filter((l) => mine.has(l.productId)) }))
-    .filter(({ lines }) => lines.length)
-    .sort((a, b) => (a.o.createdAt < b.o.createdAt ? 1 : -1))
-    .map(({ o, lines }) => ({
-      id: o.id,
-      createdAt: o.createdAt,
-      paidAt: o.paidAt || null,
-      status: o.status,
-      fulfillment: o.fulfillment || 'delivery',
-      history: o.history || [],
-      lines: lines.map((l) => ({ productId: l.productId, name: l.name, qty: l.qty, supplierPrice: products.get(l.productId)?.supplierPrice ?? null })),
-      ready: o.supplierReady?.[req.user.id] || null,
-    }));
-  res.json({ orders: list, statusLabels: STATUS_LABELS });
-});
-
-// Le fournisseur signale que SES articles d'une commande sont prêts à être récupérés par Zado (ou annule le signal).
-// Message automatique dans son fil avec Zado ; affiché sur la fiche commande et dans « À faire ».
-router.post('/supplier/orders/:id/ready', requireRole('supplier'), (req, res) => {
-  if (req.user.role !== 'supplier') return res.status(403).json({ error: 'Réservé aux fournisseurs' });
-  const o = orders.get(req.params.id);
-  const mine = o && o.lines.filter((l) => products.get(l.productId)?.supplierId === req.user.id);
-  if (!o || !mine.length) return res.status(404).json({ error: 'Commande introuvable' });
-  if (!['paid', 'confirmed'].includes(o.status)) return res.status(409).json({ error: 'Cette commande n\'est plus à préparer' });
-  const ready = req.body?.ready !== false;
-  const note = String(req.body?.note || '').trim().slice(0, 300);
-  const all = { ...(o.supplierReady || {}) };
-  if (ready) all[req.user.id] = { at: new Date().toISOString(), by: req.user.company || req.user.name, note };
-  else delete all[req.user.id];
-  const updated = orders.update(o.id, { supplierReady: all });
-  const chat = require('../chat');
-  const items = mine.map((l) => `${l.qty} × ${l.name}`).join(', ');
-  const r = chat.addMessage(chat.supplierThread(req.user), { from: 'supplier', staffName: req.user.company || req.user.name, userId: req.user.id, auto: true,
-    text: ready ? `Commande ${o.id} prête à récupérer : ${items}.${note ? `\n${note}` : ''}` : `Commande ${o.id} : finalement pas encore prête.` });
-  require('../store').conversations.update(r.conv.id, { unreadStaff: (r.conv.unreadStaff || 0) + 1 });
-  log(req, ready ? 'Articles prêts à récupérer' : 'Articles plus prêts', { id: o.id, name: o.id }, items);
-  res.json({ id: o.id, ready: updated.supplierReady[req.user.id] || null });
-});
-
-// ---------- Équipe et fournisseurs (admin uniquement) ----------
+// ---------- Équipe (admin uniquement) ----------
 const publicStaff = ({ passwordHash, ...u }) => u;
 
 router.get('/staff', requireRole(), (req, res) => {
   const all = products.all();
   res.json({
     roles: ROLES,
-    staff: staff.all().map((u) => ({ ...publicStaff(u), products: all.filter((p) => p.supplierId === u.id).length })),
+    staff: staff.all().filter((u) => u.role !== 'supplier').map(publicStaff), // anciens comptes fournisseurs : masqués (rôle retiré)
   });
 });
 
@@ -855,15 +788,14 @@ router.post('/staff', requireRole(), (req, res) => {
   if (!cleanName) return res.status(400).json({ error: 'Le nom est obligatoire' });
   if (!/^[a-z0-9._@-]{3,40}$/.test(cleanLogin)) return res.status(400).json({ error: 'Identifiant : 3 à 40 caractères, lettres sans accent, chiffres, point, tiret' });
   if (cleanLogin === ADMIN_LOGIN || findStaff(cleanLogin)) return res.status(409).json({ error: 'Cet identifiant est déjà utilisé' });
-  if (!['catalog', 'orders', 'supplier', 'courier'].includes(role)) return res.status(400).json({ error: 'Rôle inconnu' });
-  if (role === 'supplier' && !String(company || '').trim()) return res.status(400).json({ error: "Indiquez le nom de l'entreprise du fournisseur" });
+  if (!['catalog', 'orders', 'courier'].includes(role)) return res.status(400).json({ error: 'Rôle inconnu' });
   const password = tempPassword();
   const user = staff.insert({
     id: 'U-' + crypto.randomBytes(4).toString('hex').toUpperCase(),
     name: cleanName,
     login: cleanLogin,
     role,
-    company: role === 'supplier' ? String(company).trim().slice(0, 80) : null,
+    company: null,
     phone: String(phone || '').trim().slice(0, 30) || null,
     ...(role === 'courier' ? { vehicle: String(vehicle || '').trim().slice(0, 60) || null } : {}), // ex. « Moto Haojue rouge · PN 1234 AB » (montré au client)
     active: true,
@@ -882,7 +814,6 @@ router.patch('/staff/:id', requireRole(), (req, res) => {
   const patch = {};
   if ('active' in (req.body || {})) patch.active = Boolean(req.body.active);
   if ('name' in (req.body || {}) && String(req.body.name).trim()) patch.name = String(req.body.name).trim().slice(0, 80);
-  if ('company' in (req.body || {}) && u.role === 'supplier') patch.company = String(req.body.company || '').trim().slice(0, 80);
   if ('vehicle' in (req.body || {}) && u.role === 'courier') patch.vehicle = String(req.body.vehicle || '').trim().slice(0, 60) || null;
   const updated = staff.update(u.id, patch);
   if (patch.active === false) closeSessionsOf(u.id); // compte désactivé : déconnecté partout tout de suite
@@ -936,23 +867,6 @@ router.get('/stats', (req, res) => {
   const soldInPeriod = allOrders.filter((o) => isSold(o) && Date.parse(o.paidAt || o.createdAt) >= since);
   const out = { role, days, labels };
 
-  if (role === 'supplier') {
-    const mine = allProducts.filter((p) => p.supplierId === req.user.id);
-    const mineIds = new Set(mine.map((p) => p.id));
-    const priceOf = (id) => products.get(id)?.supplierPrice || 0;
-    const lines = soldInPeriod.flatMap((o) => o.lines.filter((l) => mineIds.has(l.productId)).map((l) => ({ ...l, day: dayKey(o.paidAt || o.createdAt), orderId: o.id })));
-    const perDay = (fn) => labels.map((d) => lines.filter((l) => l.day === d).reduce((s, l) => s + fn(l), 0));
-    out.kpis = [
-      { label: 'Articles vendus', value: lines.reduce((s, l) => s + l.qty, 0), icon: 'shopping-cart-duotone' },
-      { label: 'Montant de vos ventes', value: lines.reduce((s, l) => s + l.qty * priceOf(l.productId), 0), format: 'fcfa', icon: 'currency-circle-dollar-duotone', hint: 'au prix fournisseur' },
-      { label: 'Commandes', value: new Set(lines.map((l) => l.orderId)).size, icon: 'receipt-duotone' },
-      { label: 'Produits en ligne', value: mine.filter(visible).length, icon: 'package-duotone', hint: `${mine.filter((p) => p.pending).length} en attente de validation` },
-    ];
-    out.series = [{ label: 'Articles vendus', data: perDay((l) => l.qty), type: 'bar' }, { label: 'Montant (FCFA)', data: perDay((l) => l.qty * priceOf(l.productId)), type: 'line', axis: 'y2' }];
-    out.top = countBy(lines, (l) => l.name, (l) => l.qty).slice(0, 6);
-    out.lowStock = lowStockOf(mine);
-    return res.json(out);
-  }
 
   if (role === 'courier') {
     const mine = allOrders.filter((o) => o.courierId === req.user.id);
@@ -996,8 +910,6 @@ router.get('/stats', (req, res) => {
     toCall: allOrders.filter((o) => ['paid', 'confirmed'].includes(o.status) && o.fulfillment !== 'pickup' && !o.callConfirmedAt).length,
     toPlan: allOrders.filter((o) => ['paid', 'confirmed'].includes(o.status) && o.fulfillment !== 'pickup' && !o.planned).length,
     messages: require('../store').conversations.all().filter((c) => c.kind === 'support' && c.status === 'open').length,
-    supplierReady: allOrders.filter((o) => ['paid', 'confirmed'].includes(o.status) && Object.keys(o.supplierReady || {}).length).length,
-    supplierMessages: require('../store').conversations.all().filter((c) => c.kind === 'supplier' && c.unreadStaff > 0).length,
   };
   out.todo = todo;
   out.byStatus = countBy(allOrders.filter((o) => Date.parse(o.createdAt) >= since), (o) => STATUS_LABELS[o.status] || o.status);
@@ -1015,8 +927,8 @@ router.get('/stats', (req, res) => {
   // Admin : vue complète
   const revenue = soldInPeriod.reduce((s, o) => s + o.total, 0);
   const margin = soldInPeriod.reduce((s, o) => s + o.lines.reduce((m, l) => {
-    const sp = products.get(l.productId)?.supplierPrice;
-    return m + (sp != null ? (l.unitPrice - sp) * l.qty : 0);
+    const cost = Number.isInteger(l.unitCost) ? l.unitCost : products.get(l.productId)?.costPrice;
+    return m + (Number.isInteger(cost) ? (l.unitPrice - cost) * l.qty : 0);
   }, 0), 0);
   const payOf = (o) => PAY_NAMES[(o.paymentId && payments.get(o.paymentId)?.operator) || ''] || 'Autre';
   out.kpis = [
@@ -1057,14 +969,11 @@ router.get('/export/orders.csv', requireRole('orders'), (req, res) => {
       o.lines.map((l) => `${l.qty} x ${l.name}`).join(' | '), o.total, PAY_NAMES[(o.paymentId && payments.get(o.paymentId)?.operator) || ''] || '', o.fulfillment === 'pickup' ? 'Retrait en agence' : 'Livraison']));
 });
 
-router.get('/export/products.csv', requireRole('catalog', 'supplier'), (req, res) => {
-  const role = req.user.role;
-  const list = products.all().filter((p) => canSee(req.user, p));
-  const withSupplierPrice = role !== 'catalog';
+router.get('/export/products.csv', requireRole('catalog'), (req, res) => {
+  const list = products.all();
   sendCsv(res, `zado-produits-${stamp()}.csv`,
-    ['Réf', 'Nom', 'Marque', 'Catégorie', 'Prix de vente', 'Prix barré', ...(withSupplierPrice ? ['Prix fournisseur'] : []), 'Stock', 'Visible', 'En attente', 'Fournisseur'],
-    list.map((p) => [p.id, p.name, p.brand, p.category, p.price, p.oldPrice, ...(withSupplierPrice ? [p.supplierPrice] : []), p.stock, p.active !== false ? 'oui' : 'non', p.pending ? 'oui' : 'non',
-      p.supplierId ? staff.get(p.supplierId)?.company || '' : 'Zado']));
+    ['Réf', 'Nom', 'Marque', 'Catégorie', 'Prix de vente', 'Prix barré', "Prix d'achat", 'Stock', 'Visible', 'En attente', 'Provenance', "Fournisseur d'origine"],
+    list.map((p) => [p.id, p.name, p.brand, p.category, p.price, p.oldPrice, p.costPrice ?? '', p.stock, p.active !== false ? 'oui' : 'non', p.pending ? 'oui' : 'non', p.provenance || '', p.sourceSupplier || '']));
 });
 
 router.get('/export/customers.csv', requireRole(), (req, res) => {
@@ -1087,7 +996,7 @@ const SIGNATURES = [
   { ext: 'webp', test: (b) => b.slice(0, 4).toString() === 'RIFF' && b.slice(8, 12).toString() === 'WEBP' },
 ];
 
-router.post('/uploads', requireRole('catalog', 'supplier'), express.raw({ type: ['image/jpeg', 'image/png', 'image/webp'], limit: '5mb' }), (req, res) => {
+router.post('/uploads', requireRole('catalog'), express.raw({ type: ['image/jpeg', 'image/png', 'image/webp'], limit: '5mb' }), (req, res) => {
   const buf = req.body;
   const type = Buffer.isBuffer(buf) && buf.length > 12 && SIGNATURES.find((s) => s.test(buf));
   if (!type) return res.status(400).json({ error: 'Photo non reconnue (formats acceptés : JPG, PNG, WebP, 5 Mo max)' });
@@ -1099,7 +1008,7 @@ router.post('/uploads', requireRole('catalog', 'supplier'), express.raw({ type: 
 
 // ---------- Détourage automatique (retrait de l'arrière-plan) ----------
 const detourage = require('../photo/background');
-router.get('/detourage', requireRole('catalog', 'supplier'), (req, res) => res.json(detourage.status()));
+router.get('/detourage', requireRole('catalog'), (req, res) => res.json(detourage.status()));
 
 async function saveDetoured(req, res, input) {
   try {
@@ -1114,13 +1023,13 @@ async function saveDetoured(req, res, input) {
   }
 }
 // Nouvelle photo (prise avec le téléphone) : détourée puis enregistrée
-router.post('/uploads/detoure', requireRole('catalog', 'supplier'), express.raw({ type: ['image/jpeg', 'image/png', 'image/webp'], limit: '8mb' }), (req, res) => {
+router.post('/uploads/detoure', requireRole('catalog'), express.raw({ type: ['image/jpeg', 'image/png', 'image/webp'], limit: '8mb' }), (req, res) => {
   const buf = req.body;
   if (!(Buffer.isBuffer(buf) && buf.length > 12 && SIGNATURES.find((x) => x.test(buf)))) return res.status(400).json({ error: 'Photo non reconnue (formats acceptés : JPG, PNG, WebP)' });
   saveDetoured(req, res, buf);
 });
 // Photo déjà envoyée sur Zado : on en crée une version détourée (l'originale est gardée)
-router.post('/uploads/detoure-existante', requireRole('catalog', 'supplier'), (req, res) => {
+router.post('/uploads/detoure-existante', requireRole('catalog'), (req, res) => {
   const m = /^\/images\/uploads\/([\w.-]+\.(jpg|png|webp))$/.exec(String(req.body?.src || ''));
   if (!m) return res.status(400).json({ error: 'Seules les photos envoyées depuis l\'espace pro peuvent être détourées' });
   const file = path.join(UPLOAD_DIR, m[1]);

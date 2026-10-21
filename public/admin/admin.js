@@ -16,11 +16,11 @@
   // Ce que chaque rôle peut ouvrir (le serveur vérifie aussi, de son côté)
   const CAN = {
     orders: () => ['admin', 'orders'].includes(state.user?.role),
-    products: () => ['admin', 'catalog', 'supplier'].includes(state.user?.role),
-    supplier: () => state.user?.role === 'supplier',
+    products: () => ['admin', 'catalog'].includes(state.user?.role),
+    supplier: () => false, // rôle fournisseur retiré le 21/10/2026 (Zado achète tout en Europe)
+    buyer: () => ['admin', 'catalog'].includes(state.user?.role), // achats et prix d'achat : admin + responsable catalogue
     admin: () => state.user?.role === 'admin',
     courier: () => state.user?.role === 'courier',
-    desk: () => ['admin', 'orders', 'catalog'].includes(state.user?.role), // échanges avec les fournisseurs
   };
   const homeHash = () => '#/tableau';
 
@@ -156,7 +156,7 @@
     let d;
     try { d = await api('/stats?days=' + days); } catch { return; }
     if (!location.hash.startsWith('#/tableau') && location.hash !== '' && location.hash !== '#/') return; // la personne a changé de page entre-temps
-    const who = state.user.role === 'supplier' ? state.user.company || state.user.name : state.user.name;
+    const who = state.user.name;
     const period = d.role === 'catalog' ? '' : `<div class="period">${[7, 30, 90].map((n) => `<button data-days="${n}" class="${n === days ? 'on' : ''}">${n} jours</button>`).join('')}</div>`;
     // Liste « À faire » unique, même formulation partout : nombre + action (audit 17/10/2026)
     const T = d.todo || {};
@@ -168,8 +168,6 @@
       [T.todayDeliveries, '', 'clock-bold', 'livraison(s) prévue(s) aujourd\'hui', '#/calendrier'],
       [T.toShip, '', 'package-duotone', 'commande(s) à préparer et à remettre', '#/commandes', 'paid'],
       [T.messages, 'warn', 'chat-circle-dots-duotone', 'client(s) attendent une réponse', '#/messagerie'],
-      [T.supplierReady, '', 'storefront', 'commande(s) : articles prêts chez un fournisseur, à récupérer', '#/commandes', 'paid'],
-      [T.supplierMessages, 'warn', 'chats-circle-duotone', 'fournisseur(s) vous ont écrit', '#/messagerie'],
       [T.idToCheck, 'warn', 'identification-card', 'pièce(s) d\'identité à vérifier', '#/clients'],
       [d.pendingProducts, 'warn', 'clock-countdown-duotone', 'produit(s) à valider', '#/produits', null, 'pending'],
     ].filter((x) => x[0]).map(([n, cls, ico, label, href, f, pf]) => `<a class="todo-row ${cls}" href="${href}"${f ? ` data-f="${f}"` : ''}${pf ? ` data-pf="${pf}"` : ''}><span class="todo-ico">${icon(ico)}</span><b>${n}</b><span>${label}</span>${icon('caret-right', 'todo-go')}</a>`);
@@ -178,23 +176,21 @@
       ? `<ul class="mini-list">${list.map((p) => `<li><a href="#/produit/${enc(p.id)}">${esc(p.name)}</a>${p.stock != null ? `<span class="tag ${p.stock === 0 ? 'danger' : 'warn'}">${p.stock} en stock</span>` : ''}</li>`).join('')}</ul>`
       : '<p class="nodata">Rien à signaler</p>');
     const cards = [];
-    if (d.series) cards.push(card(d.role === 'supplier' ? 'Vos ventes jour par jour' : d.role === 'orders' ? 'Commandes payées par jour' : 'Ventes jour par jour', 'chart-line-up-duotone', chartSlot('cMain', d.series.flatMap((x) => x.data)), 'wide'));
+    if (d.series) cards.push(card(d.role === 'orders' ? 'Commandes payées par jour' : 'Ventes jour par jour', 'chart-line-up-duotone', chartSlot('cMain', d.series.flatMap((x) => x.data)), 'wide'));
     if (d.byPayment) cards.push(card('Moyens de paiement', 'wallet-duotone', chartSlot('cPay', d.byPayment), 'third'));
     if (d.byStatus) cards.push(card('Commandes par statut', 'receipt-duotone', chartSlot('cStatus', d.byStatus), d.role === 'admin' ? 'third' : ''));
     if (d.byCity) cards.push(card('Villes', 'map-pin-duotone', chartSlot('cCity', d.byCity), 'third'));
     if (d.byCategory) cards.push(card('Produits en ligne par catégorie', 'squares-four-duotone', chartSlot('cCat', d.byCategory)));
-    if (d.top) cards.push(card(d.role === 'supplier' ? 'Vos produits les plus vendus' : 'Meilleures ventes (FCFA)', 'trophy-duotone', chartSlot('cTop', d.top)));
+    if (d.top) cards.push(card('Meilleures ventes (FCFA)', 'trophy-duotone', chartSlot('cTop', d.top)));
     if (d.lowStock) cards.push(card('Stock faible (3 ou moins)', 'warning-duotone', stockList(d.lowStock)));
     if (d.noPhoto) cards.push(card('Produits sans photo', 'image-broken-duotone', stockList(d.noPhoto)));
 
     // Raccourcis du bandeau d'accueil, selon le rôle
     const quick = [];
     if (CAN.products()) quick.push(`<a class="btn" href="#/produit/nouveau">${icon('plus-bold')} Ajouter un produit</a>`);
-    if (CAN.admin() || state.user?.role === 'catalog') quick.push(`<a class="ghost" href="#/achats">${icon('clipboard-text')} Achats fournisseurs</a>`);
-    if (CAN.supplier()) quick.push(`<a class="ghost" href="#/bons-de-commande">${icon('clipboard-text')} Bons de commande</a>`);
+    if (CAN.buyer()) quick.push(`<a class="ghost" href="#/achats">${icon('clipboard-text')} Achats en Europe</a>`);
     if (CAN.orders()) quick.push(`<a class="ghost" href="#/commandes">${icon('receipt-duotone')} Commandes</a>`);
     if (CAN.orders()) quick.push(`<a class="ghost" href="#/colis">${icon('package')} Colis</a>`);
-    if (CAN.supplier()) quick.push(`<a class="ghost" href="#/fournisseur">${icon('receipt-duotone')} Mes commandes</a>`);
     if (CAN.courier()) quick.push(`<a class="btn" href="#/livraisons">${icon('truck-duotone')} Mes livraisons</a>`);
     if (CAN.courier()) quick.push(`<a class="ghost" href="#/scanner">${icon('camera-bold')} Scanner un colis</a>`);
     const today = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
@@ -242,7 +238,7 @@
     if (d.byStatus) doughnut('cStatus', d.byStatus);
     if (d.byCategory) doughnut('cCat', d.byCategory);
     if (d.byCity) hbar('cCity', d.byCity, false);
-    if (d.top) hbar('cTop', d.top, d.role !== 'supplier');
+    if (d.top) hbar('cTop', d.top, true);
   }
 
   // ---------- Connexion ----------
@@ -253,7 +249,7 @@
       <form class="panel login" id="loginForm">
         <span class="logo"><img src="/brand/logo-zado-clair.svg?v=8" alt="Zado" width="141" height="44"></span>
         <h1>Espace Zado</h1>
-        <p class="muted" style="margin-top:-6px">Administration, équipe et fournisseurs</p>
+        <p class="muted" style="margin-top:-6px">Administration et équipe</p>
         ${message ? `<div class="alert err">${esc(message)}</div>` : ''}
         <label for="login">Identifiant</label>
         <input id="login" type="text" autocomplete="username" autocapitalize="off" required autofocus placeholder="Ex. admin, paul.mabiala…">
@@ -445,8 +441,6 @@
       return ['En attente du paiement du client', 'Rien à faire pour l\'instant. Sans paiement, la commande s\'annule toute seule.', null, 'wait'];
     }
     if (o.status === 'shipped') return [`En livraison${o.courierName ? ' avec ' + o.courierName : ''}`, 'Le livreur valide la remise avec le code du client. En cas de problème : « Livraison ratée ».', null, 'wait'];
-    const waitingSupplier = [...new Set((o.lines || []).map((l) => l.supplierId).filter(Boolean))].some((sid) => !o.supplierReady?.[sid]);
-    if (waitingSupplier && ['paid', 'confirmed'].includes(o.status)) return ['Attendre le fournisseur', 'Il prépare ses articles et cliquera « Prêt à récupérer » ; vous serez prévenu dans la Messagerie.', null, 'wait'];
     if (isPickup(o)) return ['Remettre les articles au client', `Au point relais ${o.agency?.name || ''}, contre son code de retrait à 4 chiffres.`, '[data-status="delivered"]', ''];
     if (!o.callConfirmedAt) return ['Appeler le client', `Confirmez l'adresse et le créneau avec ${o.customer.name} (${o.customer.phone}).`, '#callOk', ''];
     if (!o.planned) return ['Planifier la livraison', 'Choisissez la date et le créneau.', '#planBox', ''];
@@ -475,7 +469,6 @@
           ${o.deliveryFee ? `<div><span>Livraison${o.customer.zone ? ` (${esc(o.customer.zone)})` : ''}</span><span>${fcfa(o.deliveryFee)}</span></div>` : ''}
           <div><span>Total</span><span>${fcfa(o.total)}</span></div>
         </div>
-        ${Object.values(o.supplierReady || {}).map((r) => `<p class="supplier-ready">${icon('storefront')} <span><strong>${esc(r.by)}</strong> : articles prêts à récupérer depuis le ${date(r.at)}${r.note ? `<br><span class="muted">${esc(r.note)}</span>` : ''}</span></p>`).join('')}
       </div>
       ${CAN.orders() ? parcelsPanel(o) : ''}
       ${CAN.orders() ? docsPanel(o) : ''}
@@ -1070,7 +1063,8 @@
   const poWa = (bc) => {
     if (!bc.supplier.phone) return '';
     const msg = `Bonjour, voici notre bon de commande ${bc.number} (${fcfa(bc.total)}) : ${bc.lines.map((l) => `${l.qty} × ${l.name}`).join(', ')}.${bc.expectedAt ? ` Livraison souhaitée le ${bc.expectedAt.split('-').reverse().join('/')}.` : ''} Merci de confirmer. — Zado`;
-    return `https://wa.me/${String(bc.supplier.phone).replace(/\D/g, '').replace(/^0/, '242')}?text=${enc(msg)}`;
+    const ph = String(bc.supplier.phone).trim();
+    return `https://wa.me/${ph.startsWith('+') ? ph.replace(/\D/g, '') : ph.replace(/\D/g, '').replace(/^0/, '242')}?text=${enc(msg)}`; // +33… (Europe) gardé tel quel
   };
   let poMeta = null;
   async function loadPoMeta() { const r = await api('/purchases'); poMeta = { suppliers: r.suppliers, products: r.products, statuses: r.statuses }; return r; }
@@ -1079,7 +1073,7 @@
     let r;
     try { r = await loadPoMeta(); } catch { return; }
     const list = r.purchases;
-    const admin = r.canEdit; // prix d'achat : administrateur seulement
+    const admin = r.canEdit; // achats et prix d'achat : administrateur et responsable catalogue
     const f = state.poFilter || 'open';
     const TABS = admin ? [['open', 'En cours'], ['draft', 'Brouillons'], ['toReceive', 'À recevoir'], ['received', 'Reçus'], ['unpaid', 'À payer'], ['all', 'Tous']]
       : [['toReceive', 'À recevoir'], ['received', 'Reçus'], ['all', 'Tous']];
@@ -1104,7 +1098,7 @@
       columns: [
         { key: 'number', label: 'Bon', render: (b) => `<a href="#/achat/${enc(b.id)}"><strong class="mono">${esc(b.number)}</strong></a><br>${poTag(b)}${b.late ? ' <span class="tag danger">en retard</span>' : ''}` },
         { key: 'createdAt', label: 'Date', render: (b) => date(b.createdAt).split(' ')[0] + (b.expectedAt ? `<br><span class="muted">prévu ${esc(b.expectedAt.split('-').reverse().join('/'))}</span>` : '') },
-        { key: 'supplier', label: 'Fournisseur', sortValue: (b) => norm(b.supplier.name), render: (b) => `${esc(b.supplier.name)}${b.supplier.supplierId ? '<br><span class="muted">compte Zado Pro</span>' : ''}` },
+        { key: 'supplier', label: 'Fournisseur', sortValue: (b) => norm(b.supplier.name), render: (b) => esc(b.supplier.name) },
         { key: 'lines', label: 'Articles', sortable: false, render: (b) => b.lines.slice(0, 3).map((l) => `${l.qty} × ${esc(l.name)}`).join('<br>') + (b.lines.length > 3 ? `<br><span class="muted">+ ${b.lines.length - 3} autre(s)</span>` : '') },
         { key: 'receivedQty', label: 'Reçu', cls: 'num', render: (b) => `${b.receivedQty}/${b.qty}` },
         ...(admin ? [{ key: 'total', label: 'Total', cls: 'num', render: (b) => `<strong>${fcfa(b.total)}</strong>${b.due > 0 && b.status !== 'cancelled' ? `<br><span class="tag warn">à payer ${fcfa(b.due)}</span>` : ''}` }] : []),
@@ -1118,7 +1112,7 @@
     const draw = () => {
       host.innerHTML = `<div class="po-search"><input type="search" id="poQ" placeholder="Chercher un article du catalogue (nom ou référence)…" autocomplete="off"><div class="po-hits" id="poHits" hidden></div></div>
         ${lines.length ? `<table class="po-lines"><thead><tr><th>Article</th><th class="num">Quantité</th><th class="num">Prix d'achat unitaire</th><th class="num">Total</th><th></th></tr></thead><tbody>
-          ${lines.map((l, i) => `<tr><td><strong>${esc(l.name)}</strong><br><span class="muted">stock actuel : ${l.stock ?? '—'}${l.supplierId ? ' · dépôt-vente' : ''}</span></td>
+          ${lines.map((l, i) => `<tr><td><strong>${esc(l.name)}</strong><br><span class="muted">stock actuel : ${l.stock ?? '—'}</span></td>
             <td class="num"><input type="number" min="1" step="1" value="${l.qty}" data-po-qty="${i}" inputmode="numeric"></td>
             <td class="num"><input type="number" min="0" step="1" value="${l.unitPrice}" data-po-price="${i}" inputmode="numeric"></td>
             <td class="num"><strong>${fcfa(l.qty * l.unitPrice)}</strong></td><td><button type="button" class="ghost" data-po-del="${i}" title="Retirer">${icon('x-bold')}</button></td></tr>`).join('')}
@@ -1134,7 +1128,7 @@
       hits.addEventListener('click', (e) => {
         const b = e.target.closest('[data-po-add]'); if (!b) return;
         const p = products.find((x) => x.id === b.dataset.poAdd);
-        lines.push({ productId: p.id, name: p.name, qty: 1, unitPrice: p.lastPurchasePrice ?? p.costPrice ?? p.supplierPrice ?? 0, stock: p.stock, supplierId: p.supplierId });
+        lines.push({ productId: p.id, name: p.name, qty: 1, unitPrice: p.lastPurchasePrice ?? p.costPrice ?? 0, stock: p.stock });
         draw(); host.querySelector(`[data-po-qty="${lines.length - 1}"]`)?.focus();
       });
       host.querySelectorAll('[data-po-qty]').forEach((i) => i.addEventListener('change', () => { lines[i.dataset.poQty].qty = Math.max(1, parseInt(i.value, 10) || 1); draw(); }));
@@ -1150,10 +1144,8 @@
     app.innerHTML = pageHead({ crumb: 'Achats', title: 'Nouveau bon de commande', desc: 'Choisissez le fournisseur, ajoutez les articles et leur prix d\'achat. Le bon reste en brouillon tant que vous ne l\'envoyez pas.' }) + `
       <form class="panel" id="poForm" novalidate>
         <h2>${icon('users-three-duotone')} Fournisseur</h2>
-        <label for="poSup">Compte fournisseur Zado Pro</label>
-        <select id="poSup"><option value="">Autre fournisseur (saisie libre)</option>${poMeta.suppliers.map((u) => `<option value="${esc(u.id)}">${esc(u.name)}</option>`).join('')}</select>
         <div class="grid2" id="poExt">
-          <div><label for="poName">Nom du fournisseur</label><input id="poName" type="text" maxlength="100" placeholder="Ex. Grossiste Dubaï, Marché Total…"></div>
+          <div><label for="poName">Nom du fournisseur</label><input id="poName" type="text" maxlength="100" placeholder="Ex. Apple Store, Fnac, revendeur à Paris…"></div>
           <div><label for="poPhone">Téléphone / WhatsApp</label><input id="poPhone" type="tel" maxlength="30" placeholder="06 000 00 00"></div>
           <div style="grid-column:1/-1"><label for="poContact">Personne à contacter (facultatif)</label><input id="poContact" type="text" maxlength="100"></div>
         </div>
@@ -1168,11 +1160,9 @@
         <div class="row" style="margin-top:16px;gap:8px"><button class="btn">${icon('check-bold')} Enregistrer le brouillon</button><a class="ghost" href="#/achats">Annuler</a></div>
       </form>`;
     poLinesEditor($('#poLines'), lines, poMeta.products);
-    const syncSup = () => { $('#poExt').hidden = Boolean($('#poSup').value); };
-    $('#poSup').addEventListener('change', syncSup); syncSup();
     $('#poForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const supplier = $('#poSup').value ? { supplierId: $('#poSup').value } : { name: $('#poName').value, phone: $('#poPhone').value, contact: $('#poContact').value };
+      const supplier = { name: $('#poName').value, phone: $('#poPhone').value, contact: $('#poContact').value };
       try {
         const bc = await api('/purchases', { method: 'POST', body: { supplier, lines: lines.map(({ productId, qty, unitPrice }) => ({ productId, qty, unitPrice })), expectedAt: $('#poDate').value, reference: $('#poRef').value, note: $('#poNote').value } });
         toast(`${bc.number} enregistré ✓`); location.hash = '#/achat/' + enc(bc.id);
@@ -1183,7 +1173,7 @@
   async function viewPurchase(id) {
     let bc;
     try { if (!poMeta) await loadPoMeta(); bc = await api('/purchases/' + enc(id)); } catch (err) { app.innerHTML = `<p><a href="#/achats">‹ Achats</a></p><div class="alert err">${esc(err.message)}</div>`; return; }
-    const admin = !bc.pricesHidden; // l'employé Catalogue : quantités et réception seulement
+    const admin = !bc.pricesHidden; // administrateur et responsable catalogue : bon complet avec les prix
     const open = ['sent', 'confirmed', 'partial'].includes(bc.status) || (admin && bc.status === 'draft');
     const left = (l) => l.qty - (l.received || 0);
     const wa = admin ? poWa(bc) : '';
@@ -1199,7 +1189,7 @@
       <div id="poMsg"></div>
       <div class="grid2 po-grid">
         <div class="panel"><h2>${icon('users-three-duotone')} Fournisseur</h2>
-          <p style="margin:0"><strong>${esc(bc.supplier.name)}</strong>${bc.supplier.supplierId ? ' <span class="tag">compte Zado Pro</span>' : ''}${bc.supplier.contact && bc.supplier.contact !== bc.supplier.name ? `<br>${esc(bc.supplier.contact)}` : ''}${bc.supplier.phone ? `<br><a href="tel:${esc(bc.supplier.phone)}">${esc(bc.supplier.phone)}</a>` : ''}${bc.reference ? `<br><span class="muted">Réf. fournisseur : ${esc(bc.reference)}</span>` : ''}</p>
+          <p style="margin:0"><strong>${esc(bc.supplier.name)}</strong>${bc.supplier.contact && bc.supplier.contact !== bc.supplier.name ? `<br>${esc(bc.supplier.contact)}` : ''}${bc.supplier.phone ? `<br><a href="tel:${esc(bc.supplier.phone)}">${esc(bc.supplier.phone)}</a>` : ''}${bc.reference ? `<br><span class="muted">Réf. fournisseur : ${esc(bc.reference)}</span>` : ''}</p>
           ${bc.confirmedAt ? `<p class="muted" style="margin:8px 0 0">Confirmé le ${date(bc.confirmedAt)}${bc.confirmedBy ? ` par ${esc(bc.confirmedBy)}` : ''}</p>` : ''}
         </div>
         <form class="panel" id="poInfo"><h2>${icon('clock-bold')} Livraison</h2>
@@ -1218,7 +1208,7 @@
       ${admin && bc.status !== 'cancelled' ? `<div class="grid2 po-grid">
         <form class="panel" id="poInvoice"><h2>${icon('receipt')} Facture du fournisseur</h2>
           ${bc.invoice ? `<p style="margin:0 0 10px"><strong>${esc(bc.invoice.number || 'Sans numéro')}</strong> · ${fcfa(bc.invoice.amount)} · du ${esc(bc.invoice.date.split('-').reverse().join('/'))}${bc.invoice.dueAt ? ` · à payer avant le ${esc(bc.invoice.dueAt.split('-').reverse().join('/'))}` : ''}</p>` : '<p class="muted" style="margin:0 0 10px">Pas encore de facture : la dette est la valeur des articles reçus.</p>'}
-          ${CAN.admin() ? `<div class="grid2"><div><label for="invNum">N° de facture</label><input id="invNum" type="text" maxlength="60" value="${esc(bc.invoice?.number || '')}"></div><div><label for="invAmt">Montant (FCFA)</label><input id="invAmt" type="number" min="0" step="1" value="${bc.invoice?.amount ?? (bc.receivedTotal || bc.total)}" inputmode="numeric"></div>
+          ${CAN.buyer() ? `<div class="grid2"><div><label for="invNum">N° de facture</label><input id="invNum" type="text" maxlength="60" value="${esc(bc.invoice?.number || '')}"></div><div><label for="invAmt">Montant (FCFA)</label><input id="invAmt" type="number" min="0" step="1" value="${bc.invoice?.amount ?? (bc.receivedTotal || bc.total)}" inputmode="numeric"></div>
             <div><label for="invDate">Date</label><input id="invDate" type="date" value="${esc(bc.invoice?.date || today())}"></div><div><label for="invDue">Échéance</label><input id="invDue" type="date" value="${esc(bc.invoice?.dueAt || '')}"></div></div>
             <div class="row" style="gap:8px;margin-top:8px"><button class="ghost">Enregistrer la facture</button>${bc.invoice ? '<button type="button" class="ghost" id="invRemove">Retirer</button>' : ''}</div>` : ''}
         </form>
@@ -1250,44 +1240,6 @@
       try { await api(`/purchases/${enc(bc.id)}/invoice`, { method: 'PUT', body: { number: $('#invNum').value, amount: $('#invAmt').value, date: $('#invDate').value, dueAt: $('#invDue').value } }); toast('Facture enregistrée ✓'); viewPurchase(bc.id); } catch (err) { show(err); }
     });
     $('#invRemove')?.addEventListener('click', async () => { try { await api(`/purchases/${enc(bc.id)}/invoice`, { method: 'PUT', body: { remove: true } }); viewPurchase(bc.id); } catch (err) { show(err); } });
-  }
-
-  // Espace fournisseur : les bons de commande que Zado lui adresse
-  async function viewSupplierPurchases() {
-    let r;
-    try { r = await api('/purchases/mine'); } catch { return; }
-    const list = r.purchases;
-    app.innerHTML = pageHead({ title: 'Bons de commande', desc: 'Les commandes que Zado vous passe. Confirmez chaque bon avec votre date de livraison, puis livrez à Zado : la réception est enregistrée par l\'équipe.' })
-      + (list.some((b) => b.status === 'sent') ? `<div class="todo">${icon('clipboard-text')} ${list.filter((b) => b.status === 'sent').length} bon(s) à confirmer</div>` : '')
-      + `<div id="tbl"></div><div id="poConfirm"></div>`;
-    dataTable($('#tbl'), {
-      id: 'supplier-purchases', rows: list, defaultSort: 'createdAt', placeholder: 'Numéro ou article', empty: 'Aucun bon de commande pour le moment.',
-      searchText: (b) => `${b.number} ${b.lines.map((l) => l.name).join(' ')}`,
-      columns: [
-        { key: 'number', label: 'Bon', render: (b) => `<strong class="mono">${esc(b.number)}</strong><br>${poTag(b)}` },
-        { key: 'createdAt', label: 'Date', render: (b) => date(b.sentAt || b.createdAt).split(' ')[0] + (b.expectedAt ? `<br><span class="muted">livraison ${esc(b.expectedAt.split('-').reverse().join('/'))}</span>` : '') },
-        { key: 'lines', label: 'Articles', sortable: false, render: (b) => b.lines.map((l) => `${l.qty} × ${esc(l.name)}${(l.received || 0) ? ` <span class="muted">(reçu ${l.received})</span>` : ''}`).join('<br>') },
-        { key: 'total', label: 'Montant', cls: 'num', render: (b) => `<strong>${fcfa(b.total)}</strong>` },
-        { key: 'act', label: '', sortable: false, render: (b) => `<div class="cell-actions">${b.status === 'sent' ? `<button class="btn small" data-po-ok="${esc(b.id)}">${icon('check-bold')} Confirmer</button>` : ''}${b.note ? `<button class="ghost" data-po-note="${esc(b.id)}">Note</button>` : ''}</div>` },
-      ],
-    });
-    $('#tbl').addEventListener('click', async (e) => {
-      const n = e.target.closest('[data-po-note]');
-      if (n) { alert(list.find((b) => b.id === n.dataset.poNote).note); return; }
-      const b = e.target.closest('[data-po-ok]'); if (!b) return;
-      const bc = list.find((x) => x.id === b.dataset.poOk);
-      $('#poConfirm').innerHTML = `<form class="panel" id="poOkForm" style="max-width:520px"><h2>Confirmer ${esc(bc.number)}</h2>
-        <label for="okDate">Date de livraison à Zado</label><input id="okDate" type="date" value="${esc(bc.expectedAt || '')}" min="${today()}">
-        <label for="okNote">Message (facultatif)</label><input id="okNote" type="text" maxlength="300" placeholder="Ex. livraison vendredi matin">
-        <div id="okErr"></div><div class="row" style="gap:8px;margin-top:10px"><button class="btn green">${icon('check-bold')} Je confirme ce bon</button><button type="button" class="ghost" id="okCancel">Annuler</button></div></form>`;
-      $('#poConfirm').scrollIntoView({ behavior: 'smooth' });
-      $('#okCancel').addEventListener('click', () => { $('#poConfirm').innerHTML = ''; });
-      $('#poOkForm').addEventListener('submit', async (ev) => {
-        ev.preventDefault();
-        try { await api(`/purchases/mine/${enc(bc.id)}/confirm`, { method: 'POST', body: { expectedAt: $('#okDate').value, note: $('#okNote').value } }); toast('Bon confirmé ✓ Merci !'); viewSupplierPurchases(); }
-        catch (err) { $('#okErr').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; }
-      });
-    });
   }
 
   // ---------- Stock : vue d'ensemble, mouvements, inventaire ----------
@@ -1910,8 +1862,7 @@
   const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
   const role = () => state.user?.role;
   const isAdmin = () => role() === 'admin';
-  const isSupplier = () => role() === 'supplier';
-
+  
   function viewProducts() {
     const f = state.productFilter || 'all';
     const live = (p) => p.active !== false && !p.pending;
@@ -1928,19 +1879,19 @@
       { key: 'name', label: 'Produit', sortValue: (p) => norm(p.name), render: (p) => `<div class="cell-prod">${p.image ? `<img src="${esc(p.image)}" alt="" loading="lazy">` : `<span class="ph">${catIcon(p.category)}</span>`}<span><strong>${esc(p.name)}</strong>${p.featured ? ' <span class="tag">⭐</span>' : ''}<br><span class="muted">${esc(p.brand || '')}</span></span></div>` },
       { key: 'category', label: 'Catégorie' },
     ];
-    if (!isSupplier()) columns.push({ key: 'supplierName', label: 'Fournisseur', render: (p) => esc(p.supplierName || 'Zado') });
-    if (!isSupplier()) columns.push({ key: 'price', label: 'Prix de vente', cls: 'num', render: (p) => (p.price ? fcfa(p.price) : '<span class="muted">à fixer</span>') });
-    if (role() !== 'catalog') columns.push({ key: 'supplierPrice', label: isSupplier() ? 'Votre prix' : 'Prix fournisseur', cls: 'num', render: (p) => (p.supplierPrice != null ? fcfa(p.supplierPrice) : '—') });
+    columns.push({ key: 'provenance', label: 'Provenance', render: (p) => esc(p.provenance || '—') });
+    columns.push({ key: 'price', label: 'Prix de vente', cls: 'num', render: (p) => (p.price ? fcfa(p.price) : '<span class="muted">à fixer</span>') });
+    columns.push({ key: 'costPrice', label: "Prix d'achat", cls: 'num', render: (p) => (p.costPrice != null ? fcfa(p.costPrice) : '—') });
     columns.push({ key: 'stock', label: 'Stock', cls: 'num', render: (p) => (p.stock === 0 ? `<strong style="color:var(--err)">0</strong>` : p.stock) });
     columns.push({ key: 'status', label: 'Statut', sortValue: (p) => (p.pending ? 0 : p.active === false ? 1 : 2), render: statusTag });
     app.innerHTML = pageHead({
-      title: isSupplier() ? 'Mes produits' : 'Produits',
-      desc: isSupplier() ? 'Vos produits sur Zado : stock et prix. Les nouveaux produits sont publiés après validation.' : 'Le catalogue de la boutique. Cliquez sur un produit pour le modifier.',
+      title: 'Produits',
+      desc: 'Le catalogue de la boutique. Cliquez sur un produit pour le modifier.',
       actions: `${exportBtn('products')}<a class="btn green" href="#/produit/nouveau">${icon('plus-bold')} Ajouter un produit</a>`,
     }) + tabsBar(FILTERS_P.map(([k, label, fn]) => [k, label, state.products.filter(fn).length]), f, 'pf') + '<div id="tbl"></div>';
     dataTable($('#tbl'), {
-      id: 'products', rows: list, rowHref: (p) => '#/produit/' + enc(p.id), placeholder: `Nom, marque, catégorie${isAdmin() ? ', fournisseur' : ''}`,
-      empty: 'Aucun produit ici.', searchText: (p) => `${p.name} ${p.brand} ${p.category} ${p.supplierName || ''}`, columns,
+      id: 'products', rows: list, rowHref: (p) => '#/produit/' + enc(p.id), placeholder: 'Nom, marque, catégorie, provenance',
+      empty: 'Aucun produit ici.', searchText: (p) => `${p.name} ${p.brand} ${p.category} ${p.provenance || ''} ${p.sourceSupplier || ''}`, columns,
     });
     app.querySelectorAll('[data-pf]').forEach((b) => b.addEventListener('click', () => { state.productFilter = b.dataset.pf; viewProducts(); }));
   }
@@ -1951,15 +1902,13 @@
     const p = isNew ? { stock: 1, active: true, condition: 'neuf', provenance: 'France', images: [] } : state.products.find((x) => x.id === id);
     if (!p) { app.innerHTML = '<p class="empty">Produit introuvable. <a href="#/produits">Retour</a></p>'; return; }
     let images = [...(p.images?.length ? p.images : [p.image].filter(Boolean))];
-    // Fournisseur sur un produit déjà publié : seuls le stock et son prix sont modifiables
-    const limited = isSupplier() && !isNew && !p.pending;
-    const dis = limited ? 'disabled' : '';
-    const showSale = !isSupplier();
-    const showSupplierPrice = role() !== 'catalog';
-    const unitCost = p.supplierId ? p.supplierPrice : p.costPrice;
+    const limited = false;
+    const dis = '';
+    const showSale = true;
+    const unitCost = p.costPrice;
     const margin = p.price && unitCost != null ? p.price - unitCost : null;
     app.innerHTML = `
-      <p><a href="#/produits">‹ ${isSupplier() ? 'Mes produits' : 'Tous les produits'}</a></p>
+      <p><a href="#/produits">‹ Tous les produits</a></p>
       <h1>${isNew ? 'Nouveau produit' : esc(p.name)}</h1>
       ${p.pending ? `<div class="alert warn">⏳ En attente de validation : ce produit n'est pas encore visible des clients.${isAdmin() ? ' Vérifiez la fiche, fixez le prix de vente, enregistrez, puis cliquez « Valider et publier ».' : " L'administrateur doit le valider."}</div>` : ''}
       ${isNew && !isAdmin() ? '<div class="alert warn">Le produit sera visible des clients après validation par l\'administrateur.</div>' : ''}
@@ -2009,28 +1958,19 @@
         <div class="grid2">
           ${showSale ? `<div><label for="price">Prix de vente (FCFA)${p.pending || isNew ? '' : ' *'}</label><input id="price" type="number" inputmode="numeric" min="1" step="1" value="${esc(p.price ?? '')}"></div>
           <div><label for="oldPrice">Prix barré (facultatif)</label><input id="oldPrice" type="number" inputmode="numeric" min="1" step="1" value="${esc(p.oldPrice ?? '')}"></div>` : ''}
-          ${showSupplierPrice ? `<div><label for="supplierPrice">${isSupplier() ? 'Votre prix (FCFA) *' : 'Prix fournisseur (FCFA)'}</label><input id="supplierPrice" type="number" inputmode="numeric" min="0" step="1" value="${esc(p.supplierPrice ?? '')}"></div>` : ''}
-          ${isAdmin() ? `<div><label for="costPrice">Prix d'achat Zado (FCFA)</label><input id="costPrice" type="number" inputmode="numeric" min="0" step="1" value="${esc(p.costPrice ?? '')}" placeholder="pour le stock Zado"></div>` : ''}
+          <div><label for="costPrice">Prix d'achat rendu Pointe-Noire (FCFA)</label><input id="costPrice" type="number" inputmode="numeric" min="0" step="1" value="${esc(p.costPrice ?? '')}" placeholder="achat Europe + fret + douane"></div>
           <div><label for="stock">Stock disponible *</label><input id="stock" type="number" inputmode="numeric" min="0" step="1" value="${esc(p.stock)}"></div>
         </div>
-        ${isAdmin() ? '<p class="muted">Prix d\'achat : ce que Zado a payé ce produit (stock propre à Zado). Il sert au calcul de la marge dans Finances et reste invisible pour les clients et l\'équipe.</p>' : ''}
-        ${isAdmin() && margin != null ? `<p class="muted">Marge actuelle : <strong>${fcfa(margin)}</strong> par article.</p>` : ''}
-        ${isSupplier() ? '<p class="muted">Zado fixe le prix de vente aux clients. Mettez le stock à 0 si le produit n\'est plus disponible.</p>' : ''}
-        ${isAdmin() ? `<label for="supplierId">Fournisseur</label>
-          <select id="supplierId"><option value="">Aucun (stock Zado)</option>${[
-            ...(state.suppliers || []),
-            // le fournisseur actuel reste toujours proposé (même s'il n'est plus dans la liste), pour ne jamais l'effacer par erreur
-            ...(p.supplierId && !(state.suppliers || []).some((s) => s.id === p.supplierId) ? [{ id: p.supplierId, name: p.supplierName || p.supplierId }] : []),
-          ].map((s) => `<option value="${esc(s.id)}" ${s.id === p.supplierId ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}</select>` : ''}
-        ${!isSupplier() ? `
+        <p class="muted">Prix d'achat rendu : ce que l'article coûte à Zado une fois à Pointe-Noire (prix payé en Europe + fret aérien + douane). Il sert au calcul de la marge et n'est visible que par l'administrateur et le responsable catalogue.</p>
+        ${margin != null ? `<p class="muted">Marge actuelle : <strong>${fcfa(margin)}</strong> par article.</p>` : ''}
         <label class="check"><input id="active" type="checkbox" ${p.active !== false ? 'checked' : ''}> Visible sur la boutique</label>
-        <label class="check"><input id="featured" type="checkbox" ${p.featured ? 'checked' : ''}> Mettre en avant sur l'accueil</label>` : ''}
+        <label class="check"><input id="featured" type="checkbox" ${p.featured ? 'checked' : ''}> Mettre en avant sur l'accueil</label>
         <div id="formError"></div>
         <button class="btn" style="width:100%;margin-top:16px;min-height:48px">${isNew ? (isAdmin() ? 'Ajouter le produit' : 'Envoyer pour validation') : 'Enregistrer'}</button>
         ${isAdmin() && p.pending ? '<button type="button" class="btn green" id="approveBtn" style="width:100%;margin-top:8px;min-height:48px">✓ Valider et publier</button>' : ''}
         ${!isNew && (isAdmin() || (p.pending && p.createdBy === state.user.id)) ? `<button type="button" class="btn red" id="deleteBtn" style="width:100%;margin-top:8px;min-height:48px">${icon('trash-bold')} ${p.pending && !isAdmin() ? 'Retirer ma proposition' : 'Supprimer ce produit'}</button>` : ''}
       </form>
-      ${isNew || isSupplier() ? '' : `<p class="muted">Pour retirer un produit de la boutique sans le perdre, décochez « Visible » (vous pourrez le remettre plus tard).${isAdmin() ? ' « Supprimer » l\'efface définitivement ; les commandes passées restent intactes.' : ''} ${p.pending ? '' : `<a href="/#/p/${enc(p.id)}" target="_blank">Voir sur la boutique ›</a>`}</p>`}`;
+      ${isNew ? '' : `<p class="muted">Pour retirer un produit de la boutique sans le perdre, décochez « Visible » (vous pourrez le remettre plus tard).${isAdmin() ? ' « Supprimer » l\'efface définitivement ; les commandes passées restent intactes.' : ''} ${p.pending ? '' : `<a href="/#/p/${enc(p.id)}" target="_blank">Voir sur la boutique ›</a>`}</p>`}`;
 
     const renderGallery = () => {
       $('#gallery').innerHTML = images.length
@@ -2094,18 +2034,15 @@
     $('#pform').addEventListener('submit', async (e) => {
       e.preventDefault();
       let body;
-      if (limited) {
-        body = { stock: val('#stock'), supplierPrice: val('#supplierPrice') };
-      } else {
+      {
         body = {
           name: val('#name'), brand: val('#brand'), category: val('#category'), condition: val('#condition'), provenance: val('#provenance'), sourceSupplier: val('#sourceSupplier'),
           description: val('#description'), specs: val('#specs'), stock: val('#stock'), images,
         };
         if (showSale) Object.assign(body, { price: val('#price'), oldPrice: val('#oldPrice') });
-        if (showSupplierPrice) body.supplierPrice = val('#supplierPrice');
-        if (isAdmin()) Object.assign(body, { supplierId: val('#supplierId'), costPrice: val('#costPrice') });
+        body.costPrice = val('#costPrice');
         body.options = val('#options');
-        if (!isSupplier()) Object.assign(body, { active: $('#active').checked, featured: $('#featured').checked });
+        Object.assign(body, { active: $('#active').checked, featured: $('#featured').checked });
       }
       const btn = e.target.querySelector('button.btn');
       btn.disabled = true;
@@ -2143,46 +2080,6 @@
     });
   }
 
-  // ---------- Espace fournisseur : commandes de mes produits ----------
-  async function viewSupplierOrders() {
-    let data;
-    try { data = await api('/supplier/orders'); } catch { return; }
-    state.labels = data.statusLabels;
-    const qty = (o) => o.lines.reduce((n, l) => n + l.qty, 0);
-    const amount = (o) => o.lines.reduce((n, l) => n + (l.supplierPrice || 0) * l.qty, 0);
-    const active = (o) => ['paid', 'confirmed'].includes(o.status);
-    const toPrepare = data.orders.filter((o) => active(o) && !o.ready);
-    app.innerHTML = pageHead({ title: 'Mes commandes', desc: "Zado s'occupe de la livraison. Préparez les articles des commandes payées, puis cliquez « Prêt à récupérer » : Zado est prévenu et vient les chercher." })
-      + `<div class="todo"><a href="#/fournisseur">${icon('package-duotone')} À préparer : ${toPrepare.reduce((n, o) => n + qty(o), 0)} article(s)</a><a href="#/messagerie">${icon('chats-circle-duotone')} Écrire à Zado</a></div><div id="tbl"></div>`;
-    dataTable($('#tbl'), {
-      id: 'supplier-orders', rows: data.orders, defaultSort: 'date', placeholder: 'N° de commande ou produit', empty: 'Aucune commande de vos produits pour le moment.',
-      searchText: (o) => `${o.id} ${o.lines.map((l) => l.name).join(' ')}`,
-      columns: [
-        { key: 'id', label: 'Commande', render: (o) => `<strong class="mono">${esc(o.id)}</strong>` },
-        { key: 'date', label: 'Date', sortValue: (o) => o.paidAt || o.createdAt, render: (o) => date(o.paidAt || o.createdAt) },
-        { key: 'lines', label: 'Vos articles', sortable: false, render: (o) => o.lines.map((l) => `${l.qty} × ${esc(l.name)}`).join('<br>') },
-        { key: 'qty', label: 'Qté', cls: 'num', sortValue: qty, render: qty },
-        { key: 'amount', label: 'Montant', cls: 'num', sortValue: amount, render: (o) => fcfa(amount(o)) },
-        { key: 'mode', label: 'Mode', sortValue: (o) => o.fulfillment, render: (o) => (o.fulfillment === 'pickup' ? 'Retrait en agence' : o.agency ? 'Payé en agence, livré' : 'Livraison') },
-        { key: 'status', label: 'Statut', render: (o) => badge(o.status) },
-        { key: 'ready', label: 'Préparation', sortValue: (o) => (active(o) ? (o.ready ? 1 : 0) : 2), render: (o) => !active(o) ? '<span class="muted">—</span>'
-          : o.ready ? `<span class="cell-stack"><span class="tag ok">${icon('check-bold')} Prêt le ${date(o.ready.at)}</span>${o.ready.note ? `<br><span class="muted">${esc(o.ready.note)}</span>` : ''}<br><button class="linkish" data-unready="${esc(o.id)}">Annuler</button></span>`
-          : `<button class="btn small" data-ready="${esc(o.id)}">${icon('check-bold')} Prêt à récupérer</button>` },
-      ],
-    });
-    const mark = async (id, ready) => {
-      let note = '';
-      if (ready) { note = prompt('Où et quand Zado peut-il récupérer les articles ? (facultatif)\nEx. au magasin, à partir de 14 h', ''); if (note === null) return; }
-      try { await api('/supplier/orders/' + enc(id) + '/ready', { method: 'POST', body: { ready, note } }); toast(ready ? 'Zado est prévenu : articles prêts ✓' : 'Signal annulé'); viewSupplierOrders(); }
-      catch (err) { toast('❌ ' + err.message); }
-    };
-    $('#tbl').addEventListener('click', (e) => { // #tbl est recréé à chaque affichage : un seul écouteur
-      const r = e.target.closest('[data-ready], [data-unready]'); if (!r) return;
-      e.preventDefault(); e.stopPropagation();
-      mark(r.dataset.ready || r.dataset.unready, Boolean(r.dataset.ready));
-    });
-  }
-
   // ---------- Avis clients : lecture et modération (admin, catalogue) ----------
   async function viewReviews() {
     let list;
@@ -2213,7 +2110,7 @@
     });
   }
 
-  // ---------- Équipe et fournisseurs (admin) ----------
+  // ---------- Équipe (admin) ----------
   async function viewStaff(sub) {
     let data;
     try { data = await api('/staff'); } catch { return; }
@@ -2225,12 +2122,10 @@
         <form class="panel" id="staffForm" novalidate>
           <label for="sRole">Rôle *</label>
           <select id="sRole">
-            <option value="supplier">Fournisseur — ses produits, son stock, les commandes de ses produits</option>
-            <option value="catalog">Employé Catalogue — ajout et modification des produits</option>
+            <option value="catalog">Responsable catalogue — produits, achats en Europe, prix d'achat, stock</option>
             <option value="orders">Employé Commandes — suivi et statut des commandes</option>
             <option value="courier">Livreur — ses livraisons, validées avec le code du client</option>
           </select>
-          <div id="companyField"><label for="sCompany">Entreprise du fournisseur *</label><input id="sCompany" type="text" placeholder="Ex. Tech Import Pointe-Noire"></div>
           <label for="sName">Nom de la personne *</label><input id="sName" type="text">
           <label for="sLogin">Identifiant de connexion *</label><input id="sLogin" type="text" autocapitalize="off" placeholder="Ex. paul.mabiala">
           <label for="sPhone">Téléphone</label><input id="sPhone" type="tel">
@@ -2238,27 +2133,26 @@
           <div id="sError"></div>
           <button class="btn" style="width:100%;margin-top:14px">Créer le compte</button>
         </form>`;
-      const syncRole = () => { $('#companyField').hidden = $('#sRole').value !== 'supplier'; $('#vehicleField').hidden = $('#sRole').value !== 'courier'; };
+      const syncRole = () => { $('#vehicleField').hidden = $('#sRole').value !== 'courier'; };
       $('#sRole').addEventListener('change', syncRole); syncRole();
       $('#staffForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         try {
-          const res = await api('/staff', { method: 'POST', body: { role: $('#sRole').value, company: $('#sCompany').value, name: $('#sName').value, login: $('#sLogin').value, phone: $('#sPhone').value, vehicle: $('#sVehicle').value } });
+          const res = await api('/staff', { method: 'POST', body: { role: $('#sRole').value, name: $('#sName').value, login: $('#sLogin').value, phone: $('#sPhone').value, vehicle: $('#sVehicle').value } });
           showPassword(res.user, res.password);
         } catch (err) { $('#sError').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; }
       });
       return;
     }
-    app.innerHTML = pageHead({ title: 'Équipe et fournisseurs', desc: 'Chaque personne a son identifiant et son mot de passe. Un compte désactivé est déconnecté immédiatement.', actions: `<a class="btn" href="#/equipe/nouveau">${icon('plus-bold')} Ajouter</a>` })
+    app.innerHTML = pageHead({ title: 'Équipe', desc: 'Chaque personne a son identifiant et son mot de passe. Un compte désactivé est déconnecté immédiatement.', actions: `<a class="btn" href="#/equipe/nouveau">${icon('plus-bold')} Ajouter</a>` })
       + '<div id="tbl"></div>';
     dataTable($('#tbl'), {
-      id: 'staff', rows: data.staff, placeholder: 'Nom, entreprise ou identifiant', empty: 'Aucun compte pour le moment. Ajoutez vos fournisseurs et vos employés.',
+      id: 'staff', rows: data.staff, placeholder: 'Nom ou identifiant', empty: 'Aucun compte pour le moment. Ajoutez vos employés.',
       searchText: (u) => `${u.name} ${u.company || ''} ${u.login} ${roleLabel(u.role)}`,
       columns: [
         { key: 'name', label: 'Nom', sortValue: (u) => norm(u.name), render: (u) => `<span class="cell-stack"><strong>${esc(u.name)}</strong>${u.company ? `<br><span class="muted">${esc(u.company)}</span>` : ''}${u.role === 'courier' ? `<br><span class="muted">${esc(u.vehicle || 'Véhicule non renseigné')}</span>` : ''}</span>` },
         { key: 'role', label: 'Rôle', sortValue: (u) => roleLabel(u.role), render: (u) => esc(roleLabel(u.role)) },
         { key: 'login', label: 'Identifiant', render: (u) => `<code>${esc(u.login)}</code>` },
-        { key: 'products', label: 'Produits', cls: 'num', render: (u) => (u.role === 'supplier' ? u.products : '—') },
         { key: 'active', label: 'Statut', sortValue: (u) => u.active !== false, render: (u) => (u.active === false ? '<span class="tag danger">Désactivé</span>' : '<span class="tag ok">Actif</span>') },
         { key: 'act', label: '', sortable: false, render: (u) => `<div class="cell-actions"><button class="ghost" data-toggle="${esc(u.id)}" data-active="${u.active !== false}">${u.active === false ? 'Réactiver' : 'Désactiver'}</button><button class="ghost" data-reset="${esc(u.id)}">${icon('key-bold')} Mot de passe</button>${u.role === 'courier' ? `<button class="ghost" data-vehicle="${esc(u.id)}">${icon('truck-duotone')} Véhicule</button>` : ''}</div>` },
       ],
@@ -2324,7 +2218,7 @@
     });
   }
 
-  // ---------- Mon mot de passe (équipe et fournisseurs) ----------
+  // ---------- Mon mot de passe (équipe) ----------
   function viewPassword() {
     app.innerHTML = `
       <h1>Mon mot de passe</h1>
@@ -2412,7 +2306,7 @@
       <ul class="mini-list">${d.refundsToDo.map((r) => `<li><a href="#/commande/${enc(r.id)}">${esc(r.id)} · ${esc(r.customer || '')}</a><span class="row"><strong>${fcfa(r.total)}</strong><button class="btn small red" data-refund="${esc(r.id)}">Marquer remboursé</button></span></li>`).join('')}</ul>
       <p class="muted">Remboursez d'abord le client (Mobile Money, espèces…), puis cliquez : la sortie d'argent est enregistrée dans la caisse d'origine.</p></section>` : '';
     const totalCash = Object.values(d.balances).reduce((a, b) => a + b, 0);
-    const owed = d.suppliers.reduce((a, s) => a + Math.max(0, s.due), 0);
+    const owed = (d.purchaseDebts || []).reduce((a, s) => a + Math.max(0, s.due), 0); // dettes des bons de commande (Europe)
 
     app.innerHTML = head + finTabs('') + periodChips() + alerts.join('') + `
       <div class="kpis">
@@ -2428,7 +2322,7 @@
           <p class="muted">Argent entré − sorti depuis le début${d.to ? ` jusqu'au ${esc(d.to.split('-').reverse().join('/'))}` : ''}. Saisissez un « Apport / solde de départ » pour partir du bon montant.</p></section>
         <section class="card third"><h2>${icon('chart-line-up-duotone')} Trésorerie de la période</h2>
           <ul class="mini-list"><li><span>Argent entré</span><strong class="pos">${fcfa(k.cashIn)}</strong></li><li><span>Argent sorti</span><strong class="neg">−${fcfa(k.cashOut)}</strong></li><li class="total-line"><span>Différence</span><strong>${money(k.cashFlow)}</strong></li></ul>
-          <p class="muted">Inclut les achats de stock, les paiements fournisseurs et les remboursements.</p></section>
+          <p class="muted">Inclut les achats de stock (bons de commande) et les remboursements.</p></section>
         <section class="card third"><h2>${icon('package-duotone')} Stock et fournisseurs</h2>
           <ul class="mini-list"><li><span>Valeur du stock Zado</span><strong>${fcfa(k.stockValue)}</strong></li><li><span>À payer aux fournisseurs</span><strong class="${owed ? 'neg' : ''}">${fcfa(owed)}</strong></li><li><span>Livraisons ratées (période)</span><strong class="${k.failedDeliveries ? 'neg' : ''}">${k.failedDeliveries}</strong></li><li><span>Acomptes conservés (colis refusés)</span><strong>${fcfa(k.retainedDeposits)}</strong></li></ul>
           <p class="muted"><a href="#/finances/fournisseurs">Détail par fournisseur ›</a></p></section>
@@ -2441,7 +2335,7 @@
         <section class="card"><h2>${icon('list-bullets-duotone')} Comment lire ces chiffres</h2>
           <ul class="help-list">
             <li><b>Chiffre d'affaires</b> : total des commandes payées (hors annulées).</li>
-            <li><b>Marge brute</b> : ventes − prix d'achat des produits vendus (prix fournisseur ou prix d'achat Zado).</li>
+            <li><b>Marge brute</b> : ventes − prix d'achat rendu des produits vendus (achat en Europe + fret + douane).</li>
             <li><b>Résultat</b> : marge brute − charges. C'est le bénéfice réel de la période.</li>
             <li><b>Caisses</b> : l'argent disponible dans chaque caisse. Un retrait Mobile Money en espèces = « Transfert entre caisses ».</li>
           </ul></section>
@@ -2493,8 +2387,7 @@
 
   function viewFinSuppliers(head, d) {
     const pd = d.purchaseDebts || [];
-    app.innerHTML = head + finTabs('fournisseurs') + `<h2 style="margin:0 0 4px">Achats (bons de commande)</h2><p class="muted" style="margin-top:0">Articles reçus ou facturés par bon de commande, moins les paiements « Achat de marchandises » rattachés au bon.</p><div id="tblPo"></div>
-      <h2 style="margin:22px 0 4px">Dépôt-vente</h2><p class="muted" style="margin-top:0">Ce que Zado doit à chaque fournisseur partenaire : ses produits vendus (au prix fournisseur, toutes périodes) moins les paiements enregistrés (« Paiement fournisseur »).</p><div id="tbl"></div>`;
+    app.innerHTML = head + finTabs('fournisseurs') + `<h2 style="margin:0 0 4px">Achats (bons de commande)</h2><p class="muted" style="margin-top:0">Articles reçus ou facturés par bon de commande, moins les paiements « Achat de marchandises » rattachés au bon.</p><div id="tblPo"></div>`;
     dataTable($('#tblPo'), {
       id: 'fin-purchases', rows: pd, defaultSort: 'due', placeholder: 'Fournisseur', empty: 'Aucun achat par bon de commande pour le moment.',
       searchText: (s) => s.name,
@@ -2506,17 +2399,6 @@
         { key: 'act', label: '', sortable: false, render: (s) => { const b = s.purchases.find((x) => x.due > 0); return b ? `<div class="cell-actions"><a class="btn small" href="#/finances/nouvelle?achat=${enc(b.id)}&montant=${b.due}">Payer ${esc(b.number)}</a></div>` : ''; } },
       ],
     });
-    dataTable($('#tbl'), {
-      id: 'fin-suppliers', rows: d.suppliers, defaultSort: 'due', placeholder: 'Fournisseur', empty: 'Aucun produit de fournisseur vendu pour le moment.',
-      searchText: (s) => s.name,
-      columns: [
-        { key: 'name', label: 'Fournisseur', render: (s) => `<strong>${esc(s.name)}</strong>` },
-        { key: 'sold', label: 'Vendu (prix fournisseur)', cls: 'num', render: (s) => fcfa(s.sold) },
-        { key: 'paid', label: 'Déjà payé', cls: 'num', render: (s) => fcfa(s.paid) },
-        { key: 'due', label: 'Reste à payer', cls: 'num', render: (s) => `<strong class="${s.due > 0 ? 'neg' : 'pos'}">${fcfa(s.due)}</strong>` },
-        { key: 'act', label: '', sortable: false, render: (s) => (s.due > 0 ? `<div class="cell-actions"><a class="btn small" href="#/finances/nouvelle?fournisseur=${enc(s.id)}&montant=${s.due}">Enregistrer un paiement</a></div>` : '') },
-      ],
-    });
   }
 
   async function viewEntry(id) {
@@ -2525,10 +2407,8 @@
     let e = { type: 'expense', date: today(), method: 'cash', category: '' };
     if (id) { try { e = await api('/finance/entries/' + enc(id)); } catch { return; } }
     const qs = new URLSearchParams(location.hash.split('?')[1] || '');
-    if (!id && qs.get('fournisseur')) Object.assign(e, { category: 'supplier', supplierId: qs.get('fournisseur'), amount: Number(qs.get('montant')) || '', method: 'momo' });
     if (!id && qs.get('achat')) Object.assign(e, { category: 'stock', purchaseId: qs.get('achat'), amount: Number(qs.get('montant')) || '', method: 'bank' });
-    let suppliers = [];
-    try { suppliers = (await api('/staff')).staff.filter((u) => u.role === 'supplier'); } catch {}
+    const suppliers = [];
     const opts = (obj, cur) => Object.entries(obj).map(([k, l]) => `<option value="${k}" ${k === cur ? 'selected' : ''}>${esc(l)}</option>`).join('');
     app.innerHTML = pageHead({ crumb: 'Finances', title: id ? 'Modifier l\'écriture' : 'Nouvelle écriture', desc: 'Une dépense (loyer, livraison, achat de stock…), une entrée d\'argent hors boutique, ou un transfert entre deux caisses.' }) + `
       <form class="panel fin-form" id="entryForm" novalidate>
@@ -2601,12 +2481,10 @@
       <span class="t">${msgTime(m.at)}</span>
     </div>`;
   async function viewMessaging(id) {
-    if (CAN.supplier()) return viewSupplierChat();
     const support = CAN.orders();
     if (!id) id = support ? '' : 'equipe';
-    let list = [], sups = [];
+    let list = [];
     if (support) { try { list = await api('/chat/conversations'); } catch { return; } }
-    if (CAN.desk()) { try { sups = await api('/chat/suppliers'); } catch {} }
     const f = state.msgFilter || 'todo';
     const match = (c, k) => k === 'all' || (k === 'todo' ? c.status === 'open' : c.status === k);
     const FILT = [['todo', 'À répondre'], ['bot', 'Avec l\'assistant'], ['closed', 'Terminées'], ['all', 'Toutes']];
@@ -2622,84 +2500,18 @@
               <span><strong>${esc(c.name)}${vb(c.idStatus)}</strong><small>${c.lastFrom === 'customer' ? '' : c.lastFrom === 'staff' ? 'Vous : ' : 'Assistant : '}${esc((c.lastText || '').slice(0, 70))}</small></span>
               <span class="side"><em>${c.lastAt ? msgTime(c.lastAt) : ''}</em>${c.unread ? `<b class="n">${c.unread}</b>` : `<i class="tag ${CONV_ST[c.status]?.[1] || ''}">${esc(CONV_ST[c.status]?.[0] || '')}</i>`}</span>
             </a>`).join('') : '<p class="muted" style="padding:14px">Aucune conversation ici.</p>'}` : ''}
-          ${sups.length ? `<p class="msg-sep">${icon('storefront')} Fournisseurs</p>${sups.map((f) => `
-            <a class="msg-item ${id === 'f-' + f.supplierId ? 'on' : ''} ${f.unread ? 'unread' : ''}" href="#/messagerie/f-${enc(f.supplierId)}">
-              <span class="av sup">${esc((f.name || 'F')[0].toUpperCase())}</span>
-              <span><strong>${esc(f.name)}</strong><small>${f.lastText ? (f.lastFrom === 'staff' ? 'Zado : ' : '') + esc(f.lastText.slice(0, 70)) : 'Pas encore de message'}</small></span>
-              <span class="side"><em>${f.lastAt ? msgTime(f.lastAt) : ''}</em>${f.unread ? `<b class="n">${f.unread}</b>` : ''}</span>
-            </a>`).join('')}` : ''}
         </aside>
         <section class="msg-conv" id="msgConv">${id ? '<p class="muted" style="padding:20px">Chargement…</p>' : `<div class="msg-empty">${icon('chat-circle-dots-duotone')}<p>Choisissez une conversation.</p></div>`}</section>
       </div>`;
     app.querySelectorAll('[data-mf]').forEach((b) => b.addEventListener('click', () => { state.msgFilter = b.dataset.mf; viewMessaging(id); }));
     if (id === 'equipe') await openTeam();
-    else if (id?.startsWith('f-')) await openSupplierThread(id.slice(2));
     else if (id) await openConv(id);
     // Nouveaux messages : toutes les 4 s tant que la page est affichée
     state.msgTimer = setInterval(async () => {
       if (document.hidden || !location.hash.startsWith('#/messagerie')) return;
       if (id === 'equipe') return openTeam(true);
-      if (id?.startsWith('f-')) return openSupplierThread(id.slice(2), true);
       if (id) openConv(id, true);
     }, 4000);
-  }
-  // Fil « Fournisseur ↔ Zado » vu par l'équipe (admin, commandes, catalogue)
-  async function openSupplierThread(sid, refresh) {
-    let t;
-    try { t = await api('/chat/suppliers/' + enc(sid)); } catch (err) { $('#msgConv').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; return; }
-    const sig = JSON.stringify(t.messages.length);
-    if (refresh && sig === state.supSig) return;
-    state.supSig = sig;
-    const thread = t.messages.length ? t.messages.map((m) => bubble(m, m.from === 'staff' && m.userId === t.me)).join('') : '<p class="muted" style="text-align:center">Pas encore de message avec ce fournisseur.</p>';
-    if (refresh && $('#msgThread')) { $('#msgThread').innerHTML = thread; $('#msgThread').scrollTop = 1e9; loadChatCounts(); return; }
-    $('#msgConv').innerHTML = `
-      <div class="msg-top"><a class="ghost back" href="#/messagerie">${icon('caret-left')}</a><div><strong>${esc(t.name)}</strong> <span class="tag">Fournisseur</span><br><span class="muted">${esc(t.contact || '')}${t.phone ? ` · <a href="tel:${esc(t.phone)}">${esc(t.phone)}</a> · <a href="https://wa.me/242${esc(String(t.phone).replace(/\D/g, '').replace(/^242/, ''))}" target="_blank" rel="noopener">WhatsApp</a>` : ''}</span></div></div>
-      <div class="msg-thread" id="msgThread">${thread}</div>
-      ${replyBox('supplier')}`;
-    $('#msgThread').scrollTop = 1e9;
-    bindReply(async (text) => { await api('/chat/suppliers/' + enc(sid) + '/messages', { method: 'POST', body: { text } }); state.supSig = null; await openSupplierThread(sid, true); });
-    loadChatCounts();
-  }
-  // Le fournisseur : son fil avec Zado (il ne voit ni les clients ni le salon de l'équipe)
-  async function viewSupplierChat(refresh) {
-    let t;
-    try { t = await api('/chat/kamwa'); } catch { return; }
-    const sig = JSON.stringify(t.messages.length);
-    if (refresh && sig === state.supSig) return;
-    state.supSig = sig;
-    const thread = t.messages.length ? t.messages.map((m) => bubble(m, m.from === 'supplier')).join('') : '<p class="muted" style="text-align:center">Écrivez à Zado : une question sur une commande, un produit, un rendez-vous de récupération…</p>';
-    if (refresh && $('#msgThread')) { $('#msgThread').innerHTML = thread; $('#msgThread').scrollTop = 1e9; loadChatCounts(); return; }
-    app.innerHTML = pageHead({ title: 'Messagerie', desc: 'Votre fil avec l\'équipe Zado. Quand vous cliquez « Prêt à récupérer » sur une commande, Zado est prévenu ici automatiquement.' }) + `
-      <div class="msg-layout has-conv solo"><section class="msg-conv" id="msgConv">
-        <div class="msg-top"><div><strong>Zado</strong><br><span class="muted">Administration, commandes et catalogue</span></div></div>
-        <div class="msg-thread" id="msgThread">${thread}</div>
-        ${replyBox('supplier')}
-      </section></div>`;
-    $('#msgThread').scrollTop = 1e9;
-    bindReply(async (text) => { await api('/chat/kamwa', { method: 'POST', body: { text } }); state.supSig = null; await viewSupplierChat(true); });
-    loadChatCounts();
-    state.msgTimer = setInterval(() => { if (!document.hidden && location.hash.startsWith('#/messagerie')) viewSupplierChat(true); }, 4000);
-  }
-  function replyBox(team) {
-    return `<form class="msg-reply" id="msgForm">
-      ${team ? '' : `<div class="canned">${CANNED.map((t, i) => `<button type="button" data-canned="${i}">${esc(t.slice(0, 34))}…</button>`).join('')}</div>`}
-      <div class="row-reply"><textarea id="msgText" rows="2" maxlength="2000" placeholder="${team === 'supplier' ? 'Votre message…' : team ? 'Message à toute l\'équipe…' : 'Votre réponse au client…'}"></textarea>
-      <button class="btn">${icon('paper-plane-right-fill')} Envoyer</button></div>
-      ${team ? '' : `<label class="check" style="margin:6px 0 0"><input type="checkbox" id="msgInternal"> Note interne (invisible pour le client)</label>`}
-    </form>`;
-  }
-  function bindReply(send) {
-    const form = $('#msgForm'), ta = $('#msgText');
-    form.querySelectorAll('[data-canned]').forEach((b) => b.addEventListener('click', () => { ta.value = CANNED[b.dataset.canned]; ta.focus(); }));
-    ta.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); form.requestSubmit(); } });
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const text = ta.value.trim(); if (!text) return;
-      ta.disabled = true;
-      try { await send(text, $('#msgInternal')?.checked); ta.value = ''; if ($('#msgInternal')) $('#msgInternal').checked = false; }
-      catch (err) { toast(err.message); }
-      ta.disabled = false; ta.focus();
-    });
   }
   async function openConv(id, refresh) {
     let c;
@@ -2746,7 +2558,7 @@
     if (!state.user) return;
     try {
       const n = await api('/chat/unread');
-      const total = (n.support || 0) + (n.team || 0) + (n.suppliers || 0) + (n.kamwa || 0);
+      const total = (n.support || 0) + (n.team || 0);
       for (const el of [$('#chatCount')]) { if (el) { el.hidden = !total; el.textContent = total; } }
       if ($('#teamUnread')) { $('#teamUnread').hidden = !n.team; $('#teamUnread').textContent = n.team; }
       if (state.chatWaiting != null && n.waiting > state.chatWaiting) { ring(); toast('Un client attend une réponse dans la messagerie'); }
@@ -2884,9 +2696,7 @@
     proEs.onerror = () => { if (proEs.readyState === EventSource.CLOSED) { proEs = null; setTimeout(connectProEvents, 3000); } };
   }
   function refreshMessaging(id) {
-    if (CAN.supplier()) return viewSupplierChat(true);
     if (id === 'equipe') return openTeam(true);
-    if (id?.startsWith('f-')) return openSupplierThread(id.slice(2), true);
     if (id) openConv(id, true);
     // liste des conversations à gauche
     if (!id && !$('#msgText')?.value) viewMessaging(id);
@@ -2907,8 +2717,8 @@
       tableau: () => Boolean(state.user),
       commandes: CAN.orders, commande: CAN.orders, produits: CAN.products, produit: CAN.products,
       messagerie: () => Boolean(state.user),
-      calendrier: () => CAN.orders() || CAN.courier(), achats: () => CAN.admin() || state.user?.role === 'catalog', achat: () => CAN.admin() || state.user?.role === 'catalog', stock: () => CAN.admin() || state.user?.role === 'catalog', avis: () => CAN.admin() || state.user?.role === 'catalog', 'bons-de-commande': CAN.supplier, documents: CAN.orders, colis: () => CAN.orders() || CAN.courier(), scanner: () => CAN.orders() || CAN.courier(),
-      fournisseur: CAN.supplier, clients: CAN.admin, agences: CAN.admin, equipe: CAN.admin, journal: CAN.admin, finances: CAN.admin, reglages: CAN.admin, livraisons: CAN.courier, 'mot-de-passe': () => !CAN.admin(),
+      calendrier: () => CAN.orders() || CAN.courier(), achats: CAN.buyer, achat: CAN.buyer, stock: CAN.buyer, avis: () => CAN.admin() || state.user?.role === 'catalog', 'bons-de-commande': CAN.supplier, documents: CAN.orders, colis: () => CAN.orders() || CAN.courier(), scanner: () => CAN.orders() || CAN.courier(),
+      clients: CAN.admin, agences: CAN.admin, equipe: CAN.admin, journal: CAN.admin, finances: CAN.admin, reglages: CAN.admin, livraisons: CAN.courier, 'mot-de-passe': () => !CAN.admin(),
     };
     if (!allowed[page]?.()) [page, id] = homeHash().slice(2).split('/');
     const tab = page.startsWith('produit') ? 'produits' : page === 'commande' ? 'commandes' : page === 'achat' ? 'achats' : page;
@@ -2917,10 +2727,9 @@
     if (page === 'messagerie') return viewMessaging(id);
     if (page === 'documents') return viewDocuments();
     if (page === 'achats') return viewPurchases();
-    if (page === 'achat') return id === 'nouveau' ? (CAN.admin() ? viewPurchaseNew() : (location.hash = '#/achats')) : viewPurchase(id);
+    if (page === 'achat') return id === 'nouveau' ? viewPurchaseNew() : viewPurchase(id);
     if (page === 'stock') return viewStock(id);
     if (page === 'avis') return viewReviews();
-    if (page === 'bons-de-commande') return viewSupplierPurchases();
     if (page === 'colis') return id ? viewParcel(id) : viewParcels();
     if (page === 'calendrier') return viewCalendar(id);
     if (page === 'scanner') return viewScanner();
@@ -2931,7 +2740,6 @@
     if (page === 'finances') return viewFinances(id);
     if (page === 'livraisons') return viewDeliveries();
     if (page === 'reglages') return viewSettings();
-    if (page === 'fournisseur') return viewSupplierOrders();
     if (page === 'mot-de-passe') return viewPassword();
     if (page === 'commande') return viewOrder(id);
     if (page === 'produits') return viewProducts();
@@ -2951,7 +2759,7 @@
     // Onglets et boutons selon le rôle
     document.querySelectorAll('[data-roles]').forEach((el) => { el.hidden = !el.dataset.roles.split(' ').includes(state.user.role); });
     const prodLabel = document.querySelector('[data-tab="produits"] .lbl');
-    if (prodLabel) prodLabel.textContent = CAN.supplier() ? 'Mes produits' : 'Produits';
+    if (prodLabel) prodLabel.textContent = 'Produits';
     document.body.classList.add('logged');
     $('#whoami').textContent = state.user.name + (state.user.company ? ` · ${state.user.company}` : '');
     $('#top').hidden = false;

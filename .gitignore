@@ -16,3 +16,9 @@ data/identity/
 
 # Documents administratifs personnels de Joseph : jamais sur GitHub (dépôt public) ni sur Vercel
 Documents administratifs/
+
+# Études de marché et modèle économique (stratégie, marges : jamais sur le dépôt public)
+Études/
+
+# Fichiers produits par les tests
+tests/.run/

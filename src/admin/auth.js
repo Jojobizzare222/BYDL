@@ -3,7 +3,7 @@
 //  - membres de l'équipe et fournisseurs (collection « staff ») : comptes créés par l'admin, avec un rôle :
 //      catalog  = employé « Catalogue » (ajout et modification des produits)
 //      orders   = employé « Commandes » (suivi des commandes)
-//      supplier = fournisseur (ses produits, son stock, les commandes de ses produits)
+//      (rôle « supplier » = fournisseur partenaire local : RETIRÉ le 21/10/2026, Zado achète tout en Europe ; ces comptes n'ont plus accès)
 //      courier  = livreur (ses livraisons en cours ; valide une livraison avec le code du client)
 //  - les mots de passe ne sont jamais stockés en clair : seulement leur empreinte (scrypt) ;
 //  - après connexion, cookie de session HttpOnly, SameSite=Strict, 7 jours ;
@@ -18,7 +18,8 @@ const MAX_FAILS = 5;
 const LOCK_MS = 15 * 60 * 1000;
 const ADMIN_LOGIN = 'admin';
 
-const ROLES = { admin: 'Administrateur', catalog: 'Employé Catalogue', orders: 'Employé Commandes', supplier: 'Fournisseur', courier: 'Livreur' };
+const ROLES = { admin: 'Administrateur', catalog: 'Responsable catalogue', orders: 'Employé Commandes', courier: 'Livreur' };
+const RETIRED_ROLES = ['supplier']; // anciens comptes fournisseurs : connexion et sessions refusées
 
 db.exec('CREATE TABLE IF NOT EXISTS admin_sessions (token_hash TEXT PRIMARY KEY, expires_at INTEGER NOT NULL)');
 try {
@@ -123,7 +124,7 @@ function login(req, res) {
     if (checkPassword(password, adminHash())) userId = ADMIN_LOGIN;
   } else {
     const u = findStaff(loginName);
-    if (u && u.active !== false && checkPassword(password, u.passwordHash)) userId = u.id;
+    if (u && u.active !== false && !RETIRED_ROLES.includes(u.role) && checkPassword(password, u.passwordHash)) userId = u.id;
   }
   if (!userId) {
     addFailure(ipKey);
@@ -161,14 +162,14 @@ function currentUser(req) {
     if (!login) return null;
     if (login === ADMIN_LOGIN) return { id: ADMIN_LOGIN, login: ADMIN_LOGIN, name: 'Administrateur', role: 'admin' };
     const u = findStaff(login);
-    if (!u || u.active === false) return null;
+    if (!u || u.active === false || RETIRED_ROLES.includes(u.role)) return null;
     return { id: u.id, login: u.login, name: u.name, role: u.role, company: u.company || null, mustChangePassword: Boolean(u.mustChangePassword) };
   }
   const row = db.prepare('SELECT expires_at, user_id FROM admin_sessions WHERE token_hash = ?').get(sha256(token));
   if (!row || row.expires_at < Date.now()) return null;
   if (row.user_id === ADMIN_LOGIN) return { id: ADMIN_LOGIN, login: ADMIN_LOGIN, name: 'Administrateur', role: 'admin' };
   const u = staff.get(row.user_id);
-  if (!u || u.active === false) return null; // compte désactivé : accès coupé immédiatement
+  if (!u || u.active === false || RETIRED_ROLES.includes(u.role)) return null; // compte désactivé (ou rôle retiré) : accès coupé immédiatement
   return { id: u.id, login: u.login, name: u.name, role: u.role, company: u.company || null, mustChangePassword: Boolean(u.mustChangePassword) };
 }
 

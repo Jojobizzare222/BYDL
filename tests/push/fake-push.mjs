@@ -1,0 +1,2 @@
+import https from 'node:https'; import fs from 'node:fs';
+const log=[]; https.createServer({key:fs.readFileSync(process.argv[2]+'/key.pem'),cert:fs.readFileSync(process.argv[2]+'/cert.pem')},(req,res)=>{ let n=0; req.on('data',c=>n+=c.length); req.on('end',()=>{ if(req.url==='/log'){res.end(JSON.stringify(log));return;} log.push({url:req.url,ttl:req.headers.ttl,urgency:req.headers.urgency,vapid:/vapid/i.test(req.headers.authorization||''),bytes:n}); res.writeHead(201); res.end(); }); }).listen(9443);

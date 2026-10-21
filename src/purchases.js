@@ -25,15 +25,10 @@ const sum = (lines, fn) => lines.reduce((s, l) => s + fn(l), 0);
 const total = (lines) => sum(lines, (l) => l.qty * l.unitPrice);
 const receivedTotal = (lines) => sum(lines, (l) => (l.received || 0) * l.unitPrice);
 
-/** Fournisseur du bon : compte Zado Pro (supplierId) ou extérieur (nom + téléphone). */
+/** Fournisseur du bon (Europe : Apple Store, revendeur…) : nom + contact + téléphone, saisis librement. */
 function cleanSupplier(input = {}) {
-  if (input.supplierId) {
-    const u = staff.get(input.supplierId);
-    if (!u || u.role !== 'supplier') return { error: 'Fournisseur introuvable' };
-    return { value: { supplierId: u.id, name: u.company || u.name, contact: u.name, phone: u.phone || '' } };
-  }
   const name = String(input.name || '').trim().slice(0, 100);
-  if (!name) return { error: 'Indiquez le fournisseur (compte Zado Pro ou nom)' };
+  if (!name) return { error: 'Indiquez le fournisseur (ex. Apple Store, Fnac…)' };
   return { value: { supplierId: null, name, contact: String(input.contact || '').trim().slice(0, 100), phone: String(input.phone || '').replace(/[^\d+ ]/g, '').trim().slice(0, 30) } };
 }
 function cleanLines(input, supplierId) {

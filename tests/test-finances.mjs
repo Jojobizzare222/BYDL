@@ -1,0 +1,64 @@
+import fs from 'node:fs';
+const B='http://localhost:3999/api', PW=fs.readFileSync(process.argv[2],'utf8').trim();
+let fails=0; const ok=(c,m)=>{console.log((c?'OK    ':'ÉCHEC ')+m); if(!c)fails++;};
+const call=async(j,p,o={})=>{const r=await fetch(B+p,{method:o.method||(o.body?'POST':'GET'),headers:{'Content-Type':'application/json',Cookie:j?.c||'',...o.headers},body:o.body&&JSON.stringify(o.body)});const sc=r.headers.get('set-cookie');if(sc&&j)j.c=sc.split(';')[0];return{status:r.status,data:await r.json().catch(()=>null)};};
+const sleep=(ms)=>new Promise(r=>setTimeout(r,ms));
+const A={c:''}; await call(A,'/admin/login',{body:{login:'admin',password:PW}});
+const T=Date.now()%1e6;
+const mk=async(b)=>(await call(A,'/admin/staff',{body:b})).data;
+ok((await call(A,'/admin/staff',{body:{name:'F',login:'ff'+T,role:'supplier',company:'Fourni SARL'}})).status===400,'rôle fournisseur : refusé (volet retiré)');
+const cat=await mk({name:'C',login:'cc'+T,role:'catalog'}), ord=await mk({name:'O',login:'oo'+T,role:'orders'});
+const S={c:''},O={c:''}; await call(S,'/admin/login',{body:{login:'cc'+T,password:cat.password}}); await call(O,'/admin/login',{body:{login:'oo'+T,password:ord.password}});
+ok((await call(O,'/admin/finance')).status===403 && (await call(S,'/admin/finance')).status===403,'finances : réservées à l\'administrateur');
+ok((await call(null,'/admin/finance')).status===401,'finances : refusées sans connexion');
+// deux produits Zado avec prix d'achat rendu (achat en Europe + fret + douane)
+const pk=(await call(A,'/admin/products',{body:{name:'Casque test',brand:'X',universe:'Électronique',category:'Audio',price:20000,costPrice:12000,stock:10,description:'d'}})).data;
+ok(pk.costPrice===12000,'admin : prix d\'achat enregistré');
+const ps=(await call(A,'/admin/products',{body:{name:'Câble test',brand:'Y',universe:'Électronique',category:'Audio',price:9000,costPrice:5000,stock:10,description:'d'}})).data;
+ok((await call(null,'/products/'+pk.id)).data.costPrice===undefined,'boutique : prix d\'achat jamais visible');
+const sp=(await call(S,'/admin/products')).data; ok(sp.find(p=>p.id===pk.id)?.costPrice===12000,'responsable catalogue : voit le prix d\'achat');
+ok((await call(O,'/admin/products')).status===403,'employé Commandes : pas d\'accès aux produits ni aux prix d\'achat');
+const before=(await call(A,'/admin/finance?from=&to=')).data;
+// une commande payée de 2 casques + 3 tee
+const o=(await call(null,'/orders',{body:{items:[{productId:pk.id,qty:2},{productId:ps.id,qty:3}],customer:{name:'Cli',phone:'061234567',city:'Pointe-Noire',address:'x'}}})).data;
+const pay=(await call(null,'/payments',{body:{orderId:o.id,token:o.token,phone:'061234567'}})).data;
+await sleep(9500); await call(null,'/payments/'+pay.id);
+const pub=(await call(null,'/orders/'+o.id,{headers:{'X-Order-Token':o.token}})).data;
+ok(pub.status==='paid' && pub.lines.every(l=>!('unitCost' in l) && !('supplierId' in l)),'client : la commande payée ne montre ni coût ni fournisseur');
+const f=(await call(A,'/admin/finance?from=&to=')).data;
+const dRev=f.kpis.revenue-before.kpis.revenue, dCogs=f.kpis.cogs-before.kpis.cogs;
+ok(dRev===2*20000+3*9000,'chiffre d\'affaires : +'+dRev);
+ok(dCogs===2*12000+3*5000,'coût des produits vendus figé à la vente : +'+dCogs);
+ok(Array.isArray(f.suppliers) && f.suppliers.length===0,'plus de dettes de dépôt-vente');
+// changer le prix d'achat après coup ne change pas la marge passée
+await call(A,'/admin/products/'+pk.id,{method:'PATCH',body:{costPrice:99999}});
+ok((await call(A,'/admin/finance?from=&to=')).data.kpis.cogs===f.kpis.cogs,'changer un prix d\'achat ne modifie pas les ventes passées');
+// écritures
+const today=new Date().toISOString().slice(0,10);
+ok((await call(A,'/admin/finance/entries',{body:{type:'expense',category:'rent',amount:'abc',date:today,method:'cash'}})).status===400,'montant invalide refusé');
+ok((await call(A,'/admin/finance/entries',{body:{type:'transfer',amount:1000,date:today,method:'cash',toMethod:'cash'}})).status===400,'transfert vers la même caisse refusé');
+ok((await call(A,'/admin/finance/entries',{body:{type:'expense',category:'supplier',amount:1000,date:today,method:'cash'}})).status===400,'ancienne catégorie « paiement fournisseur » refusée');
+const e1=(await call(A,'/admin/finance/entries',{body:{type:'expense',category:'rent',amount:50000,date:today,method:'bank',label:'Loyer'}})).data;
+await call(A,'/admin/finance/entries',{body:{type:'expense',category:'stock',amount:10000,date:today,method:'momo',label:'Achat Europe'}});
+const fr=(await call(A,'/admin/finance/entries',{body:{type:'expense',category:'freight',amount:26000,date:today,method:'bank',label:'Fret 2 kg'}})).data;
+ok(fr&&fr.category==='freight','fret aérien : écriture enregistrée');
+await call(A,'/admin/finance/entries',{body:{type:'transfer',amount:5000,date:today,method:'momo',toMethod:'cash'}});
+const f2=(await call(A,'/admin/finance?from=&to=')).data;
+ok(f2.kpis.charges-f.kpis.charges===76000,'loyer et fret comptés dans les charges');
+ok(f2.kpis.result-f.kpis.result===-76000,'achat de marchandises et transfert ne changent pas le résultat (fret et loyer oui)');
+ok(f2.balances.momo-f.balances.momo===-15000 && f2.balances.cash-f.balances.cash===5000 && f2.balances.bank-f.balances.bank===-76000,'caisses mises à jour (Mobile Money, espèces, banque)');
+const j=(await call(A,'/admin/finance/journal?from='+today+'&to='+today)).data;
+ok(j.some(r=>r.kind==='sale'&&r.id===o.id) && j.some(r=>r.id===e1.id&&r.amount===-50000),'journal : vente et dépense');
+const csv=await fetch(B+'/admin/finance/journal.csv',{headers:{Cookie:A.c}}); ok(csv.status===200 && (await csv.text()).includes('Loyer'),'export CSV du journal');
+ok((await call(A,'/admin/finance/entries/'+e1.id,{method:'PATCH',body:{amount:60000}})).data.amount===60000,'écriture modifiée');
+ok((await call(A,'/admin/finance/entries/'+e1.id,{method:'DELETE'})).status===200 && (await call(A,'/admin/finance/entries/'+e1.id)).status===404,'écriture supprimée');
+// annulation d'une commande payée -> remboursement à faire
+await call(A,'/admin/orders/'+o.id,{method:'PATCH',body:{status:'cancelled'}});
+const f3=(await call(A,'/admin/finance?from=&to=')).data;
+ok(f3.refundsToDo.some(r=>r.id===o.id),'commande payée puis annulée : remboursement à faire');
+ok(f3.kpis.revenue===f2.kpis.revenue-dRev,'commande annulée retirée du chiffre d\'affaires');
+const rf=await call(A,'/admin/finance/refunds/'+o.id,{method:'POST',body:{}});
+ok(rf.status===200 && !(await call(A,'/admin/finance?from=&to=')).data.refundsToDo.some(r=>r.id===o.id),'remboursement enregistré');
+ok((await call(A,'/admin/finance/refunds/'+o.id,{method:'POST',body:{}})).status===400,'pas de double remboursement');
+ok((await call(A,'/admin/activity')).data.some(a=>a.action==='Remboursement enregistré'),'journal des actions : remboursement inscrit');
+console.log(fails?fails+' ÉCHEC(S)':'TOUT EST BON');
