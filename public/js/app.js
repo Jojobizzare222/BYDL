@@ -535,9 +535,10 @@
         <a href="#/p/${p.id}" class="card-link">
           ${visual(p)}</div>
           ${d ? `<span class="disc">-${d} %</span>` : ''}
+          ${tag ? `<span class="card-badge">${tag}</span>` : ''}
         </a>
         <div class="card-body">
-          <div class="card-tag">${tag}${p.provenance ? `<span class="orig">${icon('airplane-tilt')} ${esc(p.provenance)}</span>` : ''}</div>
+          <div class="card-tag">${p.provenance ? `<span class="orig">${icon('airplane-tilt')} ${esc(p.provenance)}</span>` : ''}${p.sourceSupplier ? `<span class="orig src" title="Fournisseur : ${esc(p.sourceSupplier)}">${icon('seal-check-duotone')} <span>${esc(p.sourceSupplier)}</span></span>` : ''}</div>
           <a href="#/p/${p.id}"><h3>${esc(multi ? familyName(p) : p.name)}</h3></a>
           ${ratingLine(famRating(family))}
           ${multi ? `<div class="swatches" aria-label="${family.length} couleurs">${family.slice(0, 6).map((x) => `<i style="background:${colorOf(x)?.hex || '#ccc'}" title="${esc(colorOf(x)?.label || '')}"></i>`).join('')}<small>${family.length} couleurs</small></div>` : ''}

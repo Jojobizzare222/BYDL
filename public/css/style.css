@@ -1390,3 +1390,10 @@ html[data-theme="dark"] .sc-ico { background: var(--soft); color: var(--brand-te
 .dt-prices td { text-align: right; padding: 7px 0; border-bottom: 1px solid var(--line-soft); font-weight: 600; white-space: nowrap; }
 .dt-prices td small { display: block; font-weight: 400; color: var(--muted); font-size: .78rem; }
 .pdp p + p { margin-top: 8px; }
+/* Fournisseur d'origine sur les cartes (21/10/2026) : à côté de la provenance, coupé proprement si la carte est étroite */
+.card-body .card-tag { height: auto; min-height: 20px; flex-wrap: wrap; column-gap: 10px; row-gap: 2px; }
+.card-tag .orig { white-space: nowrap; max-width: 100%; }
+.card-tag .orig.src { color: var(--ok); min-width: 0; }
+.card-tag .orig.src > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.card-badge { position: absolute; top: 18px; right: 18px; z-index: 2; display: flex; }
+.card-badge .tag { box-shadow: 0 4px 10px rgba(16,38,74,.12); }
