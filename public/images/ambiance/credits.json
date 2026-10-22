@@ -142,5 +142,23 @@
   "source": "https://unsplash.com/photos/FO7JIlwjOtU",
   "license": "Licence Unsplash",
   "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Accessoires",
+  "src": "/images/ambiance/coques-1.jpg",
+  "alt": "Coques de smartphone de plusieurs couleurs",
+  "author": "Behar Zenuni",
+  "source": "https://unsplash.com/photos/x86l1G0G4BQ",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Audio",
+  "src": "/images/ambiance/ecouteurs-1.jpg",
+  "alt": "Écouteurs sans fil avec leur boîtier de charge",
+  "author": "Aaina Sharma",
+  "source": "https://unsplash.com/photos/rI2MXeP6sss",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
  }
 ]

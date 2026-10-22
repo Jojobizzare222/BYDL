@@ -585,6 +585,11 @@
   // Photos d'ambiance libres de droits par rayon (public/images/ambiance/, crédits dans credits.json et sur #/credits)
   const AMB = { 'Téléphones': 'telephones', 'Tablettes': 'tablettes', 'Ordinateurs': 'ordinateurs', 'Montres': 'montres', 'Audio': 'audio', 'TV & Maison': 'tv-maison', 'Accessoires': 'accessoires', 'Composants': 'composants' };
   const amb = (cat, n = 1) => (AMB[cat] ? `/images/ambiance/${AMB[cat]}-${n}.jpg` : null);
+  // À côté d'un PRODUIT, seulement une photo du même type d'objet (Joseph 22/10/2026 : pas de câble pour une coque) ; sinon l'icône
+  const AMB_TYPES = [[/coque|étui/i, ['coques-1']], [/airpods max/i, ['audio-1']], [/airpods|écouteurs/i, ['ecouteurs-1']],
+    [/câble|cable|chargeur|adaptateur secteur/i, ['accessoires-1', 'accessoires-2']], [/iphone|smartphone|galaxy/i, ['telephones-1', 'telephones-2']],
+    [/ipad|tablette/i, ['tablettes-1', 'tablettes-2']], [/macbook|ordinateur portable/i, ['ordinateurs-1', 'ordinateurs-2']], [/watch|montre/i, ['montres-1', 'montres-2']]];
+  const ambTypes = (p) => (AMB_TYPES.find(([re]) => re.test(p?.name || ''))?.[1] || []).map((f) => `/images/ambiance/${f}.jpg`);
   function visual(p, cls = 'thumb') {
     if (p.image) {
       return `<div class="${cls} has-img" style="--fallback:${esc(p.color || '#10264A')}">${catIcon(p.category, 'fallback-ico')}
@@ -747,7 +752,7 @@
 
     // Photos d'ambiance libres de droits (Unsplash, 22/10/2026) : 2 par rayon, utilisées tant qu'un produit n'a pas sa photo
     const usedAmb = new Set();
-    const ambPick = (cat) => { const a = amb(cat, 1), b = amb(cat, 2); if (!a) return null; const x = !usedAmb.has(a) ? a : !usedAmb.has(b) ? b : a; usedAmb.add(x); return x; };
+    const ambPick = (p) => { const list = ambTypes(p); if (!list.length) return null; const x = list.find((u) => !usedAmb.has(u)) || list[0]; usedAmb.add(x); return x; };
     // Diapositives du grand carrousel (construites à partir du catalogue)
     const slide = ({ theme, kicker, title, text, href, cta, p, extra = '', art = '' }) => `
       <div class="slide theme-${theme}">
@@ -760,7 +765,7 @@
         </div>
         <div class="slide-visual">
           <span class="deco o1"></span><span class="deco o2"></span><span class="deco o3"></span>
-          ${p?.image ? `<img src="${esc(p.image)}" alt="${esc(p.name)}" ${p === heroP ? '' : 'loading="lazy"'}>` : p ? ((src) => (src ? `<img class="amb" src="${src}" alt="${esc(p.category)}" ${p === heroP ? 'fetchpriority="high"' : 'loading="lazy"'}><span class="slide-ico mini">${catIcon(p.category)}</span>` : `<span class="slide-ico">${catIcon(p.category)}</span>`))(ambPick(p.category)) : ''}
+          ${p?.image ? `<img src="${esc(p.image)}" alt="${esc(p.name)}" ${p === heroP ? '' : 'loading="lazy"'}>` : p ? ((src) => (src ? `<img class="amb" src="${src}" alt="" ${p === heroP ? 'fetchpriority="high"' : 'loading="lazy"'}><span class="slide-ico mini">${catIcon(p.category)}</span><span class="amb-note">Photo d'illustration</span>` : `<span class="slide-ico">${catIcon(p.category)}</span>`))(ambPick(p)) : ''}
           ${art}
           ${p && discount(p) ? `<span class="slide-badge">-${discount(p)} %</span>` : ''}
         </div>
@@ -798,7 +803,7 @@
     const sideCard = ({ x, p }, i) => `<a class="side-card sc-${i}" href="#/p/${p.id}">
         <span class="sc-k">${esc(x.c)}</span><b>${esc(p.name.replace(/^Apple /, ''))}</b>
         <span class="sc-price">${discount(p) ? 'Seulement ' : 'À partir de '}${fcfa(p.price)}</span><span class="sc-go">Découvrir ${icon('arrow-right')}</span>
-        ${p.image ? `<img src="${esc(p.image)}" alt="" loading="lazy">` : ((src) => (src ? `<img class="amb" src="${src}" alt="" loading="lazy">` : `<span class="sc-ico">${catIcon(p.category)}</span>`))(ambPick(p.category))}${discount(p) ? `<span class="zl">-${discount(p)} %</span>` : ''}</a>`;
+        ${p.image ? `<img src="${esc(p.image)}" alt="" loading="lazy">` : ((src) => (src ? `<img class="amb" src="${src}" alt="" loading="lazy" title="Photo d'illustration">` : `<span class="sc-ico">${catIcon(p.category)}</span>`))(ambPick(p))}${discount(p) ? `<span class="zl">-${discount(p)} %</span>` : ''}</a>`;
     // Blocs « Explorer les rayons » : 4 vignettes par rayon + prix d'entrée
     const blocks = [...cats].sort((a, b) => b.list.length - a.list.length).slice(0, 4).map((x) => {
       const seenImg = new Set(); const pics = groupFamilies(x.list).map((g) => g[0]).filter((p) => !p.image || (!seenImg.has(p.image) && seenImg.add(p.image))).slice(0, 4); // 4 produits différents
