@@ -71,7 +71,7 @@ function botAnswer(text, { customer, conv }) {
   const sales = salesSettings();
   const cashOnly = sales.methods.cash && !sales.methods.momo && !sales.methods.card && !sales.methods.cod;
   switch (intent) {
-    case 'hello': return { text: `Mbote${customer ? ' ' + customer.name.split(' ')[0] : ''} ! Je suis l'assistant Zado. Que puis-je faire pour vous ?`, quick: MENU };
+    case 'hello': return { text: `Mbote${customer ? ' ' + customer.name.split(' ')[0] : ''} ! Je suis Mama Zando, l'assistante de Zado. Que puis-je faire pour vous ?`, quick: MENU };
     case 'thanks': return { text: 'Avec plaisir ! Autre chose ?', quick: MENU };
     case 'human': return { handoff: true, text: '' };
     case 'delivery': return { text: `Nos articles viennent de France : ${(() => { const f = require('./freight').freightSettings(); return `achat et vol vers Pointe-Noire en ${f.logisticsMin} à ${f.logisticsMax} jours, puis livraison sous ${f.deliveryHours} h`; })()} (Pointe-Noire seulement pour le moment). Le transport depuis la France est facturé ${require('./freight').freightSettings().eurPerKg} € par kilo, 1 kg minimum par article.\n${feesLine()}\nVous pouvez aussi retirer votre commande gratuitement dans un point relais.\nÀ la livraison, donnez votre code de livraison au livreur seulement quand vous avez le colis en main.`, quick: ['Paiement', 'Points relais', 'Ma commande', 'Parler à un conseiller'] };
@@ -108,7 +108,7 @@ function botAnswer(text, { customer, conv }) {
   }
 }
 
-const WELCOME = { from: 'bot', text: "Mbote ! Je suis l'assistant Zado. Posez votre question ou choisissez un sujet. Un conseiller peut aussi prendre le relais.", quick: MENU };
+const WELCOME = { from: 'bot', text: "Mbote ! Je suis Mama Zando, l'assistante de Zado. Posez votre question ou choisissez un sujet. Un conseiller peut aussi prendre le relais.", quick: MENU };
 
 // ---------- Salon de l'équipe ----------
 function teamConversation() {

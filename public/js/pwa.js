@@ -96,7 +96,12 @@
 
   // Bandeau « pas de connexion »
   const bar = () => document.getElementById('offlineBar');
-  const net = () => { if (bar()) bar().hidden = navigator.onLine; };
+  const net = () => {
+    const b = bar(); if (!b) return;
+    b.hidden = navigator.onLine;
+    // Boutique : Mama Zando, désolée, devant son téléphone sans réseau (public/js/mama.js)
+    if (!navigator.onLine && window.kamwaMama && !b.querySelector('.mz-avatar')) b.insertAdjacentHTML('afterbegin', window.kamwaMama.head('sorry', { size: 'xs' }));
+  };
   window.addEventListener('online', net);
   window.addEventListener('offline', net);
   window.addEventListener('load', net);

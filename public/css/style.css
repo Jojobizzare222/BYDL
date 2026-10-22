@@ -1542,6 +1542,123 @@ html[data-motion="reduce"] .mz-scene *, html[data-saver="on"] .mz-scene * { anim
 html[data-motion="reduce"] .mz-scene .mz-pa, html[data-saver="on"] .mz-scene .mz-pa { opacity: 0; }
 html[data-motion="reduce"] .mz-scene .mz-pb, html[data-saver="on"] .mz-scene .mz-pb, html[data-motion="reduce"] .mz-scene .mz-ok, html[data-saver="on"] .mz-scene .mz-ok { opacity: 1; transform: none; }
 @media (prefers-reduced-motion: reduce) { .mz-scene * { animation: none !important; } .mz-scene .mz-pa { opacity: 0; } .mz-scene .mz-pb, .mz-scene .mz-ok { opacity: 1; transform: none; } }
+/* ================= Mama Zando dans la boutique (public/js/mama.js) =================
+   Repères du dessin : épaule droite (141,166), pieds (120,268), centre de la tête (120,108).
+   Fond crème rond derrière le personnage : il reste lisible en thème clair comme en sombre. */
+.mz { display: inline-grid; place-items: center; flex: none; position: relative; }
+.mz::before { content: ''; position: absolute; left: 8%; right: 8%; bottom: 2%; aspect-ratio: 1; border-radius: 50%; background: #FFF6E0; }
+html[data-theme="dark"] .mz::before { background: #EFE6CF; }
+.mz svg { position: relative; width: 100%; height: 100%; display: block; overflow: visible; }
+.mz-xs { width: 48px; height: 58px; } .mz-sm { width: 84px; height: 100px; } .mz-md { width: 130px; height: 155px; } .mz-lg { width: 180px; height: 215px; }
+.mz-s-load::before { bottom: 6%; }
+.mz-avatar { display: inline-grid; place-items: center; flex: none; border-radius: 50%; background: #FFF6E0; overflow: hidden; }
+.mz-avatar svg { width: 92%; height: 92%; margin-top: 10%; }
+.mz-avatar.mz-xs { width: 32px; height: 32px; } .mz-avatar.mz-sm { width: 44px; height: 44px; } .mz-avatar.mz-md { width: 64px; height: 64px; }
+.mz-dots { width: 30px; height: 15px; vertical-align: -2px; margin-left: 6px; }
+.mz-dots path { fill: none; stroke: currentColor; stroke-width: 3.2; stroke-linecap: round; stroke-linejoin: round; animation: mz-mini 1s ease-in-out infinite; }
+.mz-dots path:nth-child(2) { animation-delay: .15s; } .mz-dots path:nth-child(3) { animation-delay: .3s; }
+@keyframes mz-mini { 0%, 100% { opacity: .25; transform: translateX(0); } 50% { opacity: 1; transform: translateX(3px); } }
+
+.mz .mz-eyes, .mz-avatar .mz-eyes { transform-box: fill-box; transform-origin: center; animation: mz-blink 4.8s infinite; }
+.mz .mz-wave-r { transform-box: view-box; transform-origin: 141px 166px; animation: mz-wave 1.1s ease-in-out infinite alternate; }
+@keyframes mz-wave { from { transform: rotate(6deg); } to { transform: rotate(-16deg); } }
+@keyframes mz-spin { to { transform: rotate(360deg); } }
+@keyframes mz-dot { 0%, 100% { transform: translateY(0); opacity: .35; } 40% { transform: translateY(-7px); opacity: 1; } }
+@keyframes mz-pop { 0% { transform: scale(0); } 70% { transform: scale(1.15); } 100% { transform: scale(1); } }
+/* Accueil : apparaît puis « Mbote ! » */
+.mz-s-hello .mz-figure { transform-box: view-box; transform-origin: 120px 268px; animation: mz-in .6s cubic-bezier(.2,.9,.3,1.35) both; }
+.mz-s-hello .mz-bub { transform-box: view-box; transform-origin: 64px 66px; animation: mz-pop .4s ease-out .5s both; }
+@keyframes mz-in { from { transform: scale(.2); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+/* Chargement */
+.mz-s-load .mz-orbit { transform-box: view-box; transform-origin: 120px 108px; animation: mz-spin 1.8s linear infinite; }
+.mz-s-load .mz-par { transform-box: fill-box; transform-origin: center; animation: mz-spin 1.8s linear infinite reverse; }
+.mz-s-load .mz-dot { animation: mz-dot 1.2s ease-in-out infinite; }
+.mz-s-load .mz-dot:nth-of-type(2) { animation-delay: .15s; } .mz-s-load .mz-dot:nth-of-type(3) { animation-delay: .3s; }
+/* Ajouté au panier (une fois) */
+.mz-s-cart .mz-drop { animation: mz-drop .9s cubic-bezier(.5,0,.75,0) both; }
+.mz-s-cart .mz-figure { transform-box: view-box; transform-origin: 120px 268px; animation: mz-catch 1.3s ease-out both; }
+.mz-s-cart .mz-plus { transform-box: fill-box; transform-origin: center; animation: mz-pop .4s ease-out .9s both; }
+@keyframes mz-drop { 0% { transform: translateY(-170px); opacity: 0; } 15% { opacity: 1; } 80% { transform: translateY(0); } 90% { transform: translateY(-6px); } 100% { transform: translateY(0); } }
+@keyframes mz-catch { 0%, 60% { transform: scale(1, 1); } 72% { transform: scale(1.04, .95); } 100% { transform: scale(1, 1); } }
+/* Paiement en attente : le téléphone vibre */
+.mz-s-wait .mz-buzz { transform-box: view-box; transform-origin: 166px 120px; animation: mz-buzz 1.6s ease-in-out infinite; }
+.mz-s-wait .mz-ring { fill: none; stroke: #FFB300; stroke-width: 3; transform-box: fill-box; transform-origin: center; animation: mz-ring 1.6s ease-out infinite; }
+.mz-s-wait .mz-r2 { animation-delay: .5s; }
+@keyframes mz-buzz { 0%, 50%, 100% { transform: rotate(0); } 6%, 18%, 30% { transform: rotate(-7deg); } 12%, 24%, 36% { transform: rotate(7deg); } }
+@keyframes mz-ring { 0% { transform: scale(.6); opacity: .9; } 100% { transform: scale(1.9); opacity: 0; } }
+/* Commande confirmée : saut de joie + confettis (2 fois, puis elle respire) */
+.mz-s-yes .mz-figure { transform-box: view-box; transform-origin: 120px 268px; animation: mz-jump 1.3s ease-in-out 2; }
+.mz-s-yes .mz-conf { transform-box: fill-box; transform-origin: center; opacity: 0; animation: mz-conf 1.8s ease-out .15s 1 both; }
+.mz-s-yes .mz-ok { transform-box: fill-box; transform-origin: center; animation: mz-pop .45s ease-out .35s both; }
+@keyframes mz-jump { 0%, 100% { transform: translateY(0) scale(1, 1); } 15% { transform: translateY(0) scale(1.04, .94); } 42% { transform: translateY(-26px) scale(.98, 1.03); } 70% { transform: translateY(0) scale(1.03, .96); } 85% { transform: translateY(0) scale(1, 1); } }
+@keyframes mz-conf { 0% { transform: translate(0, 0) rotate(0); opacity: 0; } 10% { opacity: 1; } 70% { transform: translate(var(--dx), var(--dy)) rotate(var(--r)); opacity: 1; } 100% { transform: translate(var(--dx), calc(var(--dy) + 40px)) rotate(var(--r)); opacity: 0; } }
+/* Paiement non abouti : haussement d'épaules */
+.mz-s-no .mz-head { transform-box: view-box; transform-origin: 120px 140px; animation: mz-tilt 3s ease-in-out infinite; }
+.mz-s-no .mz-arm-l, .mz-s-no .mz-arm-r { animation: mz-shrug 3s ease-in-out infinite; }
+.mz-s-no .mz-q { transform-box: fill-box; transform-origin: center; animation: mz-pop .45s ease-out .3s both; }
+@keyframes mz-tilt { 0%, 100% { transform: rotate(0); } 30%, 60% { transform: rotate(-7deg); } }
+@keyframes mz-shrug { 0%, 100% { transform: translateY(0); } 30%, 60% { transform: translateY(-6px); } }
+/* Panier vide */
+.mz-s-empty .mz-head { transform-box: view-box; transform-origin: 120px 140px; animation: mz-peek 3.4s ease-in-out infinite; }
+.mz-s-empty .mz-swing { transform-box: view-box; transform-origin: 120px 172px; animation: mz-swing 3.4s ease-in-out infinite; }
+@keyframes mz-peek { 0%, 100% { transform: rotate(0) translateY(0); } 35%, 70% { transform: rotate(9deg) translateY(3px); } }
+@keyframes mz-swing { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-4deg); } 55% { transform: rotate(4deg); } }
+/* Pièce d'identité : la loupe balaie la pièce ; pièce vérifiée : le tampon tombe */
+.mz-s-id .mz-scan { animation: mz-scan 3.2s ease-in-out infinite; }
+@keyframes mz-scan { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(-42px, 6px); } 50% { transform: translate(-14px, 16px); } 75% { transform: translate(-40px, 20px); } }
+.mz-s-ver .mz-stamp { transform-box: fill-box; transform-origin: center; animation: mz-stamp .7s ease-out .3s both; }
+.mz-s-ver .mz-figure { transform-box: view-box; transform-origin: 120px 268px; animation: mz-hop .6s ease-in-out .7s 1; }
+@keyframes mz-stamp { 0% { transform: scale(2.4) rotate(-14deg); opacity: 0; } 60% { transform: scale(.92) rotate(-10deg); opacity: 1; } 100% { transform: scale(1) rotate(-10deg); opacity: 1; } }
+@keyframes mz-hop { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+/* Livraison : elle arrive et tend le colis */
+.mz-s-deliver .mz-walk { animation: mz-walk 1.9s ease-out both; }
+.mz-s-deliver .mz-ok { transform-box: fill-box; transform-origin: center; animation: mz-pop .45s ease-out 1.9s both; }
+@keyframes mz-walk { 0% { transform: translateX(-200px); opacity: 0; } 20% { opacity: 1; } 100% { transform: translateX(0); } }
+/* Elle vous répond (Aide) */
+.mz-s-chat .mz-mouth { transform-box: fill-box; transform-origin: center top; animation: mz-talk .5s ease-in-out infinite alternate; }
+.mz-s-chat .mz-tdot { animation: mz-dot 1.2s ease-in-out infinite; }
+.mz-s-chat .mz-tdot:nth-of-type(2) { animation-delay: .15s; } .mz-s-chat .mz-tdot:nth-of-type(3) { animation-delay: .3s; }
+@keyframes mz-talk { from { transform: scaleY(.45); } to { transform: scaleY(1); } }
+/* Pas de réseau */
+.mz-s-off .mz-bar { animation: mz-bar 1.6s steps(1) infinite; }
+.mz-s-off .mz-b2 { animation-delay: .4s; } .mz-s-off .mz-b3 { animation-delay: .8s; }
+.mz-s-off .mz-head { transform-box: view-box; transform-origin: 120px 140px; animation: mz-tilt 4s ease-in-out infinite; }
+@keyframes mz-bar { 0% { opacity: .2; } 50% { opacity: 1; } }
+/* Maintenance : la pancarte se balance */
+.mz-s-maint .mz-sign { transform-box: view-box; transform-origin: 120px 150px; animation: mz-swing 2.6s ease-in-out infinite; }
+@keyframes mz-blink { 0%, 93%, 100% { transform: scaleY(1); } 96% { transform: scaleY(.08); } }
+
+/* Emplacements dans la boutique */
+.mz-loading { display: grid; justify-items: center; gap: 4px; padding: 48px 16px; color: var(--muted); text-align: center; }
+.mz-loading p { margin: 0; font-weight: 600; }
+.empty-search > .mz { float: left; margin: -6px 12px 0 0; }
+.empty.mz-empty { display: grid; justify-items: center; gap: 8px; text-align: center; padding: 24px 12px; }
+.waiting .mz { margin: 0 auto 6px; }
+.shop-toast .mz { margin: -14px 0 -6px -6px; }
+.voyage .vy-head { position: relative; }
+.voyage .mz { position: absolute; right: 0; top: -8px; }
+.voyage .vy-head > b, .voyage .vy-head > span { padding-right: 70px; }
+.mz-delivered { display: flex; align-items: center; gap: 14px; background: #E8F6F0; border-radius: 16px; padding: 10px 16px 10px 8px; margin: 0 0 14px; color: #0E5A44; }
+.mz-delivered b { display: block; font-size: 1.05rem; color: #0E3D2F; }
+html[data-theme="dark"] .mz-delivered { background: #12352B; color: #B6E8D4; } html[data-theme="dark"] .mz-delivered b { color: #E3FFF3; }
+.id-box-anim { float: right; margin: -6px -4px 4px 10px; }
+.maint-card .mz { margin: 4px auto 0; }
+.offline-bar .mz-avatar { margin-right: 4px; vertical-align: middle; }
+.idv-seal:has(.mz) { width: 130px; height: 158px; }
+.idv-seal .mz { position: relative; z-index: 1; }
+.idv-seal .mz svg { width: 100%; height: 100%; }
+
+.chat-head .mz-avatar { box-shadow: 0 0 0 2px rgba(255,255,255,.6); }
+.msg .who .chat-av { width: 22px; height: 22px; vertical-align: -6px; margin-right: 4px; }
+.msg.typing .bubble { display: inline-flex; gap: 4px; padding: 12px 14px; }
+.msg.typing .bubble i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; opacity: .4; animation: mz-dot 1.2s ease-in-out infinite; }
+.msg.typing .bubble i:nth-child(2) { animation-delay: .15s; } .msg.typing .bubble i:nth-child(3) { animation-delay: .3s; }
+/* Animations coupées : réglage « réduire les animations », économie de données ou réglage du téléphone */
+html[data-motion="reduce"] .mz *, html[data-saver="on"] .mz *, html[data-motion="reduce"] .mz-avatar *, html[data-motion="reduce"] .mz-dots * { animation: none !important; }
+html[data-motion="reduce"] .mz-s-yes .mz-conf, html[data-saver="on"] .mz-s-yes .mz-conf { opacity: 0; }
+html[data-motion="reduce"] .msg.typing .bubble i { animation: none; }
+@media (prefers-reduced-motion: reduce) { .mz *, .mz-avatar *, .mz-dots *, .msg.typing .bubble i { animation: none !important; } .mz-s-yes .mz-conf { opacity: 0; } }
+
 html[data-motion="reduce"] .bg-route * { animation: none !important; }
 @media (prefers-reduced-motion: reduce) { .bg-route * { animation: none !important; } }
 html[data-saver="on"] .bg-route { display: none; }

@@ -6,6 +6,9 @@
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
   const token = () => { try { return localStorage.getItem(KEY) || ''; } catch { return ''; } };
   const saveToken = (t) => { try { if (t) localStorage.setItem(KEY, t); } catch {} };
+  // Mama Zando = le visage de l'assistant (public/js/mama.js) ; repli sur le symbole Zado
+  const mz = window.kamwaMama;
+  const avatar = (face = 'smile') => (mz ? mz.head(face, { size: 'xs', cls: 'chat-av' }) : '');
   async function api(path, opt = {}) {
     const r = await fetch('/api/chat' + path, { method: opt.method || (opt.body ? 'POST' : 'GET'), headers: { 'Content-Type': 'application/json', 'X-Chat-Token': token() }, body: opt.body && JSON.stringify(opt.body), cache: 'no-store' });
     const d = await r.json().catch(() => ({}));
@@ -17,8 +20,8 @@
     <button class="chat-fab" id="chatFab" aria-label="Aide : poser une question">${ico('chat-circle-dots-fill')}<span>Aide</span><b class="chat-badge" id="chatBadge" hidden></b></button>
     <section class="chat-panel" id="chatPanel" hidden aria-label="Messagerie Zado">
       <header class="chat-head">
-        <img src="/brand/symbole-zado.svg?v=8" alt="" width="34" height="34">
-        <div><strong>Aide Zado</strong><small id="chatState">Assistant · réponse immédiate</small></div>
+        ${mz ? mz.head('smile', { size: 'sm' }) : '<img src="/brand/symbole-zado.svg?v=8" alt="" width="34" height="34">'}
+        <div><strong>Aide Zado</strong><small id="chatState">Mama Zando · réponse immédiate</small></div>
         <button class="chat-x" id="chatClose" aria-label="Fermer">${ico('x-bold')}</button>
       </header>
       <div class="chat-body" id="chatBody" aria-live="polite"></div>
@@ -44,13 +47,14 @@
     const last = msgs[msgs.length - 1];
     body.innerHTML = msgs.map((m) => `
       <div class="msg ${m.from}">
-        ${m.from === 'staff' ? `<span class="who">${esc(m.staffName || 'Zado')} · conseiller Zado</span>` : m.from === 'bot' ? '<span class="who">Assistant Zado</span>' : ''}
+        ${m.from === 'staff' ? `<span class="who">${esc(m.staffName || 'Zado')} · conseiller Zado</span>` : m.from === 'bot' ? `<span class="who">${avatar()} Mama Zando · assistante</span>` : ''}
         <div class="bubble">${fmt(m.text)}${(m.links || []).length ? `<div class="msg-links">${m.links.map((l) => `<a href="${esc(l.href)}" data-chat-link>${esc(l.label)} ${ico('caret-right')}</a>`).join('')}</div>` : ''}</div>
         <span class="t">${time(m.at)}</span>
       </div>`).join('')
       + (last?.from === 'bot' && last.quick?.length && conv?.status !== 'open' ? `<div class="quick">${last.quick.map((q) => `<button type="button" data-q="${esc(q)}">${esc(q)}</button>`).join('')}</div>` : '')
-      ;
-    document.getElementById('chatState').textContent = conv?.status === 'open' ? 'Un conseiller Zado vous répond ici' : conv?.status === 'closed' ? 'Conversation terminée' : 'Assistant · réponse immédiate';
+      // Pendant la réponse : Mama Zando « écrit » (trois points)
+      + (sending && conv?.status !== 'open' ? `<div class="msg bot typing"><span class="who">${avatar('talk')} Mama Zando écrit…</span><div class="bubble"><i></i><i></i><i></i></div></div>` : '');
+    document.getElementById('chatState').textContent = conv?.status === 'open' ? 'Un conseiller Zado vous répond ici' : conv?.status === 'closed' ? 'Conversation terminée' : 'Mama Zando · réponse immédiate';
     if (msgs.length !== shownCount) { body.scrollTop = body.scrollHeight; shownCount = msgs.length; }
   }
   function setBadge() {

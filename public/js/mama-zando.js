@@ -1,4 +1,4 @@
-// Mama Zando — système de personnage (proposition graphique, 21/10/2026)
+// Mama Zando — système de personnage (21/10/2026), utilisé par la boutique (public/js/mama.js), la scène de l'étal (scripts/mama-scene.js) et la planche design/mama-zando.html
 // Un seul trait (5 unités dans un cadre de 240 × 280), bouts arrondis, aplats sans dégradé, 6 couleurs.
 // Le personnage est assemblé à partir de pièces : corps, tête, visage (expressions), bras (poses), accessoires.
 (function () {

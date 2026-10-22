@@ -10,6 +10,11 @@
   let UNIVERSES = [];
   // Icônes Phosphor (fichier /icons.svg, récupérées via Iconify)
   const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=15#${name}"></use></svg>`;
+  // Mama Zando (public/js/mama.js) : scènes animées aux moments clés du parcours
+  const mama = (name, opt) => window.kamwaMama?.scene(name, opt) || '';
+  const mamaLoading = (text = 'Chargement…') => `<div class="mz-loading" role="status">${mama('load', { size: 'sm' })}<p>${text}</p></div>`;
+  const mamaEmpty = (html) => `<div class="empty mz-empty">${mama('empty', { size: 'sm' })}<p>${html}</p></div>`;
+  const busy = (btn, text) => { btn.disabled = true; btn.innerHTML = `${esc(text)}${window.kamwaMama?.dots() || ''}`; };
   const ICONS = { 'Téléphones': 'device-mobile-duotone', 'Tablettes': 'device-tablet-duotone', 'Ordinateurs': 'laptop-duotone', 'Montres': 'watch-duotone', 'Audio': 'headphones-duotone', 'TV & Maison': 'television-duotone', 'Jeux vidéo & consoles': 'game-controller-duotone', 'Composants': 'cpu-duotone', 'Accessoires': 'plug-duotone' };
   const catIcon = (cat, cls = '') => icon(ICONS[cat] || 'shopping-bag-duotone', cls);
   // Vignettes sans photo : une des trois teintes de la charte, selon la catégorie
@@ -63,7 +68,7 @@
     el.innerHTML = `<div class="maint-card">
         ${m.preview ? '<span class="maint-preview">Aperçu visible uniquement sur cet écran : la boutique reste ouverte</span>' : ''}
         <img class="maint-logo for-light" src="/brand/logo-zado.svg?v=8" alt="Zado" width="115" height="36"><img class="maint-logo for-dark" src="/brand/logo-zado-clair.svg?v=8" alt="Zado" width="115" height="36">
-        <div class="maint-ico">${icon('clock-bold')}</div>
+        ${mama('maint', { size: 'md' }) || `<div class="maint-ico">${icon('clock-bold')}</div>`}
         <h1 id="maintTitle">Petite pause, on revient vite</h1>
         <p class="maint-msg">${esc(m.message || 'La boutique est en maintenance pour quelques instants.')}</p>
         ${until && until > Date.now() ? `<p class="maint-until">${icon('clock-bold')} Retour prévu ${sameDay ? "aujourd'hui" : 'le ' + until.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })} vers ${hh}</p>` : ''}
@@ -91,10 +96,10 @@
   const saveJSON = (key, value) => { try { value ? localStorage.setItem(key, JSON.stringify(value)) : localStorage.removeItem(key); } catch {} };
   // Message bref en bas de l'écran (ex. « Ajouté au panier ✓ »), avec un bouton d'action facultatif
   let toastTimer = null;
-  function toast(msg, action) {
+  function toast(msg, action, opt = {}) {
     let t = document.getElementById('shopToast');
     if (!t) { t = document.createElement('div'); t.id = 'shopToast'; t.className = 'shop-toast'; t.setAttribute('role', 'status'); t.setAttribute('aria-live', 'polite'); document.body.appendChild(t); }
-    t.innerHTML = `<span>${esc(msg)}</span>${action ? `<button type="button">${esc(action.label)}</button>` : ''}`;
+    t.innerHTML = `${opt.mama ? mama(opt.mama, { size: 'xs' }) : ''}<span>${esc(msg)}</span>${action ? `<button type="button">${esc(action.label)}</button>` : ''}`;
     if (action) t.querySelector('button').addEventListener('click', () => { t.classList.remove('show'); action.run(); });
     t.classList.add('show');
     clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), action ? 4500 : 2800);
@@ -242,7 +247,7 @@
     ov.innerHTML = `<div class="idv-card">
       <div class="idv-seal" aria-hidden="true">
         ${Array.from({ length: 12 }, (_, i) => `<i style="--a:${i * 30}deg;--d:${(i % 3) * 60}ms"></i>`).join('')}
-        <svg viewBox="0 0 120 120"><circle class="idv-c" cx="60" cy="60" r="50"/><path class="idv-k" d="M38 62 l15 15 l30 -32"/></svg>
+        ${mama('ver', { size: 'md' }) || '<svg viewBox="0 0 120 120"><circle class="idv-c" cx="60" cy="60" r="50"/><path class="idv-k" d="M38 62 l15 15 l30 -32"/></svg>'}
       </div>
       <h2 id="idvTitle">Identité vérifiée${first ? `, ${esc(first)}` : ''} !</h2>
       <p>Zado a validé votre pièce d'identité. Vous pouvez commander dès maintenant${hasCart ? ' : votre panier vous attend' : ''}.</p>
@@ -323,7 +328,7 @@
           </div>
           <strong>${fcfa(p.price * qty)}</strong>
         </div>`).join('')
-      : '<p class="empty">Votre panier est vide.</p>';
+      : mamaEmpty('Votre panier est vide.');
     const hint = $('#cartHint'); if (hint) hint.innerHTML = items.length ? accountHint('cart') : '';
   }
 
@@ -610,7 +615,7 @@
     return `<div class="acct-hint ${where}">${icon('identification-card')}<span>${msg}</span></div>`;
   }
   // Confirmation d'ajout au panier (message + accès direct au panier)
-  const added = () => toast('Ajouté au panier ✓', { label: 'Voir le panier', run: openDrawer });
+  const added = () => toast('Ajouté au panier ✓', { label: 'Voir le panier', run: openDrawer }, { mama: 'cart' });
 
   // Étoiles des avis clients (note sur 5, demi-étoile arrondie à l'affichage)
   const stars = (n, cls = '') => `<span class="stars ${cls}" aria-label="${String(n).replace('.', ',')} sur 5">${[1, 2, 3, 4, 5].map((i) => `<i class="${n >= i - 0.25 ? 'on' : n >= i - 0.75 ? 'half' : ''}"></i>`).join('')}</span>`;
@@ -874,7 +879,7 @@
       </div>` : ''}
       ${groups.length ? `<div class="grid">${groups.map((g) => card(g[0], g)).join('')}</div>`
         : list.length ? '<p class="empty">Aucun produit avec ces filtres. <button type="button" class="linkish" data-f-reset>Effacer les filtres</button></p>'
-        : (empty || '<p class="empty">Aucun produit trouvé. Essayez un autre mot-clé.</p>')}`;
+        : (empty || mamaEmpty('Aucun produit trouvé. Essayez un autre mot-clé.'))}`;
     const sel = $('#sort'); sel.value = state.sort;
     sel.addEventListener('change', () => { state.sort = sel.value; route({ keep: true }); });
     app.querySelectorAll('[data-f]').forEach((el) => el.addEventListener('change', () => { f[el.dataset.f] = el.type === 'checkbox' ? el.checked : el.value; route({ keep: true }); }));
@@ -911,6 +916,7 @@
       : partial && list.length ? `<p class="search-note">${icon('magnifying-glass')} Aucun produit ne correspond à tous vos mots : voici les plus proches.</p>` : '';
     const popular = state.products.filter((p) => p.featured || discount(p)).slice(0, 8);
     const empty = `<div class="empty-search">
+        ${mama('empty', { size: 'sm' })}
         <p><strong>Aucun produit pour « ${esc(q)} ».</strong> Vérifiez l'orthographe, essayez un mot plus simple (ex. « téléphone », « écouteurs »), ou parcourez un rayon :</p>
         <div class="chips">${UNIVERSES.flatMap((u) => u.categories.map((c) => `<a class="chip" href="#/c/${enc(u.name)}/${enc(c)}">${esc(c)}</a>`)).join('')}</div>
         <p class="hint">Vous ne trouvez pas ? Écrivez-nous dans « Aide » : nous vous répondons.</p>
@@ -1233,7 +1239,7 @@
       if (st !== 'verified') {
         app.innerHTML = `
           <div class="panel gate" style="max-width:620px;margin:0 auto;text-align:center">
-            <div class="big-check">${icon(c ? 'clock-countdown-duotone' : 'identification-card-duotone')}</div>
+            ${(c && mama('id', { size: 'md' })) || `<div class="big-check">${icon(c ? 'clock-countdown-duotone' : 'identification-card-duotone')}</div>`}
             ${!c ? `<h1>Un compte Zado est nécessaire pour commander</h1>
               <p class="hint">Pour lutter contre les fausses commandes, chaque client crée son compte avec la photo de sa pièce d'identité (passeport, CNI ou NIU). Zado la vérifie, puis vous pouvez commander. Votre panier est gardé.</p>
               <a class="btn cta block" href="#/compte/creer">Créer mon compte</a>
@@ -1456,7 +1462,7 @@
       if (!pickup && !form.address.value.trim()) problems.push([form.address, 'Indiquez votre quartier, votre rue ou un repère pour le livreur']);
       if ((m === 'momo' || m === 'cod' || m === 'mobile') && !localPhone(form.momo?.value)) problems.push([form.momo, 'Numéro Mobile Money invalide']);
       if (!fieldErrors(form, problems)) return;
-      const btn = $('#payBtn'); btn.disabled = true; btn.textContent = 'Envoi de la demande…';
+      const btn = $('#payBtn'); busy(btn, 'Envoi de la demande');
       const customer = pickup
         ? { name: form.name.value, phone: form.phone.value, city: agency?.city || '', address: `Retrait au point relais : ${agency?.name || ''}` }
         : { name: form.name.value, phone: form.phone.value, city: form.city.value, ...(!$('#zoneBox').hidden && form.zone.value ? { zone: form.zone.value } : {}), address: form.address.value, ...(homePos ? { location: homePos } : {}) };
@@ -1520,7 +1526,7 @@
     const opName = payment.operator === 'mtn' ? 'MTN MoMo' : 'Airtel Money';
     app.innerHTML = `
       <div class="panel waiting" id="waiting">
-        <div class="spinner"></div>
+        ${mama(isCard ? 'load' : 'wait', { size: 'md' }) || '<div class="spinner"></div>'}
         ${isCard ? `
         <h1>Vérification de votre paiement par carte</h1>
         <p>Nous confirmons le paiement de <strong>${fcfa(payment.amount)}</strong> auprès de notre partenaire bancaire.</p>` : `
@@ -1556,6 +1562,7 @@
   function viewFailed(p) {
     app.innerHTML = `
       <div class="panel waiting">
+        ${mama('no', { size: 'md' })}
         <h1>Paiement non abouti</h1>
         <p>${esc(p.reason || 'Le paiement a été refusé ou annulé.')}</p>
         <p class="hint">Vérifiez votre solde ou votre carte, puis réessayez (vous pouvez aussi choisir un autre moyen de paiement). Votre panier est conservé.</p>
@@ -1615,7 +1622,7 @@
     }
     app.innerHTML = `
       <div class="panel waiting">
-        <div class="big-check">${icon('check-circle-duotone')}</div>
+        ${mama('yes', { size: 'lg', label: 'Mama Zando saute de joie' }) || `<div class="big-check">${icon('check-circle-duotone')}</div>`}
         <h1>${order?.paymentPlan === 'cod' || (order?.paymentPlan === 'mobile' && order.status === 'confirmed') ? 'Merci, commande confirmée&nbsp;!' : 'Merci, paiement reçu&nbsp;!'}</h1>
         ${order ? `<p>Commande <strong>${esc(order.id)}</strong> : ${fcfa(order.total)}</p>
         ${order.paymentPlan === 'mobile' ? `<p>Acompte reçu : <strong>${fcfa(order.deposit)}</strong>. Le récapitulatif de votre commande est dans « Aide ».</p>${mobileBox(order)}` : ''}
@@ -1687,7 +1694,7 @@
   async function viewAccount(sub) {
     renderNav(null);
     if (sub === 'creer') return viewRegister();
-    app.innerHTML = '<p class="empty">Chargement…</p>';
+    app.innerHTML = mamaLoading();
     const list = await loadMyOrders();
     const c = state.customer;
 
@@ -1713,7 +1720,7 @@
       </div>
       <div class="panel">
         <h2>Commandes passées depuis ce téléphone</h2>
-        ${list.length ? list.map(orderCard).join('') : '<p class="empty">Aucune commande sur ce téléphone pour le moment.</p>'}
+        ${list.length ? list.map(orderCard).join('') : mamaEmpty('Aucune commande sur ce téléphone pour le moment.')}
       </div>`;
     const codeInput = $('#code');
     codeInput.addEventListener('input', () => {
@@ -1866,7 +1873,7 @@
   function idStatusPanel(c) {
     const st = c.idStatus || 'missing';
     if (st === 'verified') return `<div class="alert ok id-status">${icon('seal-check-duotone')} <span><strong>Identité vérifiée</strong> — vous pouvez commander.</span></div>`;
-    if (st === 'pending') return `<div class="alert warn id-status">${icon('clock-countdown-duotone')} <span><strong>Pièce d'identité en cours de vérification.</strong> Vous pourrez commander dès sa validation par Zado (en général en 1 minute). Votre panier vous attend.</span></div>`;
+    if (st === 'pending') return `<div class="alert warn id-status">${mama('id', { size: 'sm' }) || icon('clock-countdown-duotone')} <span><strong>Pièce d'identité en cours de vérification.</strong> Vous pourrez commander dès sa validation par Zado (en général en 1 minute). Votre panier vous attend.</span></div>`;
     return `<form class="panel" id="idForm" novalidate>
       ${st === 'rejected' ? `<div class="alert err"><strong>Votre pièce a été refusée</strong>${c.idRejectReason ? ` : ${esc(c.idRejectReason)}` : ''}. Envoyez une nouvelle photo.</div>`
         : `<div class="alert warn">Pour commander, ajoutez la photo de votre pièce d'identité.</div>`}
@@ -1889,7 +1896,7 @@
       </div>`;
     if (tab === 'commandes') {
       const docs = list.flatMap((o) => (o.documents || []).map((d) => ({ ...d, orderId: o.id }))).sort((a, b) => (a.issuedAt < b.issuedAt ? 1 : -1));
-      app.innerHTML = `<div class="acc">${head}${nav}<div class="panel"><h2>Mes commandes</h2>${list.length ? list.map(orderCard).join('') : '<p class="empty">Pas encore de commande. <a href="#/">Découvrir la boutique</a></p>'}</div>
+      app.innerHTML = `<div class="acc">${head}${nav}<div class="panel"><h2>Mes commandes</h2>${list.length ? list.map(orderCard).join('') : mamaEmpty('Pas encore de commande. <a href="#/">Découvrir la boutique</a>')}</div>
         ${docs.length ? `<div class="panel">${docsBlock(docs, 'Mes factures et reçus')}</div>` : ''}</div>`;
       return;
     }
@@ -1925,7 +1932,7 @@
       const readId = bindIdFields($('#idForm'));
       $('#idForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        const btn = e.target.querySelector('button.cta'); btn.disabled = true; btn.textContent = 'Envoi en cours…';
+        const btn = e.target.querySelector('button.cta'); busy(btn, 'Envoi en cours');
         try {
           const res = await api('/account/identity', { method: 'POST', body: readId() });
           state.customer = res.customer; route();
@@ -2072,14 +2079,14 @@
       try { id = readId(); } catch (err) { problems.push([/type/.test(err.message) ? $('#idType') : form.querySelector('.id-pick'), err.message]); }
       $('#registerError').innerHTML = '';
       if (!fieldErrors(form, problems)) return;
-      const btn = form.querySelector('button.cta'); btn.disabled = true; btn.textContent = 'Envoi en cours…';
+      const btn = form.querySelector('button.cta'); busy(btn, 'Envoi en cours');
       try {
         const res = await api('/account/register', { method: 'POST', body: { name: $('#rName').value, phone: $('#rPhone').value, email: $('#rEmail').value, ...id, deviceOrders: deviceOrders() } });
         state.customer = res.customer; renderAccountBtn();
         const who = res.customer.phone || res.customer.email;
         app.innerHTML = `
           <div class="panel" style="max-width:520px;margin:0 auto;text-align:center">
-            <div class="big-check">${icon('check-circle-duotone')}</div>
+            ${mama('hello', { size: 'md' }) || `<div class="big-check">${icon('check-circle-duotone')}</div>`}
             <h1>Bienvenue ${esc(res.customer.name.split(' ')[0])} !</h1>
             <p>Voici votre <strong>code Zado</strong> :</p>
             ${codeDigits(res.code)}
@@ -2147,7 +2154,7 @@
       arrived: ['Arrivé à Pointe-Noire !', isPickup(o) ? 'Il vous attend bientôt au point relais.' : `Livraison sous ${lg.deliveryHours ?? 24} h.`] }[stage];
     const when = lg.arrivedAt ? (lg.deliverBy && !isPickup(o) ? `À livrer avant le ${longDate(lg.deliverBy)}` : '') : lg.to ? `Arrivée prévue entre le ${dayLong(lg.from)} et le ${dayLong(lg.to)}` : '';
     return `<div class="voyage st-${stage}${still ? ' still' : ''}" aria-label="${esc(text[0])}">
-      <div class="vy-head"><b>${esc(text[0])}</b><span>${esc(text[1])}</span></div>
+      <div class="vy-head">${['bought', 'flying', 'arrived'].includes(stage) ? mama('wave', { size: 'xs' }) : ''}<b>${esc(text[0])}</b><span>${esc(text[1])}</span></div>
       <svg viewBox="0 0 320 128" class="vy-map" aria-hidden="true">
         <path d="${P}" class="vy-track" pathLength="100"/>
         <path d="${P}" class="vy-trail" pathLength="100" style="stroke-dashoffset:${100 - prog}"/>
@@ -2163,7 +2170,7 @@
 
   async function viewTracking(id) {
     renderNav(null);
-    app.innerHTML = '<p class="empty">Chargement…</p>';
+    app.innerHTML = mamaLoading();
     let o = null;
     try { o = await api('/orders/' + enc(id), { headers: orderHeaders(tokenOf(id) || '') }); } catch {}
     if (!o) {
@@ -2189,6 +2196,7 @@
           <div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><h1 style="margin:0">${esc(o.id)}</h1>${statusBadge(o)}</div>
           <p class="hint">Passée le ${longDate(o.createdAt)}</p>
           ${mobileBox(o)}
+          ${o.status === 'delivered' ? `<div class="mz-delivered">${mama('deliver', { size: 'sm' })}<span><b>C'est chez vous !</b>Merci pour votre confiance : toute l'équipe Zado vous souhaite d'en profiter.</span></div>` : ''}
           ${cancelled ? `<div class="alert err">Cette commande a été annulée${at('cancelled') ? ' le ' + longDate(at('cancelled')) : ''}. Si vous avez payé, notre service client vous recontacte pour le remboursement.</div>` : `
           <ol class="timeline">
             ${steps.map(([label, when, text], i) => `
@@ -2572,7 +2580,7 @@
   }
 
   (async () => {
-    app.innerHTML = '<p class="empty">Chargement…</p>';
+    app.innerHTML = mamaLoading();
     try {
       [state.products, state.config] = await Promise.all([api('/products'), api('/config')]);
       // On n'affiche que les rayons qui ont au moins un produit visible (les rayons vides réapparaissent
@@ -2585,7 +2593,7 @@
         .map((u) => ({ ...u, categories: u.categories.filter((c) => state.products.some((p) => p.category === c)) }))
         .filter((u) => u.categories.length);
     } catch {
-      app.innerHTML = '<p class="empty">Connexion impossible. Vérifiez votre réseau.</p>';
+      app.innerHTML = `<div class="empty mz-empty">${mama('off', { size: 'md' })}<p>Connexion impossible. Vérifiez votre réseau, puis rechargez la page.</p></div>`;
       return;
     }
     renderCart();

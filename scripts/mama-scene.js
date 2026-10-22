@@ -1,9 +1,9 @@
 // Génère la scène « l'étal de Mama Zando » du bas de la boutique (SVG statique, aucune bibliothèque)
-// à partir du système de personnage design/mama-zando/mama.js, et l'insère dans public/index.html
+// à partir du système de personnage public/js/mama-zando.js, et l'insère dans public/index.html
 // entre <!-- MAMA-SCENE --> et <!-- /MAMA-SCENE -->. Lancer : node scripts/mama-scene.js
 const fs = require('fs'), path = require('path'), vm = require('vm');
 const ctx = { window: {} };
-vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../design/mama-zando/mama.js'), 'utf8'), ctx);
+vm.runInNewContext(fs.readFileSync(path.join(__dirname, '../public/js/mama-zando.js'), 'utf8'), ctx);
 const M = ctx.window.MamaZando, C = M.C, P = M.P;
 
 // Auvent rayé mangue / blanc, bord festonné
@@ -34,13 +34,29 @@ let svg = `<svg class="mz-scene" viewBox="0 0 520 330" role="img" aria-label="Ma
   ${counter}${stack}${ok}
 </svg>`;
 // Préfixe des classes et des identifiants pour ne rien mélanger avec la boutique
-svg = svg.replace(/class="([^"]*)"/g, (m, c) => `class="${c.split(/\s+/).filter(Boolean).map((k) => (k.startsWith('mz-') ? k : 'mz-' + k)).join(' ')}"`)
-  .replace(/id="dc(\d+)"/g, 'id="mzDc$1"').replace(/url\(#dc(\d+)\)/g, 'url(#mzDc$1)')
+const prefix = (out, idp) => out.replace(/class="([^"]*)"/g, (m, c) => `class="${c.split(/\s+/).filter(Boolean).map((k) => (k.startsWith('mz-') ? k : 'mz-' + k)).join(' ')}"`)
+  .replace(/id="dc(\d+)"/g, `id="${idp}$1"`).replace(/url\(#dc(\d+)\)/g, `url(#${idp}$1)`)
   .replace(/\n\s*/g, ' ');
+svg = prefix(svg, 'mzDc');
+
+// Écran d'ouverture : après le logo, Mama Zando apparaît dans un disque mangue, salue et dit « Mbote ! »
+const splash = `<div class="sp-mama"><span class="sp-disc"><svg viewBox="44 18 152 152" aria-hidden="true">${prefix(M.mama({ R: 'wave', armR: 'wave-r', face: 'smile', shadow: false }), 'mzSp')}</svg></span><span class="sp-bub">Mbote !</span></div>
+    <style>
+      .sp-mama { display: flex; align-items: center; gap: 10px; margin-top: 4px; }
+      .sp-disc { width: 84px; height: 84px; border-radius: 50%; background: #FFF6E0; overflow: hidden; display: block; box-shadow: 0 0 0 4px #FFB300; transform: scale(0); animation: sp-pop .5s cubic-bezier(.3,1.6,.5,1) 1.15s forwards; }
+      .sp-disc svg { width: 100%; height: 100%; display: block; }
+      .sp-mama .mz-wave-r { transform-box: view-box; transform-origin: 141px 166px; animation: sp-wave .45s ease-in-out 1.5s 4 alternate; }
+      .sp-bub { font: 800 1rem/1 "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #10264A; background: #fff; padding: 9px 13px; border-radius: 14px 14px 14px 4px; opacity: 0; transform: translateX(-8px) scale(.8); animation: sp-word .4s ease-out 1.55s forwards; }
+      @keyframes sp-pop { to { transform: scale(1); } }
+      @keyframes sp-wave { from { transform: rotate(6deg); } to { transform: rotate(-18deg); } }
+    </style>`;
 
 const file = path.join(__dirname, '../public/index.html');
-const html = fs.readFileSync(file, 'utf8');
-const re = /(<!-- MAMA-SCENE -->)[\s\S]*?(<!-- \/MAMA-SCENE -->)/;
-if (!re.test(html)) throw new Error('Repères MAMA-SCENE absents de public/index.html');
-fs.writeFileSync(file, html.replace(re, (m, a, b) => `${a}${svg}${b}`));
-console.log('Scène Mama Zando insérée :', Math.round(svg.length / 1024), 'Ko');
+let html = fs.readFileSync(file, 'utf8');
+for (const [name, content] of [['MAMA-SCENE', svg], ['MAMA-SPLASH', splash]]) {
+  const re = new RegExp(`(<!-- ${name} -->)[\\s\\S]*?(<!-- \\/${name} -->)`);
+  if (!re.test(html)) throw new Error(`Repères ${name} absents de public/index.html`);
+  html = html.replace(re, (m, a, b) => `${a}${content}${b}`);
+}
+fs.writeFileSync(file, html);
+console.log('Mama Zando insérée : étal', Math.round(svg.length / 1024), 'Ko, écran d\'ouverture', Math.round(splash.length / 1024), 'Ko');
