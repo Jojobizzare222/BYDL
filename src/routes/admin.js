@@ -742,7 +742,7 @@ function cleanProduct(input, current, { role }) {
     if (p.costPrice != null && (!Number.isInteger(p.costPrice) || p.costPrice < 0 || p.costPrice > 100000000)) return { error: "Prix d'achat invalide (nombre entier en FCFA)" };
   }
   if ('stock' in input) p.stock = toInt(input.stock);
-  // Poids (kg) : sert au transport France → Pointe-Noire facturé au client (13 €/kg, 1 kg minimum par article)
+  // Poids (kg) : sert au transport France → Pointe-Noire facturé au client (15 €/kg, 1 kg minimum par article)
   if ('weightKg' in input) {
     const w = input.weightKg === '' || input.weightKg === null ? null : Number(String(input.weightKg).replace(',', '.'));
     if (w !== null && !(Number.isFinite(w) && w > 0 && w <= 200)) return { error: 'Poids invalide (en kg, ex. 0,45)' };

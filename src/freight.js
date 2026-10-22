@@ -1,12 +1,12 @@
 // Frais de transport France → Pointe-Noire facturés au client (décision Joseph 21/10/2026) :
-// 13 € par kilo, et un article est TOUJOURS facturé au moins 1 kg (« même s'il pèse 100 g »).
+// 15 € par kilo (13 € jusqu'au 22/10/2026), et un article est TOUJOURS facturé au moins 1 kg (« même s'il pèse 100 g »).
 // Réglable dans Zado Pro → Réglages → « Transport et acompte » : prix au kilo, poids minimum, minimum par article ou par commande.
 // Le poids de chaque produit (weightKg) est saisi dans sa fiche ; sans poids, on compte le minimum.
 const { settings } = require('./store');
 
 const EUR_FCFA = 655.957; // parité fixe euro / franc CFA
 // Délais annoncés au client (décision Joseph 21/10/2026) : logistique (achat en France + vol) 2 à 5 jours, puis livraison sous 24 h
-const DEFAULTS = { enabled: true, eurPerKg: 13, minKg: 1, perArticle: true, logisticsMin: 2, logisticsMax: 5, deliveryHours: 24 };
+const DEFAULTS = { enabled: true, eurPerKg: 15, minKg: 1, perArticle: true, logisticsMin: 2, logisticsMax: 5, deliveryHours: 24 };
 
 function freightSettings() {
   try { return { ...DEFAULTS, ...JSON.parse(settings.get('freight') || '{}') }; } catch { return { ...DEFAULTS }; }

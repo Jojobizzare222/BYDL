@@ -171,7 +171,7 @@
         <p>Un seul paiement est demandé par commande : si vous réessayez, la demande en cours est reprise, sans double paiement.</p>
 
         <h2>5. Livraison et retrait</h2>
-        <p>Les articles sont achetés en France et acheminés par avion : comptez 2 à 5 jours de logistique, puis une livraison sous 24 h à Pointe-Noire (uniquement pour le moment), à l'adresse ou au repère indiqué. Le transport depuis la France est facturé au poids (13 € par kilo, 1 kg minimum par article) et affiché avant la commande. Délai maximal garanti : ${T('délai maximal de livraison, ex. 7 jours')}.
+        <p>Les articles sont achetés en France et acheminés par avion : comptez 2 à 5 jours de logistique, puis une livraison sous 24 h à Pointe-Noire (uniquement pour le moment), à l'adresse ou au repère indiqué. Le transport depuis la France est facturé au poids (15 € par kilo, 1 kg minimum par article) et affiché avant la commande. Délai maximal garanti : ${T('délai maximal de livraison, ex. 7 jours')}.
         Les autres villes ne sont pas encore livrées ; la commande peut y être retirée dans un point relais Zado s'il en existe un. Frais de livraison : ${T('montant par quartier')}. Vous pouvez suivre votre commande dans « Mon compte ».</p>
         <p><strong>Code de livraison</strong> : à la commande, vous recevez un code à 4 chiffres (visible dans « Mon compte » et sur la page de suivi). Donnez-le au livreur <strong>seulement quand vous avez votre colis en main</strong> : c'est votre preuve de réception. Ne le communiquez à personne d'autre, même au téléphone.</p>
         <p>À la réception, vérifiez l'état du colis devant le livreur et signalez tout problème (colis abîmé, article manquant) dans les ${T('délai, ex. 48 heures')}.</p>

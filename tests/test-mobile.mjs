@@ -1,4 +1,4 @@
-// Parcours d'achat du 21/10/2026 : transport France → Pointe-Noire (13 €/kg, 1 kg minimum par article), détail du prix,
+// Parcours d'achat du 21/10/2026 : transport France → Pointe-Noire (15 €/kg, 1 kg minimum par article), détail du prix,
 // acompte de 500 FCFA qui confirme la commande + récapitulatif automatique, reste par « retrait » (demande sur le téléphone)
 // ou par « dépôt » (numéro de Zado), facture avec l'acompte déduit, étapes logistiques France → Pointe-Noire.
 // Lancer : zsh tests/run-test.sh test-mobile.mjs tests/id.jpg
@@ -7,7 +7,7 @@ const B = 'http://localhost:3999/api', PW = fs.readFileSync(process.argv[2], 'ut
 let fails = 0; const ok = (c, m) => { console.log((c ? 'OK    ' : 'ÉCHEC ') + m); if (!c) fails++; };
 const call = async (j, p, o = {}) => { const r = await fetch(B + p, { method: o.method || (o.body ? 'POST' : 'GET'), headers: { 'Content-Type': 'application/json', Cookie: j?.c || '', ...(o.headers || {}) }, body: o.body && JSON.stringify(o.body) }); const sc = r.headers.get('set-cookie'); if (sc && j) j.c = sc.split(';')[0]; const t = await r.text(); let data; try { data = JSON.parse(t); } catch { data = t; } return { status: r.status, data }; };
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const KG = Math.round(13 * 655.957); // 8 527 FCFA
+const KG = Math.round(15 * 655.957); // 9 839 FCFA
 
 const A = { c: '' }; await call(A, '/admin/login', { body: { login: 'admin', password: PW } });
 // Client vérifié
@@ -19,7 +19,7 @@ await call(A, `/admin/customers/${reg.customer.id}/identity`, { body: { decision
 ok((await call(A, '/admin/settings/transport', { method: 'PUT', body: { freight: { minKg: 'abc' } } })).status === 400, 'réglage : poids minimum invalide refusé');
 ok((await call(A, '/admin/settings/transport', { method: 'PUT', body: { freight: { logisticsMin: 6, logisticsMax: 3 } } })).status === 400, 'réglage : délai minimum > maximum refusé');
 const tr = (await call(A, '/admin/settings/transport', { method: 'PUT', body: { mobile: { numbers: { mtn: '06 600 00 00' } } } })).data;
-ok(tr.freight.eurPerKg === 13 && tr.freight.minKg === 1 && tr.freight.perArticle && tr.perKg === KG && tr.mobile.deposit === 500 && tr.mobile.numbers.mtn === '066000000', 'par défaut : 13 €/kg, 1 kg minimum par article, acompte 500 FCFA ; numéro de dépôt MTN enregistré');
+ok(tr.freight.eurPerKg === 15 && tr.freight.minKg === 1 && tr.freight.perArticle && tr.perKg === KG && tr.mobile.deposit === 500 && tr.mobile.numbers.mtn === '066000000', 'par défaut : 15 €/kg, 1 kg minimum par article, acompte 500 FCFA ; numéro de dépôt MTN enregistré');
 ok((await call(A, '/admin/products/a003', { method: 'PATCH', body: { weightKg: '0,45', sourcePrice: 500000 } })).data.weightKg === 0.45, 'fiche produit : poids 0,45 kg');
 ok((await call(A, '/admin/products/a003', { method: 'PATCH', body: { weightKg: '-1' } })).status === 400, 'poids négatif refusé');
 const pub = (await call(null, '/products/a003')).data;
@@ -33,7 +33,7 @@ ok(m.enabled && m.deposit === 500 && m.push === true, 'moyen « Mobile Money en 
 const items = [{ productId: 'a003', qty: 1 }, { productId: 'a072', qty: 2 }];
 const o1 = (await call(C, '/orders', { body: { customer: { name: 'Awa Mobile', phone: '061112233', city: 'Pointe-Noire', address: 'Tié-Tié' }, items } })).data;
 const p003 = pub.price, p072 = (await call(null, '/products/a072')).data.price;
-ok(o1.transportKg === 3 && o1.transportFee === Math.round(3 * 13 * 655.957) && o1.total === p003 + 2 * p072 + o1.transportFee, `transport : 3 kg facturés (0,45 kg → 1 kg + 2 × 1 kg) = ${o1.transportFee} FCFA, ajouté au total`);
+ok(o1.transportKg === 3 && o1.transportFee === Math.round(3 * 15 * 655.957) && o1.total === p003 + 2 * p072 + o1.transportFee, `transport : 3 kg facturés (0,45 kg → 1 kg + 2 × 1 kg) = ${o1.transportFee} FCFA, ajouté au total`);
 
 // 3) Retrait : acompte puis demande du reste sur le téléphone
 const pay = (await call(C, '/payments', { body: { orderId: o1.id, token: o1.token, method: 'mobile', mode: 'pull', phone: '061112233' } })).data;

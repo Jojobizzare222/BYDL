@@ -283,9 +283,9 @@
   const variantText = (v) => (v ? Object.entries(v).map(([k, x]) => `${k} : ${x}`).join(' · ') : '');
   const cartItems = () => Object.entries(state.cart).map(([key, qty]) => { const { id, variant } = parseKey(key); return { key, product: byId(id), variant, qty }; }).filter((l) => l.product);
   const cartTotal = () => cartItems().reduce((s, l) => s + l.product.price * l.qty, 0);
-  // Transport France → Pointe-Noire facturé au client (décision Joseph 21/10/2026) : 13 €/kg, 1 kg minimum par article
+  // Transport France → Pointe-Noire facturé au client (décision Joseph 21/10/2026) : 15 €/kg, 1 kg minimum par article (13 € avant le 22/10/2026)
   const EUR_FCFA = 655.957;
-  const frCfg = () => state.config?.freight || { enabled: true, eurPerKg: 13, minKg: 1, perArticle: true, perKg: 8527 };
+  const frCfg = () => state.config?.freight || { enabled: true, eurPerKg: 15, minKg: 1, perArticle: true, perKg: 9839 };
   const billedKg = (w) => { const c = frCfg(), x = Number(w) > 0 ? Number(w) : 0; return Math.round((c.perArticle ? Math.max(c.minKg, x) : x) * 100) / 100; };
   const unitTransport = (p) => (frCfg().enabled ? Math.round(billedKg(p.weightKg) * frCfg().eurPerKg * EUR_FCFA) : 0);
   const cartFreight = () => {

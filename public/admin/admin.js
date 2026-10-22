@@ -2263,7 +2263,7 @@
     // Ce que verra le client : prix fournisseur + marge Zado = prix de l'article, + transport (1 kg minimum par article)
     const showBreak = () => {
       const pr = Number($('#price')?.value || p.price) || 0, src = Number($('#sourcePrice')?.value) || 0, w = Number(String($('#weightKg')?.value || '').replace(',', '.')) || 0;
-      const fr = state.config?.freight || { eurPerKg: 13, minKg: 1, perArticle: true, enabled: true };
+      const fr = state.config?.freight || { eurPerKg: 15, minKg: 1, perArticle: true, enabled: true };
       const kg = fr.perArticle ? Math.max(fr.minKg, w) : w, tr = fr.enabled ? Math.round(kg * fr.eurPerKg * 655.957) : 0;
       $('#priceBreak').innerHTML = `Le client verra : ${src ? `prix fournisseur ${fcfa(src)} + marge Zado <b class="${pr - src < 0 ? 'bad' : ''}">${fcfa(pr - src)}</b> = ` : ''}prix de l'article ${fcfa(pr)}${tr ? ` + transport ${fcfa(tr)} (${String(kg).replace('.', ',')} kg facturé${kg > 1 ? 's' : ''})` : ''}.${src && pr - src < 0 ? ' <b class="bad">Attention : le prix de vente est inférieur au prix fournisseur.</b>' : ''}`;
     };

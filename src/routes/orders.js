@@ -124,7 +124,7 @@ router.post('/', (req, res) => {
   }
 
   const subtotal = lines.reduce((s, l) => s + l.total, 0);
-  // Transport France → Pointe-Noire (src/freight.js) : 13 €/kg, 1 kg minimum par article ; recalculé ici, jamais pris du navigateur
+  // Transport France → Pointe-Noire (src/freight.js) : 15 €/kg, 1 kg minimum par article ; recalculé ici, jamais pris du navigateur
   const freight = require('../freight').orderFreight(lines);
   const order = orders.insert({
     id: newOrderId(),
