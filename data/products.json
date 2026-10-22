@@ -2744,5 +2744,325 @@
       "Se branche sur tous les ordinateurs à port USB",
       "Petite et légère"
     ]
+  },
+  {
+    "id": "r001",
+    "name": "Apple iPhone 12 64 Go reconditionné",
+    "brand": "Apple",
+    "universe": "Électronique",
+    "category": "Téléphones",
+    "price": 140000,
+    "stock": 3,
+    "description": "Écran 6,1\", 64 Go, débloqué tous opérateurs. Reconditionné en France par un professionnel, testé et nettoyé.",
+    "condition": "reconditionné",
+    "refurb": {
+      "grade": "correct",
+      "battery": 80,
+      "warrantyMonths": null,
+      "newPriceEur": null
+    },
+    "provenance": "France",
+    "sourceSupplier": "Back Market",
+    "sourcePrice": 124632,
+    "weightKg": 0.2,
+    "highlights": [
+      "Écran OLED 6,1 pouces Super Retina XDR",
+      "Puce A14 Bionic, compatible 5G",
+      "Double appareil photo 12 Mpx (grand-angle et ultra grand-angle)",
+      "Face ID, résistant à l'eau (IP68)"
+    ],
+    "priceRefs": [
+      {
+        "store": "Back Market",
+        "priceEur": 190,
+        "url": "https://www.backmarket.fr/fr-fr/p/iphone-12",
+        "date": "2026-10-22",
+        "status": "manual",
+        "from": true,
+        "auto": false
+      }
+    ],
+    "priceRefsPublic": false,
+    "updatedAt": "2026-10-22T08:00:00.000Z"
+  },
+  {
+    "id": "r002",
+    "name": "Apple iPhone 13 128 Go reconditionné",
+    "brand": "Apple",
+    "universe": "Électronique",
+    "category": "Téléphones",
+    "price": 200000,
+    "stock": 3,
+    "description": "Écran 6,1\", 128 Go, débloqué tous opérateurs. Reconditionné en France par un professionnel, testé et nettoyé.",
+    "condition": "reconditionné",
+    "refurb": {
+      "grade": "correct",
+      "battery": 80,
+      "warrantyMonths": null,
+      "newPriceEur": null
+    },
+    "provenance": "France",
+    "sourceSupplier": "Back Market",
+    "sourcePrice": 177764,
+    "weightKg": 0.2,
+    "highlights": [
+      "Écran OLED 6,1 pouces Super Retina XDR",
+      "Puce A15 Bionic",
+      "Mode Cinématique et double appareil photo 12 Mpx",
+      "Jusqu'à 19 h de lecture vidéo (donnée Apple)"
+    ],
+    "priceRefs": [
+      {
+        "store": "Back Market",
+        "priceEur": 271,
+        "url": "https://www.backmarket.fr/fr-fr/p/iphone-13",
+        "date": "2026-10-22",
+        "status": "manual",
+        "from": true,
+        "auto": false
+      }
+    ],
+    "priceRefsPublic": false,
+    "updatedAt": "2026-10-22T08:00:00.000Z"
+  },
+  {
+    "id": "r003",
+    "name": "Apple iPhone 14 128 Go reconditionné",
+    "brand": "Apple",
+    "universe": "Électronique",
+    "category": "Téléphones",
+    "price": 235000,
+    "stock": 3,
+    "description": "Écran 6,1\", 128 Go, débloqué tous opérateurs. Reconditionné en France par un professionnel, testé et nettoyé.",
+    "condition": "reconditionné",
+    "refurb": {
+      "grade": "correct",
+      "battery": 80,
+      "warrantyMonths": null,
+      "newPriceEur": null
+    },
+    "provenance": "France",
+    "sourceSupplier": "Back Market",
+    "sourcePrice": 205970,
+    "weightKg": 0.2,
+    "highlights": [
+      "Écran OLED 6,1 pouces Super Retina XDR",
+      "Puce A15 Bionic (5 cœurs graphiques)",
+      "Détection des accidents et SOS d'urgence par satellite",
+      "Appareil photo principal 12 Mpx amélioré"
+    ],
+    "priceRefs": [
+      {
+        "store": "Back Market",
+        "priceEur": 314,
+        "url": "https://www.backmarket.fr/fr-fr/p/iphone-14",
+        "date": "2026-10-22",
+        "status": "manual",
+        "from": true,
+        "auto": false
+      }
+    ],
+    "priceRefsPublic": false,
+    "updatedAt": "2026-10-22T08:00:00.000Z"
+  },
+  {
+    "id": "r004",
+    "name": "Apple iPhone 16e 128 Go reconditionné",
+    "brand": "Apple",
+    "universe": "Électronique",
+    "category": "Téléphones",
+    "price": 320000,
+    "stock": 3,
+    "description": "Écran 6,1\", 128 Go, débloqué tous opérateurs, en parfait état. Reconditionné en France par un professionnel.",
+    "condition": "reconditionné",
+    "refurb": {
+      "grade": "parfait",
+      "battery": 80,
+      "warrantyMonths": null,
+      "newPriceEur": 719
+    },
+    "provenance": "France",
+    "sourceSupplier": "Back Market",
+    "sourcePrice": 281406,
+    "weightKg": 0.2,
+    "highlights": [
+      "Puce A18, compatible Apple Intelligence",
+      "Écran OLED 6,1 pouces",
+      "Appareil photo 48 Mpx",
+      "Port USB-C, autonomie record dans la gamme 6,1 pouces (donnée Apple)"
+    ],
+    "priceRefs": [
+      {
+        "store": "Back Market",
+        "priceEur": 429,
+        "url": "https://www.backmarket.fr/fr-fr/p/iphone-16e",
+        "date": "2026-10-22",
+        "status": "manual",
+        "from": true,
+        "auto": false
+      }
+    ],
+    "priceRefsPublic": false,
+    "updatedAt": "2026-10-22T08:00:00.000Z"
+  },
+  {
+    "id": "r005",
+    "name": "Apple iPhone 16 Pro 128 Go reconditionné",
+    "brand": "Apple",
+    "universe": "Électronique",
+    "category": "Téléphones",
+    "price": 465000,
+    "stock": 3,
+    "description": "Écran 6,3\", 128 Go, débloqué tous opérateurs. Reconditionné en France par un professionnel, testé et nettoyé.",
+    "condition": "reconditionné",
+    "refurb": {
+      "grade": "correct",
+      "battery": 80,
+      "warrantyMonths": null,
+      "newPriceEur": null
+    },
+    "provenance": "France",
+    "sourceSupplier": "Back Market",
+    "sourcePrice": 413909,
+    "weightKg": 0.2,
+    "highlights": [
+      "Puce A18 Pro, compatible Apple Intelligence",
+      "Écran 6,3 pouces ProMotion 120 Hz, toujours activé",
+      "Triple appareil photo 48 Mpx avec téléobjectif 5x",
+      "Cadre en titane, bouton Commande de l'appareil photo"
+    ],
+    "priceRefs": [
+      {
+        "store": "Back Market",
+        "priceEur": 631,
+        "url": "https://www.backmarket.fr/fr-fr/p/iphone-16-pro",
+        "date": "2026-10-22",
+        "status": "manual",
+        "from": true,
+        "auto": false
+      }
+    ],
+    "priceRefsPublic": false,
+    "updatedAt": "2026-10-22T08:00:00.000Z"
+  },
+  {
+    "id": "r006",
+    "name": "Apple iPhone 17 256 Go reconditionné",
+    "brand": "Apple",
+    "universe": "Électronique",
+    "category": "Téléphones",
+    "price": 530000,
+    "stock": 3,
+    "description": "Écran 6,3\", 256 Go, débloqué tous opérateurs. Reconditionné en France par un professionnel, testé et nettoyé.",
+    "condition": "reconditionné",
+    "refurb": {
+      "grade": "correct",
+      "battery": 80,
+      "warrantyMonths": null,
+      "newPriceEur": 969
+    },
+    "provenance": "France",
+    "sourceSupplier": "Back Market",
+    "sourcePrice": 471633,
+    "weightKg": 0.2,
+    "highlights": [
+      "Le dernier iPhone, déjà moins cher que le neuf",
+      "Écran 6,3 pouces ProMotion 120 Hz",
+      "Compatible Apple Intelligence",
+      "256 Go de stockage"
+    ],
+    "priceRefs": [
+      {
+        "store": "Back Market",
+        "priceEur": 719,
+        "url": "https://www.backmarket.fr/fr-fr/p/iphone-17",
+        "date": "2026-10-22",
+        "status": "manual",
+        "from": true,
+        "auto": false
+      }
+    ],
+    "priceRefsPublic": false,
+    "updatedAt": "2026-10-22T08:00:00.000Z"
+  },
+  {
+    "id": "r007",
+    "name": "Apple MacBook Air 13\" M1 8 Go / 256 Go reconditionné",
+    "brand": "Apple",
+    "universe": "Électronique",
+    "category": "Ordinateurs",
+    "price": 425000,
+    "stock": 3,
+    "description": "MacBook Air 13\" avec puce M1, 8 Go de mémoire, 256 Go SSD, clavier AZERTY. Reconditionné en France par un professionnel, testé et nettoyé.",
+    "condition": "reconditionné",
+    "refurb": {
+      "grade": "correct",
+      "battery": 80,
+      "warrantyMonths": null,
+      "newPriceEur": null
+    },
+    "provenance": "France",
+    "sourceSupplier": "Back Market",
+    "sourcePrice": 375863,
+    "weightKg": 1.3,
+    "highlights": [
+      "Puce Apple M1 : rapide et silencieux (sans ventilateur)",
+      "Jusqu'à 18 h d'autonomie (donnée Apple)",
+      "Écran Retina 13,3 pouces",
+      "Clavier AZERTY rétroéclairé, Touch ID"
+    ],
+    "priceRefs": [
+      {
+        "store": "Back Market",
+        "priceEur": 573,
+        "url": "https://www.backmarket.fr/fr-fr/p/macbook-air-m1-series",
+        "date": "2026-10-22",
+        "status": "manual",
+        "from": true,
+        "auto": false
+      }
+    ],
+    "priceRefsPublic": false,
+    "updatedAt": "2026-10-22T08:00:00.000Z"
+  },
+  {
+    "id": "r008",
+    "name": "Apple AirPods Pro (2e génération) reconditionnés",
+    "brand": "Apple",
+    "universe": "Électronique",
+    "category": "Audio",
+    "price": 90000,
+    "stock": 3,
+    "description": "Écouteurs sans fil avec réduction de bruit, boîtier de charge. Reconditionnés par un professionnel, testés et désinfectés.",
+    "condition": "reconditionné",
+    "refurb": {
+      "grade": "correct",
+      "battery": 80,
+      "warrantyMonths": null,
+      "newPriceEur": null
+    },
+    "provenance": "France",
+    "sourceSupplier": "Back Market",
+    "sourcePrice": 78059,
+    "weightKg": 0.1,
+    "highlights": [
+      "Réduction active du bruit et mode Transparence",
+      "Audio spatial personnalisé",
+      "Boîtier de charge avec haut-parleur",
+      "Embouts de plusieurs tailles"
+    ],
+    "priceRefs": [
+      {
+        "store": "Back Market",
+        "priceEur": 119,
+        "url": "https://www.backmarket.fr/fr-fr/l/airpods/5091ca6b-c36c-4d50-b644-fb3c5bdd5f16",
+        "date": "2026-10-22",
+        "status": "manual",
+        "from": true,
+        "auto": false
+      }
+    ],
+    "priceRefsPublic": false,
+    "updatedAt": "2026-10-22T08:00:00.000Z"
   }
 ]

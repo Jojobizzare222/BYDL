@@ -7,7 +7,7 @@ const A={c:''},S={c:''};
 await call(A,'/admin/login',{body:{login:'admin',password:PW}});
 const list=(await call(null,'/products')).data;
 ok(list.length>0 && list.every(p=>p.provenance==='France'),'catalogue : tous les produits affichent « Provenance : France »');
-ok(list.filter(p=>p.brand==='Apple').every(p=>p.sourceSupplier==='Apple Store'),'produits Apple : fournisseur d\'origine Apple Store');
+ok(list.filter(p=>p.brand==='Apple'&&(p.condition||'neuf')==='neuf').every(p=>p.sourceSupplier==='Apple Store'),'produits Apple neufs : fournisseur d\'origine Apple Store (reconditionnés : leur vrai vendeur)');
 const np=(await call(A,'/admin/products',{body:{name:'Galaxy test',brand:'Samsung',category:'Téléphones',price:250000,stock:3,description:'d',sourceSupplier:'Samsung'}})).data;
 ok(np.provenance==='France' && np.sourceSupplier==='Samsung','nouveau produit : provenance France par défaut, fournisseur saisi');
 const pub=(await call(null,'/products/'+np.id)).data;

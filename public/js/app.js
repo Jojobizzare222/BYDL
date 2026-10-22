@@ -541,6 +541,7 @@
     // Barre des rayons (vitrine tech, 19/10/2026) : « Bonnes affaires » en premier ; avec un seul univers (électronique),
     // ses rayons sont affichés directement (ceux qui ont des produits) ; avec plusieurs, menu déroulant par univers.
     const links = [`<a href="#/promos" class="deals-link ${active === 'promos' ? 'active' : ''}">${icon('fire')} Bonnes affaires <span class="nb">Promo</span></a>`];
+    if (state.products.some(isRefurb)) links.push(`<a href="#/reconditionne" class="refurb-link ${active === 'reconditionne' ? 'active' : ''}">${icon('arrows-clockwise')} Reconditionné</a>`);
     const unis = myUniverses();
     if (unis.length === 1) {
       const u = unis[0];
@@ -559,7 +560,8 @@
     // Menu « Toutes » et liste des rayons de la recherche (une seule fois)
     if (!$('#menuBody').innerHTML) {
       $('#menuBody').innerHTML = `<h3>À la une</h3>
-        <a href="#/promos">${icon('seal-percent')} Bonnes affaires</a>` +
+        <a href="#/promos">${icon('seal-percent')} Bonnes affaires</a>
+        <a href="#/reconditionne">${icon('arrows-clockwise')} Reconditionné</a>` +
         UNIVERSES.map((u) => `<h3>${esc(u.name)}</h3><a href="#/c/${enc(u.name)}">Tout ${esc(u.name.toLowerCase())}</a>` +
           u.categories.map((c) => `<a href="#/c/${enc(u.name)}/${enc(c)}">${catIcon(c)} ${esc(c)}</a>`).join('')).join('') +
         `<h3>Aide et compte</h3><a href="#/compte">${icon('user-circle')} Mon compte et mes commandes</a>
@@ -569,7 +571,7 @@
       $('#searchCat').innerHTML = '<option value="">Tous les rayons</option>' +
         UNIVERSES.map((u) => `<option value="u:${esc(u.name)}">${esc(u.name)}</option>` + u.categories.map((c) => `<option value="c:${esc(c)}">&nbsp;&nbsp;${esc(c)}</option>`).join('')).join('');
     }
-    $('#footerShop').innerHTML = (UNIVERSES.length === 1 ? UNIVERSES[0].categories.filter((c) => state.products.some((p) => p.category === c)).map((c) => `<li><a href="#/c/${enc(UNIVERSES[0].name)}/${enc(c)}">${esc(c)}</a></li>`) : UNIVERSES.map((u) => `<li><a href="#/c/${enc(u.name)}">${esc(u.name)}</a></li>`)).join('') + '<li><a href="#/promos">Bonnes affaires</a></li>';
+    $('#footerShop').innerHTML = (UNIVERSES.length === 1 ? UNIVERSES[0].categories.filter((c) => state.products.some((p) => p.category === c)).map((c) => `<li><a href="#/c/${enc(UNIVERSES[0].name)}/${enc(c)}">${esc(c)}</a></li>`) : UNIVERSES.map((u) => `<li><a href="#/c/${enc(u.name)}">${esc(u.name)}</a></li>`)).join('') + '<li><a href="#/promos">Bonnes affaires</a></li><li><a href="#/reconditionne">Reconditionné</a></li>';
   }
 
   // ---------- Composants ----------
@@ -623,11 +625,31 @@
     const r = family.filter((x) => x.rating); const count = r.reduce((n, x) => n + x.rating.count, 0);
     return count ? { avg: Math.round((r.reduce((n, x) => n + x.rating.avg * x.rating.count, 0) / count) * 10) / 10, count } : null;
   };
+  // Reconditionné (décision Joseph 22/10/2026) : niveau d'état, batterie, garantie
+  const GRADES = { parfait: ['Parfait état', "Comme neuf : aucune trace d'usage visible."], 'tres-bon': ['Très bon état', "Légères traces d'usage, invisibles à quelques centimètres."], correct: ['État correct', "Traces d'usage visibles (rayures, petits chocs), fonctionnement parfait."] };
+  const isRefurb = (p) => Boolean(p.condition && p.condition !== 'neuf');
+  const condName = (p) => (p.condition === 'occasion' ? 'Occasion' : 'Reconditionné');
+  const GRADE_SHORT = { parfait: 'Parfait état', 'tres-bon': 'Très bon état', correct: 'État correct' };
+  const condShort = (p) => `${condName(p)}${GRADE_SHORT[p.refurb?.grade] ? ' · ' + GRADE_SHORT[p.refurb.grade] : ''}`;
+  function refurbBox(p) {
+    if (!isRefurb(p)) return '';
+    const r = p.refurb || {}, g = GRADES[r.grade];
+    const newFcfa = r.newPriceEur ? Math.round(r.newPriceEur * 655.957) : 0;
+    return `<div class="refurb-box">
+      <div class="rb-head">${icon('arrows-clockwise')}<b>${condName(p)}${g ? ` · ${g[0]}` : ''}</b></div>
+      ${g ? `<p>${esc(g[1])}</p>` : ''}
+      <ul>
+        <li>${icon('check-circle-duotone')} Testé et vérifié avant l'envoi${p.sourceSupplier ? ` (reconditionné par un professionnel, acheté chez ${esc(p.sourceSupplier)})` : ''}</li>
+        ${r.battery ? `<li>${icon('check-circle-duotone')} Batterie : au moins ${r.battery} % de sa capacité d'origine</li>` : ''}
+        ${r.warrantyMonths ? `<li>${icon('check-circle-duotone')} Garantie Zado : ${r.warrantyMonths} mois</li>` : ''}
+        ${newFcfa > p.price ? `<li>${icon('check-circle-duotone')} Neuf en France : ${r.newPriceEur.toLocaleString('fr-FR')} € (≈ ${fcfa(newFcfa)}) : vous économisez environ ${fcfa(newFcfa - p.price)}</li>` : ''}
+      </ul></div>`;
+  }
   const ratingLine = (r) => (r ? `<span class="rating">${stars(r.avg)}<small>${String(r.avg).replace('.', ',')} (${r.count})</small></span>` : '');
   function card(p, family = [p]) {
     const multi = family.length > 1;
     const d = discount(p);
-    const tag = p.condition && p.condition !== 'neuf' ? `<span class="tag tag-violet">${esc(p.condition === 'reconditionné' ? 'Reconditionné' : 'Occasion')}</span>`
+    const tag = isRefurb(p) ? `<span class="tag tag-violet">${esc(condShort(p))}</span>`
       : p.featured ? '<span class="tag tag-mango">Nouveau</span>' : '';
     return `
       <article class="card">
@@ -770,7 +792,8 @@
     }).join('');
     // Onglets « Les meilleures offres » : sélection, remises, puis deux rayons
     const picks = state.products.filter((p) => p.featured).concat(state.products.filter((p) => !p.featured && p.image), state.products.filter((p) => !p.featured && !p.image)).slice(0, 12);
-    const tabs = [{ k: 'sel', label: 'Sélection Zado', ic: 'sparkle-fill', list: picks }, { k: 'deal', label: 'Bonnes affaires', ic: 'tag', list: deals }]
+    const refurbs = state.products.filter(isRefurb).slice(0, 12);
+    const tabs = [{ k: 'sel', label: 'Sélection Zado', ic: 'sparkle-fill', list: picks }, { k: 'deal', label: 'Bonnes affaires', ic: 'tag', list: deals }, { k: 'refurb', label: 'Reconditionné', ic: 'arrows-clockwise', list: refurbs }]
       .concat([...cats].sort((a, b) => b.list.length - a.list.length).slice(1, 3).map((x) => ({ k: 'c:' + x.c, label: x.c, ic: (ICONS[x.c] || 'tag').replace('-duotone', ''), list: x.list.slice(0, 12) })))
       .filter((t) => t.list.length);
     state.homeTabs = tabs;
@@ -845,6 +868,8 @@
       if (f.price) { const [a, b] = f.price.split('-').map((x) => (x ? Number(x) : null)); if ((a != null && p.price < a) || (b != null && p.price >= b)) return false; }
       if (f.deal && !discount(p)) return false;
       if (f.stock && p.stock === 0) return false;
+      if (f.cond === 'neuf' && isRefurb(p)) return false;
+      if (f.cond === 'reconditionne' && !isRefurb(p)) return false;
       return true;
     });
   }
@@ -873,6 +898,7 @@
       ${list.length ? `<div class="filters" role="group" aria-label="Filtrer">
         <select data-f="price" aria-label="Prix">${PRICE_BANDS.map(([v, l]) => `<option value="${v}" ${f.price === v ? 'selected' : ''}>${l}</option>`).join('')}</select>
         ${brands.length > 1 ? `<select data-f="brand" aria-label="Marque"><option value="">Toutes les marques</option>${brands.map((b) => `<option ${f.brand === b ? 'selected' : ''}>${esc(b)}</option>`).join('')}</select>` : ''}
+        ${list.some(isRefurb) && list.some((p) => !isRefurb(p)) ? `<select data-f="cond" aria-label="État"><option value="">Neuf et reconditionné</option><option value="neuf" ${f.cond === 'neuf' ? 'selected' : ''}>Neuf seulement</option><option value="reconditionne" ${f.cond === 'reconditionne' ? 'selected' : ''}>Reconditionné seulement</option></select>` : ''}
         <label class="fchip"><input type="checkbox" data-f="deal" ${f.deal ? 'checked' : ''}> En promo</label>
         <label class="fchip"><input type="checkbox" data-f="stock" ${f.stock ? 'checked' : ''}> Disponible</label>
         ${active2 ? '<button type="button" class="linkish" data-f-reset>Effacer les filtres</button>' : ''}
@@ -925,6 +951,11 @@
     viewList({ title: `Résultats pour « ${q} »`, crumbs: '<a href="#/">Accueil</a> › Recherche', list, active: null, notice, empty });
   }
 
+  function viewRefurb() {
+    viewList({ title: 'Reconditionné', crumbs: '<a href="#/">Accueil</a> › Reconditionné', list: state.products.filter(isRefurb), active: 'reconditionne',
+      notice: `<p class="search-note">${icon('arrows-clockwise')} Des appareils remis à neuf par des professionnels en France, testés, vérifiés, et moins chers que le neuf. L'état de chaque appareil est indiqué sur sa fiche.</p>`,
+      empty: mamaEmpty('Pas encore d\'appareil reconditionné en stock : revenez bientôt.') });
+  }
   function viewPromos() {
     viewList({ title: 'Bonnes affaires', crumbs: '<a href="#/">Accueil</a> › Bonnes affaires', list: state.products.filter((p) => discount(p) > 0), active: 'promos' });
   }
@@ -1072,7 +1103,7 @@
           ${detailPeek(p)}
           <div class="pdp-meta">${p.rating ? `<a href="#reviews" class="rating-link" data-scroll="reviews">${ratingLine(p.rating)}</a>` : ''}<button type="button" class="share-btn" id="shareBtn">${icon('export')} Partager</button></div>
           ${(() => { const sib = siblings(p); return sib.length > 1 ? `<div class="color-pick"><span class="lbl">Couleur : <b>${esc(colorOf(p)?.label || '')}</b></span><div>${sib.map((x) => `<a href="#/p/${enc(x.id)}" class="${x.id === p.id ? 'on' : ''}" title="${esc(colorOf(x)?.label || x.name)}" aria-label="${esc(colorOf(x)?.label || x.name)}"><i style="background:${colorOf(x)?.hex || '#ccc'}"></i></a>`).join('')}</div></div>` : ''; })()}
-          ${p.condition && p.condition !== 'neuf' ? `<span class="cond-tag">${esc(p.condition === 'reconditionné' ? 'Reconditionné' : 'Occasion')}</span>` : ''}
+          ${refurbBox(p)}
           ${richText(p.description)}
           ${(p.specs || []).length ? `<table class="specs">${p.specs.map((x) => `<tr><th>${esc(x.label)}</th><td>${esc(x.value)}</td></tr>`).join('')}</table>` : ''}
           <div class="buybox">
@@ -2581,6 +2612,7 @@
       case 'p': return viewProduct(parts[1]);
       case 'recherche': return viewSearch(parts.slice(1).join('/'));
       case 'promos': return viewPromos();
+      case 'reconditionne': return viewRefurb();
       case 'commande': return viewCheckout();
       case 'merci': return viewThanks(parts[1]);
       case 'compte': return viewAccount(parts[1]);

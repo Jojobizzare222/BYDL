@@ -685,6 +685,7 @@ router.put('/settings/sales', requireRole(), (req, res) => {
 const toInt = (v) => (v === '' || v === null || v === undefined ? NaN : Number(v));
 const IMG_PATH = /^\/images\/(products|uploads|commons)\/[\w.-]+$/;
 const CONDITIONS = ['neuf', 'reconditionné', 'occasion'];
+const REFURB_GRADES = ['correct', 'tres-bon', 'parfait'];
 
 function cleanProduct(input, current, { role }) {
   const p = { ...current };
@@ -701,10 +702,20 @@ function cleanProduct(input, current, { role }) {
     if (input.condition && !CONDITIONS.includes(input.condition)) return { error: 'État invalide' };
     p.condition = input.condition || 'neuf';
   }
+  // Reconditionné / occasion (décision Joseph 22/10/2026) : niveau d'usure, batterie minimum, garantie — montrés au client
+  if ('refurb' in input || 'condition' in input) {
+    if ((p.condition || 'neuf') === 'neuf') p.refurb = null;
+    else if (input.refurb) {
+      const r = input.refurb, int = (v, min, max) => { const n = Math.round(Number(v)); return v === '' || v == null || !Number.isFinite(n) ? null : Math.min(max, Math.max(min, n)); };
+      if (r.grade && !REFURB_GRADES.includes(r.grade)) return { error: 'Niveau d\'état invalide' };
+      p.refurb = { grade: r.grade || null, battery: int(r.battery, 50, 100), warrantyMonths: int(r.warrantyMonths, 0, 36), newPriceEur: int(r.newPriceEur, 0, 20000) };
+    }
+  }
   // Provenance et fournisseur d'origine, AFFICHÉS au client pour la confiance (décision Joseph 21/10/2026 : « Provenance : France, Fournisseur : Apple »)
   if ('provenance' in input) p.provenance = str(input.provenance, 40) || null;
   if ('sourceSupplier' in input) p.sourceSupplier = str(input.sourceSupplier, 60) || null;
-  if (/^apple$/i.test(String(p.brand || '').trim())) p.sourceSupplier = 'Apple Store'; // produits Apple : TOUJOURS « Apple Store » (décision Joseph 21/10/2026)
+  // produits Apple NEUFS : TOUJOURS « Apple Store » (décision Joseph 21/10/2026) ; reconditionnés : le vrai vendeur (Back Market, Cdiscount…)
+  if (/^apple$/i.test(String(p.brand || '').trim()) && (p.condition || 'neuf') === 'neuf') p.sourceSupplier = 'Apple Store';
   // Caractéristiques : liste « libellé : valeur » (ex. Couleur : Noir)
   if ('specs' in input) {
     const lines = Array.isArray(input.specs) ? input.specs : String(input.specs || '').split('\n');

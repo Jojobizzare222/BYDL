@@ -166,7 +166,7 @@ require('./demo').seed();
   if (settings.get('migr:provenance-france')) return;
   let n = 0;
   for (const p of products.all()) {
-    const apple = /^apple$/i.test(String(p.brand || '').trim());
+    const apple = /^apple$/i.test(String(p.brand || '').trim()) && (p.condition || 'neuf') === 'neuf'; // reconditionné : son vrai vendeur
     if (p.provenance && (!apple || p.sourceSupplier === 'Apple Store')) continue;
     products.update(p.id, { provenance: p.provenance || 'France', sourceSupplier: apple ? 'Apple Store' : p.sourceSupplier || p.brand || null });
     n++;
@@ -191,6 +191,20 @@ require('./demo').seed();
   }
   settings.set('migr:fiches-v1', new Date().toISOString());
   if (n) console.log(`[fiches] ${n} produit(s) : fiche détaillée ajoutée`);
+})();
+// Appareils reconditionnés (décision Joseph 22/10/2026) : la sélection de départ de data/products.json (r001…) est ajoutée
+// UNE fois aux bases existantes (produits déjà présents jamais écrasés ; supprimés dans Zado Pro : pas remis).
+(() => {
+  const { products, settings } = require('./store');
+  if (settings.get('migr:reconditionne-v1')) return;
+  let n = 0;
+  try {
+    for (const p of require('../data/products.json').filter((x) => x.condition === 'reconditionné')) {
+      if (!products.get(p.id)) { products.insert(p); n++; }
+    }
+  } catch (err) { console.error('[reconditionné]', err.message); }
+  settings.set('migr:reconditionne-v1', new Date().toISOString());
+  if (n) console.log(`[reconditionné] ${n} appareil(s) reconditionné(s) ajouté(s) au catalogue`);
 })();
 billing.syncAll(); // documents manquants (anciennes commandes, données de démo), dans l'ordre des ventes
 parcels.syncAll(); // colis des commandes prêtes

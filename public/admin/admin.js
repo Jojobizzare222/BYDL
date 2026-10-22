@@ -2087,12 +2087,18 @@
         </div>
         <label for="condition">État</label>
         <select id="condition" ${dis}>${['neuf', 'reconditionné', 'occasion'].map((c) => `<option ${c === (p.condition || 'neuf') ? 'selected' : ''}>${c}</option>`).join('')}</select>
+        <div id="refurbBox" class="grid2" ${(p.condition || 'neuf') === 'neuf' ? 'hidden' : ''}>
+          <div><label for="rfGrade">Niveau d'état (montré au client)</label><select id="rfGrade" ${dis}><option value="">—</option>${[['parfait', 'Parfait état (comme neuf)'], ['tres-bon', 'Très bon état (légères traces)'], ['correct', 'État correct (traces visibles)']].map(([v, l]) => `<option value="${v}" ${p.refurb?.grade === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
+          <div><label for="rfBattery">Batterie minimum (%)</label><input id="rfBattery" type="number" min="50" max="100" value="${p.refurb?.battery ?? ''}" placeholder="Ex. 85" ${dis}></div>
+          <div><label for="rfWarranty">Garantie Zado (mois)</label><input id="rfWarranty" type="number" min="0" max="36" value="${p.refurb?.warrantyMonths ?? ''}" placeholder="Ex. 6" ${dis}></div>
+          <div><label for="rfNew">Prix du neuf en France (€)</label><input id="rfNew" type="number" min="0" value="${p.refurb?.newPriceEur ?? ''}" placeholder="Ex. 719" ${dis}></div>
+        </div>
         <label for="provenance">Provenance (affichée au client)</label>
         <input id="provenance" type="text" list="provList" maxlength="40" value="${esc(p.provenance || '')}" placeholder="France" ${dis}>
         <datalist id="provList"><option>France</option><option>Union européenne</option><option>Émirats (Dubaï)</option><option>Chine</option><option>Congo</option></datalist>
         <label for="sourceSupplier">Fournisseur d'origine (affiché au client)</label>
         <input id="sourceSupplier" type="text" maxlength="60" value="${esc(p.sourceSupplier || '')}" placeholder="Ex. Apple, Samsung, Fnac…" ${dis}>
-        <p class="muted" style="margin-top:4px">Affichés sur la fiche : « Provenance : France · Fournisseur : Apple ». Produits Apple : toujours « Apple Store » (rempli automatiquement). Pour les autres marques, n'indiquez la marque que si vous achetez réellement chez elle (sinon, le nom du revendeur).</p>
+        <p class="muted" style="margin-top:4px">Affichés sur la fiche : « Provenance : France · Fournisseur : Apple ». Produits Apple neufs : toujours « Apple Store » (rempli automatiquement) ; reconditionnés : le vrai vendeur (Back Market, Cdiscount…). Pour les autres marques, n'indiquez la marque que si vous achetez réellement chez elle (sinon, le nom du revendeur).</p>
         <label for="description">Description</label>
         <textarea id="description" rows="6" maxlength="4000" placeholder="Présentation du produit, contenu de la boîte, garantie… (laissez une ligne vide entre deux paragraphes)" ${dis}>${esc(p.description)}</textarea>
         <label for="options">Choix proposés au client (une ligne par choix)</label>
@@ -2270,6 +2276,7 @@
     };
     ['#price', '#sourcePrice', '#weightKg'].forEach((sel) => $(sel)?.addEventListener('input', showBreak));
     showBreak();
+    $('#condition')?.addEventListener('change', () => { $('#refurbBox').hidden = $('#condition').value === 'neuf'; });
     if (!state.config) fetch('/api/config').then((r) => r.json()).then((cfg) => { state.config = cfg; if ($('#priceBreak')) showBreak(); }).catch(() => {});
 
     const val = (sel) => $(sel)?.value;
@@ -2278,7 +2285,8 @@
       let body;
       {
         body = {
-          name: val('#name'), brand: val('#brand'), category: val('#category'), condition: val('#condition'), provenance: val('#provenance'), sourceSupplier: val('#sourceSupplier'),
+          name: val('#name'), brand: val('#brand'), category: val('#category'), condition: val('#condition'),
+          refurb: { grade: val('#rfGrade'), battery: val('#rfBattery'), warrantyMonths: val('#rfWarranty'), newPriceEur: val('#rfNew') }, provenance: val('#provenance'), sourceSupplier: val('#sourceSupplier'),
           description: val('#description'), specs: val('#specs'), stock: val('#stock'), images,
           highlights: val('#highlights'),
           repair: { kind: val('#repairKind'), value: val('#repairValue'), url: val('#repairUrl'), note: val('#repairNote') },
