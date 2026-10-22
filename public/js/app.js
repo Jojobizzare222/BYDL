@@ -582,6 +582,9 @@
   const discount = (p) => (p.oldPrice && p.oldPrice > p.price ? Math.round((1 - p.price / p.oldPrice) * 100) : 0);
 
   // Image du produit si elle existe, sinon pictogramme sur fond coloré (repli)
+  // Photos d'ambiance libres de droits par rayon (public/images/ambiance/, crédits dans credits.json et sur #/credits)
+  const AMB = { 'Téléphones': 'telephones', 'Tablettes': 'tablettes', 'Ordinateurs': 'ordinateurs', 'Montres': 'montres', 'Audio': 'audio', 'TV & Maison': 'tv-maison', 'Accessoires': 'accessoires', 'Composants': 'composants' };
+  const amb = (cat, n = 1) => (AMB[cat] ? `/images/ambiance/${AMB[cat]}-${n}.jpg` : null);
   function visual(p, cls = 'thumb') {
     if (p.image) {
       return `<div class="${cls} has-img" style="--fallback:${esc(p.color || '#10264A')}">${catIcon(p.category, 'fallback-ico')}
@@ -742,6 +745,9 @@
     const used = new Set([heroP?.id]);
     const pick = (list) => { const p = list.find((x) => x.image && !used.has(x.id)) || list.find((x) => !used.has(x.id)); if (p) used.add(p.id); return p; }; // photo de préférence
 
+    // Photos d'ambiance libres de droits (Unsplash, 22/10/2026) : 2 par rayon, utilisées tant qu'un produit n'a pas sa photo
+    const usedAmb = new Set();
+    const ambPick = (cat) => { const a = amb(cat, 1), b = amb(cat, 2); if (!a) return null; const x = !usedAmb.has(a) ? a : !usedAmb.has(b) ? b : a; usedAmb.add(x); return x; };
     // Diapositives du grand carrousel (construites à partir du catalogue)
     const slide = ({ theme, kicker, title, text, href, cta, p, extra = '' }) => `
       <div class="slide theme-${theme}">
@@ -754,7 +760,7 @@
         </div>
         <div class="slide-visual">
           <span class="deco o1"></span><span class="deco o2"></span><span class="deco o3"></span>
-          ${p?.image ? `<img src="${esc(p.image)}" alt="${esc(p.name)}" ${p === heroP ? '' : 'loading="lazy"'}>` : p ? `<span class="slide-ico">${catIcon(p.category)}</span>` : ''}
+          ${p?.image ? `<img src="${esc(p.image)}" alt="${esc(p.name)}" ${p === heroP ? '' : 'loading="lazy"'}>` : p ? ((src) => (src ? `<img class="amb" src="${src}" alt="${esc(p.category)}" ${p === heroP ? 'fetchpriority="high"' : 'loading="lazy"'}><span class="slide-ico mini">${catIcon(p.category)}</span>` : `<span class="slide-ico">${catIcon(p.category)}</span>`))(ambPick(p.category)) : ''}
           ${p && discount(p) ? `<span class="slide-badge">-${discount(p)} %</span>` : ''}
         </div>
       </div>`;
@@ -789,11 +795,12 @@
     const sideCard = ({ x, p }, i) => `<a class="side-card sc-${i}" href="#/p/${p.id}">
         <span class="sc-k">${esc(x.c)}</span><b>${esc(p.name.replace(/^Apple /, ''))}</b>
         <span class="sc-price">${discount(p) ? 'Seulement ' : 'À partir de '}${fcfa(p.price)}</span><span class="sc-go">Découvrir ${icon('arrow-right')}</span>
-        ${p.image ? `<img src="${esc(p.image)}" alt="" loading="lazy">` : `<span class="sc-ico">${catIcon(p.category)}</span>`}${discount(p) ? `<span class="zl">-${discount(p)} %</span>` : ''}</a>`;
+        ${p.image ? `<img src="${esc(p.image)}" alt="" loading="lazy">` : ((src) => (src ? `<img class="amb" src="${src}" alt="" loading="lazy">` : `<span class="sc-ico">${catIcon(p.category)}</span>`))(ambPick(p.category))}${discount(p) ? `<span class="zl">-${discount(p)} %</span>` : ''}</a>`;
     // Blocs « Explorer les rayons » : 4 vignettes par rayon + prix d'entrée
     const blocks = [...cats].sort((a, b) => b.list.length - a.list.length).slice(0, 4).map((x) => {
       const seenImg = new Set(); const pics = groupFamilies(x.list).map((g) => g[0]).filter((p) => !p.image || (!seenImg.has(p.image) && seenImg.add(p.image))).slice(0, 4); // 4 produits différents
       return `<a class="ublock" href="${href(x)}">
+        ${amb(x.c, 2) ? `<span class="ub-amb"><img src="${amb(x.c, 2)}" alt="" loading="lazy"></span>` : ''}
         <span class="ub-h"><b>${esc(x.c)}</b><small>${x.list.length} article${x.list.length > 1 ? 's' : ''} · dès ${fcfa(Math.min(...x.list.map((p) => p.price)))}</small></span>
         <span class="ub-g">${pics.map((p) => p.image ? `<span><img src="${esc(p.image)}" alt="" loading="lazy"></span>` : `<span class="ub-ico">${catIcon(p.category)}<small>${esc(familyName(p).replace(/^Apple /, ''))}</small></span>`).join('')}</span>
         <span class="ub-go">Voir le rayon ${icon('caret-right')}</span></a>`;
@@ -808,7 +815,7 @@
 
     app.innerHTML = `
       <nav class="cat-chips" aria-label="Rayons">
-        ${cats.map((x) => { const p = firstImg(x.list); return `<a href="${href(x)}"><span class="cc-img">${p ? `<img src="${esc(p.image)}" alt="" loading="lazy">` : catIcon(x.c)}</span><span><b>${esc(x.c)}</b><small>${x.list.length} article${x.list.length > 1 ? 's' : ''}</small></span></a>`; }).join('')}
+        ${cats.map((x) => { const p = firstImg(x.list); return `<a href="${href(x)}"><span class="cc-img">${p ? `<img src="${esc(p.image)}" alt="" loading="lazy">` : amb(x.c) ? `<img class="amb" src="${amb(x.c)}" alt="" loading="lazy">` : catIcon(x.c)}</span><span><b>${esc(x.c)}</b><small>${x.list.length} article${x.list.length > 1 ? 's' : ''}</small></span></a>`; }).join('')}
       </nav>
 
       <div class="hero-grid">
@@ -996,9 +1003,17 @@
               <img src="${esc(p.image)}" alt="" loading="lazy" width="64" height="64">
               <span><strong>${esc(p.name.replace(/^Apple /, ''))}</strong><br>
               <span class="hint"><a href="${esc(p.imageCredit.source)}" target="_blank" rel="noopener">${esc(p.imageCredit.author)}</a> · ${p.imageCredit.licenseUrl ? `<a href="${esc(p.imageCredit.licenseUrl)}" target="_blank" rel="noopener">${esc(p.imageCredit.license)}</a>` : esc(p.imageCredit.license)}</span></span>
-            </div>`).join('') || '<p class="empty">Aucune photo sous licence libre pour le moment.</p>'}
+            </div>`).join('') || '<p class="empty">Aucune photo de produit sous licence libre pour le moment.</p>'}
         </div>
+        <h2 style="margin-top:24px">Photos d'ambiance</h2>
+        <p class="hint">Photos des rayons (page d'accueil), libres de droits, publiées sur Unsplash par leurs auteurs. Merci à eux !</p>
+        <div class="credits" id="ambCredits"></div>
       </div>`;
+    fetch('/images/ambiance/credits.json').then((r) => r.json()).then((list) => {
+      const host = $('#ambCredits'); if (!host) return;
+      host.innerHTML = list.map((c) => `<div class="credit-row"><img src="${esc(c.src)}" alt="" loading="lazy" width="64" height="64" style="object-fit:cover">
+        <span><strong>${esc(c.category)}</strong> · ${esc(c.alt)}<br><span class="hint">Photo : <a href="${esc(c.source)}" target="_blank" rel="noopener">${esc(c.author)}</a> · <a href="${esc(c.licenseUrl)}" target="_blank" rel="noopener">${esc(c.license)}</a></span></span></div>`).join('');
+    }).catch(() => {});
   }
 
   // Avis clients de la fiche produit (+ formulaire pour un client qui a reçu ce produit)

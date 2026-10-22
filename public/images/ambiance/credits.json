@@ -1,0 +1,146 @@
+[
+ {
+  "category": "Téléphones",
+  "src": "/images/ambiance/telephones-1.jpg",
+  "alt": "Femme souriante qui consulte son smartphone",
+  "author": "Ahmed Nasiru",
+  "source": "https://unsplash.com/photos/Sl-LrWJNXV8",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Téléphones",
+  "src": "/images/ambiance/telephones-2.jpg",
+  "alt": "Jeune femme au téléphone à son bureau",
+  "author": "Vitaly Gariev",
+  "source": "https://unsplash.com/photos/n1yI8oExVns",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Ordinateurs",
+  "src": "/images/ambiance/ordinateurs-1.jpg",
+  "alt": "Homme qui travaille sur un ordinateur portable",
+  "author": "Maiye Jeremiah",
+  "source": "https://unsplash.com/photos/4hnbH0pdeJo",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Ordinateurs",
+  "src": "/images/ambiance/ordinateurs-2.jpg",
+  "alt": "Homme souriant devant son ordinateur portable",
+  "author": "Oluwatobi Fasipe",
+  "source": "https://unsplash.com/photos/e8etaVo85AY",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Audio",
+  "src": "/images/ambiance/audio-1.jpg",
+  "alt": "Femme qui écoute de la musique au casque",
+  "author": "Yohan Marion",
+  "source": "https://unsplash.com/photos/Mwa8-6H9QPk",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Audio",
+  "src": "/images/ambiance/audio-2.jpg",
+  "alt": "Femme avec des écouteurs, allongée sur un canapé",
+  "author": "Joyce Busola",
+  "source": "https://unsplash.com/photos/h7pDENTfYvU",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Tablettes",
+  "src": "/images/ambiance/tablettes-1.jpg",
+  "alt": "Main qui tient une tablette allumée",
+  "author": "Henry Ascroft",
+  "source": "https://unsplash.com/photos/7OFnb7NOvjw",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Tablettes",
+  "src": "/images/ambiance/tablettes-2.jpg",
+  "alt": "Tablette tenue en main en extérieur",
+  "author": "Marta Filipczyk",
+  "source": "https://unsplash.com/photos/mN5-yjVGBAI",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Montres",
+  "src": "/images/ambiance/montres-1.jpg",
+  "alt": "Montre connectée au poignet",
+  "author": "Solen Feyissa",
+  "source": "https://unsplash.com/photos/15v6smjHVHQ",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Montres",
+  "src": "/images/ambiance/montres-2.jpg",
+  "alt": "Montre connectée au poignet, gros plan",
+  "author": "Luke Chesser",
+  "source": "https://unsplash.com/photos/vCF5sB7QecM",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "TV & Maison",
+  "src": "/images/ambiance/tv-maison-1.jpg",
+  "alt": "Salon avec un téléviseur allumé",
+  "author": "Jonas Leupe",
+  "source": "https://unsplash.com/photos/XE6PBDd7_FQ",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "TV & Maison",
+  "src": "/images/ambiance/tv-maison-2.jpg",
+  "alt": "Salon lumineux avec un grand téléviseur",
+  "author": "Spacejoy",
+  "source": "https://unsplash.com/photos/xyygOyZO5VA",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Accessoires",
+  "src": "/images/ambiance/accessoires-1.jpg",
+  "alt": "Câbles USB orange",
+  "author": "Lucian Alexe",
+  "source": "https://unsplash.com/photos/yh0UtueiZ-I",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Accessoires",
+  "src": "/images/ambiance/accessoires-2.jpg",
+  "alt": "Smartphone branché à son câble de charge",
+  "author": "Andreas Haslinger",
+  "source": "https://unsplash.com/photos/W9Z87k4hV08",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Composants",
+  "src": "/images/ambiance/composants-1.jpg",
+  "alt": "Carte mère d'ordinateur, gros plan",
+  "author": "Rémy",
+  "source": "https://unsplash.com/photos/A-5mSyPRG34",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Composants",
+  "src": "/images/ambiance/composants-2.jpg",
+  "alt": "Circuit électronique, gros plan",
+  "author": "Alexandre Debiève",
+  "source": "https://unsplash.com/photos/FO7JIlwjOtU",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ }
+]
