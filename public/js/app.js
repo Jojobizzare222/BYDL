@@ -749,7 +749,7 @@
     const usedAmb = new Set();
     const ambPick = (cat) => { const a = amb(cat, 1), b = amb(cat, 2); if (!a) return null; const x = !usedAmb.has(a) ? a : !usedAmb.has(b) ? b : a; usedAmb.add(x); return x; };
     // Diapositives du grand carrousel (construites à partir du catalogue)
-    const slide = ({ theme, kicker, title, text, href, cta, p, extra = '' }) => `
+    const slide = ({ theme, kicker, title, text, href, cta, p, extra = '', art = '' }) => `
       <div class="slide theme-${theme}">
         <div class="slide-text">
           <span class="pill">${kicker}</span>
@@ -761,6 +761,7 @@
         <div class="slide-visual">
           <span class="deco o1"></span><span class="deco o2"></span><span class="deco o3"></span>
           ${p?.image ? `<img src="${esc(p.image)}" alt="${esc(p.name)}" ${p === heroP ? '' : 'loading="lazy"'}>` : p ? ((src) => (src ? `<img class="amb" src="${src}" alt="${esc(p.category)}" ${p === heroP ? 'fetchpriority="high"' : 'loading="lazy"'}><span class="slide-ico mini">${catIcon(p.category)}</span>` : `<span class="slide-ico">${catIcon(p.category)}</span>`))(ambPick(p.category)) : ''}
+          ${art}
           ${p && discount(p) ? `<span class="slide-badge">-${discount(p)} %</span>` : ''}
         </div>
       </div>`;
@@ -774,10 +775,12 @@
     if (!hasRelays()) slides.push(slide({
       theme: 'light', kicker: `${icon('wallet')} Paiement`, title: 'Commandez, payez en Mobile Money', text: `Un acompte de ${depositTxt()} confirme votre commande, le reste se règle depuis votre téléphone. Livraison à domicile à Pointe-Noire.`, href: '#/promos', cta: 'Voir les offres',
       extra: '<div class="pay-chips"><span>' + icon('device-mobile') + 'Mobile Money</span><span>' + icon('truck') + 'Livraison à domicile</span><span>' + icon('shield-check') + 'Clients vérifiés</span></div>',
+      art: mama('wait', { size: 'lg', label: 'Mama Zando valide un paiement sur son téléphone' }),
     }));
     else slides.push(slide({
       theme: 'light', kicker: `${icon('wallet')} Paiement`, title: 'Réservez en ligne, payez au point relais', text: 'Choisissez un point relais près de chez vous sur la carte, payez-y en espèces, puis repartez avec votre commande ou faites-vous livrer.', href: '#/promos', cta: 'Commencer mes achats',
       extra: '<div class="pay-chips"><span>' + icon('storefront') + 'Paiement au point relais</span><span>' + icon('truck') + 'Retrait ou livraison</span><span>' + icon('shield-check') + 'Clients vérifiés</span></div>',
+      art: mama('deliver', { size: 'lg', label: 'Mama Zando vous tend votre colis' }),
     }));
 
     const [h, m, sec] = untilMidnight();
