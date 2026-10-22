@@ -250,7 +250,7 @@ function totalsBlock(d, sign = '') {
   const t = d.taxes;
   return `<table class="totals">
     ${d.deliveryFee || d.transportFee ? `<tr><td>Articles</td><td>${sign}${fcfa(d.subtotal)}</td></tr>` : ''}
-    ${d.transportFee ? `<tr><td>Transport France → Pointe-Noire${d.transportKg ? ` (${String(d.transportKg).replace('.', ',')} kg facturés)` : ''}</td><td>${sign}${fcfa(d.transportFee)}</td></tr>` : ''}
+    ${d.transportFee ? `<tr><td>Transport France → Pointe-Noire</td><td>${sign}${fcfa(d.transportFee)}</td></tr>` : ''}
     ${d.deliveryFee ? `<tr><td>Livraison</td><td>${sign}${fcfa(d.deliveryFee)}</td></tr>` : ''}
     ${t ? `<tr><td>Total hors taxes</td><td>${sign}${fcfa(t.ht)}</td></tr><tr><td>TVA ${t.rate} %</td><td>${sign}${fcfa(t.vat)}</td></tr>${t.extra ? `<tr><td>Centime additionnel ${t.extraRate} %</td><td>${sign}${fcfa(t.extra)}</td></tr>` : ''}` : ''}
     <tr class="grand"><td>Total ${t ? 'TTC' : ''}</td><td>${sign}${fcfa(d.total)}</td></tr>

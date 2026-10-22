@@ -52,7 +52,7 @@ app.get('/p/:id', (req, res) => {
   const img = ok && p.image ? (/^https?:/.test(p.image) ? p.image : host + p.image) : `${host}/brand/partage-zado.png?v=8`;
   const price = ok ? new Intl.NumberFormat('fr-FR').format(p.price).replace(/\u202f/g, ' ') + ' FCFA' : '';
   const title = ok ? `${p.name} — ${price}` : 'Zado';
-  const desc = ok ? `${p.description ? String(p.description).slice(0, 150) + ' · ' : ''}Payez au point relais · livraison rapide à Pointe-Noire.` : 'Électronique au meilleur prix, livraison rapide à Pointe-Noire.';
+  const desc = ok ? `${p.description ? String(p.description).slice(0, 150) + ' · ' : ''}Expédié de France, livré à Pointe-Noire.` : 'Électronique au meilleur prix, livraison rapide à Pointe-Noire.';
   res.set('Cache-Control', 'public, max-age=300');
   res.status(ok ? 200 : 404).type('html').send(`<!doctype html><html lang="fr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1"><title>${esc(title)}</title>
@@ -81,7 +81,7 @@ function siteVersion() {
 }
 app.get('/api/config', (req, res) => {
   res.set('Cache-Control', 'no-store');
-  res.json({ shopName: config.shopName, currency: config.currency, paymentMode: config.paymentMode, demo: config.demo, universes: UNIVERSES, version: siteVersion(), accountRequired: require('./sales').salesSettings().accountRequired, deliveryFees: require('./fees').publicFees(), maintenance: require('./maintenance').publicState(), ...(config.demo ? { demoTrack: { id: 'CMD-DEMO-0002', token: require('./demo').DEMO_TRACK_TOKEN } } : {}) , freight: require('./freight').publicFreight(), mobileDeposit: require('./mobile-pay').mobileSettings().deposit });
+  res.json({ shopName: config.shopName, currency: config.currency, paymentMode: config.paymentMode, demo: config.demo, universes: UNIVERSES, version: siteVersion(), accountRequired: require('./sales').salesSettings().accountRequired, deliveryFees: require('./fees').publicFees(), maintenance: require('./maintenance').publicState(), ...(config.demo ? { demoTrack: { id: 'CMD-DEMO-0002', token: require('./demo').DEMO_TRACK_TOKEN } } : {}) , freight: require('./freight').publicFreight(), relays: require("./store").agencies.all().filter((a) => a.active !== false).length, mobileDeposit: require('./mobile-pay').mobileSettings().deposit });
 });
 app.use('/api/products', require('./routes/products'));
 app.use('/api/orders', require('./routes/orders'));
@@ -205,6 +205,19 @@ require('./demo').seed();
   } catch (err) { console.error('[reconditionné]', err.message); }
   settings.set('migr:reconditionne-v1', new Date().toISOString());
   if (n) console.log(`[reconditionné] ${n} appareil(s) reconditionné(s) ajouté(s) au catalogue`);
+})();
+// Garantie Zado de 6 mois sur tous les reconditionnés et occasions (décision Joseph 22/10/2026) : une fois, sans écraser une garantie déjà saisie
+(() => {
+  const { products, settings } = require('./store');
+  if (settings.get('migr:garantie-6-mois')) return;
+  let n = 0;
+  for (const p of products.all()) {
+    if (!p.condition || p.condition === 'neuf' || p.refurb?.warrantyMonths) continue;
+    products.update(p.id, { refurb: { grade: null, battery: null, newPriceEur: null, ...(p.refurb || {}), warrantyMonths: 6 } });
+    n++;
+  }
+  settings.set('migr:garantie-6-mois', new Date().toISOString());
+  if (n) console.log(`[garantie] ${n} appareil(s) reconditionné(s) : garantie Zado de 6 mois`);
 })();
 billing.syncAll(); // documents manquants (anciennes commandes, données de démo), dans l'ordre des ventes
 parcels.syncAll(); // colis des commandes prêtes

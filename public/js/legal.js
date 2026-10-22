@@ -171,7 +171,7 @@
         <p>Un seul paiement est demandé par commande : si vous réessayez, la demande en cours est reprise, sans double paiement.</p>
 
         <h2>5. Livraison et retrait</h2>
-        <p>Les articles sont achetés en France et acheminés par avion : comptez 2 à 5 jours de logistique, puis une livraison sous 24 h à Pointe-Noire (uniquement pour le moment), à l'adresse ou au repère indiqué. Le transport depuis la France est facturé au poids (15 € par kilo, 1 kg minimum par article) et affiché avant la commande. Délai maximal garanti : ${T('délai maximal de livraison, ex. 7 jours')}.
+        <p>Les articles sont achetés en France et acheminés par avion : comptez 2 à 5 jours de logistique, puis une livraison sous 24 h à Pointe-Noire (uniquement pour le moment), à l'adresse ou au repère indiqué. Le transport depuis la France est calculé selon le poids des articles et affiché avant la commande. Délai maximal garanti : ${T('délai maximal de livraison, ex. 7 jours')}.
         Les autres villes ne sont pas encore livrées ; la commande peut y être retirée dans un point relais Zado s'il en existe un. Frais de livraison : ${T('montant par quartier')}. Vous pouvez suivre votre commande dans « Mon compte ».</p>
         <p><strong>Code de livraison</strong> : à la commande, vous recevez un code à 4 chiffres (visible dans « Mon compte » et sur la page de suivi). Donnez-le au livreur <strong>seulement quand vous avez votre colis en main</strong> : c'est votre preuve de réception. Ne le communiquez à personne d'autre, même au téléphone.</p>
         <p>À la réception, vérifiez l'état du colis devant le livreur et signalez tout problème (colis abîmé, article manquant) dans les ${T('délai, ex. 48 heures')}.</p>
@@ -193,7 +193,7 @@
 
         <h2>8. Garantie</h2>
         <p>Les produits neufs bénéficient de la garantie légale contre les défauts cachés et, le cas échéant, de la garantie du fabricant.
-        Produits reconditionnés et d'occasion : garantie Zado de ${T('durée, ex. 3 mois')}. La garantie ne couvre pas la casse, l'oxydation ou une mauvaise utilisation.</p>
+        Produits reconditionnés et d'occasion : garantie Zado de 6 mois à compter de la remise (panne ou défaut de fonctionnement : réparation, échange ou remboursement). La garantie ne couvre pas la casse, l'oxydation ou une mauvaise utilisation.</p>
 
         <h2>9. Service client</h2>
         <p>Pour toute question ou réclamation : ${CONTACT}. Nous cherchons toujours d'abord une solution amiable. Voir aussi les

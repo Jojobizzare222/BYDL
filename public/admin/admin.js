@@ -2090,7 +2090,7 @@
         <div id="refurbBox" class="grid2" ${(p.condition || 'neuf') === 'neuf' ? 'hidden' : ''}>
           <div><label for="rfGrade">Niveau d'état (montré au client)</label><select id="rfGrade" ${dis}><option value="">—</option>${[['parfait', 'Parfait état (comme neuf)'], ['tres-bon', 'Très bon état (légères traces)'], ['correct', 'État correct (traces visibles)']].map(([v, l]) => `<option value="${v}" ${p.refurb?.grade === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
           <div><label for="rfBattery">Batterie minimum (%)</label><input id="rfBattery" type="number" min="50" max="100" value="${p.refurb?.battery ?? ''}" placeholder="Ex. 85" ${dis}></div>
-          <div><label for="rfWarranty">Garantie Zado (mois)</label><input id="rfWarranty" type="number" min="0" max="36" value="${p.refurb?.warrantyMonths ?? ''}" placeholder="Ex. 6" ${dis}></div>
+          <div><label for="rfWarranty">Garantie Zado (mois)</label><input id="rfWarranty" type="number" min="0" max="36" value="${p.refurb ? p.refurb.warrantyMonths ?? '' : 6}" placeholder="6" ${dis}></div>
           <div><label for="rfNew">Prix du neuf en France (€)</label><input id="rfNew" type="number" min="0" value="${p.refurb?.newPriceEur ?? ''}" placeholder="Ex. 719" ${dis}></div>
         </div>
         <label for="provenance">Provenance (affichée au client)</label>

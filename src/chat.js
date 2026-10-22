@@ -35,6 +35,9 @@ const MENU = ['Livraison', 'Paiement', 'Points relais', 'Ma commande', 'Mon comp
 const fcfa = (n) => `${Number(n || 0).toLocaleString('fr-FR').replace(/ /g, ' ')} FCFA`;
 const STATUS = { pending_payment: 'en attente de paiement', paid: 'payée, en préparation', confirmed: 'confirmée', shipped: 'en cours de livraison', delivered: 'livrée', cancelled: 'annulée' };
 
+// Points relais : tant qu'aucun n'est actif (décision Joseph 22/10/2026 : « je n'en ai pas encore »), l'assistant n'en parle pas
+const hasRelays = () => agencies.all().some((a) => a.active !== false);
+const noRelay = (quick) => (quick && !hasRelays() ? quick.filter((q) => q !== 'Points relais') : quick);
 function agencyList() {
   const list = agencies.all().filter((a) => a.active !== false);
   return list.length ? list.map((a) => `• ${a.name} (${a.city})${a.address ? ' — ' + a.address : ''}${a.hours ? ' — ' + a.hours : ''}${a.phone ? ' — ' + a.phone : ''}`).join('\n') : 'Nos points relais ouvrent bientôt.';
@@ -66,7 +69,11 @@ function detect(text) {
 }
 
 /** Réponse de l'assistant. customer = compte connecté (ou null). Renvoie { text, quick?, links?, handoff? }. */
-function botAnswer(text, { customer, conv }) {
+function botAnswer(text, ctx) {
+  const a = answer(text, ctx);
+  return a.quick ? { ...a, quick: noRelay(a.quick) } : a;
+}
+function answer(text, { customer, conv }) {
   const intent = detect(text);
   const sales = salesSettings();
   const cashOnly = sales.methods.cash && !sales.methods.momo && !sales.methods.card && !sales.methods.cod;
@@ -74,12 +81,12 @@ function botAnswer(text, { customer, conv }) {
     case 'hello': return { text: `Mbote${customer ? ' ' + customer.name.split(' ')[0] : ''} ! Je suis Mama Zando, l'assistante de Zado. Que puis-je faire pour vous ?`, quick: MENU };
     case 'thanks': return { text: 'Avec plaisir ! Autre chose ?', quick: MENU };
     case 'human': return { handoff: true, text: '' };
-    case 'delivery': return { text: `Nos articles viennent de France : ${(() => { const f = require('./freight').freightSettings(); return `achat et vol vers Pointe-Noire en ${f.logisticsMin} à ${f.logisticsMax} jours, puis livraison sous ${f.deliveryHours} h`; })()} (Pointe-Noire seulement pour le moment). Le transport depuis la France est facturé ${require('./freight').freightSettings().eurPerKg} € par kilo, 1 kg minimum par article.\n${feesLine()}\nVous pouvez aussi retirer votre commande gratuitement dans un point relais.\nÀ la livraison, donnez votre code de livraison au livreur seulement quand vous avez le colis en main.`, quick: ['Paiement', 'Points relais', 'Ma commande', 'Parler à un conseiller'] };
+    case 'delivery': return { text: `Nos articles viennent de France : ${(() => { const f = require('./freight').freightSettings(); return `achat et vol vers Pointe-Noire en ${f.logisticsMin} à ${f.logisticsMax} jours, puis livraison sous ${f.deliveryHours} h`; })()} (Pointe-Noire seulement pour le moment). Le transport depuis la France est indiqué dans le prix total, avant de commander.\n${feesLine()}\n${hasRelays() ? 'Vous pouvez aussi retirer votre commande gratuitement dans un point relais.\n' : ''}À la livraison, donnez votre code de livraison au livreur seulement quand vous avez le colis en main.`, quick: ['Paiement', 'Points relais', 'Ma commande', 'Parler à un conseiller'] };
     case 'payment': return { text: cashOnly
       ? `Le paiement se fait en espèces dans nos points relais (à choisir sur la carte au moment de commander). Vous réservez en ligne (articles gardés ${Number(process.env.PICKUP_HOLD_HOURS || 48)} h), vous payez au point relais, puis vous repartez avec votre commande ou nous vous la livrons.\n\nNos points relais :\n${agencyList()}`
       : `Moyens de paiement proposés : ${Object.entries(sales.methods).filter(([, v]) => v).map(([k]) => ({ cash: 'espèces en agence', momo: 'Mobile Money (MTN, Airtel)', card: 'carte bancaire', cod: 'paiement à la réception' })[k]).join(', ')}.`,
       quick: ['Points relais', 'Livraison', 'Parler à un conseiller'] };
-    case 'agency': return { text: `Nos points relais :\n${agencyList()}`, quick: ['Paiement', 'Livraison', 'Parler à un conseiller'] };
+    case 'agency': return { text: hasRelays() ? `Nos points relais :\n${agencyList()}` : "Nous n'avons pas encore de point relais : nous livrons à domicile à Pointe-Noire. Les points relais ouvriront bientôt.", quick: ['Paiement', 'Livraison', 'Parler à un conseiller'] };
     case 'account': return { text: `Pour commander, il faut un compte Zado vérifié : créez-le avec votre numéro (ou e-mail) et la photo de votre pièce d'identité (passeport, CNI ou NIU). Zado la vérifie, en général en 1 minute.\nVous vous connectez ensuite avec votre numéro + votre code Zado à 6 chiffres.\nCode oublié ? Demandez un conseiller : il vous en donnera un nouveau.`,
       links: customer ? [{ label: 'Mon compte', href: '#/compte' }] : [{ label: 'Créer mon compte', href: '#/compte/creer' }, { label: 'Me connecter', href: '#/compte' }], quick: ['Parler à un conseiller', 'Paiement'] };
     case 'identity': {
@@ -96,7 +103,7 @@ function botAnswer(text, { customer, conv }) {
       return { text: `Vos dernières commandes :\n${mine.map((o) => `• ${o.id} — ${fcfa(o.total)} — ${o.agency && o.status === 'pending_payment' ? 'réservée, à payer en agence' : STATUS[o.status] || o.status}`).join('\n')}`,
         links: mine.map((o) => ({ label: `Suivre ${o.id}`, href: `#/suivi/${o.id}` })), quick: ['Parler à un conseiller', 'Livraison'] };
     }
-    case 'returns': return { text: "Un article abîmé ou non conforme ? Signalez-le au livreur ou à l'agence à la remise, puis contactez-nous : il est échangé ou remboursé. Les conditions complètes sont dans « Ventes et remboursements ».", links: [{ label: 'Ventes et remboursements', href: '#/legal/vente' }], quick: ['Parler à un conseiller'] };
+    case 'returns': return { text: "Un article abîmé ou non conforme ? Signalez-le au livreur ou à l'agence à la remise, puis contactez-nous : il est échangé ou remboursé. Les appareils reconditionnés ont une garantie Zado de 6 mois. Les conditions complètes sont dans « Ventes et remboursements ».", links: [{ label: 'Ventes et remboursements', href: '#/legal/vente' }], quick: ['Parler à un conseiller'] };
     case 'price': return { text: 'Nos meilleures offres du moment sont dans « Bonnes affaires » et les ventes flash de la page d\'accueil. Les prix sont en FCFA, sans frais cachés.', links: [{ label: 'Bonnes affaires', href: '#/promos' }], quick: MENU.slice(0, 4) };
     default: {
       const misses = (conv?.botMisses || 0) + 1;
@@ -108,7 +115,7 @@ function botAnswer(text, { customer, conv }) {
   }
 }
 
-const WELCOME = { from: 'bot', text: "Mbote ! Je suis Mama Zando, l'assistante de Zado. Posez votre question ou choisissez un sujet. Un conseiller peut aussi prendre le relais.", quick: MENU };
+const welcome = () => ({ from: 'bot', text: "Mbote ! Je suis Mama Zando, l'assistante de Zado. Posez votre question ou choisissez un sujet. Un conseiller peut aussi prendre le relais.", quick: noRelay(MENU) });
 
 // ---------- Salon de l'équipe ----------
 function teamConversation() {
@@ -126,4 +133,4 @@ function notifyCustomer(customer, text, extra = {}) {
   return conversations.update(r.conv.id, { unreadCustomer: (r.conv.unreadCustomer || 0) + 1 });
 }
 
-module.exports = { notifyCustomer, addMessage, botAnswer, WELCOME, MENU, TEAM_ID, teamConversation, sha256, newId };
+module.exports = { notifyCustomer, addMessage, botAnswer, get WELCOME() { return welcome(); }, MENU, TEAM_ID, teamConversation, sha256, newId };

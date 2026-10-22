@@ -309,7 +309,7 @@
     $('#cartCount').textContent = count || '';
     $('#cartCount2').textContent = count || '';
     const fr = cartFreight();
-    $('#cartTransport').innerHTML = items.length && fr.fee ? `<span>Transport France → Pointe-Noire <small class="hint">(${kgTxt(fr.kg)} facturés)</small></span><span>${fcfa(fr.fee)}</span>` : '';
+    $('#cartTransport').innerHTML = items.length && fr.fee ? `<span>Transport France → Pointe-Noire</span><span>${fcfa(fr.fee)}</span>` : '';
     $('#cartTotal').textContent = fcfa(cartTotal() + fr.fee);
     const saving = cartSaving();
     $('#cartSaving').innerHTML = saving > 0 ? `<span>Vous économisez</span><span>${fcfa(saving)}</span>` : '';
@@ -537,7 +537,11 @@
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDrop(); });
 
   // ---------- Menu catégories ----------
+  // Points relais : masqués tant qu'aucun n'est actif (décision Joseph 22/10/2026 : « je n'en ai pas encore »)
+  const hasRelays = () => (state.config?.relays ?? 0) > 0;
+  const depositTxt = () => fcfa(state.config?.mobileDeposit ?? 500);
   function renderNav(active) {
+    document.body.classList.toggle('no-relay', !hasRelays());
     // Barre des rayons (vitrine tech, 19/10/2026) : « Bonnes affaires » en premier ; avec un seul univers (électronique),
     // ses rayons sont affichés directement (ceux qui ont des produits) ; avec plusieurs, menu déroulant par univers.
     const links = [`<a href="#/promos" class="deals-link ${active === 'promos' ? 'active' : ''}">${icon('fire')} Bonnes affaires <span class="nb">Promo</span></a>`];
@@ -761,7 +765,11 @@
       const p = pick(featured(u.name));
       if (p) slides.push(slide({ theme: 'mango', kicker: esc(u.name), title: 'Le meilleur de la tech', text: esc(u.categories.slice(0, 4).join(' · ')), href: `#/c/${enc(u.name)}`, cta: 'Découvrir', p }));
     }
-    slides.push(slide({
+    if (!hasRelays()) slides.push(slide({
+      theme: 'light', kicker: `${icon('wallet')} Paiement`, title: 'Commandez, payez en Mobile Money', text: `Un acompte de ${depositTxt()} confirme votre commande, le reste se règle depuis votre téléphone. Livraison à domicile à Pointe-Noire.`, href: '#/promos', cta: 'Voir les offres',
+      extra: '<div class="pay-chips"><span>' + icon('device-mobile') + 'Mobile Money</span><span>' + icon('truck') + 'Livraison à domicile</span><span>' + icon('shield-check') + 'Clients vérifiés</span></div>',
+    }));
+    else slides.push(slide({
       theme: 'light', kicker: `${icon('wallet')} Paiement`, title: 'Réservez en ligne, payez au point relais', text: 'Choisissez un point relais près de chez vous sur la carte, payez-y en espèces, puis repartez avec votre commande ou faites-vous livrer.', href: '#/promos', cta: 'Commencer mes achats',
       extra: '<div class="pay-chips"><span>' + icon('storefront') + 'Paiement au point relais</span><span>' + icon('truck') + 'Retrait ou livraison</span><span>' + icon('shield-check') + 'Clients vérifiés</span></div>',
     }));
@@ -822,12 +830,17 @@
         ${railCarousel(deals)}
       </section>` : ''}
 
-      <section class="relay-band">
+      ${!hasRelays() ? `<section class="relay-band">
+        <div class="rb-text"><p class="kicker">${icon('device-mobile')} Simple et sûr</p><h2>Commandez en 3 étapes, sans vous déplacer</h2>
+          <p>Pas besoin de chercher un appareil fiable pendant des semaines : choisissez-le sur Zado, confirmez avec un acompte de ${depositTxt()} en Mobile Money, et nous vous le livrons à Pointe-Noire.</p></div>
+        <ol class="rb-steps"><li><b>1</b>Je choisis sur Zado</li><li><b>2</b>Je paie en Mobile Money</li><li><b>3</b>Je suis livré chez moi</li></ol>
+        <a class="btn light" href="#/promos">Commencer mes achats ${icon('arrow-right')}</a>
+      </section>` : `<section class="relay-band">
         <div class="rb-text"><p class="kicker">${icon('storefront')} Réservez en ligne</p><h2>Payez au point relais, repartez avec</h2>
           <p>Pas besoin de carte : choisissez un point relais près de chez vous, payez-y en espèces, puis retirez votre commande ou faites-vous livrer.</p></div>
         <ol class="rb-steps"><li><b>1</b>Je réserve sur Zado</li><li><b>2</b>Je paie au point relais</li><li><b>3</b>Je repars ou je suis livré</li></ol>
         <a class="btn light" href="#/promos">Commencer mes achats ${icon('arrow-right')}</a>
-      </section>
+      </section>`}
 
       ${blocks ? `<section class="shelf">
         <div class="shelf-head"><div><p class="kicker">${icon('squares-four')} Nos rayons</p><h2>Explorer les rayons</h2></div></div>
@@ -842,7 +855,7 @@
 
       <section class="trust-row" aria-label="Acheter en confiance">
         <div>${icon('airplane-tilt')}<span><b>De France à chez vous</b><small>${delayText()}</small></span></div>
-        <div>${icon('storefront')}<span><b>Paiement au point relais</b><small>En espèces, sans carte ni frais cachés</small></span></div>
+        ${hasRelays() ? `<div>${icon('storefront')}<span><b>Paiement au point relais</b><small>En espèces, sans carte ni frais cachés</small></span></div>` : `<div>${icon('device-mobile')}<span><b>Paiement Mobile Money</b><small>Acompte de ${depositTxt()}, le reste ensuite</small></span></div>`}
         <div>${icon('shield-check')}<span><b>Achat en confiance</b><small>Clients vérifiés, code remis à la livraison</small></span></div>
         <div>${icon('chat-circle')}<span><b>Service client</b><small>Nous vous appelons après chaque commande</small></span></div>
       </section>`;
@@ -1078,7 +1091,7 @@
     return `<details class="price-detail" open><summary>${icon('info')} Détail du prix</summary><table>
       ${src ? `<tr><td>Prix fournisseur${p.sourceSupplier ? ` (${esc(p.sourceSupplier)})` : ''}</td><td>${fcfa(src)}</td></tr><tr><td>Marge Zado</td><td>${fcfa(p.price - src)}</td></tr>` : ''}
       <tr class="sub"><td>Prix de l'article</td><td>${fcfa(p.price)}</td></tr>
-      ${t ? `<tr><td>Transport France → Pointe-Noire<small>${kgTxt(billedKg(p.weightKg))} facturé${billedKg(p.weightKg) > 1 ? 's' : ''} × ${String(c.eurPerKg).replace('.', ',')} €/kg${c.perArticle && c.minKg ? ` (minimum ${kgTxt(c.minKg)} par article)` : ''}</small></td><td>${fcfa(t)}</td></tr>
+      ${t ? `<tr><td>Transport France → Pointe-Noire</td><td>${fcfa(t)}</td></tr>
       <tr class="tot"><td>Total livré à Pointe-Noire</td><td>${fcfa(p.price + t)}</td></tr>` : ''}
     </table></details>`;
   }
@@ -1111,7 +1124,7 @@
             <span class="price">${fcfa(p.price)}</span>
             ${priceDetail(p)}
             ${(p.options || []).map((o, i) => `<label class="opt-label" for="opt${i}">${esc(o.name)}</label><div class="opt-choices" id="opt${i}" data-opt="${esc(o.name)}">${o.values.map((v) => `<button type="button" class="opt" data-v="${esc(v)}">${esc(v)}</button>`).join('')}</div>`).join('')}
-            <span class="momo-note">${icon('check-circle-duotone')} Payable en espèces au point relais · retrait ou livraison</span>
+            <span class="momo-note">${icon('check-circle-duotone')} ${hasRelays() ? 'Payable en espèces au point relais · retrait ou livraison' : `Mobile Money : acompte de ${depositTxt()}, le reste ensuite · livraison à domicile`}</span>
             <span class="hint">${icon('airplane-tilt')} ${delayText()}</span>
             ${p.stock === 0 ? '<span class="stock-low">Épuisé</span>' : p.stock <= 6 ? `<span class="stock-low">Plus que ${p.stock} en stock</span>` : '<span class="momo-note">En stock</span>'}
             <div id="optErr"></div>
@@ -1332,7 +1345,7 @@
               ${deliveryCities().map((c) => `<option ${saved.city === c ? 'selected' : ''}>${esc(c)}</option>`).join('')}
             </select>
             <div id="zoneBox" hidden><label for="zone">Quartier</label><select id="zone" name="zone"></select></div>
-            ${feeCfg().other.allowed ? '' : `<p class="hint">Livraison à ${esc(deliveryCities().join(', '))} uniquement pour le moment. Ailleurs, choisissez le retrait au point relais.</p>`}
+            ${feeCfg().other.allowed ? '' : `<p class="hint">Livraison à ${esc(deliveryCities().join(', '))} uniquement pour le moment. ${hasRelays() ? ' Ailleurs, choisissez le retrait au point relais.' : ''}</p>`}
             <label for="address">Quartier / adresse / repère</label>
             <textarea id="address" name="address" rows="2" placeholder="Ex. Quartier Tié-Tié, près de la pharmacie…">${esc(saved.address)}</textarea>
             <label>Votre adresse sur la carte <span class="hint">(conseillé)</span></label>
@@ -1394,7 +1407,7 @@
           <h2>Récapitulatif</h2>
           ${items.map(({ product: p, qty, variant }) => `<div class="line"><span>${qty} × ${esc(p.name)}${variant ? `<br><span class="hint">${esc(variantText(variant))}</span>` : ''}</span><strong>${fcfa(p.price * qty)}</strong></div>`).join('')}
           ${cartSaving() > 0 ? `<div class="row saving" style="margin-top:10px"><span>Vous économisez</span><span>${fcfa(cartSaving())}</span></div>` : ''}
-          ${fr0.fee ? `<div class="row" style="margin-top:10px"><span>Transport France → Pointe-Noire<br><span class="hint">${kgTxt(fr0.kg)} facturés · ${String(frCfg().eurPerKg).replace('.', ',')} €/kg${frCfg().perArticle ? `, minimum ${kgTxt(frCfg().minKg)} par article` : ''}</span></span><span>${fcfa(fr0.fee)}</span></div>` : ''}
+          ${fr0.fee ? `<div class="row" style="margin-top:10px"><span>Transport France → Pointe-Noire</span><span>${fcfa(fr0.fee)}</span></div>` : ''}
           <div class="row" style="margin-top:10px"><span>Livraison</span><span id="feeLine">—</span></div>
           <div class="row total" style="margin-top:10px"><span>Total</span><strong id="sumTotal">${total}</strong></div>
           <div id="depositSplit"></div>
@@ -1420,7 +1433,7 @@
     const BUTTON = new Proxy({}, { get: (_, k) => BTN[k]?.() });
     const showFee = () => {
       const f = fee();
-      $('#feeLine').innerHTML = method() === 'cash' && receive() === 'pickup' ? 'Gratuite (retrait)' : f == null ? 'Non disponible : retrait au point relais' : f ? fcfa(f) : '<span class="ok-txt">Offerte</span>';
+      $('#feeLine').innerHTML = method() === 'cash' && receive() === 'pickup' ? 'Gratuite (retrait)' : f == null ? (hasRelays() ? 'Non disponible : retrait au point relais' : 'Non disponible dans cette ville') : f ? fcfa(f) : '<span class="ok-txt">Offerte</span>';
       $('#sumTotal').textContent = grand();
     };
     // Point de livraison placé par le client (gardé sur ce téléphone pour la prochaine fois)
@@ -2018,8 +2031,8 @@
         ${toggle('showFlash', 'Ventes flash sur l\'accueil', 'Afficher le bloc des prix qui fondent', p.showFlash !== false)}
         <div class="pref-row"><span><b>Ville de livraison</b><small>Pré-remplie à chaque commande</small></span>
           <select data-pref-select="city"><option value="">—</option>${deliveryCities().map((v) => `<option ${p.city === v ? 'selected' : ''}>${esc(v)}</option>`).join('')}</select></div>
-        <div class="pref-row"><span><b>Point relais favori</b><small>Proposé en premier à chaque commande</small></span>
-          <select data-pref-select="relayId"><option value="">—</option>${state.relays.map((a) => `<option value="${esc(a.id)}" ${p.relayId === a.id ? 'selected' : ''}>${esc(a.city)} — ${esc(a.name)}</option>`).join('')}</select></div>
+        ${!hasRelays() ? '' : `<div class="pref-row"><span><b>Point relais favori</b><small>Proposé en premier à chaque commande</small></span>
+          <select data-pref-select="relayId"><option value="">—</option>${state.relays.map((a) => `<option value="${esc(a.id)}" ${p.relayId === a.id ? 'selected' : ''}>${esc(a.city)} — ${esc(a.name)}</option>`).join('')}</select></div>`}
       </div>
       <div class="panel prefs">
         <h2>${icon('bell')} Notifications</h2>
