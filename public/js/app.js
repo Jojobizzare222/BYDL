@@ -1020,9 +1020,23 @@
       const low = Math.min(...refs.map((x) => x.priceEur));
       cards.push(`<div class="dt-card dt-prices"><h3>${icon('storefront')} Prix constatés en France</h3>
         <table>${refs.map((x) => `<tr><th>${x.url ? `<a href="${esc(x.url)}" target="_blank" rel="noopener noreferrer nofollow">${esc(x.store)}</a>` : esc(x.store)}</th><td>${x.from ? '<small>dès </small>' : ''}${x.priceEur.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €<small>≈ ${fcfa(Math.round(x.priceEur * eurFcfa))}</small></td></tr>`).join('')}</table>
-        <p class="dt-note">Prix publics TTC en France${refs.some((x) => x.date) ? `, relevés le ${esc(new Date(refs.map((x) => x.date).filter(Boolean).sort().pop()).toLocaleDateString('fr-FR'))}` : ''}, hors frais d'acheminement jusqu'à Pointe-Noire. Chez Zado : <b>${fcfa(p.price)}</b>, produit déjà sur place, facture et garantie.</p></div>`);
+        <p class="dt-note">Prix publics TTC en France${refs.some((x) => x.date) ? `, relevés le ${esc(new Date(refs.map((x) => x.date).filter(Boolean).sort().pop()).toLocaleDateString('fr-FR'))}` : ''}, hors frais d'acheminement jusqu'à Pointe-Noire. Chez Zado : <b>${fcfa(p.price)}</b>, acheminé depuis la France, avec facture et garantie.</p></div>`);
     }
-    return `<section class="dt"><div class="shelf-head"><div><p class="kicker">${esc(p.brand || p.category)}</p><h2>En détail</h2></div></div><div class="dt-grid">${cards.join('')}</div></section>`;
+    return `<section class="dt" id="details"><div class="dt-head"><p class="kicker">${esc(p.brand || p.category)}</p><h2>${icon('magnifying-glass')} Tout savoir sur ce produit</h2></div><div class="dt-grid">${cards.join('')}</div></section>`;
+  }
+  // Aperçu « En détail » placé juste sous le titre (Joseph 22/10/2026 : détails trop bas et pas assez visibles)
+  function detailPeek(p) {
+    const hl = p.highlights || [], r = p.repair, v = p.video, refs = p.priceRefs || [];
+    if (!hl.length && !r && !v && !refs.length) return '';
+    const chips = [
+      r ? `<span class="dp-chip">${icon('wrench')} Réparabilité <b>${esc(String(r.value).replace('.', ','))}${esc((REPAIR[r.kind] || ['', ''])[1])}</b></span>` : '',
+      v ? `<span class="dp-chip">${icon('youtube-logo')} Avis d'expert en vidéo</span>` : '',
+      refs.length ? `<span class="dp-chip">${icon('storefront')} Prix en France</span>` : '',
+    ].join('');
+    return `<a class="dt-peek" href="#details" data-scroll="details">
+      ${hl.length ? `<ul>${hl.slice(0, 3).map((x) => `<li>${icon('check-circle-duotone')}<span>${esc(x)}</span></li>`).join('')}</ul>` : ''}
+      ${chips ? `<div class="dp-chips">${chips}</div>` : ''}
+      <span class="dp-more">Voir tous les détails ${icon('caret-down')}</span></a>`;
   }
 
   // Détail du prix montré au client avant de commander : prix fournisseur + marge Zado = prix de l'article, + transport (1 kg minimum)
@@ -1050,10 +1064,12 @@
         <div>
           <div class="pdp-main">${visual(p)}${d ? `<span class="disc">-${d}%</span>` : ''}${photoCredit(p)}</div></div>
           ${(p.images || []).length > 1 ? `<div class="pdp-thumbs">${p.images.map((src, i) => `<button type="button" class="${i === 0 ? 'on' : ''}" data-img="${esc(src)}" aria-label="Photo ${i + 1}"><img src="${esc(src)}" alt="" loading="lazy"></button>`).join('')}</div>` : ''}
+          ${detailSection(p)}
         </div>
         <div>
           <h1>${esc(p.name)}</h1>
           ${p.provenance || p.sourceSupplier ? `<div class="origin-row">${p.provenance ? `<span>${icon('airplane-tilt')} Provenance : <b>${esc(p.provenance)}</b></span>` : ''}${p.sourceSupplier ? `<span>${icon('seal-check-duotone')} Fournisseur : <b>${esc(p.sourceSupplier)}</b></span>` : ''}</div>` : ''}
+          ${detailPeek(p)}
           <div class="pdp-meta">${p.rating ? `<a href="#reviews" class="rating-link" data-scroll="reviews">${ratingLine(p.rating)}</a>` : ''}<button type="button" class="share-btn" id="shareBtn">${icon('export')} Partager</button></div>
           ${(() => { const sib = siblings(p); return sib.length > 1 ? `<div class="color-pick"><span class="lbl">Couleur : <b>${esc(colorOf(p)?.label || '')}</b></span><div>${sib.map((x) => `<a href="#/p/${enc(x.id)}" class="${x.id === p.id ? 'on' : ''}" title="${esc(colorOf(x)?.label || x.name)}" aria-label="${esc(colorOf(x)?.label || x.name)}"><i style="background:${colorOf(x)?.hex || '#ccc'}"></i></a>`).join('')}</div></div>` : ''; })()}
           ${p.condition && p.condition !== 'neuf' ? `<span class="cond-tag">${esc(p.condition === 'reconditionné' ? 'Reconditionné' : 'Occasion')}</span>` : ''}
@@ -1075,11 +1091,11 @@
           <div class="buybar"><span><small>${esc(p.name)}</small><b>${fcfa(p.price)}</b></span><button class="btn cta" type="button" id="buybarAdd" ${p.stock === 0 ? 'disabled' : ''}>${p.stock === 0 ? 'Épuisé' : 'Ajouter au panier'}</button></div>
         </div>
       </div>
-      ${detailSection(p)}
       <section class="reviews" id="reviews"></section>
       ${similar.length ? `<section class="shelf"><div class="shelf-head"><div><p class="kicker">${esc(p.category)}</p><h2>Vous aimerez aussi</h2></div></div>${railCarousel(similar)}</section>` : ''}`;
     loadReviews(p);
     app.querySelector('[data-scroll="reviews"]')?.addEventListener('click', (e) => { e.preventDefault(); $('#reviews').scrollIntoView({ behavior: 'smooth' }); });
+    app.querySelector('[data-scroll="details"]')?.addEventListener('click', (e) => { e.preventDefault(); $('#details')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
     // Partager (WhatsApp…) : le lien /p/<id> donne un aperçu avec photo, nom et prix
     $('#shareBtn').addEventListener('click', async () => {
       const url = `${location.origin}/p/${enc(p.id)}`;

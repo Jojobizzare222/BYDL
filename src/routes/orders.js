@@ -32,7 +32,7 @@ function hasAccess(order, token) {
 const clientLines = (lines) => (lines || []).map(({ unitCost, supplierId, ...l }) => l);
 // Données internes de livraison et de caisse : jamais montrées au client
 const INTERNAL = ['courierId', 'cashHeldBy', 'cashRemittedAt', 'cashRemittedTo', 'codeFails', 'codeLocked', 'codeVerifiedAt', 'callConfirmedBy',
-  'callAttempts', 'deliveredBy', 'deliveredWithoutCode', 'depositPaymentId', 'refused', 'depositRetained', 'refundedAt', 'supplierReady', 'liveStartKm', 'nearNotified', 'arrivedNotified', 'payPhone', 'restPaymentId'];
+  'callAttempts', 'deliveredBy', 'deliveredWithoutCode', 'depositPaymentId', 'refused', 'depositRetained', 'refundedAt', 'supplierReady', 'liveStartKm', 'nearNotified', 'arrivedNotified', 'payPhone', 'restPaymentId', 'transportZadoFee'];
 function clientOrder({ accessToken, note, paidAfterCancel, ...order }) {
   for (const k of INTERNAL) delete order[k];
   if (order.attempts) order.attempts = order.attempts.map(({ at, label }) => ({ at, label }));
@@ -132,7 +132,7 @@ router.post('/', (req, res) => {
     customerId: account?.id || null, // commande rattachée au compte si le client est connecté
     lines,
     subtotal,
-    transportFee: freight.fee, transportKg: freight.kg, transportPerKg: freight.perKg,
+    transportFee: freight.fee, transportKg: freight.kg, transportPerKg: freight.perKg, transportZadoFee: freight.zadoFee, // frais Zado : interne (marge)
     deliveryFee: 0, // fixé au paiement selon la ville / le quartier (src/fees.js) ; retrait au point relais : gratuit
     total: subtotal + freight.fee,
     currency: 'XAF',

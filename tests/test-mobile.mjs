@@ -34,6 +34,11 @@ const items = [{ productId: 'a003', qty: 1 }, { productId: 'a072', qty: 2 }];
 const o1 = (await call(C, '/orders', { body: { customer: { name: 'Awa Mobile', phone: '061112233', city: 'Pointe-Noire', address: 'Tié-Tié' }, items } })).data;
 const p003 = pub.price, p072 = (await call(null, '/products/a072')).data.price;
 ok(o1.transportKg === 3 && o1.transportFee === Math.round(3 * 15 * 655.957) && o1.total === p003 + 2 * p072 + o1.transportFee, `transport : 3 kg facturés (0,45 kg → 1 kg + 2 × 1 kg) = ${o1.transportFee} FCFA, ajouté au total`);
+ok(!('transportZadoFee' in o1) && !('zadoFeeEurPerKg' in cfg.freight), 'frais Zado sur le transport (2 €/kg) : jamais montré au client (commande, réglages publics)');
+const ao1 = (await call(A, '/admin/orders')).data.orders.find((x) => x.id === o1.id);
+ok(ao1.transportZadoFee === Math.round(3 * 2 * 655.957) && ao1.transportFee - ao1.transportZadoFee === Math.round(3 * 15 * 655.957) - Math.round(3 * 2 * 655.957), `commande : dont frais Zado ${ao1.transportZadoFee} FCFA (3 kg × 2 €), le reste paie le fret`);
+const fin = (await call(A, '/admin/finance')).data;
+ok(typeof fin.kpis.transportZadoFees === 'number', `Finances : frais Zado sur le transport suivis à part (${fin.kpis.transportZadoFees} FCFA pour les ventes réalisées)`);
 
 // 3) Retrait : acompte puis demande du reste sur le téléphone
 const pay = (await call(C, '/payments', { body: { orderId: o1.id, token: o1.token, method: 'mobile', mode: 'pull', phone: '061112233' } })).data;

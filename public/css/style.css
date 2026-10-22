@@ -1362,6 +1362,36 @@ html[data-theme="dark"] .sc-ico { background: var(--soft); color: var(--brand-te
 /* « En détail » de la fiche produit : points forts, réparabilité, vidéo, prix en France (21/10/2026) */
 .dt { margin: 30px 0 6px; }
 .dt-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+/* « Tout savoir sur ce produit » (22/10/2026) : sous la photo sur ordinateur (à côté de l'achat), après la fiche sur téléphone */
+.dt { margin-top: 26px; scroll-margin-top: 130px; background: var(--soft); border: 1px solid var(--line); border-radius: 22px; padding: 20px; }
+.dt-head { margin-bottom: 14px; }
+.dt-head .kicker { margin: 0 0 2px; }
+.dt-head h2 { display: flex; align-items: center; gap: 10px; margin: 0; font-size: clamp(1.25rem, 2.6vw, 1.55rem); color: var(--brand-text); }
+.dt-head h2 .ico { width: 26px; height: 26px; color: var(--mango-dark, #E09A00); }
+.pdp .dt-grid { grid-template-columns: 1fr 1fr; }
+.pdp .dt-hl { grid-column: 1 / -1; }
+.dt-card { border-top: 4px solid var(--link); }
+.dt-card.dt-hl { border-top-color: var(--ok); } .dt-card.dt-repair { border-top-color: var(--brand); } .dt-card.dt-video { border-top-color: #E0201A; } .dt-card.dt-prices { border-top-color: var(--mango); }
+.dt-card h3 { font-size: 1.08rem; }
+.dt-hl ul { grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px 18px; }
+.dt-hl li { font-size: .98rem; }
+@media (max-width: 819px) {
+  /* Téléphone : la colonne de la photo « s'ouvre » pour placer les détails APRÈS le bouton d'achat */
+  .pdp > div:first-child { display: contents; }
+  .pdp > div:first-child > .dt { order: 3; margin-top: 0; padding: 16px 14px; }
+  .pdp > div:last-child { order: 2; }
+  .pdp .dt-grid { grid-template-columns: 1fr; }
+}
+/* Aperçu juste sous le titre : 3 points forts + pastilles, clic = descend aux détails */
+.dt-peek { display: grid; gap: 10px; margin: 2px 0 14px; padding: 12px 14px; border: 1px solid var(--line); border-left: 4px solid var(--mango); border-radius: 14px; background: var(--paper); color: var(--ink); text-decoration: none; }
+.dt-peek:hover { box-shadow: var(--shadow); }
+.dt-peek ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.dt-peek li { display: flex; gap: 8px; align-items: flex-start; font-size: .93rem; line-height: 1.35; }
+.dt-peek li .ico { color: var(--ok); flex: none; margin-top: 1px; }
+.dp-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.dp-chip { display: inline-flex; align-items: center; gap: 5px; font-size: .8rem; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: var(--soft); color: var(--brand-text); }
+.dp-chip .ico { width: 15px; height: 15px; }
+.dp-more { display: inline-flex; align-items: center; gap: 4px; font-size: .88rem; font-weight: 700; color: var(--link); }
 .dt-card { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px 18px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 8px; color: var(--ink); text-decoration: none; min-width: 0; }
 .dt-card h3 { display: flex; align-items: center; gap: 8px; font-size: .98rem; margin: 0 0 4px; color: var(--brand-text); }
 .dt-card h3 .ico { color: var(--link); width: 20px; height: 20px; }

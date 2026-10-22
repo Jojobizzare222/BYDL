@@ -941,6 +941,7 @@
         <p class="muted" style="margin-top:0">Le transport France → Pointe-Noire est ajouté au prix des articles, à la commande, selon le poids saisi dans chaque fiche produit (${fcfa(tr.perKg)} le kilo aujourd'hui).</p>
         <div class="grid2">
           <div><label for="trEur">Prix du transport (€ par kg)</label><input id="trEur" type="number" min="0" step="0.5" value="${tr.freight.eurPerKg}"></div>
+          <div><label for="trFee">Dont frais Zado (€ par kg)</label><input id="trFee" type="number" min="0" step="0.5" value="${tr.freight.zadoFeeEurPerKg ?? 0}"><small class="muted">Compté dans votre marge ; le reste (${String(Math.max(0, tr.freight.eurPerKg - (tr.freight.zadoFeeEurPerKg || 0))).replace('.', ',')} €) paie la société de fret. Jamais montré au client.</small></div>
           <div><label for="trMin">Poids minimum facturé (kg)</label><input id="trMin" type="number" min="0" step="0.1" value="${tr.freight.minKg}"></div>
         </div>
         <label class="check"><input type="checkbox" id="trPerArt" ${tr.freight.perArticle ? 'checked' : ''}> Minimum appliqué à <b>chaque article</b> (sinon : à la commande entière)</label>
@@ -1045,7 +1046,7 @@
       e.preventDefault();
       try {
         await api('/settings/transport', { method: 'PUT', body: {
-          freight: { enabled: $('#trOn').checked, eurPerKg: $('#trEur').value, minKg: $('#trMin').value, perArticle: $('#trPerArt').checked, logisticsMin: $('#trL1').value, logisticsMax: $('#trL2').value, deliveryHours: $('#trDH').value },
+          freight: { enabled: $('#trOn').checked, eurPerKg: $('#trEur').value, zadoFeeEurPerKg: $('#trFee').value, minKg: $('#trMin').value, perArticle: $('#trPerArt').checked, logisticsMin: $('#trL1').value, logisticsMax: $('#trL2').value, deliveryHours: $('#trDH').value },
           mobile: { deposit: Number($('#trDep').value || 0), numbers: { mtn: $('#trMtn').value, airtel: $('#trAir').value }, holder: $('#trHolder').value, transferHours: Number($('#trHours').value || 24) } } });
         toast('Transport et acompte enregistrés ✓'); $('#trMsg').innerHTML = ''; route({ keep: true });
       } catch (err) { $('#trMsg').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; }
@@ -2572,7 +2573,7 @@
     app.innerHTML = head + finTabs('') + periodChips() + alerts.join('') + `
       <div class="kpis">
         <div class="kpi kc0"><span class="kpi-ico">${icon('currency-circle-dollar-duotone')}</span><span class="kpi-label">Chiffre d'affaires</span><span class="kpi-value">${fcfa(k.revenue)}</span><span class="kpi-hint">${k.orders} commande(s) payée(s)</span></div>
-        <div class="kpi kc1"><span class="kpi-ico">${icon('chart-line-up-duotone')}</span><span class="kpi-label">Marge brute</span><span class="kpi-value">${money(k.grossMargin)}</span><span class="kpi-hint">${pct} % des ventes · coût des produits ${fcfa(k.cogs)}</span></div>
+        <div class="kpi kc1"><span class="kpi-ico">${icon('chart-line-up-duotone')}</span><span class="kpi-label">Marge brute</span><span class="kpi-value">${money(k.grossMargin)}</span><span class="kpi-hint">${pct} % des ventes · coût des produits ${fcfa(k.cogs)}${k.transportZadoFees ? ` · dont frais Zado sur le transport ${fcfa(k.transportZadoFees)}` : ''}</span></div>
         <div class="kpi kc2"><span class="kpi-ico">${icon('receipt-duotone')}</span><span class="kpi-label">Charges</span><span class="kpi-value">${fcfa(k.charges)}</span><span class="kpi-hint">loyer, livraison, salaires, pub…</span></div>
         <div class="kpi kc3 ${k.result < 0 ? 'bad' : ''}"><span class="kpi-ico">${icon('trophy-duotone')}</span><span class="kpi-label">Résultat (bénéfice)</span><span class="kpi-value">${money(k.result)}</span><span class="kpi-hint">marge brute − charges${k.retainedDeposits ? ` + ${fcfa(k.retainedDeposits)} d'acomptes conservés` : ''}</span></div>
       </div>
