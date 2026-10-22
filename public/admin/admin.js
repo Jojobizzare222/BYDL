@@ -56,7 +56,7 @@
   addEventListener('resize', markScrollers);
   new MutationObserver(() => requestAnimationFrame(markScrollers)).observe(document.getElementById('app'), { childList: true });
   // ---------- Outils d'affichage ----------
-  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=15#${name}"></use></svg>`;
+  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=16#${name}"></use></svg>`;
   // En-tête de page façon « Espace pro › Commandes » + titre + description + boutons d'action à droite
   const pageHead = ({ crumb, title, desc = '', actions = '' }) => `
     <div class="page-head">
@@ -2893,7 +2893,7 @@
     $('#userName').textContent = u.name;
     $('#userRole').textContent = u.company || ROLE_LABELS[u.role] || u.role;
     const m = window.kamwaTheme?.mode() || 'light';
-    $('#themeTopIco').setAttribute('href', `/icons.svg?v=15#${m === 'dark' ? 'moon' : m === 'auto' ? 'circle-half' : 'sun'}`);
+    $('#themeTopIco').setAttribute('href', `/icons.svg?v=16#${m === 'dark' ? 'moon' : m === 'auto' ? 'circle-half' : 'sun'}`);
     $('#themeTop').title = `Apparence : ${m === 'dark' ? 'sombre' : m === 'auto' ? 'automatique' : 'claire'} (cliquer pour changer)`;
     const todo = $('#todoCount'); const chat = $('#chatCount');
     const n = (todo && !todo.hidden ? parseInt(todo.textContent, 10) || 0 : 0) + (chat && !chat.hidden ? parseInt(chat.textContent, 10) || 0 : 0);

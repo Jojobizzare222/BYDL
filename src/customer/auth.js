@@ -80,7 +80,8 @@ function findByIdentifier(identifier) {
 // Données renvoyées au navigateur (jamais l'empreinte du code)
 // Jamais l'empreinte du code ni le nom du fichier de la pièce d'identité
 // ni le résultat du contrôle automatique (réservé à l'admin)
-const publicCustomer = ({ codeHash, codeSealed, idPhoto, idCheckedBy, idAuto, idAutoAt, ...c }) => ({ ...c, idStatus: c.idStatus || 'missing' });
+// Clés d'accès et comptes Google / Apple : seulement leur liste (src/customer/sso.js), jamais les clés ni les identifiants
+const publicCustomer = ({ codeHash, codeSealed, idPhoto, idCheckedBy, idAuto, idAutoAt, passkeys, oauth, ...c }) => ({ ...c, idStatus: c.idStatus || 'missing', ...require('./sso').publicSso({ passkeys, oauth }) });
 
 function readCookie(req) {
   const match = (req.get('Cookie') || '').match(new RegExp(`(?:^|;\\s*)${COOKIE}=([a-f0-9]{64})`));

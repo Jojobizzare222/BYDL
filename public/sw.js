@@ -2,11 +2,11 @@
 // (installation sur l'écran d'accueil, ouverture rapide, consultation du catalogue même sans réseau).
 // Règles de sécurité : les commandes, paiements, comptes et l'espace pro passent TOUJOURS par le réseau,
 // jamais par le cache. Seuls le catalogue public et les fichiers du site sont gardés en mémoire.
-const VERSION = 'zado-v65';
+const VERSION = 'zado-v66';
 const SHELL = `${VERSION}-shell`;
 const MEDIA = `${VERSION}-media`;
 const DATA = `${VERSION}-data`;
-const PRECACHE = ['/', '/css/style.css', '/js/app.js', '/js/legal.js', '/js/cookies.js', '/js/pwa.js', '/js/chat.js', '/js/map.js', '/js/mama-zando.js', '/js/mama.js', '/icons.svg?v=15', '/fonts/plus-jakarta-sans-latin-wght-normal.woff2', '/brand/logo-zado.svg?v=8', '/manifest.webmanifest'];
+const PRECACHE = ['/', '/css/style.css', '/js/app.js', '/js/legal.js', '/js/cookies.js', '/js/pwa.js', '/js/chat.js', '/js/map.js', '/js/mama-zando.js', '/js/mama.js', '/js/sso.js', '/icons.svg?v=16', '/fonts/plus-jakarta-sans-latin-wght-normal.woff2', '/brand/logo-zado.svg?v=8', '/manifest.webmanifest'];
 // Lecture seule et publique : utilisable hors ligne (le prix est toujours recalculé par le serveur à la commande)
 const CACHEABLE_API = ['/api/products', '/api/config'];
 

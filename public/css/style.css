@@ -1695,6 +1695,24 @@ html[data-theme="dark"] .mz-delivered { background: #12352B; color: #B6E8D4; } h
 .msg.typing .bubble { display: inline-flex; gap: 4px; padding: 12px 14px; }
 .msg.typing .bubble i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; opacity: .4; animation: mz-dot 1.2s ease-in-out infinite; }
 .msg.typing .bubble i:nth-child(2) { animation-delay: .15s; } .msg.typing .bubble i:nth-child(3) { animation-delay: .3s; }
+/* Connexion rapide : clé d'accès, Google, Apple (public/js/sso.js, 22/10/2026) */
+.sso { display: grid; gap: 8px; margin: 6px 0 4px; }
+.sso-btn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; font-weight: 600; border-radius: 12px; padding: 11px 14px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); }
+.sso-btn .sso-logo, .sso-btn .ico { width: 20px; height: 20px; flex: none; }
+.sso-btn small { font-weight: 500; color: var(--muted); font-size: .75rem; }
+.sso-btn:disabled { opacity: .55; cursor: not-allowed; }
+.sso-key { background: var(--brand); color: #fff; border-color: var(--brand); }
+.sso-apple { background: #000; color: #fff; border-color: #000; }
+.sso-apple small { color: #bbb; }
+html[data-theme="dark"] .sso-apple { background: #fff; color: #000; border-color: #fff; }
+.sso-gbtn { display: flex; justify-content: center; }
+.sso-or { display: flex; align-items: center; gap: 10px; margin: 6px 0 0; color: var(--muted); font-size: .8rem; text-align: center; }
+.sso-or::before, .sso-or::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+.pref-row .sso-logo { width: 16px; height: 16px; vertical-align: -3px; }
+.pk-list { list-style: none; margin: 0 0 6px; padding: 0; display: grid; gap: 6px; }
+.pk-list li { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 12px; }
+.pk-list li span { display: grid; } .pk-list li small { color: var(--muted); font-size: .78rem; }
+.pk-list .ico { width: 16px; height: 16px; vertical-align: -3px; color: var(--link); }
 /* Points relais masqués tant qu'aucun n'est actif (config.relays = 0) */
 body.no-relay .needs-relay { display: none !important; }
 /* Animations coupées : réglage « réduire les animations », économie de données ou réglage du téléphone */

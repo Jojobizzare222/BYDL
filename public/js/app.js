@@ -9,7 +9,7 @@
   // Univers et catégories affichés dans le menu : fournis par le serveur (src/catalog.js), même liste que l'admin
   let UNIVERSES = [];
   // Icônes Phosphor (fichier /icons.svg, récupérées via Iconify)
-  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=15#${name}"></use></svg>`;
+  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=16#${name}"></use></svg>`;
   // Mama Zando (public/js/mama.js) : scènes animées aux moments clés du parcours
   const mama = (name, opt) => window.kamwaMama?.scene(name, opt) || '';
   const mamaLoading = (text = 'Chargement…') => `<div class="mz-loading" role="status">${mama('load', { size: 'sm' })}<p>${text}</p></div>`;
@@ -1764,6 +1764,7 @@
       <div class="account-grid">
         <form class="panel" id="loginForm" novalidate>
           <h1>Se connecter</h1>
+          ${window.kamwaSso ? kamwaSso.buttonsHtml(state.config?.auth, 'login') : ''}
           <label for="identifier">Numéro de téléphone ou e-mail</label>
           <input id="identifier" autocomplete="username" placeholder="06 123 45 67 ou nom@exemple.com" required>
           <label for="code">Code Zado (6 chiffres)</label>
@@ -1787,9 +1788,15 @@
       const d = codeInput.value.replace(/\D/g, '').slice(0, 6);
       codeInput.value = d.length > 3 ? `${d.slice(0, 3)} ${d.slice(3)}` : d;
     });
+    // Clé d'accès, Google, Apple (public/js/sso.js) : sans compte lié, création de compte pré-remplie
+    window.kamwaSso?.bindButtons($('#loginForm'), state.config?.auth || {}, {
+      deviceOrders,
+      onDone: (res) => { state.customer = res.customer; renderAccountBtn(); route(); },
+      onSignup: (res) => { state.ssoSignup = res; location.hash = '#/compte/creer'; },
+    });
     $('#loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const btn = e.target.querySelector('button'); btn.disabled = true;
+      const btn = e.target.querySelector('button.cta'); btn.disabled = true;
       try {
         const res = await api('/account/login', { method: 'POST', body: { identifier: $('#identifier').value, code: codeInput.value.replace(/\D/g, ''), deviceOrders: deviceOrders() } });
         state.customer = res.customer; renderAccountBtn(); route();
@@ -2048,6 +2055,7 @@
           <span class="code-change"><input id="curCode" inputmode="numeric" maxlength="7" placeholder="Code actuel" autocomplete="current-password"><button class="btn ghost small">Changer</button></span></form>
         <div id="codeMsg"></div>
       </div>
+      ${window.kamwaSso ? kamwaSso.settingsHtml(c, state.config?.auth || {}) : ''}
       <div class="row" style="display:flex;gap:10px;flex-wrap:wrap;margin:6px 0 30px">
         <button class="btn ghost" id="prefsReset">${icon('arrow-counter-clockwise')} Remettre l'affichage par défaut</button>
         <button class="btn ghost" id="logoutBtn">${icon('sign-out-bold')} Se déconnecter</button>
@@ -2072,6 +2080,7 @@
       if (sel.dataset.prefSelect === 'city' && sel.value) { const k = loadJSON('kamwa-customer') || {}; k.city = sel.value; saveJSON('kamwa-customer', k); renderDeliverCity(); }
     }));
     $('#prefsReset').addEventListener('click', () => { if (confirm("Remettre l'affichage par défaut ?")) { savePrefs({ ...PREF_DEFAULTS }); rerender(); } });
+    if (window.kamwaSso && $('#ssoPanel')) kamwaSso.bindSettings($('#ssoPanel'), state.config?.auth || {}, (cust, msg) => { state.customer = cust; route({ keep: true }); toast(msg); });
     $('#logoutBtn').addEventListener('click', async () => { await api('/account/logout', { method: 'POST' }).catch(() => {}); state.customer = null; renderAccountBtn(); location.hash = '#/compte'; });
     $('#codeForm').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -2110,22 +2119,32 @@
   function viewRegister() {
     if (state.customer) { location.hash = '#/compte'; return; }
     const saved = loadJSON('kamwa-customer') || {};
+    const sso = state.ssoSignup, PROV = { google: 'Google', apple: 'Apple' };
+    if (sso?.profile?.name) saved.name = sso.profile.name;
     app.innerHTML = `
       <form class="panel" id="registerForm" novalidate style="max-width:520px;margin:0 auto">
         <h1>Créer mon compte Zado</h1>
+        ${sso ? `<div class="alert ok">${icon('seal-check-duotone')} <span>Compte ${PROV[sso.provider] || ''} reconnu${sso.profile?.email ? ` : <b>${esc(sso.profile.email)}</b>` : ''}. Il reste à ajouter votre pièce d'identité : vous pourrez ensuite vous connecter avec ${PROV[sso.provider] || 'ce compte'}.${sso.emailTaken ? ' <br>Un compte Zado existe déjà avec cet e-mail : <a href="#/compte">connectez-vous avec votre code</a>, puis liez ' + (PROV[sso.provider] || '') + ' dans vos réglages.' : ''}</span> <button type="button" class="linkish" id="ssoCancel">Annuler</button></div>`
+          : window.kamwaSso ? kamwaSso.buttonsHtml(state.config?.auth, 'signup') : ''}
         <p class="hint">Indiquez votre numéro de téléphone <strong>ou</strong> votre e-mail (ou les deux) : c'est votre identifiant. Un compte vérifié est nécessaire pour commander.</p>
         <label for="rName">Nom complet</label>
         <input id="rName" autocomplete="name" value="${esc(saved.name)}" required>
         <label for="rPhone">Numéro de téléphone</label>
         <input id="rPhone" type="tel" inputmode="tel" placeholder="06 123 45 67" value="${esc(saved.phone)}">
         <label for="rEmail">E-mail (facultatif)</label>
-        <input id="rEmail" type="email" inputmode="email" autocomplete="email" placeholder="nom@exemple.com">
+        <input id="rEmail" type="email" inputmode="email" autocomplete="email" placeholder="nom@exemple.com" value="${esc(sso?.profile?.email || '')}">
         ${idFieldsHtml()}
         <div id="registerError"></div>
         <button class="btn cta block" style="margin-top:14px">Créer mon compte</button>
         <p class="hint">Déjà un compte ? <a href="#/compte">Se connecter</a></p>
       </form>`;
     const readId = bindIdFields($('#registerForm'));
+    $('#ssoCancel')?.addEventListener('click', () => { state.ssoSignup = null; viewRegister(); });
+    if (!sso) window.kamwaSso?.bindButtons($('#registerForm'), state.config?.auth || {}, {
+      deviceOrders,
+      onDone: (res) => { state.customer = res.customer; renderAccountBtn(); location.hash = '#/compte'; },
+      onSignup: (res) => { state.ssoSignup = res; viewRegister(); },
+    });
     $('#registerForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       // Tout est vérifié AVANT l'envoi : un message sous chaque champ à corriger (audit 17/10/2026)
@@ -2139,9 +2158,10 @@
       try { id = readId(); } catch (err) { problems.push([/type/.test(err.message) ? $('#idType') : form.querySelector('.id-pick'), err.message]); }
       $('#registerError').innerHTML = '';
       if (!fieldErrors(form, problems)) return;
-      const btn = form.querySelector('button.cta'); busy(btn, 'Envoi en cours');
+      const btn = form.querySelector('button.cta:not(.sso-btn)'); busy(btn, 'Envoi en cours');
       try {
-        const res = await api('/account/register', { method: 'POST', body: { name: $('#rName').value, phone: $('#rPhone').value, email: $('#rEmail').value, ...id, deviceOrders: deviceOrders() } });
+        const res = await api('/account/register', { method: 'POST', body: { name: $('#rName').value, phone: $('#rPhone').value, email: $('#rEmail').value, ...id, deviceOrders: deviceOrders(), ...(sso ? { oauthToken: sso.oauthToken } : {}) } });
+        state.ssoSignup = null;
         state.customer = res.customer; renderAccountBtn();
         const who = res.customer.phone || res.customer.email;
         app.innerHTML = `
@@ -2221,7 +2241,7 @@
         <g class="vy-pin vy-fr"><circle cx="34" cy="96" r="7"/><rect x="26" y="104" width="5.3" height="8" fill="#0055A4"/><rect x="31.3" y="104" width="5.3" height="8" fill="#fff"/><rect x="36.6" y="104" width="5.3" height="8" fill="#EF4135"/></g>
         <g class="vy-pin vy-cg"><circle cx="286" cy="96" r="7"/><path d="M278 104h16l-16 8z" fill="#009543"/><path d="M294 104v8h-16z" fill="#DC241F"/><path d="M290 104h4l-12 8h-4z" fill="#FBDE4A"/></g>
         ${stage === 'arrived' ? '<circle class="vy-ping" cx="286" cy="96" r="7"/>' : ''}
-        <g class="vy-plane"><g transform="rotate(90)"><use href="/icons.svg?v=15#airplane-fill" x="-13" y="-13" width="26" height="26"/></g>${motion}</g>
+        <g class="vy-plane"><g transform="rotate(90)"><use href="/icons.svg?v=16#airplane-fill" x="-13" y="-13" width="26" height="26"/></g>${motion}</g>
       </svg>
       <div class="vy-labels"><span>Paris, France</span><span>Pointe-Noire</span></div>
       ${when ? `<p class="vy-when">${icon('clock-bold')} ${esc(when)}</p>` : ''}

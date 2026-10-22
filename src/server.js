@@ -81,7 +81,7 @@ function siteVersion() {
 }
 app.get('/api/config', (req, res) => {
   res.set('Cache-Control', 'no-store');
-  res.json({ shopName: config.shopName, currency: config.currency, paymentMode: config.paymentMode, demo: config.demo, universes: UNIVERSES, version: siteVersion(), accountRequired: require('./sales').salesSettings().accountRequired, deliveryFees: require('./fees').publicFees(), maintenance: require('./maintenance').publicState(), ...(config.demo ? { demoTrack: { id: 'CMD-DEMO-0002', token: require('./demo').DEMO_TRACK_TOKEN } } : {}) , freight: require('./freight').publicFreight(), relays: require("./store").agencies.all().filter((a) => a.active !== false).length, mobileDeposit: require('./mobile-pay').mobileSettings().deposit });
+  res.json({ shopName: config.shopName, currency: config.currency, paymentMode: config.paymentMode, demo: config.demo, universes: UNIVERSES, version: siteVersion(), accountRequired: require('./sales').salesSettings().accountRequired, deliveryFees: require('./fees').publicFees(), maintenance: require('./maintenance').publicState(), ...(config.demo ? { demoTrack: { id: 'CMD-DEMO-0002', token: require('./demo').DEMO_TRACK_TOKEN } } : {}) , freight: require('./freight').publicFreight(), relays: require("./store").agencies.all().filter((a) => a.active !== false).length, auth: require('./customer/sso').publicAuthConfig(), mobileDeposit: require('./mobile-pay').mobileSettings().deposit });
 });
 app.use('/api/products', require('./routes/products'));
 app.use('/api/orders', require('./routes/orders'));

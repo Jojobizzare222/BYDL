@@ -5,22 +5,23 @@
 //    propres limites plus strictes (comptes, Zado Pro, messagerie).
 //  - Sur Vercel, ces en-têtes valent pour les réponses du serveur ; les fichiers de public/ reçoivent les mêmes via vercel.json.
 
-// Sources autorisées : tout vient de Zado, sauf les fonds de carte OpenStreetMap.
+// Sources autorisées : tout vient de Zado, sauf les fonds de carte OpenStreetMap et, pour « Continuer avec Google / Apple »
+// (22/10/2026), les scripts et fenêtres de connexion de Google (accounts.google.com) et d'Apple (appleid.apple.com).
 // 'unsafe-inline' reste nécessaire pour les scripts (petits scripts du thème et de l'animation d'ouverture dans les pages)
 // et les styles (attributs style=) : à durcir plus tard avec des empreintes (hash).
 const CSP = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-inline'",
-  "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https://tile.openstreetmap.org https://*.tile.openstreetmap.org",
+  "script-src 'self' 'unsafe-inline' https://accounts.google.com https://appleid.cdn-apple.com",
+  "style-src 'self' 'unsafe-inline' https://accounts.google.com",
+  "img-src 'self' data: blob: https://tile.openstreetmap.org https://*.tile.openstreetmap.org https://*.googleusercontent.com",
   "font-src 'self' data:",
-  "connect-src 'self'",
+  "connect-src 'self' https://accounts.google.com https://appleid.apple.com",
   "media-src 'self' blob:",
   "worker-src 'self' blob:",
-  "frame-src 'self' blob: data:",
+  "frame-src 'self' blob: data: https://accounts.google.com https://appleid.apple.com",
   "object-src 'none'",
   "base-uri 'self'",
-  "form-action 'self'",
+  "form-action 'self' https://appleid.apple.com",
   "frame-ancestors 'self'",
 ].join('; ');
 
@@ -30,7 +31,7 @@ const HEADERS = {
   'X-Frame-Options': 'SAMEORIGIN',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
   'Permissions-Policy': 'camera=(self), geolocation=(self), microphone=(), payment=(), usb=()',
-  'Cross-Origin-Opener-Policy': 'same-origin',
+  'Cross-Origin-Opener-Policy': 'same-origin-allow-popups', // fenêtres de connexion Google / Apple
 };
 
 function headers(req, res, next) {

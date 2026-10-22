@@ -4,6 +4,7 @@ const router = require('express').Router();
 const { customers, orders, payments } = require('../store');
 const { normalizeLocal } = require('../utils/phone');
 const auth = require('../customer/auth');
+const sso = require('../customer/sso');
 const identity = require('../customer/identity');
 const { notifyIdentity } = require('../notify');
 const { hasAccess, clientOrder } = require('./orders');
@@ -36,8 +37,13 @@ router.get('/me', (req, res) => {
 // Création de compte : nom + (téléphone et/ou e-mail) + photo de la pièce d'identité (obligatoire).
 // Le code à 6 chiffres est renvoyé UNE seule fois. Le compte peut commander quand l'admin a vérifié la pièce.
 router.post('/register', async (req, res) => {
-  const { name, phone, email, deviceOrders } = req.body || {};
-  const cleanName = String(name || '').trim().slice(0, 120);
+  const { name, phone, deviceOrders, oauthToken } = req.body || {};
+  let { email } = req.body || {};
+  // Création après « Continuer avec Google / Apple » : compte lié, e-mail vérifié par Google / Apple
+  const viaProvider = oauthToken ? sso.signupFields(oauthToken) : null;
+  if (viaProvider?.error) return res.status(400).json({ error: viaProvider.error });
+  if (viaProvider?.email && !email) email = viaProvider.email;
+  const cleanName = String(name || viaProvider?.name || '').trim().slice(0, 120);
   if (!cleanName) return res.status(400).json({ error: 'Votre nom est obligatoire' });
   const p = phone ? normalizeLocal(phone) : null;
   const e = email ? auth.normEmail(email) : null;
@@ -57,6 +63,7 @@ router.post('/register', async (req, res) => {
     email: e || null,
     ...auth.codeFields(code),
     ...id.fields,
+    ...(viaProvider ? { oauth: viaProvider.oauth, emailVerified: viaProvider.emailVerified && e === viaProvider.email } : {}),
     createdAt: new Date().toISOString(),
   });
   identity.checkLater(customer.id, id); // lecture automatique de la pièce (résultat pour l'admin)
@@ -73,6 +80,52 @@ router.post('/login', (req, res) => {
   auth.openSession(req, res, result.customer.id);
   const claimed = claimDeviceOrders(result.customer.id, deviceOrders);
   res.json({ customer: auth.publicCustomer(result.customer), claimed });
+});
+
+// ---------- Connexion sans code : clés d'accès, Google, Apple (src/customer/sso.js) ----------
+const wrap = (fn) => (req, res) => Promise.resolve(fn(req, res)).catch((err) => { console.error('[connexion]', err); res.status(500).json({ error: 'Erreur, réessayez' }); });
+const mustLogin = (req, res) => { const c = auth.currentCustomer(req); if (!c) res.status(401).json({ error: 'Connectez-vous d\'abord' }); return c; };
+router.post('/passkey/register-options', wrap(async (req, res) => { const c = mustLogin(req, res); if (c) res.json(await sso.passkeyRegisterOptions(req, c)); }));
+router.post('/passkey/register', wrap(async (req, res) => {
+  const c = mustLogin(req, res); if (!c) return;
+  const r = await sso.passkeyRegister(req, c, req.body || {});
+  if (r.error) return res.status(400).json({ error: r.error });
+  res.status(201).json({ customer: auth.publicCustomer(customers.get(c.id)) });
+}));
+router.post('/passkey/login-options', wrap(async (req, res) => res.json(await sso.passkeyLoginOptions(req))));
+router.post('/passkey/login', wrap(async (req, res) => {
+  const r = await sso.passkeyLogin(req, req.body || {});
+  if (r.error) return res.status(r.status || 400).json({ error: r.error });
+  auth.openSession(req, res, r.customer.id);
+  const claimed = claimDeviceOrders(r.customer.id, req.body?.deviceOrders);
+  res.json({ customer: auth.publicCustomer(r.customer), claimed });
+}));
+router.delete('/passkeys/:id', (req, res) => {
+  const c = mustLogin(req, res); if (!c) return;
+  if (!sso.removePasskey(c, req.params.id)) return res.status(404).json({ error: 'Clé d\'accès introuvable' });
+  res.json({ customer: auth.publicCustomer(customers.get(c.id)) });
+});
+// Google / Apple : { credential (id_token), link?: true pour lier au compte connecté }
+router.post('/oauth/:provider', wrap(async (req, res) => {
+  const provider = req.params.provider;
+  if (!sso.PROVIDERS[provider]) return res.status(404).json({ error: 'Fournisseur inconnu' });
+  const v = await sso.verifyIdToken(provider, req.body?.credential);
+  if (v.error) return res.status(400).json({ error: v.error });
+  const current = auth.currentCustomer(req);
+  const r = sso.resolveProvider(provider, v.claims, { current, link: Boolean(req.body?.link) });
+  if (r.error) return res.status(r.status || 400).json({ error: r.error });
+  if (r.linked) return res.json({ linked: true, customer: auth.publicCustomer(customers.get(current.id)) });
+  if (r.customer) {
+    auth.openSession(req, res, r.customer.id);
+    const claimed = claimDeviceOrders(r.customer.id, req.body?.deviceOrders);
+    return res.json({ customer: auth.publicCustomer(r.customer), claimed });
+  }
+  res.json({ signup: true, oauthToken: r.token, profile: r.profile, emailTaken: r.emailTaken, provider });
+}));
+router.delete('/oauth/:provider', (req, res) => {
+  const c = mustLogin(req, res); if (!c) return;
+  if (!sso.unlinkProvider(c, req.params.provider)) return res.status(404).json({ error: 'Compte non lié' });
+  res.json({ customer: auth.publicCustomer(customers.get(c.id)) });
 });
 
 router.post('/logout', (req, res) => {
