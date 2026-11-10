@@ -50,7 +50,12 @@ curl -fsSL https://raw.githubusercontent.com/Jojobizzare222/BYDL/main/deploy/ins
 sudo bash installer.sh zado.cg contact@zado.cg
 ```
 
-(remplacez `zado.cg` par votre domaine et l'e-mail par le vôtre). Le script installe tout : Node.js, la boutique, le
+(remplacez `zado.cg` par votre domaine et l'e-mail par le vôtre).
+
+**Pas encore de nom de domaine ?** Lancez simplement `sudo bash installer.sh` : la boutique est installée sur une
+adresse provisoire en HTTPS (`https://51-83-12-34.sslip.io`, l'adresse IP avec des tirets). Le jour où vous avez le
+domaine, faites-le pointer vers le serveur (étape 2) puis relancez `sudo bash installer.sh votre-domaine.com votre@email` :
+la boutique passe sur le vrai nom, sans rien perdre. Le script installe tout : Node.js, la boutique, le
 redémarrage automatique, le HTTPS gratuit, le pare-feu, les mises à jour de sécurité et **une sauvegarde chaque nuit**.
 Si le domaine ne pointe pas encore vers le serveur, il vous dira quelle commande relancer plus tard pour le HTTPS.
 

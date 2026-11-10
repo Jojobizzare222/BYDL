@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 # Installation de la VRAIE boutique Zado sur un serveur neuf (VPS Ubuntu 24.04), en une commande :
-#   sudo bash installer.sh zado.cg contact@zado.cg
+#   sudo bash installer.sh zado242.com contact@exemple.com
 # (1er argument : le nom de domaine ; 2e : un e-mail pour le certificat HTTPS).
+# SANS nom de domaine (pour commencer) :  sudo bash installer.sh
+#   → adresse provisoire en HTTPS : https://51-83-12-34.sslip.io (l'adresse IP du serveur, écrite avec des tirets).
+#   Plus tard, relancer avec le vrai domaine : l'adresse publique de la boutique est mise à jour.
 # Ce que fait le script : Node.js, la boutique (copie du dépôt GitHub), un service qui la relance tout seul, nginx devant
 # (HTTPS gratuit Let's Encrypt), pare-feu, mises à jour de sécurité automatiques, sauvegarde chaque nuit.
 # On peut le relancer sans risque : il ne remplace ni la base, ni le fichier .env, ni les photos.
@@ -13,7 +16,13 @@ HOME_DIR=/srv/zado; APP="$HOME_DIR/app"; BACKUPS="$HOME_DIR/sauvegardes"
 say() { printf '\n\033[1;34m==> %s\033[0m\n' "$*"; }
 
 [ "$(id -u)" = 0 ] || { echo "Lancez ce script avec sudo."; exit 1; }
-[ -n "$DOMAIN" ] || { echo "Usage : sudo bash installer.sh zado.cg contact@zado.cg"; exit 1; }
+# Pas de domaine : adresse provisoire <ip-avec-tirets>.sslip.io (service public qui renvoie vers l'adresse IP, HTTPS possible)
+TEMP=0
+if [ -z "$DOMAIN" ]; then
+  IP="$(curl -4 -fsS https://api.ipify.org || hostname -I | awk '{print $1}')"
+  DOMAIN="${IP//./-}.sslip.io"; TEMP=1
+  echo "Pas de nom de domaine : adresse provisoire https://$DOMAIN"
+fi
 grep -qi ubuntu /etc/os-release || echo "Attention : ce script est prévu pour Ubuntu 24.04."
 
 say "Mise à jour du système et outils"
@@ -41,6 +50,9 @@ if [ ! -f "$APP/.env" ]; then
   sed -e "s|__DOMAIN__|$DOMAIN|g" -e "s|__CODE_KEY__|$(openssl rand -hex 32)|" -e "s|__CRON__|$(openssl rand -hex 24)|" deploy/env.production.example > "$APP/.env"
   chown zado:zado "$APP/.env" && chmod 600 "$APP/.env"
   echo "Fichier .env créé (clé de chiffrement des codes clients générée). Complétez-le plus tard : e-mail, Mobile Money…"
+else
+  # Nouveau domaine (ex. passage de l'adresse provisoire au vrai nom) : seules ces adresses sont mises à jour
+  sed -i -e "s|^PUBLIC_URL=.*|PUBLIC_URL=https://$DOMAIN|" -e "s|^APPLE_REDIRECT_URI=.*|APPLE_REDIRECT_URI=https://$DOMAIN/|" "$APP/.env"
 fi
 sudo -u zado mkdir -p "$APP/data" && chmod 750 "$APP/data"
 
@@ -82,7 +94,9 @@ chmod +x deploy/sauvegarde.sh deploy/mettre-a-jour.sh
 echo "0 2 * * * zado $APP/deploy/sauvegarde.sh >> $BACKUPS/sauvegarde.log 2>&1" > /etc/cron.d/zado-sauvegarde
 
 say "Certificat HTTPS (le domaine doit déjà pointer vers ce serveur)"
-if [ -n "$EMAIL" ] && certbot --nginx -n --agree-tos -m "$EMAIL" --redirect -d "$DOMAIN" -d "www.$DOMAIN"; then
+CERT_MAIL=(--register-unsafely-without-email); [ -n "$EMAIL" ] && CERT_MAIL=(-m "$EMAIL")
+CERT_NAMES=(-d "$DOMAIN"); [ "$TEMP" = 1 ] || CERT_NAMES+=(-d "www.$DOMAIN")
+if certbot --nginx -n --agree-tos "${CERT_MAIL[@]}" --redirect "${CERT_NAMES[@]}"; then
   echo "HTTPS actif."
 else
   echo "HTTPS pas encore actif : vérifiez que $DOMAIN et www.$DOMAIN pointent vers l'adresse IP de ce serveur, puis relancez :"
