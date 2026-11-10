@@ -1783,3 +1783,10 @@ body[data-route="commande"] .bg-route, body[data-route="merci"] .bg-route { opac
 html[data-theme="dark"] .gift-toggle, html[data-theme="dark"] .gift-recap { background: rgba(255,179,0,.10); }
 html[data-theme="dark"] .gift-toggle .ico, html[data-theme="dark"] .gift-recap .ico { color: var(--mango); }
 html[data-theme="dark"] .gift-chip.on { background: #2D66D6; border-color: #2D66D6; }
+/* Idées cadeaux : bandeau de 3 photos de Noël libres de droits (Unsplash) */
+.gift-hero { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 8px; height: 200px; margin: 0 0 12px; border-radius: var(--radius); overflow: hidden; }
+.gift-hero img { width: 100%; height: 100%; object-fit: cover; display: block; }
+@media (max-width: 640px) { .gift-hero { grid-template-columns: 1fr 1fr; height: 140px; } .gift-hero img:last-child { display: none; } }
+html[data-theme="dark"] .gift-hero img { filter: brightness(.9); }
+html[data-saver="on"] .gift-hero { display: none; }
+.theme-noel .slide-visual img.amb { object-position: 50% 30%; }

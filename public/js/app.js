@@ -773,7 +773,7 @@
     const usedAmb = new Set();
     const ambPick = (p) => { const list = ambTypes(p); if (!list.length) return null; const x = list.find((u) => !usedAmb.has(u)) || list[0]; usedAmb.add(x); return x; };
     // Diapositives du grand carrousel (construites à partir du catalogue)
-    const slide = ({ theme, kicker, title, text, href, cta, p, extra = '', art = '' }) => `
+    const slide = ({ theme, kicker, title, text, href, cta, p, extra = '', art = '', img = '', imgAlt = '' }) => `
       <div class="slide theme-${theme}">
         <div class="slide-text">
           <span class="pill">${kicker}</span>
@@ -784,6 +784,7 @@
         </div>
         <div class="slide-visual">
           <span class="deco o1"></span><span class="deco o2"></span><span class="deco o3"></span>
+          ${img ? `<img class="amb" src="${img}" alt="${esc(imgAlt)}" loading="lazy">` : ''}
           ${p?.image ? `<img src="${esc(p.image)}" alt="${esc(p.name)}" ${p === heroP ? '' : 'loading="lazy"'}>` : p ? ((src) => (src ? `<img class="amb" src="${src}" alt="" ${p === heroP ? 'fetchpriority="high"' : 'loading="lazy"'}><span class="slide-ico mini">${catIcon(p.category)}</span><span class="amb-note">Photo d'illustration</span>` : `<span class="slide-ico">${catIcon(p.category)}</span>`))(ambPick(p)) : ''}
           ${art}
           ${p && discount(p) ? `<span class="slide-badge">-${discount(p)} %</span>` : ''}
@@ -793,7 +794,10 @@
     const nl = noelLeft();
     if (nl) slides.push(slide({ theme: 'noel', kicker: `${icon('gift')} Noël chez Zado`, title: `Livré avant Noël`, text: `Commandez avant le <strong>${dayTxt(noel().deadline)}</strong> : ${esc(delayText())}.`, href: '#/cadeaux', cta: 'Idées cadeaux',
       extra: `<div class="noel-cd" aria-label="Temps restant"><b>${nl.d}</b><i>jours</i><b>${nl.h}</b><i>h</i><b>${String(nl.m).padStart(2, '0')}</b><i>min</i></div>`,
-      art: mama('deliver', { size: 'lg', label: 'Mama Zando vous tend votre cadeau' }) }));
+      img: '/images/ambiance/noel-famille.jpg', imgAlt: 'Famille souriante devant le sapin de Noël' }));
+    // « C'est pour offrir » : 2e diapositive de Noël (photos libres de droits Unsplash, crédits sur #/credits)
+    if (noel()) slides.push(slide({ theme: 'noel', kicker: `${icon('gift')} C'est pour offrir`, title: 'Offrez, on livre pour vous', text: 'Cochez « C\'est pour offrir » à la commande : nous livrons la personne de votre choix à Pointe-Noire, avec votre petit mot et sans aucun prix dans le colis.', href: '#/cadeaux', cta: 'Trouver un cadeau',
+      img: '/images/ambiance/noel-offrir.jpg', imgAlt: 'Jeune femme qui tend un cadeau en souriant' }));
     if (heroP) slides.push(slide({ theme: 'violet', kicker: `${icon('sparkle-fill')} Nouveauté`, title: esc(heroP.name.replace(/^Apple /, '')), text: `À partir de <strong>${fcfa(heroP.price)}</strong>, avec livraison rapide chez vous.`, href: `#/p/${heroP.id}`, cta: 'Je le veux', p: heroP }));
     if (deals.length) slides.push(slide({ theme: 'coral', kicker: `${icon('lightning-fill')} Bonnes affaires`, title: `Jusqu'à -${discount(deals[0])} %`, text: 'Des prix cassés sur une sélection de produits, dans la limite des stocks.', href: '#/promos', cta: 'Voir les offres', p: pick(deals) }));
     for (const u of myUniverses()) {
@@ -1035,7 +1039,8 @@
     const chip = (x) => `<a class="gift-chip ${x.k === sel ? 'on' : ''}" href="#/cadeaux/${x.k}">${x.ic ? icon(x.ic) + ' ' : ''}${esc(x.label)}</a>`;
     const usable = GIFT_PROFILES.filter((x) => all.some(x.test));
     viewList({ title: b ? `Idées cadeaux · ${b.label}` : pr ? `Idées cadeaux · ${pr.label}` : 'Idées cadeaux', crumbs: `<a href="#/">Accueil</a> › ${sel ? '<a href="#/cadeaux">Idées cadeaux</a>' : 'Idées cadeaux'}`, list, active: 'cadeaux',
-      notice: `<div class="gift-intro">${mama('deliver', { size: 'sm' })}<div><p><strong>Faites plaisir, on s'occupe du reste.</strong> Cochez « C'est pour offrir » à la commande : nous livrons directement la personne, avec votre petit mot et sans aucun prix dans le colis.</p>
+      notice: `<div class="gift-hero" role="img" aria-label="Cadeaux de Noël : smartphone emballé, paquets, famille devant le sapin">${['noel-smartphone', 'noel-cadeau', 'noel-paquets-rouges'].map((f, i) => `<img src="/images/ambiance/${f}.jpg" alt="" ${i ? 'loading="lazy"' : ''}>`).join('')}</div>
+      <div class="gift-intro">${mama('deliver', { size: 'sm' })}<div><p><strong>Faites plaisir, on s'occupe du reste.</strong> Cochez « C'est pour offrir » à la commande : nous livrons directement la personne, avec votre petit mot et sans aucun prix dans le colis.</p>
         ${n ? `<p class="hint">${left ? `${icon('clock-countdown-duotone')} Pour être livré avant Noël, commandez avant le <strong>${dayTxt(n.deadline)}</strong>.` : `${icon('clock-countdown-duotone')} Les commandes passées maintenant arriveront après Noël.`}</p>` : ''}</div></div>`,
       chips: `<div class="gift-chips"><span class="lbl">Par budget</span>${GIFT_BUDGETS.filter((x) => all.some((p) => (x.max ? p.price <= x.max : p.price > x.min))).map(chip).join('')}</div>
         ${usable.length ? `<div class="gift-chips"><span class="lbl">Par profil</span>${usable.map(chip).join('')}</div>` : ''}`,
@@ -1068,7 +1073,7 @@
             </div>`).join('') || '<p class="empty">Aucune photo de produit sous licence libre pour le moment.</p>'}
         </div>
         <h2 style="margin-top:24px">Photos d'ambiance</h2>
-        <p class="hint">Photos des rayons (page d'accueil), libres de droits, publiées sur Unsplash par leurs auteurs. Merci à eux !</p>
+        <p class="hint">Photos des rayons et de Noël (page d'accueil, idées cadeaux), libres de droits, publiées sur Unsplash par leurs auteurs. Merci à eux !</p>
         <div class="credits" id="ambCredits"></div>
       </div>`;
     fetch('/images/ambiance/credits.json').then((r) => r.json()).then((list) => {

@@ -160,5 +160,68 @@
   "source": "https://unsplash.com/photos/rI2MXeP6sss",
   "license": "Licence Unsplash",
   "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Noël",
+  "src": "/images/ambiance/noel-famille.jpg",
+  "alt": "Famille souriante devant le sapin de Noël",
+  "author": "Janay Peters",
+  "source": "https://unsplash.com/photos/jp1b6envAIg",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Noël",
+  "src": "/images/ambiance/noel-smartphone.jpg",
+  "alt": "Smartphone emballé d’un nœud rouge, guirlande lumineuse",
+  "author": "Micah & Sammie Chaffin",
+  "source": "https://unsplash.com/photos/GqByRHNw1ro",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Noël",
+  "src": "/images/ambiance/noel-offrir.jpg",
+  "alt": "Jeune femme qui tend un cadeau en souriant",
+  "author": "Vitaly Gariev",
+  "source": "https://unsplash.com/photos/h5Z_swRW7fM",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Noël",
+  "src": "/images/ambiance/noel-cadeau.jpg",
+  "alt": "Femme en pull rouge tenant un cadeau emballé",
+  "author": "Brandy Kennedy",
+  "source": "https://unsplash.com/photos/MtAM7RWb9nI",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Noël",
+  "src": "/images/ambiance/noel-couple.jpg",
+  "alt": "Couple souriant devant un sapin de Noël",
+  "author": "Jadon Johnson",
+  "source": "https://unsplash.com/photos/mmWxrkn1k5c",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Noël",
+  "src": "/images/ambiance/noel-paquets-rouges.jpg",
+  "alt": "Cadeaux emballés de papier rouge et de rubans",
+  "author": "freestocks",
+  "source": "https://unsplash.com/photos/PxM8aeJbzvk",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Noël",
+  "src": "/images/ambiance/noel-paquets-kraft.jpg",
+  "alt": "Paquets cadeaux en papier kraft et ruban rouge",
+  "author": "Cemrecan Yurtman",
+  "source": "https://unsplash.com/photos/ZogUJmll5ys",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
  }
 ]
