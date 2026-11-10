@@ -1,7 +1,7 @@
 #!/bin/zsh
 # Toute la batterie de tests (une base neuve par suite). Lancer depuis le projet :  zsh tests/run-all.sh
 # Résumé : nom de la suite, nombre de OK, nombre d'échecs. Détail de chaque suite : tests/.run/out-<nom>.txt
-D=${0:A:h}; S=$D/.run; mkdir -p $S/push $S/idmob $S/idc $S/idm $S/rt/id $S/ui/id $S/id-p3 $S/idsso $S/idprod
+D=${0:A:h}; S=$D/.run; mkdir -p $S/push $S/idmob $S/idc $S/idm $S/rt/id $S/ui/id $S/id-p3 $S/idsso $S/idprod $S/idnoel
 cd $D
 R=$S/run-all.txt; : > $R
 # Faux serveur de notifications : certificat de test créé une fois
@@ -56,3 +56,4 @@ t equipe --
 t reconditionne --
 t sso ID_DIR=$S/idsso GOOGLE_CLIENT_ID=zado-test.apps.googleusercontent.com GOOGLE_JWKS_URL=http://localhost:3997/certs APPLE_SERVICE_ID=cg.zado.test APPLE_REDIRECT_URI=http://localhost:3999/ APPLE_JWKS_URL=http://localhost:3997/keys -- $D/id.jpg
 t production PAYMENT_MODE=live ID_DIR=$S/idprod -- $D/id.jpg
+t noel ID_DIR=$S/idnoel -- $D/id.jpg

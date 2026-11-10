@@ -499,9 +499,12 @@
         <h2>Articles</h2>
         <div class="lines">
           ${o.lines.map((l) => `<div><span>${l.qty} × ${esc(l.name)}</span><span>${fcfa(l.total)}</span></div>`).join('')}
+          ${o.discount ? `<div><span>Code promo ${esc(o.discount.code)} (${esc(o.discount.label || '')})</span><span>− ${fcfa(o.discount.amount)}</span></div>` : ''}
+          ${o.transportFee ? `<div><span>Transport France → Pointe-Noire</span><span>${fcfa(o.transportFee)}</span></div>` : ''}
           ${o.deliveryFee ? `<div><span>Livraison${o.customer.zone ? ` (${esc(o.customer.zone)})` : ''}</span><span>${fcfa(o.deliveryFee)}</span></div>` : ''}
           <div><span>Total</span><span>${fcfa(o.total)}</span></div>
         </div>
+        ${o.gift ? `<div class="gift-recap">${icon('gift')} <span><strong>C'est un cadeau</strong> : à remettre à <strong>${esc(o.gift.name)}</strong> · <a href="tel:${esc(o.gift.phone)}">${esc(o.gift.phone)}</a>${o.gift.message ? `<br>Petit mot à joindre : « ${esc(o.gift.message)} »` : ''}<br><span class="muted">Aucun prix dans le colis. Le code de livraison est chez l'acheteur, qui le transmet.</span></span></div>` : ''}
       </div>
       ${CAN.orders() ? parcelsPanel(o) : ''}
       ${CAN.orders() ? docsPanel(o) : ''}
@@ -808,6 +811,7 @@
         <div class="row between"><strong class="mono">${esc(x.id)}</strong>${x.paymentPlan === 'cod' ? `<span class="collect-tag">À encaisser : ${fcfa(x.toCollect)}</span>` : '<span class="tag ok">Déjà payée</span>'}</div>
         ${x.planned ? `<p class="plan-when ${x.planned.date < today() ? 'late' : x.planned.date === today() ? 'now' : ''}">${icon('clock-bold')} ${x.planned.date === today() ? "Aujourd'hui" : frDate(x.planned.date)} · ${esc(x.planned.label)}</p>` : ''}
         <h3>${esc(x.customer.name)}</h3>
+        ${x.gift ? `<p class="gift-recap">${icon('gift')} <span><strong>Cadeau : remettre à ${esc(x.gift.name)}</strong>${x.gift.phone ? ` · <a href="tel:${esc(x.gift.phone)}">${esc(x.gift.phone)}</a>` : ''}${x.gift.message ? `<br>Petit mot : « ${esc(x.gift.message)} »` : ''}</span></p>` : ''}
         <p class="deliv-addr">${icon('map-pin-duotone')} ${esc(x.customer.city || '')} · ${esc(x.customer.address || '')}${x.customer.location
           ? `<br><a href="${kamwaMap.directions(x.customer.location)}" target="_blank" rel="noopener">${icon('arrow-square-out-bold')} Itinéraire jusqu'au point placé par le client</a>`
           : x.customer.address ? `<br><a href="https://www.google.com/maps/search/?api=1&query=${enc(`${x.customer.address}, ${x.customer.city || ''}, Congo`)}" target="_blank" rel="noopener">${icon('arrow-square-out-bold')} Chercher l'adresse sur la carte</a> <span class="muted">(adresse écrite : à confirmer en appelant)</span>` : ''}</p>
@@ -2366,6 +2370,91 @@
     });
   }
 
+  // ---------- Pack Noël : mode Noël + codes promo (admin, 10/11/2026) ----------
+  async function viewPromos() {
+    let list, noel;
+    try { [list, noel] = await Promise.all([api('/promos'), api('/settings/noel')]); } catch { return; }
+    const dm = (md) => { const [m, d] = String(md || '').split('-').map(Number); return d ? `${d} ${['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'][m - 1]}` : '—'; };
+    const year = new Date().getFullYear();
+    const remise = (p) => (p.type === 'percent' ? `−${p.value} %${p.maxDiscount ? ` (max ${fcfa(p.maxDiscount)})` : ''}` : `−${fcfa(p.value)}`);
+    const dayFr = (d) => String(d).split('-').reverse().join('/');
+    const period = (p) => (p.startsAt || p.endsAt ? `${p.startsAt ? 'du ' + dayFr(p.startsAt) : ''} ${p.endsAt ? 'au ' + dayFr(p.endsAt) : ''}` : 'sans limite');
+    app.innerHTML = pageHead({ crumb: 'Ventes', title: 'Noël & codes promo', desc: "Le mode Noël annonce sur la boutique jusqu'à quand commander pour être livré avant Noël. Les codes promo se partagent sur WhatsApp, Facebook ou avec des influenceurs : la remise s'applique aux articles (jamais au transport ni à la livraison)." }) + `
+      <div class="panel">
+        <h2>${icon('gift')} Mode Noël</h2>
+        <p class="muted" style="margin-top:0">Bandeau en haut de la boutique, diapositive à l'accueil, compte à rebours et page « Idées cadeaux », du ${dm(noel.start)} au 25 décembre. Après la date limite, la boutique annonce une livraison <b>après Noël</b> (jamais de fausse promesse).</p>
+        <label class="check"><input type="checkbox" id="nOn" ${noel.enabled ? 'checked' : ''}> Activer le mode Noël</label>
+        <div class="grid2">
+          <div><label for="nStart">Début (mois-jour)</label><input id="nStart" value="${esc(noel.start)}" placeholder="11-10"></div>
+          <div><label for="nMargin">Marge de sécurité (jours)</label><input id="nMargin" type="number" min="0" max="10" value="${noel.margin}"></div>
+        </div>
+        <label class="check"><input type="checkbox" id="nAuto" ${noel.auto ? 'checked' : ''}> Date limite calculée automatiquement à partir des délais (Réglages → Transport)</label>
+        <div id="nManual" ${noel.auto ? 'hidden' : ''}><label for="nDead">Date limite choisie</label><input id="nDead" type="date" min="${year}-12-01" max="${year}-12-24" value="${noel.deadline ? `${year}-${noel.deadline}` : ''}"></div>
+        <p class="note">Date limite actuelle : <b>${dm(noel.computed)}</b>${noel.state ? (noel.state.phase === 'before' ? ' · affichée sur la boutique en ce moment' : ' · dépassée : la boutique annonce « livré après Noël »') : ' · rien n\'est affiché aujourd\'hui'}.</p>
+        <button class="btn" id="nSave">Enregistrer</button>
+      </div>
+      <div class="panel">
+        <div class="row between"><h2>Codes promo</h2><button class="btn" id="pNew">${icon('plus-bold')} Nouveau code</button></div>
+        <form id="pForm" hidden class="promo-form">
+          <div class="grid2">
+            <div><label for="pCode">Code (lettres et chiffres)</label><input id="pCode" maxlength="20" placeholder="NOEL10" style="text-transform:uppercase" required></div>
+            <div><label for="pLabel">Note interne <span class="muted">(ex. influenceur, campagne)</span></label><input id="pLabel" maxlength="80" placeholder="Facebook décembre"></div>
+            <div><label for="pType">Type de remise</label><select id="pType"><option value="percent">Pourcentage (%)</option><option value="amount">Montant (FCFA)</option></select></div>
+            <div><label for="pValue">Valeur</label><input id="pValue" type="number" min="1" placeholder="10" required></div>
+            <div><label for="pMin">Montant minimum d'achats (FCFA)</label><input id="pMin" type="number" min="0" placeholder="facultatif"></div>
+            <div id="pMaxBox"><label for="pMax">Remise maximale (FCFA)</label><input id="pMax" type="number" min="0" placeholder="facultatif"></div>
+            <div><label for="pStart">Valable à partir du</label><input id="pStart" type="date"></div>
+            <div><label for="pEnd">Jusqu'au (inclus)</label><input id="pEnd" type="date"></div>
+            <div><label for="pUses">Nombre total d'utilisations</label><input id="pUses" type="number" min="0" placeholder="illimité"></div>
+          </div>
+          <label class="check"><input type="checkbox" id="pOne" checked> Une seule utilisation par client</label>
+          <div class="row"><button class="btn" type="submit">Créer le code</button><button class="btn ghost" type="button" id="pCancel">Annuler</button></div>
+        </form>
+        <div id="tbl"></div>
+      </div>`;
+    dataTable($('#tbl'), {
+      id: 'promos', rows: list, defaultSort: 'date', placeholder: 'Code ou note', empty: 'Aucun code promo pour le moment.',
+      searchText: (p) => `${p.code} ${p.label || ''}`,
+      columns: [
+        { key: 'code', label: 'Code', sortValue: (p) => p.code, render: (p) => `<span class="cell-stack"><strong class="mono">${esc(p.code)}</strong>${p.label ? `<br><span class="muted">${esc(p.label)}</span>` : ''}</span>` },
+        { key: 'remise', label: 'Remise', sortable: false, render: (p) => `${remise(p)}${p.minTotal ? `<br><span class="muted">dès ${fcfa(p.minTotal)}</span>` : ''}` },
+        { key: 'period', label: 'Validité', sortValue: (p) => p.endsAt || '9', render: (p) => period(p) },
+        { key: 'uses', label: 'Utilisations', cls: 'num', sortValue: (p) => p.uses, render: (p) => `${p.uses}${p.maxUses ? ` / ${p.maxUses}` : ''}${p.onePerCustomer ? '<br><span class="muted">1 par client</span>' : ''}` },
+        { key: 'date', label: 'Créé le', sortValue: (p) => p.createdAt, render: (p) => date(p.createdAt) },
+        { key: 'state', label: 'État', sortValue: (p) => (p.active === false ? 1 : 0), render: (p) => `<span class="cell-stack">${p.active === false ? '<span class="tag warn">Désactivé</span>' : '<span class="tag ok">Actif</span>'}<br><button class="linkish" data-pt="${esc(p.id)}" data-on="${p.active === false ? 1 : 0}">${p.active === false ? 'Réactiver' : 'Désactiver'}</button> · <button class="linkish" data-pc="${esc(p.code)}">Copier</button> · <button class="linkish danger" data-pd="${esc(p.id)}">Supprimer</button></span>` },
+      ],
+    });
+    const form = $('#pForm');
+    $('#nAuto').addEventListener('change', () => { $('#nManual').hidden = $('#nAuto').checked; });
+    $('#nSave').addEventListener('click', async () => {
+      const dead = $('#nDead').value;
+      try {
+        await api('/settings/noel', { method: 'PUT', body: { enabled: $('#nOn').checked, auto: $('#nAuto').checked, start: $('#nStart').value.trim(), margin: Number($('#nMargin').value || 0), ...($('#nAuto').checked ? {} : { deadline: dead ? dead.slice(5) : null }) } });
+        toast('Mode Noël enregistré'); viewPromos();
+      } catch (err) { toast('❌ ' + err.message); }
+    });
+    const syncType = () => { $('#pMaxBox').hidden = $('#pType').value !== 'percent'; $('#pValue').placeholder = $('#pType').value === 'percent' ? '10' : '5000'; };
+    $('#pType').addEventListener('change', syncType); syncType();
+    $('#pNew').addEventListener('click', () => { form.hidden = false; $('#pCode').focus(); });
+    $('#pCancel').addEventListener('click', () => { form.hidden = true; });
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const num = (id) => ($(id).value === '' ? null : Number($(id).value));
+      try {
+        await api('/promos', { method: 'POST', body: { code: $('#pCode').value, label: $('#pLabel').value, type: $('#pType').value, value: num('#pValue'), minTotal: num('#pMin'), maxDiscount: $('#pType').value === 'percent' ? num('#pMax') : null, startsAt: $('#pStart').value || null, endsAt: $('#pEnd').value || null, maxUses: num('#pUses'), onePerCustomer: $('#pOne').checked } });
+        toast('Code créé'); viewPromos();
+      } catch (err) { toast('❌ ' + err.message); }
+    });
+    $('#tbl').addEventListener('click', async (e) => {
+      const t = e.target.closest('[data-pt]'), c = e.target.closest('[data-pc]'), d = e.target.closest('[data-pd]');
+      try {
+        if (t) { await api('/promos/' + enc(t.dataset.pt), { method: 'PATCH', body: { active: t.dataset.on === '1' } }); toast(t.dataset.on === '1' ? 'Code réactivé' : 'Code désactivé'); viewPromos(); }
+        if (c) { await navigator.clipboard?.writeText(c.dataset.pc); toast('Code copié : ' + c.dataset.pc); }
+        if (d) { if (!confirm('Supprimer ce code ? Il ne pourra plus être utilisé (les commandes passées gardent leur remise).')) return; await api('/promos/' + enc(d.dataset.pd), { method: 'DELETE' }); toast('Code supprimé'); viewPromos(); }
+      } catch (err) { toast('❌ ' + err.message); }
+    });
+  }
+
   // ---------- Équipe (admin) ----------
   async function viewStaff(sub) {
     let data;
@@ -2924,7 +3013,7 @@
   // à la même position, sauf pendant une saisie (elle se met alors à jour dès que la saisie est terminée).
   const LIVE_TOPICS = {
     tableau: ['orders', 'products', 'customers', 'chat', 'finance'], commandes: ['orders'], commande: ['orders', 'documents', 'parcels'], documents: ['documents'], colis: ['parcels', 'orders'], calendrier: ['orders', 'purchases'], achats: ['purchases'], achat: ['purchases'], stock: ['stock', 'products', 'purchases'], 'bons-de-commande': ['purchases'], clients: ['customers'],
-    livraisons: ['orders'], fournisseur: ['orders', 'products'], avis: ['reviews'],
+    livraisons: ['orders'], fournisseur: ['orders', 'products'], avis: ['reviews'], promos: ['orders'],
     produits: ['products'], agences: ['agencies'], journal: ['orders', 'products', 'customers', 'staff', 'finance'], finances: ['finance', 'orders'], equipe: ['staff'],
   };
   const NO_LIVE_WITH_ID = ['produit', 'achat', 'calendrier', 'agences', 'equipe', 'finances', 'reglages', 'mot-de-passe'];
@@ -2988,7 +3077,7 @@
       commandes: CAN.orders, commande: CAN.orders, produits: CAN.products, produit: CAN.products,
       messagerie: () => Boolean(state.user),
       calendrier: () => CAN.orders() || CAN.courier(), achats: CAN.buyer, achat: CAN.buyer, stock: CAN.buyer, avis: () => CAN.admin() || state.user?.role === 'catalog', 'bons-de-commande': CAN.supplier, documents: CAN.orders, colis: () => CAN.orders() || CAN.courier(), scanner: () => CAN.orders() || CAN.courier(),
-      clients: CAN.admin, agences: CAN.admin, equipe: CAN.admin, journal: CAN.admin, finances: CAN.admin, reglages: CAN.admin, livraisons: CAN.courier, 'mot-de-passe': () => !CAN.admin(),
+      clients: CAN.admin, promos: CAN.admin, agences: CAN.admin, equipe: CAN.admin, journal: CAN.admin, finances: CAN.admin, reglages: CAN.admin, livraisons: CAN.courier, 'mot-de-passe': () => !CAN.admin(),
     };
     if (!allowed[page]?.()) [page, id] = homeHash().slice(2).split('/');
     const tab = page.startsWith('produit') ? 'produits' : page === 'commande' ? 'commandes' : page === 'achat' ? 'achats' : page;
@@ -3000,6 +3089,7 @@
     if (page === 'achat') return id === 'nouveau' ? viewPurchaseNew() : viewPurchase(id);
     if (page === 'stock') return viewStock(id);
     if (page === 'avis') return viewReviews();
+    if (page === 'promos') return viewPromos();
     if (page === 'colis') return id ? viewParcel(id) : viewParcels();
     if (page === 'calendrier') return viewCalendar(id);
     if (page === 'scanner') return viewScanner();

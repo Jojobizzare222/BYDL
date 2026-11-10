@@ -148,7 +148,7 @@ function sync(orderOrId) {
   if (!o || !o.lines) return [];
   const pay = o.paymentId && payments.get(o.paymentId);
   const lines = snapshotLines(o);
-  const base = { lines, subtotal: o.subtotal ?? o.total, transportFee: o.transportFee || 0, transportKg: o.transportKg || 0, deliveryFee: o.deliveryFee || 0, total: o.total,
+  const base = { lines, subtotal: o.subtotal ?? o.total, transportFee: o.transportFee || 0, transportKg: o.transportKg || 0, discount: o.discount || null, deliveryFee: o.deliveryFee || 0, total: o.total,
     // Acompte déjà versé : déduit du total sur la facture (décision Joseph 21/10/2026)
     ...(o.depositPaidAt && o.deposit ? { depositPaid: o.deposit, depositAt: o.depositPaidAt } : {}) };
   const agency = o.agency ? { name: o.agency.name || '', city: o.agency.city || '' } : null;
@@ -249,7 +249,8 @@ function linesTable(d) {
 function totalsBlock(d, sign = '') {
   const t = d.taxes;
   return `<table class="totals">
-    ${d.deliveryFee || d.transportFee ? `<tr><td>Articles</td><td>${sign}${fcfa(d.subtotal)}</td></tr>` : ''}
+    ${d.deliveryFee || d.transportFee || d.discount ? `<tr><td>Articles</td><td>${sign}${fcfa(d.subtotal)}</td></tr>` : ''}
+    ${d.discount ? `<tr><td>Remise (code ${esc(d.discount.code)})</td><td>${sign ? '+ ' : '− '}${fcfa(d.discount.amount)}</td></tr>` : ''}
     ${d.transportFee ? `<tr><td>Transport France → Pointe-Noire</td><td>${sign}${fcfa(d.transportFee)}</td></tr>` : ''}
     ${d.deliveryFee ? `<tr><td>Livraison</td><td>${sign}${fcfa(d.deliveryFee)}</td></tr>` : ''}
     ${t ? `<tr><td>Total hors taxes</td><td>${sign}${fcfa(t.ht)}</td></tr><tr><td>TVA ${t.rate} %</td><td>${sign}${fcfa(t.vat)}</td></tr>${t.extra ? `<tr><td>Centime additionnel ${t.extraRate} %</td><td>${sign}${fcfa(t.extra)}</td></tr>` : ''}` : ''}

@@ -129,7 +129,8 @@ router.post('/', async (req, res) => {
     const f = willDeliver ? feeFor(order.customer?.city, order.customer?.zone, subtotal) : { deliverable: true, fee: 0 };
     if (!f.deliverable) return res.status(400).json({ error: `Pas encore de livraison à ${order.customer?.city || 'cette ville'} : choisissez le retrait au point relais.`, noDelivery: true });
     const transport = order.transportFee || 0; // transport France → Pointe-Noire, fixé à la création de la commande
-    if (order.deliveryFee !== f.fee || order.total !== subtotal + transport + f.fee) order = orders.update(order.id, { subtotal, deliveryFee: f.fee, total: subtotal + transport + f.fee });
+    const discount = order.discount?.amount || 0; // code promo (src/promos.js), fixé à la création de la commande
+    if (order.deliveryFee !== f.fee || order.total !== subtotal - discount + transport + f.fee) order = orders.update(order.id, { subtotal, deliveryFee: f.fee, total: subtotal - discount + transport + f.fee });
   }
 
   // Plan de paiement de la commande : à la réception (acompte + reste) ou payée en ligne / en agence
@@ -348,7 +349,8 @@ function tellCustomer(order, text) {
 function recapText(o) {
   const lines = o.lines.map((l) => `• ${l.qty} × ${l.name}${l.variant ? ` (${l.variant})` : ''} : ${fm(l.total)}`).join('\n');
   return [`Commande ${o.id} confirmée ✓ Merci ${String(o.customer?.name || '').split(' ')[0]} !`, '', 'Récapitulatif :', lines,
-    o.transportFee ? `• Transport France → Pointe-Noire (${String(o.transportKg).replace('.', ',')} kg facturés) : ${fm(o.transportFee)}` : null,
+    o.discount ? `• Code promo ${o.discount.code} : − ${fm(o.discount.amount)}` : null,
+    o.transportFee ? `• Transport France → Pointe-Noire : ${fm(o.transportFee)}` : null,
     o.deliveryFee ? `• Livraison : ${fm(o.deliveryFee)}` : null,
     `Total : ${fm(o.total)}`, `Acompte reçu : − ${fm(o.deposit)}`, `Reste à payer : ${fm(o.balance)}`].filter((x) => x !== null).join('\n');
 }

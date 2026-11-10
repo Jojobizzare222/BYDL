@@ -165,7 +165,7 @@ function labels(list, origin) {
       <div class="mode ${pickup ? 'pickup' : 'home'}">${pickup ? 'RETRAIT AU POINT RELAIS' : 'LIVRAISON À DOMICILE'}</div>
       <div class="mid"><div class="qr">${qrSvg(scanUrl(origin, p))}<small>Scanner pour ouvrir le colis</small></div>
         <div class="dest">${pickup ? `<span class="k">Point relais</span><strong>${esc(relay.name)}</strong>${relay.city ? `<span>${esc(relay.city)}</span>` : ''}<span class="k">Client</span>` : '<span class="k">Destinataire</span>'}
-          <strong>${esc(o.customer.name)}</strong><span class="tel">${esc(o.customer.phone)}</span>
+          ${o.gift && !pickup ? `<span class="gift">CADEAU</span><strong>${esc(o.gift.name)}</strong><span class="tel">${esc(o.gift.phone)}</span><span>De la part de ${esc(o.customer.name)} (${esc(o.customer.phone)})</span>${o.gift.message ? `<span class="msg">« ${esc(o.gift.message)} »</span>` : ''}` : `<strong>${esc(o.customer.name)}</strong><span class="tel">${esc(o.customer.phone)}</span>`}
           ${!pickup ? `${o.customer.zone ? `<span><b>Quartier :</b> ${esc(o.customer.zone)}</span>` : ''}<span>${esc(o.customer.address)}</span><span>${esc(o.customer.city)}</span>${o.customer.location ? '<span class="gps">● Point placé sur la carte (voir Zado Pro)</span>' : ''}` : ''}</div></div>
       ${info.length ? `<dl class="info">${info.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>` : ''}
       <div class="items"><div class="ih"><span>Contenu · ${items} article${items > 1 ? 's' : ''}${count > 1 ? ` (commande en ${count} colis)` : ''}</span>${fragile ? '<b class="fragile">FRAGILE</b>' : ''}</div>
@@ -200,7 +200,7 @@ footer { display: flex; justify-content: space-between; gap: 3mm; align-items: c
 .pay { font-weight: 700; padding: 1mm 2.5mm; border: 2px solid #111; border-radius: 2mm; white-space: nowrap; } .pay.due { background: #111; color: #fff; }
 .hint { margin: 0; font-size: 8pt; color: #555; text-align: center; }
 .mid { flex: none; } .qr small { display: block; text-align: center; font-size: 6.5pt; color: #555; margin-top: .5mm; }
-.dest .tel { font-weight: 700; font-size: 11.5pt; letter-spacing: .02em; } .dest .gps { font-size: 7.5pt; color: #333; margin-top: 1mm; }
+.dest .tel { font-weight: 700; font-size: 11.5pt; letter-spacing: .02em; } .dest .gps { font-size: 7.5pt; color: #333; margin-top: 1mm; } .dest .gift { align-self: flex-start; background: #FFB300; color: #10264A; font-weight: 700; font-size: 8pt; padding: .4mm 2mm; border-radius: 1mm; letter-spacing: .08em; } .dest .msg { font-style: italic; font-size: 8pt; }
 .info { margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 1.5mm 3mm; padding: 2mm 0; border-top: 1px solid #ccc; }
 .info div { min-width: 0; } .info dt { font-size: 7pt; text-transform: uppercase; letter-spacing: .06em; color: #555; } .info dd { margin: 0; font-size: 9.5pt; font-weight: 600; overflow-wrap: anywhere; }
 .items { flex: 1 1 auto; min-height: 14mm; overflow: hidden; border: 1px solid #111; border-radius: 2mm; padding: 1.5mm 2.5mm; }

@@ -89,7 +89,7 @@ function accountGate(account) {
 
 // Création de commande : le total est TOUJOURS recalculé côté serveur à partir du catalogue.
 router.post('/', (req, res) => {
-  const { items, customer } = req.body || {};
+  const { items, customer, promoCode, gift } = req.body || {};
   if (!Array.isArray(items) || items.length === 0) return res.status(400).json({ error: 'Panier vide' });
   if (!customer?.name?.trim()) return res.status(400).json({ error: 'Nom obligatoire' });
   const account = currentCustomer(req);
@@ -124,6 +124,21 @@ router.post('/', (req, res) => {
   }
 
   const subtotal = lines.reduce((s, l) => s + l.total, 0);
+  // Code promo (src/promos.js) : remise sur les articles, recalculée ici ; un code refusé bloque la commande (le client le retire)
+  let discount = null;
+  if (String(promoCode || '').trim()) {
+    const q = require('../promos').quote(promoCode, subtotal, account?.id || null);
+    if (q.error) return res.status(400).json({ error: q.error, promo: true });
+    if (q.amount > 0) discount = { code: q.code, amount: q.amount, label: q.label };
+  }
+  // « C'est pour offrir » : la personne qui reçoit le cadeau (livraison, appel du livreur) + petit message
+  let giftInfo = null;
+  if (gift && gift.forSomeone) {
+    const gPhone = normalizeLocal(gift.phone);
+    const gName = String(gift.name || '').trim().slice(0, 80);
+    if (!gName || !gPhone) return res.status(400).json({ error: 'Cadeau : indiquez le nom et le numéro de la personne qui le reçoit', gift: true });
+    giftInfo = { name: gName, phone: gPhone, message: String(gift.message || '').replace(/\s+/g, ' ').trim().slice(0, 200) || null };
+  }
   // Transport France → Pointe-Noire (src/freight.js) : 15 €/kg, 1 kg minimum par article ; recalculé ici, jamais pris du navigateur
   const freight = require('../freight').orderFreight(lines);
   const order = orders.insert({
@@ -134,7 +149,9 @@ router.post('/', (req, res) => {
     subtotal,
     transportFee: freight.fee, transportKg: freight.kg, transportPerKg: freight.perKg, transportZadoFee: freight.zadoFee, // frais Zado : interne (marge)
     deliveryFee: 0, // fixé au paiement selon la ville / le quartier (src/fees.js) ; retrait au point relais : gratuit
-    total: subtotal + freight.fee,
+    ...(discount ? { discount } : {}),
+    ...(giftInfo ? { gift: giftInfo } : {}),
+    total: subtotal - (discount?.amount || 0) + freight.fee,
     currency: 'XAF',
     customer: {
       name: customer.name.trim(),
@@ -152,6 +169,19 @@ router.post('/', (req, res) => {
 
   // Seule réponse qui contient la clé : le navigateur la garde pour la suite (paiement, page « merci »).
   res.status(201).json({ ...publicOrder(order), token: order.accessToken });
+});
+
+// Vérifier un code promo depuis le panier (aperçu ; la remise définitive est recalculée à la création de la commande)
+router.post('/promo-check', (req, res) => {
+  const { code, items } = req.body || {};
+  let subtotal = 0;
+  for (const { productId, qty } of Array.isArray(items) ? items.slice(0, 50) : []) {
+    const p = products.get(productId);
+    if (p && p.active !== false && !p.pending) subtotal += p.price * Math.max(1, Math.min(99, Math.floor(Number(qty)) || 1));
+  }
+  const q = require('../promos').quote(code, subtotal, currentCustomer(req)?.id || null);
+  if (q.error) return res.status(400).json({ error: q.error });
+  res.json(q);
 });
 
 // La clé est transmise dans un en-tête (jamais dans l'adresse, pour ne pas la laisser dans les journaux).

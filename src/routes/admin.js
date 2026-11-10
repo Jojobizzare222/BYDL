@@ -428,6 +428,8 @@ const courierView = (o) => ({
   paymentPlan: o.paymentPlan === 'cod' ? 'cod' : 'prepaid', toCollect: delivery.amountToCollect(o),
   callConfirmed: Boolean(o.callConfirmedAt), attempts: (o.attempts || []).length, codeLocked: Boolean(o.codeLocked),
   deliveredAt: o.deliveredAt || null, collected: o.balancePaid ? { method: o.balancePaid.method, amount: o.balance } : null,
+  // « C'est pour offrir » : le colis est remis à cette personne (son téléphone seulement pendant la livraison)
+  gift: o.gift ? { name: o.gift.name, message: o.gift.message || '', ...(o.status === 'shipped' ? { phone: o.gift.phone } : {}) } : null,
 });
 // Position du livreur pour le suivi en direct des clients : acceptée seulement s'il a une livraison EN COURS ;
 // une seule position gardée (la dernière), effacée quand il arrête le partage.
@@ -668,6 +670,39 @@ router.put('/settings/transport', requireRole(), (req, res) => {
   const f = require('../freight').freightSettings(), m = require('../mobile-pay').mobileSettings();
   log(req, 'Transport et acompte modifiés', null, `${f.eurPerKg} €/kg, minimum ${f.minKg} kg ${f.perArticle ? 'par article' : 'par commande'} · acompte ${m.deposit} FCFA`);
   res.json({ freight: f, perKg: require('../freight').perKgFcfa(), mobile: m });
+});
+// ---------- Pack Noël (10/11/2026) : codes promo et mode Noël [admin] ----------
+const promosMod = require('../promos');
+router.get('/promos', requireRole(), (req, res) => res.json(require('../store').promos.all().map(promosMod.withUses).sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))));
+router.post('/promos', requireRole(), (req, res) => {
+  const r = promosMod.createPromo(req.body || {}, actor(req));
+  if (r.error) return res.status(400).json({ error: r.error });
+  log(req, 'Code promo créé', { id: r.value.id, name: r.value.code }, r.value.type === 'percent' ? `−${r.value.value} %` : `−${r.value.value} FCFA`);
+  res.status(201).json(r.value);
+});
+router.patch('/promos/:id', requireRole(), (req, res) => {
+  const cur = require('../store').promos.get(req.params.id);
+  if (!cur) return res.status(404).json({ error: 'Code introuvable' });
+  const r = promosMod.cleanPromo(req.body || {}, cur);
+  if (r.error) return res.status(400).json({ error: r.error });
+  require('../store').promos.update(cur.id, r.value);
+  log(req, 'Code promo modifié', { id: cur.id, name: r.value.code }, r.value.active === false ? 'désactivé' : 'actif');
+  res.json(require('../store').promos.get(cur.id));
+});
+router.delete('/promos/:id', requireRole(), (req, res) => {
+  const cur = require('../store').promos.get(req.params.id);
+  if (!cur) return res.status(404).json({ error: 'Code introuvable' });
+  // Les commandes passées gardent leur remise (nom du code et montant figés dans la commande)
+  require('../store').promos.remove(cur.id);
+  log(req, 'Code promo supprimé', { id: cur.id, name: cur.code });
+  res.json({ ok: true });
+});
+router.get('/settings/noel', requireRole(), (req, res) => { const n = require('../noel'); res.json({ ...n.noelSettings(), computed: n.deadlineMD(), state: n.publicNoel() }); });
+router.put('/settings/noel', requireRole(), (req, res) => {
+  const n = require('../noel'); const r = n.saveNoelSettings(req.body || {});
+  if (r.error) return res.status(400).json({ error: r.error });
+  log(req, 'Mode Noël modifié', null, `${r.value.enabled ? 'activé' : 'désactivé'} · date limite ${n.deadlineMD()}`);
+  res.json({ ...r.value, computed: n.deadlineMD(), state: n.publicNoel() });
 });
 router.get('/settings/sales', requireRole(), (req, res) => res.json(sales.salesSettings()));
 router.put('/settings/sales', requireRole(), (req, res) => {

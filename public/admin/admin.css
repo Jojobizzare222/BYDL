@@ -818,3 +818,13 @@ html[data-theme="light"] .maint-bar { background: #FDEEEC; color: #B3261E; }
 .logi-steps li { display: flex; gap: 8px; align-items: flex-start; color: var(--muted); }
 .logi-steps li.done { color: var(--ink); } .logi-steps li.done .ico { color: #0E8A66; }
 .logi-steps small { display: block; color: var(--muted); font-size: .78rem; }
+
+/* Pack Noël (10/11/2026) : cadeau sur la commande et la livraison, formulaire des codes promo */
+.gift-recap { display: flex; gap: 10px; align-items: flex-start; margin: 12px 0 0; padding: 10px 12px; background: #FFF1CC; color: #4A3300; border-radius: 10px; font-size: .88rem; }
+.gift-recap .ico { color: #8A5A00; width: 20px; height: 20px; flex: 0 0 auto; margin-top: 2px; }
+.gift-recap .muted { color: #6B5A33; }
+html[data-theme="dark"] .gift-recap { background: rgba(255,179,0,.12); color: #FFE4A3; }
+html[data-theme="dark"] .gift-recap .ico { color: #FFB300; }
+html[data-theme="dark"] .gift-recap .muted { color: #D9C08A; }
+.promo-form { border: 1px solid var(--line, #DDE3EC); border-radius: 10px; padding: 12px 14px; margin: 10px 0 14px; }
+.promo-form[hidden] { display: none; }

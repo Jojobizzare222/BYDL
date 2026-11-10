@@ -105,4 +105,5 @@ module.exports = {
   documents: createCollection('documents'), // factures (FA-), reçus (RC-), avoirs (AV-) : numérotés, jamais modifiés ni supprimés
   reviews: createCollection('reviews'), // avis clients : note + commentaire, seulement après une commande livrée
   ledger: createCollection('ledger'), // finances : dépenses, autres entrées, transferts entre caisses (les ventes viennent des commandes)
+  promos: createCollection('promos'), // codes promo (Noël 2026…) : remise en % ou en FCFA, dates, limites d'utilisation
 };

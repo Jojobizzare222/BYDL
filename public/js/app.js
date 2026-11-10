@@ -540,11 +540,30 @@
   // Points relais : masqués tant qu'aucun n'est actif (décision Joseph 22/10/2026 : « je n'en ai pas encore »)
   const hasRelays = () => (state.config?.relays ?? 0) > 0;
   const depositTxt = () => fcfa(state.config?.mobileDeposit ?? 500);
+  // ---------- Mode Noël (pack Noël 10/11/2026) : réglé dans Zado Pro → Noël & promos ----------
+  const noel = () => state.config?.noel || null;
+  const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+  const dayTxt = (iso) => { const [, m, d] = iso.split('-').map(Number); return `${d === 1 ? '1er' : d} ${MOIS[m - 1]}`; };
+  // Temps restant jusqu'à la fin de la date limite (23 h 59, heure du Congo)
+  const noelLeft = () => { const n = noel(); if (!n) return null; const ms = Date.parse(n.deadline + 'T23:59:59+01:00') - Date.now(); if (ms <= 0) return null; return { d: Math.floor(ms / 864e5), h: Math.floor((ms % 864e5) / 36e5), m: Math.floor((ms % 36e5) / 6e4) }; };
+  const noelOn = () => Boolean(noel() && noelLeft());
+  function renderNoelBar() {
+    const bar = $('#noelBar'); if (!bar) return;
+    const n = noel(), left = noelLeft();
+    if (!n) { bar.hidden = true; return; }
+    bar.hidden = false;
+    bar.classList.toggle('late', !left);
+    bar.innerHTML = left
+      ? `${icon('gift')} <span><strong>Livré avant Noël</strong> : commandez avant le ${dayTxt(n.deadline)}</span><span class="nb-cd">${left.d ? `J-${left.d}` : `${left.h} h ${String(left.m).padStart(2, '0')}`}</span><span class="nb-go">Idées cadeaux ${icon('caret-right')}</span>`
+      : `${icon('gift')} <span>Commandes de fin d'année : livraison <strong>après Noël</strong> (${esc(delayText())})</span><span class="nb-go">Idées cadeaux ${icon('caret-right')}</span>`;
+  }
+  setInterval(renderNoelBar, 30000);
   function renderNav(active) {
     document.body.classList.toggle('no-relay', !hasRelays());
     // Barre des rayons (vitrine tech, 19/10/2026) : « Bonnes affaires » en premier ; avec un seul univers (électronique),
     // ses rayons sont affichés directement (ceux qui ont des produits) ; avec plusieurs, menu déroulant par univers.
     const links = [`<a href="#/promos" class="deals-link ${active === 'promos' ? 'active' : ''}">${icon('fire')} Bonnes affaires <span class="nb">Promo</span></a>`];
+    if (noel()) links.push(`<a href="#/cadeaux" class="gift-link ${active === 'cadeaux' ? 'active' : ''}">${icon('gift')} Idées cadeaux</a>`);
     if (state.products.some(isRefurb)) links.push(`<a href="#/reconditionne" class="refurb-link ${active === 'reconditionne' ? 'active' : ''}">${icon('arrows-clockwise')} Reconditionné</a>`);
     const unis = myUniverses();
     if (unis.length === 1) {
@@ -771,6 +790,10 @@
         </div>
       </div>`;
     const slides = [];
+    const nl = noelLeft();
+    if (nl) slides.push(slide({ theme: 'noel', kicker: `${icon('gift')} Noël chez Zado`, title: `Livré avant Noël`, text: `Commandez avant le <strong>${dayTxt(noel().deadline)}</strong> : ${esc(delayText())}.`, href: '#/cadeaux', cta: 'Idées cadeaux',
+      extra: `<div class="noel-cd" aria-label="Temps restant"><b>${nl.d}</b><i>jours</i><b>${nl.h}</b><i>h</i><b>${String(nl.m).padStart(2, '0')}</b><i>min</i></div>`,
+      art: mama('deliver', { size: 'lg', label: 'Mama Zando vous tend votre cadeau' }) }));
     if (heroP) slides.push(slide({ theme: 'violet', kicker: `${icon('sparkle-fill')} Nouveauté`, title: esc(heroP.name.replace(/^Apple /, '')), text: `À partir de <strong>${fcfa(heroP.price)}</strong>, avec livraison rapide chez vous.`, href: `#/p/${heroP.id}`, cta: 'Je le veux', p: heroP }));
     if (deals.length) slides.push(slide({ theme: 'coral', kicker: `${icon('lightning-fill')} Bonnes affaires`, title: `Jusqu'à -${discount(deals[0])} %`, text: 'Des prix cassés sur une sélection de produits, dans la limite des stocks.', href: '#/promos', cta: 'Voir les offres', p: pick(deals) }));
     for (const u of myUniverses()) {
@@ -986,6 +1009,37 @@
   }
   function viewPromos() {
     viewList({ title: 'Bonnes affaires', crumbs: '<a href="#/">Accueil</a> › Bonnes affaires', list: state.products.filter((p) => discount(p) > 0), active: 'promos' });
+  }
+
+  // « Idées cadeaux » (pack Noël 10/11/2026) : par budget ou par profil, à partir du catalogue (rien à saisir dans Zado Pro)
+  const GIFT_BUDGETS = [
+    { k: 'moins-25000', label: 'Moins de 25 000 FCFA', max: 25000 },
+    { k: 'moins-50000', label: 'Moins de 50 000 FCFA', max: 50000 },
+    { k: 'moins-150000', label: 'Moins de 150 000 FCFA', max: 150000 },
+    { k: 'moins-300000', label: 'Moins de 300 000 FCFA', max: 300000 },
+    { k: 'grands-cadeaux', label: 'Grands cadeaux', min: 300000 },
+  ];
+  const GIFT_PROFILES = [
+    { k: 'etudiants', label: 'Pour les étudiants', ic: 'laptop', test: (p) => ['Ordinateurs', 'Tablettes'].includes(p.category) || (p.category === 'Téléphones' && isRefurb(p)) },
+    { k: 'ados', label: 'Pour les ados et les gamers', ic: 'game-controller', test: (p) => ['Jeux vidéo & consoles', 'Audio'].includes(p.category) },
+    { k: 'musique', label: 'Pour les fans de musique', ic: 'headphones', test: (p) => p.category === 'Audio' },
+    { k: 'sport', label: 'Pour le sport et la forme', ic: 'watch', test: (p) => p.category === 'Montres' },
+    { k: 'maison', label: 'Pour toute la famille', ic: 'television', test: (p) => p.category === 'TV & Maison' || p.category === 'Tablettes' },
+    { k: 'petites-attentions', label: 'Petites attentions', ic: 'gift', test: (p) => p.category === 'Accessoires' },
+  ];
+  function viewGifts(sel) {
+    const b = GIFT_BUDGETS.find((x) => x.k === sel), pr = GIFT_PROFILES.find((x) => x.k === sel);
+    const all = state.products;
+    const list = b ? all.filter((p) => (b.max ? p.price <= b.max : p.price > b.min)) : pr ? all.filter(pr.test) : [...all].sort((x, y) => (y.featured ? 1 : 0) - (x.featured ? 1 : 0) || discount(y) - discount(x));
+    const n = noel(), left = noelLeft();
+    const chip = (x) => `<a class="gift-chip ${x.k === sel ? 'on' : ''}" href="#/cadeaux/${x.k}">${x.ic ? icon(x.ic) + ' ' : ''}${esc(x.label)}</a>`;
+    const usable = GIFT_PROFILES.filter((x) => all.some(x.test));
+    viewList({ title: b ? `Idées cadeaux · ${b.label}` : pr ? `Idées cadeaux · ${pr.label}` : 'Idées cadeaux', crumbs: `<a href="#/">Accueil</a> › ${sel ? '<a href="#/cadeaux">Idées cadeaux</a>' : 'Idées cadeaux'}`, list, active: 'cadeaux',
+      notice: `<div class="gift-intro">${mama('deliver', { size: 'sm' })}<div><p><strong>Faites plaisir, on s'occupe du reste.</strong> Cochez « C'est pour offrir » à la commande : nous livrons directement la personne, avec votre petit mot et sans aucun prix dans le colis.</p>
+        ${n ? `<p class="hint">${left ? `${icon('clock-countdown-duotone')} Pour être livré avant Noël, commandez avant le <strong>${dayTxt(n.deadline)}</strong>.` : `${icon('clock-countdown-duotone')} Les commandes passées maintenant arriveront après Noël.`}</p>` : ''}</div></div>`,
+      chips: `<div class="gift-chips"><span class="lbl">Par budget</span>${GIFT_BUDGETS.filter((x) => all.some((p) => (x.max ? p.price <= x.max : p.price > x.min))).map(chip).join('')}</div>
+        ${usable.length ? `<div class="gift-chips"><span class="lbl">Par profil</span>${usable.map(chip).join('')}</div>` : ''}`,
+      empty: mamaEmpty('Pas encore d\'idée cadeau dans ce budget : essayez un autre choix.') });
   }
 
   // Crédit obligatoire des photos sous licence libre (Wikimedia Commons) : auteur, licence, source.
@@ -1350,6 +1404,8 @@
     const fr0 = cartFreight();
     const total = fcfa(cartTotal() + fr0.fee);
     const dep = methods.mobile?.deposit ?? 500;
+    // Code promo (pack Noël) : aperçu demandé au serveur, qui recalcule de toute façon la remise à la commande
+    const promo = { code: (() => { try { return sessionStorage.getItem('kamwa-promo') || ''; } catch { return ''; } })(), amount: 0, label: '' };
 
     app.innerHTML = `
       <h1>Finaliser ma commande</h1>
@@ -1375,6 +1431,16 @@
             <p class="hint" style="margin:0 0 6px">Touchez la carte à l'endroit exact de livraison : le livreur vous trouve plus vite et vous le suivez en direct.</p>
             <div class="kmap" id="homeMap" style="height:240px"></div>
             <div class="relay-tools"><button type="button" class="btn ghost small" id="homeLocate">${icon('map-pin-bold')} Je suis à l'adresse de livraison</button><span class="hint" id="homeTxt"></span></div>
+            <label class="gift-toggle"><input type="checkbox" id="giftOn" ${saved.giftOn ? 'checked' : ''}> ${icon('gift')} <span><strong>C'est pour offrir</strong><small>Nous livrons une autre personne, à l'adresse indiquée ci-dessus</small></span></label>
+            <div id="giftFields" class="gift-box" hidden>
+              <label for="giftName">Nom de la personne qui reçoit le cadeau</label>
+              <input id="giftName" name="giftName" autocomplete="off" maxlength="80">
+              <label for="giftPhone">Son téléphone (le livreur l'appelle)</label>
+              <input id="giftPhone" name="giftPhone" type="tel" inputmode="tel" placeholder="06 123 45 67">
+              <label for="giftMsg">Petit mot remis avec le colis <span class="hint">(facultatif)</span></label>
+              <textarea id="giftMsg" name="giftMsg" rows="2" maxlength="200" placeholder="Joyeux Noël ! Avec tout mon amour…"></textarea>
+              <p class="hint">${icon('lock-key-bold')} Aucun prix n'est indiqué sur le colis. Vous recevez le code de livraison : transmettez-le à la personne, elle le donnera au livreur.</p>
+            </div>
           </div>
 
           <h2 style="margin-top:24px">2. Paiement</h2>
@@ -1430,11 +1496,15 @@
           <h2>Récapitulatif</h2>
           ${items.map(({ product: p, qty, variant }) => `<div class="line"><span>${qty} × ${esc(p.name)}${variant ? `<br><span class="hint">${esc(variantText(variant))}</span>` : ''}</span><strong>${fcfa(p.price * qty)}</strong></div>`).join('')}
           ${cartSaving() > 0 ? `<div class="row saving" style="margin-top:10px"><span>Vous économisez</span><span>${fcfa(cartSaving())}</span></div>` : ''}
+          <div id="promoLine"></div>
           ${fr0.fee ? `<div class="row" style="margin-top:10px"><span>Transport France → Pointe-Noire</span><span>${fcfa(fr0.fee)}</span></div>` : ''}
           <div class="row" style="margin-top:10px"><span>Livraison</span><span id="feeLine">—</span></div>
           <div class="row total" style="margin-top:10px"><span>Total</span><strong id="sumTotal">${total}</strong></div>
           <div id="depositSplit"></div>
           <p class="hint" style="margin-top:10px">${icon('airplane-tilt')} ${delayText()}.</p>
+          ${state.config.promos ? `<details class="promo-box" ${promo.code ? 'open' : ''}><summary>${icon('tag')} J'ai un code promo</summary>
+            <div class="promo-row"><input id="promoIn" maxlength="20" autocapitalize="characters" autocomplete="off" placeholder="Ex. NOEL10" value="${esc(promo.code || '')}"><button type="button" class="btn ghost small" id="promoBtn">Appliquer</button></div>
+            <p class="hint" id="promoMsg"></p></details>` : ''}
         </div>
       </div>`;
 
@@ -1449,7 +1519,7 @@
       }
     };
     const fee = () => (method() === 'cash' && receive() === 'pickup' ? 0 : deliveryFee(form.city.value, $('#zoneBox').hidden ? '' : form.zone.value, cartTotal()));
-    const grandN = () => cartTotal() + fr0.fee + (fee() || 0);
+    const grandN = () => cartTotal() - (promo.amount || 0) + fr0.fee + (fee() || 0);
     const grand = () => fcfa(grandN());
     const payMode = () => (form.paymode?.value === 'push' ? 'push' : 'pull');
     const BTN = { mobile: () => (dep ? `${payMode() === 'push' ? 'Commander et déposer' : 'Payer'} l'acompte de ${fcfa(Math.min(dep, grandN()))}` : 'Commander'), momo: () => `Payer ${grand()}`, card: () => `Payer ${grand()} par carte`, cash: () => 'Réserver et payer au point relais', cod: () => 'Confirmer ma commande' };
@@ -1521,6 +1591,33 @@
     zoneSync();
     syncMethod();
 
+    // « C'est pour offrir » : seulement pour une livraison (pas pour un retrait au point relais)
+    const giftSync = () => { $('#giftFields').hidden = !$('#giftOn').checked; };
+    $('#giftOn').addEventListener('change', giftSync); giftSync();
+    // Code promo
+    const showPromo = () => {
+      $('#promoLine').innerHTML = promo.amount ? `<div class="row saving" style="margin-top:10px"><span>Code ${esc(promo.code)} (${esc(promo.label)})</span><span>− ${fcfa(promo.amount)}</span></div>` : '';
+      syncMethod();
+    };
+    const applyPromo = async (quiet) => {
+      const code = ($('#promoIn')?.value || '').trim().toUpperCase().replace(/\s+/g, '');
+      const msg = $('#promoMsg');
+      if (!code) { Object.assign(promo, { code: '', amount: 0, label: '' }); try { sessionStorage.removeItem('kamwa-promo'); } catch {} if (msg) msg.textContent = ''; return showPromo(); }
+      try {
+        const q = await api('/orders/promo-check', { method: 'POST', body: { code, items: items.map(({ product, qty }) => ({ productId: product.id, qty })) } });
+        Object.assign(promo, { code: q.code, amount: q.amount, label: q.label });
+        try { sessionStorage.setItem('kamwa-promo', q.code); } catch {}
+        if (msg) msg.innerHTML = `<span class="ok-txt">${icon('check-circle-duotone')} Code appliqué : − ${fcfa(q.amount)}</span>`;
+      } catch (ex) {
+        Object.assign(promo, { code: '', amount: 0, label: '' });
+        if (msg && !quiet) msg.innerHTML = `<span class="err-txt">${esc(ex.message)}</span>`;
+      }
+      showPromo();
+    };
+    $('#promoBtn')?.addEventListener('click', () => applyPromo());
+    $('#promoIn')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); applyPromo(); } });
+    if (promo.code) applyPromo(true);
+
     // Pré-sélection automatique de l'opérateur selon le préfixe du numéro
     const syncOperator = () => {
       const d = (form.momo?.value || '').replace(/\D/g, '').replace(/^242/, '');
@@ -1544,7 +1641,11 @@
       if (m === 'cash' && !agency) problems.push([form.agency, 'Choisissez le point relais sur la carte ou dans la liste']);
       if (!pickup && !form.address.value.trim()) problems.push([form.address, 'Indiquez votre quartier, votre rue ou un repère pour le livreur']);
       if ((m === 'momo' || m === 'cod' || m === 'mobile') && !localPhone(form.momo?.value)) problems.push([form.momo, 'Numéro Mobile Money invalide']);
+      const giftOn = !pickup && $('#giftOn').checked;
+      if (giftOn && !form.giftName.value.trim()) problems.push([form.giftName, 'Indiquez le nom de la personne qui reçoit le cadeau']);
+      if (giftOn && !localPhone(form.giftPhone.value)) problems.push([form.giftPhone, 'Numéro de la personne invalide : 9 chiffres']);
       if (!fieldErrors(form, problems)) return;
+      const gift = giftOn ? { forSomeone: true, name: form.giftName.value.trim(), phone: form.giftPhone.value, message: form.giftMsg.value.trim() } : null;
       const btn = $('#payBtn'); busy(btn, 'Envoi de la demande');
       const customer = pickup
         ? { name: form.name.value, phone: form.phone.value, city: agency?.city || '', address: `Retrait au point relais : ${agency?.name || ''}` }
@@ -1556,6 +1657,12 @@
         let checkout = loadCheckout();
         let order = null;
         const sig = JSON.stringify(customer);
+        const extra = JSON.stringify({ p: promo.code || '', g: gift });
+        // Code promo ou cadeau changé depuis la tentative précédente : l'ancienne commande non payée est annulée
+        if (checkout?.cartKey === cartKey() && (checkout.extra || JSON.stringify({ p: '', g: null })) !== extra) {
+          try { await api('/orders/' + enc(checkout.orderId) + '/cancel', { method: 'POST', headers: orderHeaders(checkout.token), body: {} }); } catch {}
+          checkout = null;
+        }
         if (checkout?.cartKey === cartKey()) {
           try { order = await api('/orders/' + enc(checkout.orderId), { headers: orderHeaders(checkout.token) }); } catch {}
           if (['paid', 'confirmed'].includes(order?.status)) return finishPaid(checkout);
@@ -1566,8 +1673,14 @@
           }
         }
         if (!order) {
-          const created = await api('/orders', { method: 'POST', body: { customer, items: items.map(({ product, qty, variant }) => ({ productId: product.id, qty, variant: variant || undefined })) } });
-          checkout = { orderId: created.id, token: created.token, cartKey: cartKey(), sig };
+          let created;
+          try {
+            created = await api('/orders', { method: 'POST', body: { customer, ...(promo.code ? { promoCode: promo.code } : {}), ...(gift ? { gift } : {}), items: items.map(({ product, qty, variant }) => ({ productId: product.id, qty, variant: variant || undefined })) } });
+          } catch (ex) {
+            if (ex.data?.promo) { Object.assign(promo, { code: '', amount: 0, label: '' }); try { sessionStorage.removeItem('kamwa-promo'); } catch {} showPromo(); }
+            throw ex;
+          }
+          checkout = { orderId: created.id, token: created.token, cartKey: cartKey(), sig, extra };
           rememberOrder(created.id, created.token);
           saveCheckout(checkout);
         }
@@ -2333,8 +2446,11 @@
         <div class="panel">
           <h2>Récapitulatif</h2>
           ${o.lines.map((l) => `<div class="line"><span>${l.qty} × ${esc(l.name)}${o.status === 'delivered' && l.productId && byId(l.productId) ? `<br><a class="rv-link" href="#/p/${enc(l.productId)}">${icon('star-fill')} Donner mon avis</a>` : ''}</span><strong>${fcfa(l.total)}</strong></div>`).join('')}
+          ${o.discount ? `<div class="line saving"><span>Code promo ${esc(o.discount.code)}</span><strong>− ${fcfa(o.discount.amount)}</strong></div>` : ''}
+          ${o.transportFee ? `<div class="line"><span>Transport France → Pointe-Noire</span><strong>${fcfa(o.transportFee)}</strong></div>` : ''}
           ${o.deliveryFee ? `<div class="line"><span>Livraison</span><strong>${fcfa(o.deliveryFee)}</strong></div>` : ''}
           <div class="row total" style="margin-top:10px"><span>Total</span><strong>${fcfa(o.total)}</strong></div>
+          ${o.gift ? `<div class="gift-recap">${icon('gift')} <span><strong>Cadeau pour ${esc(o.gift.name)}</strong> (${esc(o.gift.phone)})${o.gift.message ? `<br>« ${esc(o.gift.message)} »` : ''}${o.deliveryCode && o.status !== 'delivered' ? `<br>Transmettez-lui le code de livraison <strong>${esc(o.deliveryCode)}</strong> : elle le donnera au livreur.` : ''}</span></div>` : ''}
           <p class="hint" style="margin-top:12px">${isPickup(o) ? `Retrait au point relais : ${esc(ag.name)} (${esc(ag.city)})` : `Livraison : ${esc(o.customer.city || '—')} · ${esc(o.customer.address || '')}`}<br>Contact : ${esc(o.customer.phone)}</p>
         </div>
       </div>`;
@@ -2652,6 +2768,7 @@
     const parts = currentParts();
     document.body.dataset.route = parts[0] || 'accueil'; // sert au style (ex. bulle « Aide » réduite sur les pages d'achat)
     renderMaintenance();
+    renderNoelBar();
     if (parts[0] !== 'recherche') $('.header').classList.remove('search-open');
     if (parts[0] !== 'recherche') $('#searchInput').value = '';
     markTab(parts[0]);
@@ -2669,6 +2786,7 @@
       case 'recherche': return viewSearch(parts.slice(1).join('/'));
       case 'promos': return viewPromos();
       case 'reconditionne': return viewRefurb();
+      case 'cadeaux': return viewGifts(parts[1]);
       case 'commande': return viewCheckout();
       case 'merci': return viewThanks(parts[1]);
       case 'compte': return viewAccount(parts[1]);
