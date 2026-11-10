@@ -9,13 +9,13 @@
   // Univers et catégories affichés dans le menu : fournis par le serveur (src/catalog.js), même liste que l'admin
   let UNIVERSES = [];
   // Icônes Phosphor (fichier /icons.svg, récupérées via Iconify)
-  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=16#${name}"></use></svg>`;
+  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=17#${name}"></use></svg>`;
   // Mama Zando (public/js/mama.js) : scènes animées aux moments clés du parcours
   const mama = (name, opt) => window.kamwaMama?.scene(name, opt) || '';
   const mamaLoading = (text = 'Chargement…') => `<div class="mz-loading" role="status">${mama('load', { size: 'sm' })}<p>${text}</p></div>`;
   const mamaEmpty = (html) => `<div class="empty mz-empty">${mama('empty', { size: 'sm' })}<p>${html}</p></div>`;
   const busy = (btn, text) => { btn.disabled = true; btn.innerHTML = `${esc(text)}${window.kamwaMama?.dots() || ''}`; };
-  const ICONS = { 'Téléphones': 'device-mobile-duotone', 'Tablettes': 'device-tablet-duotone', 'Ordinateurs': 'laptop-duotone', 'Montres': 'watch-duotone', 'Audio': 'headphones-duotone', 'TV & Maison': 'television-duotone', 'Jeux vidéo & consoles': 'game-controller-duotone', 'Composants': 'cpu-duotone', 'Accessoires': 'plug-duotone' };
+  const ICONS = { 'Téléphones': 'device-mobile-duotone', 'Tablettes': 'device-tablet-duotone', 'Ordinateurs': 'laptop-duotone', 'Montres': 'watch-duotone', 'Audio': 'headphones-duotone', 'TV & Maison': 'television-duotone', 'Jeux vidéo & consoles': 'game-controller-duotone', 'Composants': 'cpu-duotone', 'Accessoires': 'plug-duotone', 'Photo & vidéo': 'camera-duotone', 'Jouets high-tech': 'robot-duotone', 'Beauté & bien-être': 'flower-lotus-duotone' };
   const catIcon = (cat, cls = '') => icon(ICONS[cat] || 'shopping-bag-duotone', cls);
   // Vignettes sans photo : une des trois teintes de la charte, selon la catégorie
   const tintOf = (cat) => Object.keys(ICONS).indexOf(cat) % 3;
@@ -609,7 +609,8 @@
   const AMB_TYPES = [[/coque|étui/i, ['coques-1']], [/airpods max/i, ['audio-1']], [/airpods|écouteurs/i, ['ecouteurs-1']],
     [/câble|cable|chargeur|adaptateur secteur/i, ['accessoires-1', 'accessoires-2']], [/iphone|smartphone|galaxy/i, ['telephones-1', 'telephones-2']],
     [/ipad|tablette/i, ['tablettes-1', 'tablettes-2']], [/macbook|ordinateur portable/i, ['ordinateurs-1', 'ordinateurs-2']], [/watch|montre/i, ['montres-1', 'montres-2']]];
-  const ambTypes = (p) => (AMB_TYPES.find(([re]) => re.test(p?.name || ''))?.[1] || []).map((f) => `/images/ambiance/${f}.jpg`);
+  // Sélection cadeaux (10/11/2026) : objets très variés (support « smartphone », tablette « de dessin »…) → jamais de photo d'ambiance, l'icône du rayon
+  const ambTypes = (p) => (p?.selection ? [] : AMB_TYPES.find(([re]) => re.test(p?.name || ''))?.[1] || []).map((f) => `/images/ambiance/${f}.jpg`);
   function visual(p, cls = 'thumb') {
     if (p.image) {
       return `<div class="${cls} has-img" style="--fallback:${esc(p.color || '#10264A')}">${catIcon(p.category, 'fallback-ico')}
@@ -1052,13 +1053,17 @@
     { k: 'moins-300000', label: 'Moins de 300 000 FCFA', max: 300000 },
     { k: 'grands-cadeaux', label: 'Grands cadeaux', min: 300000 },
   ];
+  const forWho = (p, w) => p.giftFor === w;
   const GIFT_PROFILES = [
+    { k: 'enfants', label: 'Pour les enfants', ic: 'robot-duotone', test: (p) => p.category === 'Jouets high-tech' || forWho(p, 'Enfants') },
     { k: 'etudiants', label: 'Pour les étudiants', ic: 'laptop', test: (p) => ['Ordinateurs', 'Tablettes'].includes(p.category) || (p.category === 'Téléphones' && isRefurb(p)) },
-    { k: 'ados', label: 'Pour les ados et les gamers', ic: 'game-controller', test: (p) => ['Jeux vidéo & consoles', 'Audio'].includes(p.category) },
+    { k: 'ados', label: 'Pour les ados et les gamers', ic: 'game-controller', test: (p) => ['Jeux vidéo & consoles'].includes(p.category) || forWho(p, 'Ados & gamers') || (p.category === 'Audio' && !p.giftFor) },
     { k: 'musique', label: 'Pour les fans de musique', ic: 'headphones', test: (p) => p.category === 'Audio' },
     { k: 'sport', label: 'Pour le sport et la forme', ic: 'watch', test: (p) => p.category === 'Montres' },
-    { k: 'maison', label: 'Pour toute la famille', ic: 'television', test: (p) => p.category === 'TV & Maison' || p.category === 'Tablettes' },
-    { k: 'petites-attentions', label: 'Petites attentions', ic: 'gift', test: (p) => p.category === 'Accessoires' },
+    { k: 'bien-etre', label: 'Beauté et bien-être', ic: 'flower-lotus-duotone', test: (p) => p.category === 'Beauté & bien-être' },
+    { k: 'photo', label: 'Photo, vidéo et créateurs', ic: 'camera-duotone', test: (p) => p.category === 'Photo & vidéo' },
+    { k: 'maison', label: 'Pour toute la famille', ic: 'television', test: (p) => p.category === 'TV & Maison' || p.category === 'Tablettes' || forWho(p, 'Toute la famille') },
+    { k: 'petites-attentions', label: 'Petites attentions', ic: 'gift', test: (p) => p.category === 'Accessoires' || (p.price + 0 <= 15000 && p.selection) },
   ];
   function viewGifts(sel) {
     const b = GIFT_BUDGETS.find((x) => x.k === sel), pr = GIFT_PROFILES.find((x) => x.k === sel);
@@ -2413,7 +2418,7 @@
         <g class="vy-pin vy-fr"><circle cx="34" cy="96" r="7"/><rect x="26" y="104" width="5.3" height="8" fill="#0055A4"/><rect x="31.3" y="104" width="5.3" height="8" fill="#fff"/><rect x="36.6" y="104" width="5.3" height="8" fill="#EF4135"/></g>
         <g class="vy-pin vy-cg"><circle cx="286" cy="96" r="7"/><path d="M278 104h16l-16 8z" fill="#009543"/><path d="M294 104v8h-16z" fill="#DC241F"/><path d="M290 104h4l-12 8h-4z" fill="#FBDE4A"/></g>
         ${stage === 'arrived' ? '<circle class="vy-ping" cx="286" cy="96" r="7"/>' : ''}
-        <g class="vy-plane"><g transform="rotate(90)"><use href="/icons.svg?v=16#airplane-fill" x="-13" y="-13" width="26" height="26"/></g>${motion}</g>
+        <g class="vy-plane"><g transform="rotate(90)"><use href="/icons.svg?v=17#airplane-fill" x="-13" y="-13" width="26" height="26"/></g>${motion}</g>
       </svg>
       <div class="vy-labels"><span>Paris, France</span><span>Pointe-Noire</span></div>
       ${when ? `<p class="vy-when">${icon('clock-bold')} ${esc(when)}</p>` : ''}

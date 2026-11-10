@@ -206,6 +206,21 @@ require('./demo').seed();
   settings.set('migr:reconditionne-v1', new Date().toISOString());
   if (n) console.log(`[reconditionné] ${n} appareil(s) reconditionné(s) ajouté(s) au catalogue`);
 })();
+// Sélection cadeaux de Noël 2026 (demande Joseph 10/11/2026 : « rajoute-les au catalogue » + 400 autres) : 585 articles
+// high-tech relevés sur Cdiscount et Boulanger au PRIX NORMAL (hors Black Friday), prix Zado ≈ +12 %, stock « sur commande »,
+// rayons Photo & vidéo, Jouets high-tech, Beauté & bien-être ajoutés. Ajoutés UNE fois (déjà présents ou supprimés : jamais remis).
+(() => {
+  const { products, settings } = require('./store');
+  if (settings.get('migr:selection-noel-2026')) return;
+  let n = 0;
+  try {
+    for (const p of require('../data/selection-noel-2026.json')) {
+      if (!products.get(p.id)) { products.insert(p); n++; }
+    }
+  } catch (err) { console.error('[sélection Noël]', err.message); }
+  settings.set('migr:selection-noel-2026', new Date().toISOString());
+  if (n) console.log(`[sélection Noël] ${n} article(s) ajouté(s) au catalogue`);
+})();
 // Garantie Zado de 6 mois sur tous les reconditionnés et occasions (décision Joseph 22/10/2026) : une fois, sans écraser une garantie déjà saisie
 (() => {
   const { products, settings } = require('./store');

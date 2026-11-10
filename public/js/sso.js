@@ -2,7 +2,7 @@
 // Le navigateur ne fait que recueillir la preuve (clé d'accès signée, jeton Google / Apple) : c'est le serveur qui vérifie
 // tout (src/customer/sso.js). Les scripts de Google et d'Apple ne sont chargés QUE si le client clique sur leur bouton.
 (() => {
-  const ico = (n) => `<svg class="ico" aria-hidden="true"><use href="/icons.svg?v=16#${n}"></use></svg>`;
+  const ico = (n) => `<svg class="ico" aria-hidden="true"><use href="/icons.svg?v=17#${n}"></use></svg>`;
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
   async function api(path, body, method = 'POST') {
     const r = await fetch('/api/account' + path, { method, headers: { 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined, credentials: 'same-origin', cache: 'no-store' });

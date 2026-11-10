@@ -9,7 +9,7 @@
   const vb = (st) => (st === 'verified' ? VERIFIED : '');
   const enc = encodeURIComponent;
   const date = (iso) => (iso ? new Date(iso).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }) : '');
-  const ICONS = { 'Téléphones': 'device-mobile-duotone', 'Tablettes': 'device-tablet-duotone', 'Ordinateurs': 'laptop-duotone', 'Montres': 'watch-duotone', 'Audio': 'headphones-duotone', 'TV & Maison': 'television-duotone', 'Jeux vidéo & consoles': 'game-controller-duotone', 'Composants': 'cpu-duotone', 'Accessoires': 'plug-duotone' };
+  const ICONS = { 'Téléphones': 'device-mobile-duotone', 'Tablettes': 'device-tablet-duotone', 'Ordinateurs': 'laptop-duotone', 'Montres': 'watch-duotone', 'Audio': 'headphones-duotone', 'TV & Maison': 'television-duotone', 'Jeux vidéo & consoles': 'game-controller-duotone', 'Composants': 'cpu-duotone', 'Accessoires': 'plug-duotone', 'Photo & vidéo': 'camera-duotone', 'Jouets high-tech': 'robot-duotone', 'Beauté & bien-être': 'flower-lotus-duotone' };
   const catIcon = (cat) => icon(ICONS[cat] || 'shopping-bag-duotone');
 
   const state = { user: null, orders: [], labels: {}, transitions: {}, products: [], universes: [], suppliers: [], orderFilter: 'paid', productQuery: '', productFilter: 'all', seenPaid: null };
@@ -56,7 +56,7 @@
   addEventListener('resize', markScrollers);
   new MutationObserver(() => requestAnimationFrame(markScrollers)).observe(document.getElementById('app'), { childList: true });
   // ---------- Outils d'affichage ----------
-  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=16#${name}"></use></svg>`;
+  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=17#${name}"></use></svg>`;
   // En-tête de page façon « Espace pro › Commandes » + titre + description + boutons d'action à droite
   const pageHead = ({ crumb, title, desc = '', actions = '' }) => `
     <div class="page-head">
@@ -2983,7 +2983,7 @@
     $('#userName').textContent = u.name;
     $('#userRole').textContent = u.company || ROLE_LABELS[u.role] || u.role;
     const m = window.kamwaTheme?.mode() || 'light';
-    $('#themeTopIco').setAttribute('href', `/icons.svg?v=16#${m === 'dark' ? 'moon' : m === 'auto' ? 'circle-half' : 'sun'}`);
+    $('#themeTopIco').setAttribute('href', `/icons.svg?v=17#${m === 'dark' ? 'moon' : m === 'auto' ? 'circle-half' : 'sun'}`);
     $('#themeTop').title = `Apparence : ${m === 'dark' ? 'sombre' : m === 'auto' ? 'automatique' : 'claire'} (cliquer pour changer)`;
     const todo = $('#todoCount'); const chat = $('#chatCount');
     const n = (todo && !todo.hidden ? parseInt(todo.textContent, 10) || 0 : 0) + (chat && !chat.hidden ? parseInt(chat.textContent, 10) || 0 : 0);
@@ -3078,7 +3078,7 @@
       commandes: CAN.orders, commande: CAN.orders, produits: CAN.products, produit: CAN.products,
       messagerie: () => Boolean(state.user),
       calendrier: () => CAN.orders() || CAN.courier(), achats: CAN.buyer, achat: CAN.buyer, stock: CAN.buyer, avis: () => CAN.admin() || state.user?.role === 'catalog', 'bons-de-commande': CAN.supplier, documents: CAN.orders, colis: () => CAN.orders() || CAN.courier(), scanner: () => CAN.orders() || CAN.courier(),
-      clients: CAN.admin, promos: CAN.admin, agences: CAN.admin, equipe: CAN.admin, journal: CAN.admin, finances: CAN.admin, reglages: CAN.admin, livraisons: CAN.courier, 'mot-de-passe': () => !CAN.admin(),
+      clients: CAN.admin, promos: CAN.admin, agences: CAN.admin, equipe: CAN.admin, journal: CAN.admin, base: CAN.admin, finances: CAN.admin, reglages: CAN.admin, livraisons: CAN.courier, 'mot-de-passe': () => !CAN.admin(),
     };
     if (!allowed[page]?.()) [page, id] = homeHash().slice(2).split('/');
     const tab = page.startsWith('produit') ? 'produits' : page === 'commande' ? 'commandes' : page === 'achat' ? 'achats' : page;
@@ -3098,6 +3098,7 @@
     if (page === 'agences') return viewAgencies(id);
     if (page === 'equipe') return viewStaff(id);
     if (page === 'journal') return viewActivity();
+    if (page === 'base') return window.kamwaTableur ? window.kamwaTableur(app, { api, esc, icon, pageHead, toast, fcfa }) : null;
     if (page === 'finances') return viewFinances(id);
     if (page === 'livraisons') return viewDeliveries();
     if (page === 'reglages') return viewSettings();

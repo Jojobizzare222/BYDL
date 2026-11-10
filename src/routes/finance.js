@@ -337,3 +337,4 @@ router.post('/remit/:staffId', (req, res) => {
 
 module.exports = router;
 module.exports.METHODS = METHODS;
+module.exports.CATEGORIES = CATEGORIES;

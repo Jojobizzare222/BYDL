@@ -24,6 +24,11 @@ const GROUPS = [
 ];
 const SYN = new Map();
 for (const g of GROUPS) for (const w of g.map(stem)) SYN.set(w, [...new Set([...(SYN.get(w) || []), ...g.map(stem)])]);
+// Catalogue élargi (sélection Noël, 10/11/2026) : une marque ou un modèle précis ne s'élargit pas (« iphone » ne doit pas
+// trouver « support smartphone ») ; les mots vagues ne servent jamais de synonyme trouvé (« enceinte PORTABLE » n'est
+// pas un téléphone, « prise connectée » n'est pas un chargeur).
+const SPECIFIC = new Set(['iphone', 'android', 'galaxy', 'macbook', 'ipad', 'airpod', 'playstation', 'ps5', 'xbox', 'nintendo']);
+const NON_TARGET = new Set(['portable', 'bluetooth', 'audio', 'mobile', 'connecte', 'connectee', 'ecran', 'prise', 'tab']);
 
 function lev(a, b, max) {
   if (Math.abs(a.length - b.length) > max) return max + 1;
@@ -55,7 +60,7 @@ function fields(p) {
  *  (un iPhone, trouvé par son nom ET son rayon « Téléphones », passe devant une coque qui ne cite iPhone que dans son nom).
  *  corrected = mot du produit si une faute de frappe a été corrigée. */
 function wordScore(qw, f) {
-  const variants = SYN.get(qw) || [qw];
+  const variants = SPECIFIC.has(qw) ? [qw] : (SYN.get(qw) || [qw]).filter((v) => v === qw || !NON_TARGET.has(v));
   const tol = tolerance(qw);
   let total = 0, corrected = null;
   for (const [weight, toks] of f) {

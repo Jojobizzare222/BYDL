@@ -108,13 +108,15 @@ async function readPage(url) {
 }
 
 /** Met à jour les prix d'un produit. Renvoie le produit mis à jour (ou tel quel s'il n'a aucun lien). */
-async function refreshProduct(product, { lastHit = new Map() } = {}) {
+async function refreshProduct(product, { lastHit = new Map(), daily = false } = {}) {
   const refs = product.priceRefs || [];
   if (!refs.some((r) => r.url)) return product;
   const now = new Date().toISOString();
   const next = [];
   for (const ref of refs) {
-    if (!ref.url) { next.push(ref); continue; }
+    // watch: false = lien gardé pour Zado Pro mais site qui refuse les robots (sélection Noël 2026, Cdiscount / Boulanger) :
+    // pas de relevé quotidien (seul « Actualiser maintenant » essaie)
+    if (!ref.url || (daily && ref.watch === false)) { next.push(ref); continue; }
     const host = new URL(ref.url).host;
     const wait = (lastHit.get(host) || 0) + HOST_DELAY_MS - Date.now();
     if (wait > 0) await sleep(wait);
@@ -140,12 +142,12 @@ function runAll({ budgetMs = Infinity } = {}) {
     const t0 = Date.now(), lastHit = new Map();
     const sum = { at: new Date().toISOString(), products: 0, refs: 0, ok: 0, blocked: 0, failed: 0, partial: false };
     robotsCache.clear();
-    for (const p of products.all().filter((x) => (x.priceRefs || []).some((r) => r.url))) {
+    for (const p of products.all().filter((x) => (x.priceRefs || []).some((r) => r.url && r.watch !== false))) {
       if (Date.now() - t0 > budgetMs) { sum.partial = true; break; }
       try {
-        const u = await refreshProduct(p, { lastHit });
+        const u = await refreshProduct(p, { lastHit, daily: true });
         sum.products++;
-        for (const r of (u.priceRefs || []).filter((x) => x.url)) { sum.refs++; if (r.status === 'ok') sum.ok++; else if (['blocked', 'robots'].includes(r.status)) sum.blocked++; else sum.failed++; }
+        for (const r of (u.priceRefs || []).filter((x) => x.url && x.watch !== false)) { sum.refs++; if (r.status === 'ok') sum.ok++; else if (['blocked', 'robots'].includes(r.status)) sum.blocked++; else sum.failed++; }
       } catch (err) { console.error('[prix]', p.id, err.message); }
     }
     sum.ms = Date.now() - t0;

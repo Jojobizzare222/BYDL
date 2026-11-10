@@ -58,3 +58,4 @@ t sso ID_DIR=$S/idsso GOOGLE_CLIENT_ID=zado-test.apps.googleusercontent.com GOOG
 t production PAYMENT_MODE=live ID_DIR=$S/idprod -- $D/id.jpg
 t noel ID_DIR=$S/idnoel -- $D/id.jpg
 t petits-prix --
+t tableur -- $D/id.jpg

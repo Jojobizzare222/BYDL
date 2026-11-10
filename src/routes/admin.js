@@ -37,6 +37,7 @@ router.use('/documents', require('./documents-admin')); // factures, reçus, avo
 router.use('/parcels', require('./parcels-admin')); // colis, étiquettes, scan [admin, orders, courier]
 router.use('/purchases', require('./purchases-admin')); // bons de commande aux fournisseurs (Europe) [admin, catalog]
 router.use('/stock', require('./purchases-admin').stockRouter); // mouvements de stock, inventaire [admin, catalog]
+router.use('/tableur', requireRole(), require('./tableur')); // « Base de données » façon Excel : toutes les données [admin]
 
 // Rafraîchissement instantané de Zado Pro : signaux filtrés selon le rôle (jamais de données dans le signal)
 router.get('/events', (req, res) => {
@@ -787,7 +788,8 @@ function cleanProduct(input, current, { role }) {
     p.costPrice = input.costPrice === '' || input.costPrice === null ? null : toInt(input.costPrice);
     if (p.costPrice != null && (!Number.isInteger(p.costPrice) || p.costPrice < 0 || p.costPrice > 100000000)) return { error: "Prix d'achat invalide (nombre entier en FCFA)" };
   }
-  if ('stock' in input) p.stock = toInt(input.stock);
+  // Stock vide = « sur commande » (non suivi : article acheté en France à la commande, ex. sélection Noël 2026)
+  if ('stock' in input) p.stock = input.stock === '' || input.stock === null ? null : toInt(input.stock);
   // Poids (kg) : sert au transport France → Pointe-Noire facturé au client (15 €/kg, 1 kg minimum par article)
   if ('weightKg' in input) {
     const w = input.weightKg === '' || input.weightKg === null ? null : Number(String(input.weightKg).replace(',', '.'));
@@ -826,7 +828,7 @@ function cleanProduct(input, current, { role }) {
   if (p.oldPrice != null && (!Number.isInteger(p.oldPrice) || !priceOk || p.oldPrice <= p.price)) {
     return { error: 'Le prix barré doit être un nombre entier plus grand que le prix (ou laissé vide)' };
   }
-  if (!Number.isInteger(p.stock) || p.stock < 0 || p.stock > 100000) return { error: 'Stock invalide (nombre entier, 0 ou plus)' };
+  if (p.stock != null && (!Number.isInteger(p.stock) || p.stock < 0 || p.stock > 100000)) return { error: 'Stock invalide (nombre entier, 0 ou plus, ou vide = sur commande)' };
   return { value: p };
 }
 
@@ -875,7 +877,7 @@ function cleanPriceRefs(list, previous = []) {
     const priceEur = Math.round(eur * 100) / 100;
     // On garde le suivi automatique (dernier relevé, historique) du même vendeur ; un prix corrigé à la main est noté « saisi à la main »
     const prev = (previous || []).find((x) => (url && x.url === url) || (!url && !x.url && x.store === store));
-    const keep = prev ? { checkedAt: prev.checkedAt || null, history: prev.history || [], from: prev.from || false } : {};
+    const keep = prev ? { checkedAt: prev.checkedAt || null, history: prev.history || [], from: prev.from || false, ...(prev.watch === false ? { watch: false } : {}) } : {};
     const manual = !prev || prev.priceEur !== priceEur;
     out.push({ store, priceEur, url: url || null, date: date || (manual ? new Date().toISOString().slice(0, 10) : prev.date) || null, ...keep,
       ...(manual ? { status: 'manual', auto: false, detail: null, from: false } : { status: prev.status || 'manual', auto: prev.auto || false, detail: prev.detail || null }) });
