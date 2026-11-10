@@ -46,7 +46,7 @@
         <h2>Les données que nous utilisons</h2>
         <ul>
           <li><strong>Pour une commande</strong> : votre nom, numéro de téléphone, ville et adresse ou repère de livraison, les produits commandés et le montant.</li>
-          <li><strong>Pour le paiement Mobile Money</strong> : le numéro MTN ou Airtel qui reçoit la demande de paiement. Vous validez avec votre code secret sur votre téléphone : Zado ne le connaît jamais.</li>
+          <li><strong>Pour le paiement Mobile Money</strong> : le numéro MTN ou Airtel depuis lequel vous faites le dépôt, pour reconnaître votre paiement. Vous envoyez l'argent vous-même depuis votre téléphone : Zado ne connaît jamais votre code secret.</li>
           <li><strong>Pour le paiement par carte</strong> : vous payez sur la page sécurisée de notre prestataire de paiement. Zado ne reçoit et ne conserve jamais le numéro de votre carte.</li>
           <li><strong>Pour votre compte client</strong> (nécessaire pour commander) : votre numéro de téléphone ou e-mail, votre nom et l'historique de vos commandes. Votre code Zado à 6 chiffres est enregistré sous une forme chiffrée qui ne permet pas de le relire.</li>
           <li><strong>Pour vérifier votre identité</strong> : la photo de votre pièce d'identité (passeport, carte nationale d'identité ou NIU), son type et, si vous l'indiquez, son numéro. Elle sert uniquement à lutter contre les fausses commandes et la fraude. Elle n'est jamais publiée, n'est jamais transmise à nos fournisseurs ni aux livreurs, et seule l'équipe de vérification de Zado peut la consulter. Les informations cachées du fichier photo (position GPS, appareil) sont supprimées à l'enregistrement.</li>
@@ -157,13 +157,13 @@
         Les éventuels frais de livraison sont affichés avant la validation de la commande. Le prix applicable est celui affiché au moment de la commande.</p>
 
         <h2>3. Commande</h2>
-        <p>Connecté à votre compte vérifié, vous choisissez vos produits, indiquez vos coordonnées, le point relais où vous paierez et votre mode de réception
-        (retrait au point relais ou livraison). Vous pouvez changer de point relais tant que le colis ne vous a pas été remis. Vos articles sont alors réservés ; la commande est confirmée à votre paiement au point relais. Un conseiller Zado peut vous appeler pour confirmer la livraison.</p>
+        <p>Connecté à votre compte vérifié, vous choisissez vos produits et indiquez vos coordonnées et l'adresse de livraison (ou celle de la personne à qui vous offrez la commande).
+        La commande est confirmée dès que Zado reçoit votre acompte (voir « Paiement »). Un conseiller Zado peut vous appeler pour confirmer la livraison.</p>
 
         <h2>4. Paiement</h2>
-        <p>Les moyens de paiement proposés sont ceux affichés au moment de la commande. ${T('aujourd\'hui : espèces au point relais uniquement — à confirmer')}.</p>
+        <p>Les moyens de paiement proposés sont ceux affichés au moment de la commande. Aujourd'hui, le paiement se fait <strong>par dépôt Mobile Money</strong> sur le numéro dédié de Zado.</p>
         <ul>
-          <li><strong>Mobile Money (MTN MoMo, Airtel Money)</strong> : vous recevez une demande sur votre téléphone et la validez avec votre code secret.</li>
+          <li><strong>Dépôt Mobile Money (MTN MoMo, Airtel Money)</strong> : après votre commande, le numéro MTN ou Airtel de Zado vous est indiqué. Vous y envoyez d'abord un acompte (montant indiqué au moment de commander), avec votre numéro de commande en référence : la commande est confirmée dès sa réception par Zado. Vous déposez ensuite le reste de la même façon ; l'acompte est déduit du total. Chaque somme reçue donne lieu à un reçu. Le colis n'est expédié qu'une fois la commande entièrement payée. Sans acompte reçu dans le délai indiqué, la commande peut être annulée.</li>
           <li><strong>Carte bancaire</strong> : vous payez sur la page sécurisée de notre prestataire de paiement.</li>
           <li><strong>Espèces au point relais</strong> : les articles vous sont réservés pendant 48 heures. Vous payez en espèces au point relais choisi sur la carte (agence Zado ou commerce partenaire), puis vous repartez avec votre commande ou nous vous la livrons, selon votre choix. Passé ce délai sans paiement, la réservation est annulée.</li>
           <li><strong>Paiement à la réception</strong> : vous payez à la livraison, en espèces ou en Mobile Money, après avoir vérifié votre colis. Pour une première commande, un acompte (montant indiqué au moment de commander) est demandé en Mobile Money pour la confirmer ; il est déduit du total. Il n'est plus demandé aux clients dont les livraisons précédentes se sont bien passées. <strong>Si vous refusez le colis sans motif valable</strong> (produit conforme et en bon état), l'acompte est conservé pour couvrir le déplacement du livreur. Après plusieurs colis refusés, le paiement à la réception n'est plus proposé pour votre numéro.</li>

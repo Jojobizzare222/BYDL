@@ -4,10 +4,12 @@
 //     - « retrait » (pull) : Zado envoie la demande de paiement sur le téléphone du client (code USSD), il tape son code secret ;
 //     - « dépôt » (push) : le client envoie lui-même l'argent au numéro Mobile Money de Zado ; l'équipe confirme la réception.
 // Les numéros de dépôt de Zado se règlent dans Zado Pro → Réglages → « Transport et acompte ».
+// DÉPÔT SEULEMENT (décision Joseph 10/11/2026 : « tout se fera par dépôt sur un numéro dédié ») : `pull` (retrait) est coupé par
+// défaut ; il ne revient que si l'admin coche « Proposer aussi le retrait » ET que le compte marchand de l'opérateur est réglé.
 const { settings } = require('./store');
 const { normalizeLocal } = require('./utils/phone');
 
-const DEFAULTS = { deposit: 500, numbers: { mtn: '', airtel: '' }, holder: 'Zado', transferHours: 24 };
+const DEFAULTS = { deposit: 500, numbers: { mtn: '', airtel: '' }, holder: 'Zado', transferHours: 24, pull: false };
 const MODES = { pull: 'Par retrait (Zado envoie la demande sur votre téléphone)', push: 'Par dépôt (vous envoyez l\'argent au numéro Zado)' };
 
 function mobileSettings() {
@@ -18,6 +20,7 @@ function saveMobileSettings(input = {}) {
   const cur = mobileSettings();
   const next = { ...cur, numbers: { ...cur.numbers } };
   if ('deposit' in input) { const n = Number(input.deposit); if (!Number.isInteger(n) || n < 0 || n > 1000000) return { error: 'Acompte invalide (nombre entier en FCFA)' }; next.deposit = n; }
+  if ('pull' in input) next.pull = Boolean(input.pull);
   if ('holder' in input) next.holder = String(input.holder || '').trim().slice(0, 60) || 'Zado';
   if ('transferHours' in input) { const n = Number(input.transferHours); if (!(n >= 1 && n <= 168)) return { error: 'Délai de dépôt invalide (1 à 168 h)' }; next.transferHours = Math.round(n); }
   for (const op of ['mtn', 'airtel']) {

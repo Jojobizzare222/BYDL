@@ -38,9 +38,11 @@ function listOperators() {
 const cardAvailable = () => config.paymentMode !== 'live' || Boolean(config.cardProvider);
 // Demande envoyée sur le téléphone du client (« par retrait ») : en réel, seulement si le compte marchand de l'opérateur est
 // réglé dans .env. Sans compte marchand (ouverture de Zado, nov. 2026), seul le dépôt sur le numéro de Zado est proposé.
-const operatorReady = (op) => config.paymentMode !== 'live'
+// Depuis le 10/11/2026 (décision Joseph : tout par dépôt sur un numéro dédié), le retrait est en plus COUPÉ tant que l'admin n'a
+// pas coché « Proposer aussi le retrait » (Zado Pro → Réglages → Transport et acompte).
+const operatorReady = (op) => Boolean(require('../mobile-pay').mobileSettings().pull) && (config.paymentMode !== 'live'
   || (op === 'mtn' && Boolean(config.mtn.subscriptionKey && config.mtn.apiUser && config.mtn.apiKey))
-  || (op === 'airtel' && Boolean(config.airtel.clientId && config.airtel.clientSecret));
+  || (op === 'airtel' && Boolean(config.airtel.clientId && config.airtel.clientSecret)));
 const pullAvailable = () => operatorReady('mtn') || operatorReady('airtel');
 
 module.exports = { getProvider, listOperators, cardAvailable, cardSimulation, operatorReady, pullAvailable };

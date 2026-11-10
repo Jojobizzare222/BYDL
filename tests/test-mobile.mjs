@@ -20,6 +20,15 @@ ok((await call(A, '/admin/settings/transport', { method: 'PUT', body: { freight:
 ok((await call(A, '/admin/settings/transport', { method: 'PUT', body: { freight: { logisticsMin: 6, logisticsMax: 3 } } })).status === 400, 'réglage : délai minimum > maximum refusé');
 const tr = (await call(A, '/admin/settings/transport', { method: 'PUT', body: { mobile: { numbers: { mtn: '06 600 00 00' } } } })).data;
 ok(tr.freight.eurPerKg === 15 && tr.freight.minKg === 1 && tr.freight.perArticle && tr.perKg === KG && tr.mobile.deposit === 500 && tr.mobile.numbers.mtn === '066000000', 'par défaut : 15 €/kg, 1 kg minimum par article, acompte 500 FCFA ; numéro de dépôt MTN enregistré');
+// Depuis le 10/11/2026 (décision Joseph) : tout par DÉPÔT sur le numéro dédié ; le « retrait » est coupé par défaut
+let mm = (await call(C, '/payments/methods')).data.mobile;
+ok(mm.enabled && mm.push && mm.pull === false, 'par défaut : seul le dépôt est proposé (retrait coupé)');
+const pullTry = await call(C, '/orders', { body: { customer: { name: 'Awa Mobile', phone: '061112233', city: 'Pointe-Noire', address: 'Mpita' }, items: [{ productId: 'a072', qty: 1 }] } });
+const pt = await call(C, '/payments', { body: { orderId: pullTry.data.id, token: pullTry.data.token, method: 'mobile', mode: 'pull', phone: '061112233' } });
+ok(pt.status === 400 && /dépôt/.test(pt.data.error), '« par retrait » forcé : refusé par le serveur');
+await call(C, `/orders/${pullTry.data.id}/cancel`, { headers: { 'X-Order-Token': pullTry.data.token }, body: {} });
+// Option « Proposer aussi le retrait » cochée dans Zado Pro (pour la suite du parcours, comme avant)
+ok((await call(A, '/admin/settings/transport', { method: 'PUT', body: { mobile: { pull: true } } })).data.mobile.pull === true, 'Zado Pro : « Proposer aussi le retrait » cochable');
 ok((await call(A, '/admin/products/a003', { method: 'PATCH', body: { weightKg: '0,45', sourcePrice: 500000 } })).data.weightKg === 0.45, 'fiche produit : poids 0,45 kg');
 ok((await call(A, '/admin/products/a003', { method: 'PATCH', body: { weightKg: '-1' } })).status === 400, 'poids négatif refusé');
 const pub = (await call(null, '/products/a003')).data;

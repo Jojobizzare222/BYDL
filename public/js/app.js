@@ -805,7 +805,7 @@
       if (p) slides.push(slide({ theme: 'mango', kicker: esc(u.name), title: 'Le meilleur de la tech', text: esc(u.categories.slice(0, 4).join(' · ')), href: `#/c/${enc(u.name)}`, cta: 'Découvrir', p }));
     }
     if (!hasRelays()) slides.push(slide({
-      theme: 'light', kicker: `${icon('wallet')} Paiement`, title: 'Commandez, payez en Mobile Money', text: `Un acompte de ${depositTxt()} confirme votre commande, le reste se règle depuis votre téléphone. Livraison à domicile à Pointe-Noire.`, href: '#/promos', cta: 'Voir les offres',
+      theme: 'light', kicker: `${icon('wallet')} Paiement`, title: 'Commandez, payez en Mobile Money', text: `Un acompte de ${depositTxt()}, déposé sur le numéro Mobile Money de Zado, confirme votre commande ; le reste se dépose de la même façon. Livraison à domicile à Pointe-Noire.`, href: '#/promos', cta: 'Voir les offres',
       extra: '<div class="pay-chips"><span>' + icon('device-mobile') + 'Mobile Money</span><span>' + icon('truck') + 'Livraison à domicile</span><span>' + icon('shield-check') + 'Clients vérifiés</span></div>',
       art: mama('wait', { size: 'lg', label: 'Mama Zando valide un paiement sur son téléphone' }),
     }));
@@ -874,8 +874,8 @@
 
       ${!hasRelays() ? `<section class="relay-band">
         <div class="rb-text"><p class="kicker">${icon('device-mobile')} Simple et sûr</p><h2>Commandez en 3 étapes, sans vous déplacer</h2>
-          <p>Pas besoin de chercher un appareil fiable pendant des semaines : choisissez-le sur Zado, confirmez avec un acompte de ${depositTxt()} en Mobile Money, et nous vous le livrons à Pointe-Noire.</p></div>
-        <ol class="rb-steps"><li><b>1</b>Je choisis sur Zado</li><li><b>2</b>Je paie en Mobile Money</li><li><b>3</b>Je suis livré chez moi</li></ol>
+          <p>Pas besoin de chercher un appareil fiable pendant des semaines : choisissez-le sur Zado, confirmez avec un acompte de ${depositTxt()} déposé en Mobile Money, et nous vous le livrons à Pointe-Noire.</p></div>
+        <ol class="rb-steps"><li><b>1</b>Je choisis sur Zado</li><li><b>2</b>Je dépose en Mobile Money</li><li><b>3</b>Je suis livré chez moi</li></ol>
         <a class="btn light" href="#/promos">Commencer mes achats ${icon('arrow-right')}</a>
       </section>` : `<section class="relay-band">
         <div class="rb-text"><p class="kicker">${icon('storefront')} Réservez en ligne</p><h2>Payez au point relais, repartez avec</h2>
@@ -1450,7 +1450,7 @@
 
           <h2 style="margin-top:24px">2. Paiement</h2>
           <div class="methods">
-            ${methods.mobile?.enabled ? `<label class="op"><input type="radio" name="method" value="mobile"><span>${icon('device-mobile-duotone')}<span class="txt">Mobile Money<small>${dep ? `Acompte de ${fcfa(dep)} pour confirmer, puis le reste` : 'MTN MoMo · Airtel Money'}</small></span></span></label>` : ''}
+            ${methods.mobile?.enabled ? `<label class="op"><input type="radio" name="method" value="mobile"><span>${icon('device-mobile-duotone')}<span class="txt">Mobile Money${methods.mobile?.pull ? '' : ' par dépôt'}<small>${methods.mobile?.pull ? (dep ? `Acompte de ${fcfa(dep)} pour confirmer, puis le reste` : 'MTN MoMo · Airtel Money') : `Vous envoyez l'argent au numéro MTN ou Airtel de Zado${dep ? ` : acompte de ${fcfa(dep)}, puis le reste` : ''}`}</small></span></span></label>` : ''}
             ${methods.momo ? `<label class="op"><input type="radio" name="method" value="momo"><span>${icon('device-mobile-duotone')}<span class="txt">Mobile Money<small>MTN MoMo · Airtel Money</small></span></span></label>` : ''}
             ${methods.card ? `<label class="op"><input type="radio" name="method" value="card"><span>${icon('credit-card-duotone')}<span class="txt">Carte bancaire<small>Visa · Mastercard</small></span></span></label>` : ''}
             ${methods.cod?.enabled ? `<label class="op"><input type="radio" name="method" value="cod"><span>${icon('hand-coins-duotone')}<span class="txt">Payer à la réception<small>Espèces ou Mobile Money au livreur${methods.cod.deposit ? ` · acompte de ${fcfa(methods.cod.deposit)} pour confirmer` : ''}</small></span></span></label>` : ''}
@@ -1467,11 +1467,11 @@
             <p class="hint">MTN : numéros en 06 · Airtel : numéros en 05 ou 04</p>
           </div>
           <div id="mobileFields" hidden>
-            <p class="lbl" style="margin-top:12px">Comment voulez-vous payer ?</p>
+            ${methods.mobile?.pull ? `<p class="lbl" style="margin-top:12px">Comment voulez-vous payer ?</p>
             <div class="methods two">
               <label class="op ${methods.mobile?.pull === false ? 'off' : ''}"><input type="radio" name="paymode" value="pull" ${methods.mobile?.pull === false ? 'disabled' : 'checked'}><span>${icon('device-mobile-duotone')}<span class="txt">Par retrait<small>${methods.mobile?.pull === false ? 'Bientôt disponible' : 'Zado envoie la demande sur votre téléphone : vous tapez votre code secret'}</small></span></span></label>
               <label class="op ${methods.mobile?.push ? '' : 'off'}"><input type="radio" name="paymode" value="push" ${methods.mobile?.push ? (methods.mobile?.pull === false ? 'checked' : '') : 'disabled'}><span>${icon('money-duotone')}<span class="txt">Par dépôt<small>${methods.mobile?.push ? 'Vous envoyez vous-même l\'argent au numéro Mobile Money de Zado' : 'Bientôt disponible'}</small></span></span></label>
-            </div>
+            </div>` : '<input type="hidden" name="paymode" value="push">'}
             <p class="hint cod-hint" id="mobileHint"></p>
           </div>
           <div id="codFields" hidden>
@@ -1569,7 +1569,9 @@
       $('#mobileFields').hidden = m !== 'mobile';
       if (m === 'mobile') {
         const d = Math.min(dep, grandN()), rest = grandN() - d;
-        $('#mobileHint').innerHTML = `${icon('check-circle-duotone')} <span>1) Vous payez un <strong>acompte de ${fcfa(d)}</strong> : il confirme votre commande et vous recevez le récapitulatif dans « Aide ». 2) ${payMode() === 'push' ? `Vous déposez ensuite le reste (<strong>${fcfa(rest)}</strong>) sur le numéro Mobile Money de Zado indiqué, avec le numéro de commande en référence.` : `Une demande du reste (<strong>${fcfa(rest)}</strong>) arrive aussitôt sur votre téléphone : vous tapez votre code secret.`} L'acompte est déduit du total sur votre facture.</span>`;
+        $('#mobileHint').innerHTML = payMode() === 'push' && !methods.mobile?.pull
+          ? `${icon('check-circle-duotone')} <span>1) Après avoir commandé, vous recevez le <strong>numéro Mobile Money de Zado</strong> (MTN ou Airtel). Envoyez-y l'<strong>acompte de ${fcfa(d)}</strong> avec votre numéro de commande en référence : dès que Zado le reçoit, votre commande est confirmée et le récapitulatif arrive dans « Aide ». 2) Vous déposez ensuite le reste (<strong>${fcfa(rest)}</strong>) de la même façon. L'acompte est déduit du total sur votre facture.</span>`
+          : `${icon('check-circle-duotone')} <span>1) Vous payez un <strong>acompte de ${fcfa(d)}</strong> : il confirme votre commande et vous recevez le récapitulatif dans « Aide ». 2) ${payMode() === 'push' ? `Vous déposez ensuite le reste (<strong>${fcfa(rest)}</strong>) sur le numéro Mobile Money de Zado indiqué, avec le numéro de commande en référence.` : `Une demande du reste (<strong>${fcfa(rest)}</strong>) arrive aussitôt sur votre téléphone : vous tapez votre code secret.`} L'acompte est déduit du total sur votre facture.</span>`;
         $('#depositSplit').innerHTML = `<div class="row" style="margin-top:8px"><span>Acompte à payer maintenant</span><span>${fcfa(d)}</span></div><div class="row"><span>Reste à payer ensuite</span><span>${fcfa(rest)}</span></div>`;
       } else $('#depositSplit').innerHTML = '';
       $('#codFields').hidden = m !== 'cod';

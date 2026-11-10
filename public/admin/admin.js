@@ -960,7 +960,8 @@
           <div><label for="trHolder">Nom affiché pour le dépôt</label><input id="trHolder" type="text" maxlength="60" value="${esc(tr.mobile.holder || 'Zado')}"></div>
           <div><label for="trHours">Délai pour faire un dépôt (heures)</label><input id="trHours" type="number" min="1" max="168" value="${tr.mobile.transferHours}"></div>
         </div>
-        <p class="muted">Sans numéro de dépôt, les clients ne peuvent choisir que « Par retrait » (demande envoyée sur leur téléphone).</p>
+        <p class="muted"><b>Tous les paiements se font par dépôt</b> sur le numéro de Zado (décision du 10/11/2026) : le client envoie l'acompte puis le reste, avec le numéro de commande en référence ; vous cliquez « Dépôt reçu » sur la commande. ${!tr.mobile.numbers.mtn && !tr.mobile.numbers.airtel ? '<b style="color:#E0421F">Aucun numéro de dépôt : personne ne peut payer.</b>' : ''}</p>
+        <label class="check"><input type="checkbox" id="trPull" ${tr.mobile.pull ? 'checked' : ''}> Proposer aussi le paiement « par retrait » (demande envoyée sur le téléphone du client : il faut un compte marchand MTN / Airtel)</label>
         <div id="trMsg"></div>
         <button class="btn" style="margin-top:14px">Enregistrer</button>
       </form>
@@ -1051,7 +1052,7 @@
       try {
         await api('/settings/transport', { method: 'PUT', body: {
           freight: { enabled: $('#trOn').checked, eurPerKg: $('#trEur').value, zadoFeeEurPerKg: $('#trFee').value, minKg: $('#trMin').value, perArticle: $('#trPerArt').checked, logisticsMin: $('#trL1').value, logisticsMax: $('#trL2').value, deliveryHours: $('#trDH').value },
-          mobile: { deposit: Number($('#trDep').value || 0), numbers: { mtn: $('#trMtn').value, airtel: $('#trAir').value }, holder: $('#trHolder').value, transferHours: Number($('#trHours').value || 24) } } });
+          mobile: { deposit: Number($('#trDep').value || 0), numbers: { mtn: $('#trMtn').value, airtel: $('#trAir').value }, holder: $('#trHolder').value, transferHours: Number($('#trHours').value || 24), pull: $('#trPull').checked } } });
         toast('Transport et acompte enregistrés ✓'); $('#trMsg').innerHTML = ''; route({ keep: true });
       } catch (err) { $('#trMsg').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; }
     });

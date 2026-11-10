@@ -33,9 +33,10 @@ else ok('Paiements réels (PAYMENT_MODE=live)');
 const m = mobilePay.mobileSettings();
 const sales = salesSettings();
 const push = Boolean(m.numbers.mtn || m.numbers.airtel);
-check(pullAvailable() || push, `Mobile Money : ${[pullAvailable() && 'demande sur le téléphone', push && `dépôt au ${[m.numbers.mtn && 'MTN ' + mobilePay.spaced(m.numbers.mtn), m.numbers.airtel && 'Airtel ' + mobilePay.spaced(m.numbers.airtel)].filter(Boolean).join(' / ')}`].filter(Boolean).join(' + ')}`,
-  'Aucun moyen de payer : saisissez le numéro MTN et/ou Airtel de Zado (Zado Pro → Réglages → Transport, délais et acompte), ou les clés du compte marchand dans .env');
-if (!pullAvailable() && config.paymentMode === 'live') warn('Compte marchand MTN / Airtel pas encore branché : seul le « dépôt » est proposé (l\'équipe clique « Dépôt reçu »)');
+// Tout se paie par DÉPÔT sur le numéro dédié de Zado (décision Joseph 10/11/2026) : le numéro est obligatoire
+check(push, `Dépôt Mobile Money au ${[m.numbers.mtn && 'MTN ' + mobilePay.spaced(m.numbers.mtn), m.numbers.airtel && 'Airtel ' + mobilePay.spaced(m.numbers.airtel)].filter(Boolean).join(' / ')} (au nom de ${m.holder})`,
+  'Aucun numéro de dépôt : personne ne peut payer. Saisissez le numéro MTN et/ou Airtel dédié de Zado (Zado Pro → Réglages → Transport, délais et acompte)');
+if (pullAvailable()) warn('Le paiement « par retrait » est aussi proposé (case cochée dans Réglages → Transport) : vérifiez que le compte marchand fonctionne');
 if (!sales.methods.mobile) warn('Le paiement Mobile Money est désactivé dans Zado Pro → Réglages → Règles de vente');
 if (sales.methods.card && !cardAvailable()) warn('La carte bancaire est cochée mais aucun prestataire n\'est branché : elle ne sera pas proposée');
 const relays = agencies.all().filter((a) => a.active !== false).length;

@@ -82,9 +82,16 @@ function answer(text, { customer, conv }) {
     case 'thanks': return { text: 'Avec plaisir ! Autre chose ?', quick: MENU };
     case 'human': return { handoff: true, text: '' };
     case 'delivery': return { text: `Nos articles viennent de France : ${(() => { const f = require('./freight').freightSettings(); return `achat et vol vers Pointe-Noire en ${f.logisticsMin} à ${f.logisticsMax} jours, puis livraison sous ${f.deliveryHours} h`; })()} (Pointe-Noire seulement pour le moment). Le transport depuis la France est indiqué dans le prix total, avant de commander.\n${feesLine()}\n${hasRelays() ? 'Vous pouvez aussi retirer votre commande gratuitement dans un point relais.\n' : ''}À la livraison, donnez votre code de livraison au livreur seulement quand vous avez le colis en main.`, quick: ['Paiement', 'Points relais', 'Ma commande', 'Parler à un conseiller'] };
-    case 'payment': return { text: cashOnly
+    case 'payment': {
+      // Paiement par dépôt sur le numéro Mobile Money de Zado (décision Joseph 10/11/2026)
+      const mp = require('./mobile-pay'), m = mp.mobileSettings();
+      const nums = [m.numbers.mtn && `MTN ${mp.spaced(m.numbers.mtn)}`, m.numbers.airtel && `Airtel ${mp.spaced(m.numbers.airtel)}`].filter(Boolean).join(' · ');
+      if (sales.methods.mobile && nums && !require('./payments').pullAvailable()) return { text: `Le paiement se fait par dépôt Mobile Money sur le numéro de Zado (${nums}, au nom de ${m.holder}).\n1) Après votre commande, envoyez l'acompte de ${m.deposit.toLocaleString('fr-FR').replace(/\u202f|\u00a0/g, ' ')} FCFA avec votre numéro de commande en référence : dès que Zado le reçoit, votre commande est confirmée.\n2) Déposez ensuite le reste de la même façon. Chaque somme reçue vous donne un reçu, puis une facture.`,
+        quick: ['Livraison', 'Mes commandes', 'Parler à un conseiller'] };
+    }
+    return { text: cashOnly
       ? `Le paiement se fait en espèces dans nos points relais (à choisir sur la carte au moment de commander). Vous réservez en ligne (articles gardés ${Number(process.env.PICKUP_HOLD_HOURS || 48)} h), vous payez au point relais, puis vous repartez avec votre commande ou nous vous la livrons.\n\nNos points relais :\n${agencyList()}`
-      : `Moyens de paiement proposés : ${Object.entries(sales.methods).filter(([, v]) => v).map(([k]) => ({ cash: 'espèces en agence', momo: 'Mobile Money (MTN, Airtel)', card: 'carte bancaire', cod: 'paiement à la réception' })[k]).join(', ')}.`,
+      : `Moyens de paiement proposés : ${Object.entries(sales.methods).filter(([, v]) => v).map(([k]) => ({ cash: 'espèces en agence', mobile: 'Mobile Money (acompte puis le reste)', momo: 'Mobile Money (MTN, Airtel)', card: 'carte bancaire', cod: 'paiement à la réception' })[k]).join(', ')}.`,
       quick: ['Points relais', 'Livraison', 'Parler à un conseiller'] };
     case 'agency': return { text: hasRelays() ? `Nos points relais :\n${agencyList()}` : "Nous n'avons pas encore de point relais : nous livrons à domicile à Pointe-Noire. Les points relais ouvriront bientôt.", quick: ['Paiement', 'Livraison', 'Parler à un conseiller'] };
     case 'account': return { text: `Pour commander, il faut un compte Zado vérifié : créez-le avec votre numéro (ou e-mail) et la photo de votre pièce d'identité (passeport, CNI ou NIU). Zado la vérifie, en général en 1 minute.\nVous vous connectez ensuite avec votre numéro + votre code Zado à 6 chiffres.\nCode oublié ? Demandez un conseiller : il vous en donnera un nouveau.`,
