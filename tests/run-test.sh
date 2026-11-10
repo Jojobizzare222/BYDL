@@ -2,6 +2,7 @@
 # usage : tests/run-test.sh test-xxx.mjs [args…] — base neuve, mot de passe admin, serveur sur le port 3999, test, arrêt.
 # Les fichiers produits (bases, journaux) vont dans tests/.run (exclu de Git).
 D=${0:A:h}; S=$D/.run; mkdir -p $S
+export SEED_CATALOG=1 # catalogue de simulation (data/products.json + sélection Noël) : seulement pour les tests
 cd $D/..
 rm -f $S/t-run.db $S/t-run.db-shm $S/t-run.db-wal
 echo 'motdepasse-test-123' > $S/pw.txt

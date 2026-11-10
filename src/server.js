@@ -197,6 +197,7 @@ require('./demo').seed();
 (() => {
   const { products, settings } = require('./store');
   if (settings.get('migr:reconditionne-v1')) return;
+  if (process.env.SEED_CATALOG !== '1') return settings.set('migr:reconditionne-v1', new Date().toISOString()); // boutique sans catalogue de départ (10/11/2026)
   let n = 0;
   try {
     for (const p of require('../data/products.json').filter((x) => x.condition === 'reconditionné')) {
@@ -212,6 +213,7 @@ require('./demo').seed();
 (() => {
   const { products, settings } = require('./store');
   if (settings.get('migr:selection-noel-2026')) return;
+  if (process.env.SEED_CATALOG !== '1') return settings.set('migr:selection-noel-2026', new Date().toISOString()); // boutique sans catalogue de départ (10/11/2026)
   let n = 0;
   try {
     for (const p of require('../data/selection-noel-2026.json')) {

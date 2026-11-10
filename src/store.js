@@ -11,7 +11,9 @@ const DATA_DIR = path.join(__dirname, '..', 'data');
 // la base y est donc TEMPORAIRE (vitrine de démonstration), et repart du catalogue de départ à chaque redémarrage.
 const DB_FILE = process.env.DB_FILE || (process.env.VERCEL ? '/tmp/kamwa-demo.db' : path.join(DATA_DIR, 'baydel.db'));
 // Catalogue de départ chargé avec require() : ainsi Vercel l'embarque avec le serveur.
-const SEEDS = { products: () => require('../data/products.json') };
+// Décision Joseph 10/11/2026 (« supprime tout, je vais les ajouter un par un ») : la boutique démarre SANS produit.
+// Le catalogue de simulation (products.json, sélection Noël) ne sert plus qu'aux tests automatiques : SEED_CATALOG=1.
+const SEEDS = { products: () => (process.env.SEED_CATALOG === '1' ? require('../data/products.json') : []) };
 
 fs.mkdirSync(path.dirname(DB_FILE), { recursive: true });
 const db = new DatabaseSync(DB_FILE);
