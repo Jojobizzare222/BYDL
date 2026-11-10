@@ -1790,3 +1790,9 @@ html[data-theme="dark"] .gift-chip.on { background: #2D66D6; border-color: #2D66
 html[data-theme="dark"] .gift-hero img { filter: brightness(.9); }
 html[data-saver="on"] .gift-hero { display: none; }
 .theme-noel .slide-visual img.amb { object-position: 50% 30%; }
+/* « Petits prix » (10/11/2026) : étiquette sur les cartes, lien de la barre des rayons */
+.pp-tag { align-self: flex-start; display: inline-flex; align-items: center; gap: 4px; font-size: .72rem; font-weight: 700; color: #0E8A66; background: #E3F6EE; border-radius: 6px; padding: 2px 7px; margin: 2px 0 2px; }
+.pp-tag .ico { width: 13px; height: 13px; }
+.catnav a.cheap-link { color: #B9CCFF; font-weight: 700; }
+.catnav a.cheap-link.active { background: #1E56C2; color: #fff; }
+html[data-theme="dark"] .pp-tag { background: rgba(14,138,102,.18); color: #5DE0A8; }

@@ -563,6 +563,7 @@
     // Barre des rayons (vitrine tech, 19/10/2026) : « Bonnes affaires » en premier ; avec un seul univers (électronique),
     // ses rayons sont affichés directement (ceux qui ont des produits) ; avec plusieurs, menu déroulant par univers.
     const links = [`<a href="#/promos" class="deals-link ${active === 'promos' ? 'active' : ''}">${icon('fire')} Bonnes affaires <span class="nb">Promo</span></a>`];
+    links.push(`<a href="#/petits-prix" class="cheap-link ${active === 'petits-prix' ? 'active' : ''}">${icon('hand-coins-duotone')} Petits prix</a>`);
     if (noel()) links.push(`<a href="#/cadeaux" class="gift-link ${active === 'cadeaux' ? 'active' : ''}">${icon('gift')} Idées cadeaux</a>`);
     if (state.products.some(isRefurb)) links.push(`<a href="#/reconditionne" class="refurb-link ${active === 'reconditionne' ? 'active' : ''}">${icon('arrows-clockwise')} Reconditionné</a>`);
     const unis = myUniverses();
@@ -694,6 +695,7 @@
           <a href="#/p/${p.id}"><h3>${esc(multi ? familyName(p) : p.name)}</h3></a>
           ${ratingLine(famRating(family))}
           ${multi ? `<div class="swatches" aria-label="${family.length} couleurs">${family.slice(0, 6).map((x) => `<i style="background:${colorOf(x)?.hex || '#ccc'}" title="${esc(colorOf(x)?.label || '')}"></i>`).join('')}<small>${family.length} couleurs</small></div>` : ''}
+          ${family.some(isPetitPrix) ? `<span class="pp-tag">${icon('hand-coins-duotone')} Petit prix</span>` : ''}
           <div class="prices"><span class="price ${d && !multi ? 'sale' : ''}">${multi && family.some((x) => x.price !== p.price) ? 'dès ' : ''}${fcfa(multi ? Math.min(...family.map((x) => x.price)) : p.price)}</span><span class="old">${d && !multi ? fcfa(p.oldPrice) : ''}</span></div>
           <span class="stock-low ${!multi && p.stock > 0 && p.stock <= 6 ? '' : 'ok'}">${!multi && p.stock > 0 && p.stock <= 6 ? `${icon('fire')} Plus que ${p.stock} en stock` : multi || p.stock > 0 ? '<i class="dot"></i> En stock' : ''}</span>
           ${multi ? `<a class="btn cta small" href="#/p/${p.id}">Choisir la couleur</a>` : `<button class="btn cta small" data-add="${p.id}" ${p.stock === 0 ? 'disabled' : ''}>${p.stock === 0 ? 'Épuisé' : (p.options || []).length ? 'Choisir' : `${icon('plus')} Ajouter`}</button>`}
@@ -750,8 +752,20 @@
     return [Math.floor(sec / 3600), Math.floor((sec % 3600) / 60), sec % 60].map((x) => String(x).padStart(2, '0'));
   }
 
-  function sortList(list) {
+  // « Petits prix » (10/11/2026) : note d'accessibilité de chaque article (public/js/affordable.js), recalculée
+  // seulement quand le catalogue ou le prix du transport change
+  let affMemo = { key: null, ranks: new Map() };
+  const affordRanks = () => {
+    const key = state.products;
+    if (affMemo.key !== key || affMemo.fr !== frCfg()) affMemo = { key, fr: frCfg(), ranks: window.kamwaAfford ? window.kamwaAfford.rank(state.products, frCfg()) : new Map() };
+    return affMemo.ranks;
+  };
+  const isPetitPrix = (p) => Boolean(affordRanks().get(p.id)?.petitPrix);
+  const affScore = (p) => affordRanks().get(p.id)?.score ?? -1; // épuisé = en dernier
+  function sortList(list, keepOrder = false) {
     const l = [...list];
+    // « pertinence » = les articles les plus abordables d'abord (sauf recherche : ordre de pertinence du moteur)
+    if (state.sort === 'pertinence' && !keepOrder) l.sort((a, b) => affScore(b) - affScore(a));
     if (state.sort === 'prix-asc') l.sort((a, b) => a.price - b.price);
     if (state.sort === 'prix-desc') l.sort((a, b) => b.price - a.price);
     if (state.sort === 'remise') l.sort((a, b) => discount(b) - discount(a));
@@ -847,6 +861,8 @@
       .concat([...cats].sort((a, b) => b.list.length - a.list.length).slice(1, 3).map((x) => ({ k: 'c:' + x.c, label: x.c, ic: (ICONS[x.c] || 'tag').replace('-duotone', ''), list: x.list.slice(0, 12) })))
       .filter((t) => t.list.length);
     state.homeTabs = tabs;
+    // « Petits prix » : les plus abordables (au plus 2 par rayon, 1 par modèle), voir public/js/affordable.js
+    const cheap = window.kamwaAfford ? window.kamwaAfford.pick(state.products, affordRanks(), 12, { perCategory: 2, familyKey }) : [];
 
     app.innerHTML = `
       <nav class="cat-chips" aria-label="Rayons">
@@ -870,6 +886,14 @@
           <a class="see-all" href="#/promos">Tout voir ${icon('caret-right')}</a>
         </div>
         ${railCarousel(deals)}
+      </section>` : ''}
+
+      ${cheap.length >= 4 ? `<section class="shelf cheap">
+        <div class="shelf-head">
+          <div><p class="kicker">${icon('hand-coins-duotone')} Petits prix</p><h2>Les plus abordables du moment</h2></div>
+          <a class="see-all" href="#/petits-prix">Tout voir ${icon('caret-right')}</a>
+        </div>
+        ${railCarousel(cheap)}
       </section>` : ''}
 
       ${!hasRelays() ? `<section class="relay-band">
@@ -928,21 +952,21 @@
       return true;
     });
   }
-  function viewList({ title, crumbs, list, active, chips, notice = '', empty = '' }) {
+  function viewList({ title, crumbs, list, active, chips, notice = '', empty = '', keepOrder = false }) {
     renderNav(active);
     const key = location.hash;
     if (state.filterKey !== key) { state.filterKey = key; state.filters = {}; }
     const f = state.filters;
     const brands = [...new Set(list.map((p) => p.brand).filter(Boolean))].sort();
     const shown = applyFilters(list, f);
-    const groups = groupFamilies(sortList(shown));
+    const groups = groupFamilies(sortList(shown, keepOrder));
     const active2 = Object.values(f).filter(Boolean).length;
     app.innerHTML = `
       <div class="crumbs">${crumbs}</div>
       <div class="list-head">
         <h1>${esc(title)} <small style="color:var(--muted);font-weight:400;font-size:.85rem">(${groups.length} produit${groups.length > 1 ? 's' : ''})</small></h1>
         <select id="sort" aria-label="Trier">
-          <option value="pertinence">Trier : pertinence</option>
+          <option value="pertinence">${keepOrder ? 'Trier : pertinence' : 'Trier : les plus abordables'}</option>
           <option value="prix-asc">Prix croissant</option>
           <option value="prix-desc">Prix décroissant</option>
           <option value="remise">Meilleures remises</option>
@@ -1003,13 +1027,18 @@
         <p class="hint">Vous ne trouvez pas ? Écrivez-nous dans « Aide » : nous vous répondons.</p>
         ${popular.length ? `<h2 style="margin-top:22px">Nos produits du moment</h2><div class="grid">${cardsOf(popular)}</div>` : ''}
       </div>`;
-    viewList({ title: `Résultats pour « ${q} »`, crumbs: '<a href="#/">Accueil</a> › Recherche', list, active: null, notice, empty });
+    viewList({ title: `Résultats pour « ${q} »`, crumbs: '<a href="#/">Accueil</a> › Recherche', list, active: null, notice, empty, keepOrder: true });
   }
 
   function viewRefurb() {
     viewList({ title: 'Reconditionné', crumbs: '<a href="#/">Accueil</a> › Reconditionné', list: state.products.filter(isRefurb), active: 'reconditionne',
       notice: `<p class="search-note">${icon('arrows-clockwise')} Des appareils remis à neuf par des professionnels en France, testés, vérifiés, et moins chers que le neuf. L'état de chaque appareil est indiqué sur sa fiche.</p>`,
       empty: mamaEmpty('Pas encore d\'appareil reconditionné en stock : revenez bientôt.') });
+  }
+  // Page « Petits prix » : tout le catalogue, les plus abordables d'abord (prix livré, rayon, remises)
+  function viewCheap() {
+    viewList({ title: 'Petits prix', crumbs: '<a href="#/">Accueil</a> › Petits prix', list: state.products, active: 'petits-prix',
+      notice: `<p class="search-note">${icon('hand-coins-duotone')} Les articles les plus abordables d'abord : nous comparons le <strong>prix livré à Pointe-Noire</strong> (transport compris) de chaque article à ceux de son rayon, et nous tenons compte des remises et des économies du reconditionné. L'étiquette « Petit prix » repère les meilleurs.</p>` });
   }
   function viewPromos() {
     viewList({ title: 'Bonnes affaires', crumbs: '<a href="#/">Accueil</a> › Bonnes affaires', list: state.products.filter((p) => discount(p) > 0), active: 'promos' });
@@ -2794,6 +2823,7 @@
       case 'promos': return viewPromos();
       case 'reconditionne': return viewRefurb();
       case 'cadeaux': return viewGifts(parts[1]);
+      case 'petits-prix': return viewCheap();
       case 'commande': return viewCheckout();
       case 'merci': return viewThanks(parts[1]);
       case 'compte': return viewAccount(parts[1]);

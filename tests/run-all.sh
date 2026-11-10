@@ -57,3 +57,4 @@ t reconditionne --
 t sso ID_DIR=$S/idsso GOOGLE_CLIENT_ID=zado-test.apps.googleusercontent.com GOOGLE_JWKS_URL=http://localhost:3997/certs APPLE_SERVICE_ID=cg.zado.test APPLE_REDIRECT_URI=http://localhost:3999/ APPLE_JWKS_URL=http://localhost:3997/keys -- $D/id.jpg
 t production PAYMENT_MODE=live ID_DIR=$S/idprod -- $D/id.jpg
 t noel ID_DIR=$S/idnoel -- $D/id.jpg
+t petits-prix --
