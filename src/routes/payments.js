@@ -3,7 +3,7 @@ const { feeFor } = require('../fees');
 const router = require('express').Router();
 const config = require('../config');
 const { orders, payments, products, agencies } = require('../store');
-const { getProvider, listOperators, cardAvailable, cardSimulation } = require('../payments');
+const { getProvider, listOperators, cardAvailable, cardSimulation, operatorReady, pullAvailable } = require('../payments');
 const { normalizeLocal, detectOperator } = require('../utils/phone');
 const { availableStock, isFreshPending } = require('../utils/stock');
 const { hasAccess } = require('./orders');
@@ -24,13 +24,13 @@ router.get('/methods', (req, res) => {
   const cod = delivery.codSettings();
   res.json({
     mode: config.paymentMode,
-    momo: allowed.momo,
+    momo: allowed.momo && pullAvailable(),
     card: allowed.card && cardAvailable(),
     cash: allowed.cash && active.length > 0,
     cashDelivery: true, // espèces : le client choisit retrait en agence OU livraison à domicile après paiement
-    cod: { enabled: allowed.cod && cod.enabled, deposit: cod.deposit, depositPercent: cod.depositPercent },
+    cod: { enabled: allowed.cod && cod.enabled && pullAvailable(), deposit: cod.deposit, depositPercent: cod.depositPercent },
     // Mobile Money en deux temps : acompte puis le reste par retrait (demande sur le téléphone) ou par dépôt (numéro de Zado)
-    mobile: (() => { const m = mobilePay.mobileSettings(); return { enabled: allowed.mobile, deposit: m.deposit, push: Boolean(m.numbers.mtn || m.numbers.airtel), modes: mobilePay.MODES }; })(),
+    mobile: (() => { const m = mobilePay.mobileSettings(); const push = Boolean(m.numbers.mtn || m.numbers.airtel); return { enabled: allowed.mobile && (push || pullAvailable()), deposit: m.deposit, push, pull: pullAvailable(), modes: mobilePay.MODES }; })(),
     accountRequired: salesSettings().accountRequired,
     pickupHoldHours: config.pickupHoldHours,
     agencies: active.map(({ id, name, city, address, hours, phone, kind, lat, lng }) => ({ id, name, city, address, hours, phone, kind: kind || 'agency', lat: lat ?? null, lng: lng ?? null })),
@@ -100,6 +100,10 @@ router.post('/', async (req, res) => {
     const detected = detectOperator(phoneLocal);
     if (detected && detected !== op) {
       return res.status(400).json({ error: `Ce numéro semble être un numéro ${detected.toUpperCase()}, pas ${op.toUpperCase()}` });
+    }
+    // Demande sur le téléphone impossible sans compte marchand de l'opérateur (mode réel) : seul le dépôt reste possible
+    if (!(method === 'mobile' && payMode === 'push') && !operatorReady(op)) {
+      return res.status(400).json({ error: method === 'mobile' ? 'Le paiement « par retrait » n\'est pas encore disponible : choisissez « Par dépôt ».' : `Paiement ${op === 'mtn' ? 'MTN' : 'Airtel'} Money pas encore disponible : choisissez un autre moyen de paiement.` });
     }
   } else if (method === 'cod') {
     op = null; // client fiable : pas d'acompte

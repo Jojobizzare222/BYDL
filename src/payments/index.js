@@ -36,5 +36,11 @@ function listOperators() {
 
 // La carte n'est proposée que si elle peut marcher : en simulation, ou si un prestataire est configuré.
 const cardAvailable = () => config.paymentMode !== 'live' || Boolean(config.cardProvider);
+// Demande envoyée sur le téléphone du client (« par retrait ») : en réel, seulement si le compte marchand de l'opérateur est
+// réglé dans .env. Sans compte marchand (ouverture de Zado, nov. 2026), seul le dépôt sur le numéro de Zado est proposé.
+const operatorReady = (op) => config.paymentMode !== 'live'
+  || (op === 'mtn' && Boolean(config.mtn.subscriptionKey && config.mtn.apiUser && config.mtn.apiKey))
+  || (op === 'airtel' && Boolean(config.airtel.clientId && config.airtel.clientSecret));
+const pullAvailable = () => operatorReady('mtn') || operatorReady('airtel');
 
-module.exports = { getProvider, listOperators, cardAvailable, cardSimulation };
+module.exports = { getProvider, listOperators, cardAvailable, cardSimulation, operatorReady, pullAvailable };

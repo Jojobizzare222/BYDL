@@ -1398,8 +1398,8 @@
           <div id="mobileFields" hidden>
             <p class="lbl" style="margin-top:12px">Comment voulez-vous payer ?</p>
             <div class="methods two">
-              <label class="op"><input type="radio" name="paymode" value="pull" checked><span>${icon('device-mobile-duotone')}<span class="txt">Par retrait<small>Zado envoie la demande sur votre téléphone : vous tapez votre code secret</small></span></span></label>
-              <label class="op ${methods.mobile?.push ? '' : 'off'}"><input type="radio" name="paymode" value="push" ${methods.mobile?.push ? '' : 'disabled'}><span>${icon('money-duotone')}<span class="txt">Par dépôt<small>${methods.mobile?.push ? 'Vous envoyez vous-même l\'argent au numéro Mobile Money de Zado' : 'Bientôt disponible'}</small></span></span></label>
+              <label class="op ${methods.mobile?.pull === false ? 'off' : ''}"><input type="radio" name="paymode" value="pull" ${methods.mobile?.pull === false ? 'disabled' : 'checked'}><span>${icon('device-mobile-duotone')}<span class="txt">Par retrait<small>${methods.mobile?.pull === false ? 'Bientôt disponible' : 'Zado envoie la demande sur votre téléphone : vous tapez votre code secret'}</small></span></span></label>
+              <label class="op ${methods.mobile?.push ? '' : 'off'}"><input type="radio" name="paymode" value="push" ${methods.mobile?.push ? (methods.mobile?.pull === false ? 'checked' : '') : 'disabled'}><span>${icon('money-duotone')}<span class="txt">Par dépôt<small>${methods.mobile?.push ? 'Vous envoyez vous-même l\'argent au numéro Mobile Money de Zado' : 'Bientôt disponible'}</small></span></span></label>
             </div>
             <p class="hint cod-hint" id="mobileHint"></p>
           </div>
