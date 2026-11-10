@@ -100,6 +100,9 @@ function seed() {
   rv('AV-DEMO-02', 'a020', 4, 'Junior K.', 'Bon rapport qualité-prix. Retrait au point relais très simple.', 3);
   rv('AV-DEMO-03', 'a018', 5, 'Prisca N.', 'Conforme à la description. Je recommande Zado.', 2);
 
+  // Paiement par dépôt (décision Joseph 10/11/2026) : FAUX numéros de démonstration, pour que la commande soit possible
+  // sur la démo (validation par « Dépôt reçu » avec le compte admin de démonstration)
+  require('./mobile-pay').saveMobileSettings({ numbers: { mtn: '06 000 00 00', airtel: '05 000 00 00' }, holder: 'Zado (démonstration)' });
   settings.set('demo_seeded', now);
   console.log('[démo] comptes et données d\'exemple créés');
 }
