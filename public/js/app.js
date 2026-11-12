@@ -303,6 +303,25 @@
   const addToCart = (id, variant) => { const key = variant ? `${id}|${JSON.stringify(variant)}` : id; state.cart[key] = (state.cart[key] || 0) + 1; saveCart(); };
   const setQty = (id, qty) => { if (qty <= 0) delete state.cart[id]; else state.cart[id] = qty; saveCart(); };
 
+  // « Pour aller avec » (demande Joseph 12/11/2026 : plus d'articles par commande) : compléments utiles calculés par
+  // public/js/basket.js à partir du type des articles (manette pour une console, coque pour un téléphone…) et de ce que
+  // les clients achètent vraiment ensemble (/api/products/pairs). Rien n'est ajouté au panier sans un clic du client.
+  let pairs = {}, pairsAt = 0;
+  const loadPairs = () => { if (Date.now() - pairsAt < 600e3) return; pairsAt = Date.now(); api('/products/pairs').then((d) => { pairs = d || {}; }).catch(() => {}); };
+  const goesWith = (anchors, limit = 4) => {
+    try { return window.kamwaBasket ? window.kamwaBasket.suggest(anchors, state.products, { exclude: new Set(cartItems().map((l) => l.product.id)), pairs, limit, familyKey }) : []; } catch { return []; }
+  };
+  function cartUpsell(items) {
+    const list = goesWith(items.map((l) => l.product), 3);
+    if (!list.length) return '';
+    return `<div class="upsell"><p class="upsell-title">${icon('sparkle')} Pour aller avec</p>${list.map((p) => `
+      <div class="ups-item">
+        <a href="#/p/${enc(p.id)}" class="line-img">${p.image ? `<img src="${esc(p.image)}" alt="" loading="lazy" width="56" height="56">` : icon(ICONS[p.category] || 'package')}</a>
+        <a href="#/p/${enc(p.id)}" class="ups-name"><span>${esc(p.name)}</span><b>${fcfa(p.price)}</b></a>
+        <button class="btn cta small" type="button" data-add="${esc(p.id)}" aria-label="Ajouter ${esc(p.name)} au panier">${icon('plus')} Ajouter</button>
+      </div>`).join('')}</div>`;
+  }
+
   function renderCart() {
     const items = cartItems();
     const count = items.reduce((s, l) => s + l.qty, 0);
@@ -327,7 +346,7 @@
             </div>
           </div>
           <strong>${fcfa(p.price * qty)}</strong>
-        </div>`).join('')
+        </div>`).join('') + cartUpsell(items)
       : mamaEmpty('Votre panier est vide.');
     const hint = $('#cartHint'); if (hint) hint.innerHTML = items.length ? accountHint('cart') : '';
   }
@@ -338,7 +357,7 @@
   const closeDrawer = () => { drawer.classList.remove('open'); drawer.setAttribute('aria-hidden', 'true'); document.body.classList.remove('drawer-open'); };
   $('#cartBtn').addEventListener('click', openDrawer);
   $('#closeDrawer').addEventListener('click', closeDrawer);
-  drawer.addEventListener('click', (e) => { if (e.target === drawer) closeDrawer(); });
+  drawer.addEventListener('click', (e) => { if (e.target === drawer || e.target.closest('a[href^="#/p/"]')) closeDrawer(); });
   $('#checkoutLink').addEventListener('click', (e) => { if (!cartItems().length) e.preventDefault(); closeDrawer(); });
 
   document.addEventListener('click', (e) => {
@@ -347,7 +366,7 @@
       e.preventDefault();
       if ((byId(add.dataset.add)?.options || []).length) { location.hash = '#/p/' + add.dataset.add; return; } // choisir la couleur / taille d'abord
       addToCart(add.dataset.add);
-      added();
+      if (!drawer.classList.contains('open')) added(); // ajouté depuis le panier ouvert : la ligne apparaît, pas besoin du message
       const label = add.innerHTML;
       add.innerHTML = `${icon('check-bold')} Ajouté`;
       setTimeout(() => (add.innerHTML = label), 1200);
@@ -1217,7 +1236,8 @@
     if (!p) return viewHome();
     renderNav(p.category);
     const d = discount(p);
-    const similar = state.products.filter((x) => x.category === p.category && x.id !== p.id).slice(0, 10);
+    const withIt = goesWith([p], 8);
+    const similar = state.products.filter((x) => x.category === p.category && x.id !== p.id && !withIt.includes(x)).slice(0, 10);
     app.innerHTML = `
       <div class="crumbs"><a href="#/">Accueil</a> › <a href="#/c/${enc(p.universe)}">${esc(p.universe)}</a> › <a href="#/c/${enc(p.universe)}/${enc(p.category)}">${esc(p.category)}</a></div>
       <div class="pdp">
@@ -1251,6 +1271,7 @@
           <div class="buybar"><span><small>${esc(p.name)}</small><b>${fcfa(p.price)}</b></span><button class="btn cta" type="button" id="buybarAdd" ${p.stock === 0 ? 'disabled' : ''}>${p.stock === 0 ? 'Épuisé' : 'Ajouter au panier'}</button></div>
         </div>
       </div>
+      ${withIt.length ? `<section class="shelf goes-with"><div class="shelf-head"><div><p class="kicker">Complétez votre achat</p><h2>Pour aller avec</h2></div></div>${railCarousel(withIt)}</section>` : ''}
       <section class="reviews" id="reviews"></section>
       ${similar.length ? `<section class="shelf"><div class="shelf-head"><div><p class="kicker">${esc(p.category)}</p><h2>Vous aimerez aussi</h2></div></div>${railCarousel(similar)}</section>` : ''}`;
     loadReviews(p);
@@ -2738,6 +2759,7 @@
       const fresh = await api('/products');
       if (prodSig(fresh) === prodSig(state.products)) return false;
       state.products = fresh;
+      loadPairs();
       UNIVERSES = (state.config.universes || []).map((u) => ({ ...u, categories: u.categories.filter((c) => state.products.some((p) => p.category === c)) })).filter((u) => u.categories.length);
       $('#menuBody').innerHTML = ''; // menu « Rayons » reconstruit avec les nouveaux rayons
       return true;
@@ -2860,6 +2882,7 @@
       app.innerHTML = `<div class="empty mz-empty">${mama('off', { size: 'md' })}<p>Connexion impossible. Vérifiez votre réseau, puis rechargez la page.</p></div>`;
       return;
     }
+    loadPairs();
     renderCart();
     setMaintenance(state.config.maintenance);
     renderDeliverCity(); // villes de livraison réglées dans Zado Pro

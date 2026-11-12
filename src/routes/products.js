@@ -46,6 +46,29 @@ router.get('/suggest', (req, res) => {
   });
 });
 
+// « Pour aller avec » (12/11/2026) : articles achetés ENSEMBLE dans les commandes réglées (public/js/basket.js).
+// Seulement des chiffres : { idA: { idB: nombre de commandes } }, à partir de 2 commandes (jamais une commande
+// isolée, rien qui permette de retrouver un client), articles visibles seulement. Recalculé au plus toutes les 10 min.
+const SOLD = new Set(['paid', 'confirmed', 'shipped', 'delivered']);
+let pairsMemo = { at: 0, data: {} };
+function boughtTogether() {
+  if (Date.now() - pairsMemo.at < 10 * 60e3) return pairsMemo.data;
+  const visible = new Set(products.all().filter(isPublic).map((p) => p.id));
+  const count = {};
+  for (const o of require('../store').orders.all()) {
+    if (!SOLD.has(o.status)) continue;
+    const ids = [...new Set((o.lines || []).map((l) => l.productId))].filter((id) => visible.has(id));
+    for (const a of ids) for (const b of ids) if (a !== b) { (count[a] ||= {})[b] = (count[a][b] || 0) + 1; }
+  }
+  const data = {};
+  for (const [a, m] of Object.entries(count)) {
+    const top = Object.entries(m).filter(([, n]) => n >= 2).sort((x, y) => y[1] - x[1]).slice(0, 8);
+    if (top.length) data[a] = Object.fromEntries(top);
+  }
+  pairsMemo = { at: Date.now(), data };
+  return data;
+}
+router.get('/pairs', (req, res) => { res.set('Cache-Control', 'public, max-age=600'); res.json(boughtTogether()); });
 
 router.get('/:id', (req, res) => {
   const product = products.get(req.params.id);

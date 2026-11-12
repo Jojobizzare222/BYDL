@@ -1338,8 +1338,8 @@ main { max-width: 1240px; }
 .price.sale { color: var(--accent-dark); }
 .card .stock-low.ok { color: var(--ok); font-weight: 600; }
 .stock-low .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); display: inline-block; }
-.card .btn.cta.small { background: var(--mango); color: #231800; }
-.card .btn.cta.small:hover { background: #FFC233; box-shadow: 0 6px 16px rgba(255,179,0,.35); }
+.card .btn.cta.small, .ups-item .btn.cta.small { background: var(--mango); color: #231800; }
+.card .btn.cta.small:hover, .ups-item .btn.cta.small:hover { background: #FFC233; box-shadow: 0 6px 16px rgba(255,179,0,.35); }
 .card .btn.cta.small:disabled { background: var(--soft); color: var(--muted); }
 .disc { border-radius: 6px; }
 .btn { border-radius: 12px; }
@@ -1796,3 +1796,15 @@ html[data-saver="on"] .gift-hero { display: none; }
 .catnav a.cheap-link { color: #B9CCFF; font-weight: 700; }
 .catnav a.cheap-link.active { background: #1E56C2; color: #fff; }
 html[data-theme="dark"] .pp-tag { background: rgba(14,138,102,.18); color: #5DE0A8; }
+
+/* « Pour aller avec » (12/11/2026) : compléments proposés dans le panier (public/js/basket.js) */
+.upsell { margin: 18px 0 8px; padding: 14px; border-radius: 14px; background: var(--soft); }
+.upsell-title { display: flex; align-items: center; gap: 6px; margin: 0 0 6px; font-weight: 700; font-size: .92rem; color: var(--brand-text); }
+.upsell-title .ico { color: var(--mango-dark); }
+.ups-item { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 8px 0; }
+.ups-item + .ups-item { border-top: 1px solid var(--line-soft); }
+.ups-item .line-img { width: 48px; height: 48px; font-size: 1.35rem; background: var(--paper); }
+.ups-name { color: var(--ink); font-size: .84rem; line-height: 1.3; min-width: 0; }
+.ups-name span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.ups-name b { display: block; margin-top: 2px; font-size: .86rem; }
+.ups-item .btn.small { padding: 7px 12px; font-size: .8rem; white-space: nowrap; }
