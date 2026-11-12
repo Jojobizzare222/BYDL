@@ -81,7 +81,7 @@
       ${mode === 'login' && passkeysOk() ? `<button type="button" class="btn sso-btn sso-key" data-sso="passkey">${ico('fingerprint')} Se connecter avec une clé d'accès</button>` : ''}
       <button type="button" class="btn sso-btn sso-google" data-sso="google"${soon(auth.google)}>${G_LOGO} ${verb} Google${auth.google ? '' : ' <small>bientôt</small>'}</button>
       <div id="googleBtnHost" class="sso-gbtn" hidden></div>
-      <button type="button" class="btn sso-btn sso-apple" data-sso="apple"${soon(auth.apple)}>${A_LOGO} ${verb} Apple${auth.apple ? '' : ' <small>bientôt</small>'}</button>
+      ${auth.apple ? `<button type="button" class="btn sso-btn sso-apple" data-sso="apple">${A_LOGO} ${verb} Apple</button>` : ''}<!-- Apple : masqué tant qu'il n'est pas configuré (décision Joseph 12/11/2026) -->
       <div class="sso-msg" role="alert"></div>
       <p class="sso-or"><span>ou avec votre numéro / e-mail et votre code Zado</span></p>
     </div>`;
@@ -109,7 +109,7 @@
       <div class="pref-row"><span><b>Clés d'accès</b><small>Connectez-vous avec l'empreinte, Face ID ou le code de votre téléphone, sans taper votre code Zado.${passkeysOk() ? '' : ' Ce navigateur ne les accepte pas.'}</small></span>
         <button type="button" class="btn ghost small" id="pkAdd" ${passkeysOk() ? '' : 'disabled'}>${ico('plus-bold')} Ajouter</button></div>
       ${keys.length ? `<ul class="pk-list">${keys.map((k) => `<li><span>${ico('fingerprint')} <b>${esc(k.label)}</b><small>Ajoutée le ${day(k.createdAt)}${k.lastUsedAt ? ` · utilisée le ${day(k.lastUsedAt)}` : ''}${k.synced ? ' · synchronisée' : ''}</small></span><button type="button" class="linkish" data-pkdel="${esc(k.id)}">Retirer</button></li>`).join('')}</ul>` : ''}
-      ${prov('google', 'Google', G_LOGO)}${prov('apple', 'Apple', A_LOGO)}
+      ${prov('google', 'Google', G_LOGO)}${auth.apple || linked.apple ? prov('apple', 'Apple', A_LOGO) : ''}
       <div class="sso-msg" id="ssoMsg" role="status"></div></div>`;
   }
   function bindSettings(root, auth, onChange) {

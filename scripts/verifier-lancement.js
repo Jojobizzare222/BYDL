@@ -67,7 +67,7 @@ warn('Les prix du catalogue de départ sont des ESTIMATIONS : vérifiez chaque p
 
 // --- Divers ---
 if (!process.env.GOOGLE_CLIENT_ID) warn('« Continuer avec Google » pas encore configuré (GOOGLE_CLIENT_ID) : bouton « bientôt »');
-if (!process.env.APPLE_SERVICE_ID) warn('« Continuer avec Apple » pas encore configuré (APPLE_SERVICE_ID) : bouton « bientôt »');
+// « Continuer avec Apple » : bouton masqué tant qu'APPLE_SERVICE_ID n'est pas réglé (décision Joseph 12/11/2026), pas d'alerte
 const maint = (() => { try { return JSON.parse(settings.get('maintenance') || '{}'); } catch { return {}; } })();
 if (maint.enabled) warn('La boutique est en MAINTENANCE (Zado Pro → Réglages → Rouvrir)');
 ok(`${customers.all().length} compte(s) client`);
