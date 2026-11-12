@@ -73,12 +73,15 @@
   // ---------- Boutons (connexion / création de compte) ----------
   const G_LOGO = '<svg class="sso-logo" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 13 4 4 13 4 24s9 20 20 20 20-9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>';
   const A_LOGO = '<svg class="sso-logo" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.4 12.6c0-2.6 2.1-3.8 2.2-3.9-1.2-1.8-3.1-2-3.7-2-1.6-.2-3.1.9-3.9.9-.8 0-2-.9-3.4-.9-1.7 0-3.3 1-4.2 2.6-1.8 3.1-.5 7.7 1.3 10.2.9 1.2 1.9 2.6 3.2 2.6 1.3-.1 1.8-.8 3.4-.8 1.5 0 2 .8 3.4.8 1.4 0 2.3-1.3 3.1-2.5 1-1.4 1.4-2.8 1.4-2.9-.1 0-2.8-1.1-2.8-4.1zM13.9 5c.7-.9 1.2-2 1.1-3.2-1 0-2.3.7-3 1.6-.7.8-1.2 2-1.1 3.1 1.1.1 2.3-.6 3-1.5z"/></svg>';
+  // Clés d'accès (empreinte, Face ID) RETIRÉES de l'affichage (décision Joseph 12/11/2026 : « ne garde que Google ») ;
+  // le code reste en place côté serveur : repasser à true pour les remettre.
+  const PASSKEYS = false;
   /** Bloc de boutons. mode : 'login' | 'signup'. auth = config.auth du serveur. */
   function buttonsHtml(auth = {}, mode = 'login') {
     const verb = mode === 'signup' ? 'Créer mon compte avec' : 'Continuer avec';
     const soon = (on) => (on ? '' : ' disabled title="Bientôt disponible"');
     return `<div class="sso">
-      ${mode === 'login' && passkeysOk() ? `<button type="button" class="btn sso-btn sso-key" data-sso="passkey">${ico('fingerprint')} Se connecter avec une clé d'accès</button>` : ''}
+      ${PASSKEYS && mode === 'login' && passkeysOk() ? `<button type="button" class="btn sso-btn sso-key" data-sso="passkey">${ico('fingerprint')} Se connecter avec une clé d'accès</button>` : ''}
       <button type="button" class="btn sso-btn sso-google" data-sso="google"${soon(auth.google)}>${G_LOGO} ${verb} Google${auth.google ? '' : ' <small>bientôt</small>'}</button>
       <div id="googleBtnHost" class="sso-gbtn" hidden></div>
       ${auth.apple ? `<button type="button" class="btn sso-btn sso-apple" data-sso="apple">${A_LOGO} ${verb} Apple</button>` : ''}<!-- Apple : masqué tant qu'il n'est pas configuré (décision Joseph 12/11/2026) -->
@@ -105,10 +108,10 @@
     const keys = c.passkeys || [], linked = c.linked || {};
     const prov = (p, name, logo) => `<div class="pref-row"><span><b>${logo} ${name}</b><small>${linked[p] ? `Lié${linked[p].email ? ' : ' + esc(linked[p].email) : ''} · vous pouvez vous connecter avec ${name}` : auth[p] ? `Connectez-vous en un geste avec votre compte ${name}` : 'Bientôt disponible'}</small></span>
       ${linked[p] ? `<button type="button" class="btn ghost small" data-unlink="${p}">Délier</button>` : `<button type="button" class="btn ghost small" data-link="${p}" ${auth[p] ? '' : 'disabled'}>Lier</button>`}</div>`;
-    return `<div class="panel prefs" id="ssoPanel"><h2>${ico('fingerprint')} Connexion rapide</h2>
-      <div class="pref-row"><span><b>Clés d'accès</b><small>Connectez-vous avec l'empreinte, Face ID ou le code de votre téléphone, sans taper votre code Zado.${passkeysOk() ? '' : ' Ce navigateur ne les accepte pas.'}</small></span>
-        <button type="button" class="btn ghost small" id="pkAdd" ${passkeysOk() ? '' : 'disabled'}>${ico('plus-bold')} Ajouter</button></div>
-      ${keys.length ? `<ul class="pk-list">${keys.map((k) => `<li><span>${ico('fingerprint')} <b>${esc(k.label)}</b><small>Ajoutée le ${day(k.createdAt)}${k.lastUsedAt ? ` · utilisée le ${day(k.lastUsedAt)}` : ''}${k.synced ? ' · synchronisée' : ''}</small></span><button type="button" class="linkish" data-pkdel="${esc(k.id)}">Retirer</button></li>`).join('')}</ul>` : ''}
+    return `<div class="panel prefs" id="ssoPanel"><h2>${ico('user-circle')} Connexion rapide</h2>
+      ${PASSKEYS ? `<div class="pref-row"><span><b>Clés d'accès</b><small>Connectez-vous avec l'empreinte, Face ID ou le code de votre téléphone, sans taper votre code Zado.${passkeysOk() ? '' : ' Ce navigateur ne les accepte pas.'}</small></span>
+        <button type="button" class="btn ghost small" id="pkAdd" ${passkeysOk() ? '' : 'disabled'}>${ico('plus-bold')} Ajouter</button></div>` : ''}
+      ${keys.length && PASSKEYS ? `<ul class="pk-list">${keys.map((k) => `<li><span>${ico('fingerprint')} <b>${esc(k.label)}</b><small>Ajoutée le ${day(k.createdAt)}${k.lastUsedAt ? ` · utilisée le ${day(k.lastUsedAt)}` : ''}${k.synced ? ' · synchronisée' : ''}</small></span><button type="button" class="linkish" data-pkdel="${esc(k.id)}">Retirer</button></li>`).join('')}</ul>` : ''}
       ${prov('google', 'Google', G_LOGO)}${auth.apple || linked.apple ? prov('apple', 'Apple', A_LOGO) : ''}
       <div class="sso-msg" id="ssoMsg" role="status"></div></div>`;
   }
