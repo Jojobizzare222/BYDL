@@ -50,4 +50,7 @@ ok((await call(SUP,'/admin/chat/team')).status===200 && (await call(null,'/admin
 ok((await call(null,'/admin/chat/team')).status===401,'salon Équipe : invisible sans connexion');
 let blocked=false; for(let i=0;i<25;i++){ const r=await call(null,'/chat/messages',{body:{text:'spam '+i},headers:H}); if(r.status===429){blocked=true;break;} }
 ok(blocked,'trop de messages en une minute : bloqué');
+// Zado Pro : la zone de réponse existe (supprimée par erreur le 21/10/2026 : toute conversation restait sur « Chargement… »)
+const adminJs = fs.readFileSync(new URL('../public/admin/admin.js', import.meta.url), 'utf8');
+ok(['replyBox', 'bindReply', 'openConv', 'openTeam', 'refreshMsgList'].every((f) => adminJs.includes(`function ${f}(`)), 'Zado Pro : fonctions de la messagerie présentes (zone de réponse, conversation, salon, liste)');
 console.log(fails? fails+' ÉCHEC(S)':'TOUT EST OK');

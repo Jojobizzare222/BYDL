@@ -461,6 +461,8 @@ html[data-theme="light"] .alert.ok { background: #E1F5EC; color: #0E7A5A; }
 html[data-theme="light"] .msg-item:hover { background: var(--paper-2); } html[data-theme="light"] .msg-item.on { background: #E9F1FF; }
 html[data-theme="light"] .pm .pb { background: #EEF2F8; } html[data-theme="light"] .pm.bot .pb { background: #F9FBFE; color: #435066; }
 html[data-theme="light"] .pm.note .pb { background: #FFF6DE; color: #7A4F00; border-color: #FFD27A; }
+/* Ses propres messages : texte blanc sur bleu (la règle claire ci-dessus les rendait illisibles, blanc sur gris clair) */
+html[data-theme="light"] .pm.mine .pb { background: linear-gradient(135deg, #1E56C2, #10264A); color: #fff; }
 html[data-theme="light"] .auto-check { background: #F9FBFE; } html[data-theme="light"] .auto-check.good { background: #EAF8F1; } html[data-theme="light"] .auto-check.warn { background: #FFF8E6; }
 html[data-theme="light"] .ac-chips .ok { color: #0E7A5A; background: #E1F5EC; } html[data-theme="light"] .ac-chips .bad { color: #B3261E; background: #FDEEEC; } html[data-theme="light"] .ac-chips .mid { color: #7A4F00; background: #FFF1CC; }
 html[data-theme="light"] .id-review .id-photo img { background: #EEE; }

@@ -2962,38 +2962,88 @@
       <div class="pb">${esc(m.text).replace(/\n/g, '<br>')}${(m.links || []).length ? `<div class="muted" style="margin-top:4px">${m.links.map((l) => esc(l.label)).join(' · ')}</div>` : ''}</div>
       <span class="t">${msgTime(m.at)}</span>
     </div>`;
+  const MSG_FILT = [['todo', 'À répondre'], ['bot', 'Avec l\'assistant'], ['closed', 'Terminées'], ['all', 'Toutes']];
+  const msgMatch = (c, k) => k === 'all' || (k === 'todo' ? c.status === 'open' : c.status === k);
+  function msgListHtml(list, id) {
+    const support = CAN.orders(), f = state.msgFilter || 'todo';
+    const rows = list.filter((c) => msgMatch(c, f));
+    return `<a class="msg-item team ${id === 'equipe' ? 'on' : ''}" href="#/messagerie/equipe">${icon('chats-circle-duotone')}<span><strong>Équipe Zado</strong><small>Salon interne de l'équipe</small></span><b class="n" id="teamUnread" hidden></b></a>
+          ${support ? `${tabsBar(MSG_FILT.map(([k, l]) => [k, l, list.filter((c) => msgMatch(c, k)).length]), f, 'mf')}
+          ${rows.length ? rows.map((c) => `
+            <a class="msg-item ${c.id === id ? 'on' : ''} ${c.unread && c.id !== id ? 'unread' : ''}" href="#/messagerie/${enc(c.id)}">
+              <span class="av">${esc((c.name || 'V')[0].toUpperCase())}</span>
+              <span><strong>${esc(c.name)}${vb(c.idStatus)}</strong><small>${c.lastFrom === 'customer' ? '' : c.lastFrom === 'staff' ? 'Vous : ' : 'Assistant : '}${esc((c.lastText || '').slice(0, 70))}</small></span>
+              <span class="side"><em>${c.lastAt ? msgTime(c.lastAt) : ''}</em>${c.unread && c.id !== id ? `<b class="n">${c.unread}</b>` : `<i class="tag ${CONV_ST[c.status]?.[1] || ''}">${esc(CONV_ST[c.status]?.[0] || '')}</i>`}</span>
+            </a>`).join('') : '<p class="muted" style="padding:14px">Aucune conversation ici.</p>'}` : ''}`;
+  }
+  function bindMsgList(id) {
+    app.querySelectorAll('[data-mf]').forEach((b) => b.addEventListener('click', () => { state.msgFilter = b.dataset.mf; refreshMsgList(id, true); }));
+  }
+  // Liste de gauche : relue sans toucher à la conversation ouverte (nouveaux clients, nouveaux messages, statut)
+  async function refreshMsgList(id, force) {
+    if (!CAN.orders() || !$('#msgList')) return;
+    let list; try { list = await api('/chat/conversations'); } catch { return; }
+    const sig = JSON.stringify([list.map((c) => [c.id, c.status, c.lastAt, c.unread]), state.msgFilter, id]);
+    if (!force && sig === state.msgListSig) return;
+    state.msgListSig = sig;
+    const box = $('#msgList'), y = box.scrollTop;
+    box.innerHTML = msgListHtml(list, id); box.scrollTop = y;
+    bindMsgList(id); loadChatCounts();
+  }
   async function viewMessaging(id) {
+    clearInterval(state.msgTimer); // jamais deux minuteries à la fois (filtres, « Terminer »…)
     const support = CAN.orders();
     if (!id) id = support ? '' : 'equipe';
     let list = [];
-    if (support) { try { list = await api('/chat/conversations'); } catch { return; } }
-    const f = state.msgFilter || 'todo';
-    const match = (c, k) => k === 'all' || (k === 'todo' ? c.status === 'open' : c.status === k);
-    const FILT = [['todo', 'À répondre'], ['bot', 'Avec l\'assistant'], ['closed', 'Terminées'], ['all', 'Toutes']];
-    const rows = list.filter((c) => match(c, f));
+    if (support) { try { list = await api('/chat/conversations'); } catch (err) { app.innerHTML = `<div class="alert err">${esc(err.message)}</div>`; return; } }
+    state.convSig = null; state.teamSig = null; state.msgListSig = null;
     app.innerHTML = pageHead({ title: 'Messagerie', desc: support ? "Les questions des clients (bulle « Aide » de la boutique). L'assistant automatique répond d'abord ; quand un client demande un conseiller, la conversation arrive dans « À répondre ». Le salon « Équipe Zado » sert à échanger entre vous." : 'Le salon « Équipe Zado » pour échanger avec toute l\'équipe.' }) + `
       <div class="msg-layout ${id ? 'has-conv' : ''}">
-        <aside class="msg-list">
-          <a class="msg-item team ${id === 'equipe' ? 'on' : ''}" href="#/messagerie/equipe">${icon('chats-circle-duotone')}<span><strong>Équipe Zado</strong><small>Salon interne de l'équipe</small></span><b class="n" id="teamUnread" hidden></b></a>
-          ${support ? `${tabsBar(FILT.map(([k, l]) => [k, l, list.filter((c) => match(c, k)).length]), f, 'mf')}
-          ${rows.length ? rows.map((c) => `
-            <a class="msg-item ${c.id === id ? 'on' : ''} ${c.unread ? 'unread' : ''}" href="#/messagerie/${enc(c.id)}">
-              <span class="av">${esc((c.name || 'V')[0].toUpperCase())}</span>
-              <span><strong>${esc(c.name)}${vb(c.idStatus)}</strong><small>${c.lastFrom === 'customer' ? '' : c.lastFrom === 'staff' ? 'Vous : ' : 'Assistant : '}${esc((c.lastText || '').slice(0, 70))}</small></span>
-              <span class="side"><em>${c.lastAt ? msgTime(c.lastAt) : ''}</em>${c.unread ? `<b class="n">${c.unread}</b>` : `<i class="tag ${CONV_ST[c.status]?.[1] || ''}">${esc(CONV_ST[c.status]?.[0] || '')}</i>`}</span>
-            </a>`).join('') : '<p class="muted" style="padding:14px">Aucune conversation ici.</p>'}` : ''}
-        </aside>
+        <aside class="msg-list" id="msgList">${msgListHtml(list, id)}</aside>
         <section class="msg-conv" id="msgConv">${id ? '<p class="muted" style="padding:20px">Chargement…</p>' : `<div class="msg-empty">${icon('chat-circle-dots-duotone')}<p>Choisissez une conversation.</p></div>`}</section>
       </div>`;
-    app.querySelectorAll('[data-mf]').forEach((b) => b.addEventListener('click', () => { state.msgFilter = b.dataset.mf; viewMessaging(id); }));
+    bindMsgList(id);
     if (id === 'equipe') await openTeam();
     else if (id) await openConv(id);
-    // Nouveaux messages : toutes les 4 s tant que la page est affichée
-    state.msgTimer = setInterval(async () => {
+    else loadChatCounts();
+    // Nouveaux messages : toutes les 4 s tant que la page est affichée (en secours du signal instantané)
+    state.msgTimer = setInterval(() => {
       if (document.hidden || !location.hash.startsWith('#/messagerie')) return;
-      if (id === 'equipe') return openTeam(true);
-      if (id) openConv(id, true);
+      if (id === 'equipe') openTeam(true);
+      else if (id) openConv(id, true);
+      refreshMsgList(id);
     }, 4000);
+  }
+  // Zone de réponse (réponses toutes faites, Entrée = envoyer, Maj+Entrée = nouvelle ligne, note interne)
+  // (supprimée par erreur le 21/10/2026 avec le volet fournisseur : toute conversation restait sur « Chargement… »)
+  function replyBox(team) {
+    return `<form class="msg-reply" id="msgForm">
+      ${team ? '' : `<div class="canned">${CANNED.map((t, i) => `<button type="button" data-canned="${i}" title="${esc(t)}">${esc(t.slice(0, 34))}…</button>`).join('')}</div>`}
+      <div class="row-reply"><textarea id="msgText" rows="2" maxlength="2000" placeholder="${team ? 'Message à toute l\'équipe…' : 'Votre réponse au client…'}"></textarea>
+      <button class="btn" id="msgSend">${icon('paper-plane-right-fill')} Envoyer</button></div>
+      ${team ? '' : `<label class="check" style="margin:6px 0 0"><input type="checkbox" id="msgInternal"> Note interne (invisible pour le client)</label>`}
+    </form>`;
+  }
+  function bindReply(send) {
+    const form = $('#msgForm'), ta = $('#msgText'), btn = $('#msgSend');
+    form.querySelectorAll('[data-canned]').forEach((b) => b.addEventListener('click', () => { ta.value = CANNED[b.dataset.canned]; ta.focus(); }));
+    ta.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); form.requestSubmit(); } });
+    let sending = false; // jamais deux envois du même message (double clic, Entrée + clic)
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const text = ta.value.trim(); if (!text || sending) return;
+      sending = true; ta.disabled = true; btn.disabled = true;
+      try { await send(text, $('#msgInternal')?.checked); ta.value = ''; if ($('#msgInternal')) $('#msgInternal').checked = false; if ($('#msgThread')) $('#msgThread').scrollTop = 1e9; }
+      catch (err) { toast('❌ ' + err.message); }
+      sending = false; ta.disabled = false; btn.disabled = false; ta.focus();
+    });
+  }
+  // Fil de messages : on reste en bas seulement si on y était (sinon on ne fait pas sauter la lecture)
+  function setThread(html) {
+    const th = $('#msgThread'); if (!th) return;
+    const atBottom = th.scrollHeight - th.scrollTop - th.clientHeight < 80;
+    th.innerHTML = html;
+    if (atBottom) th.scrollTop = 1e9;
   }
   async function openConv(id, refresh) {
     let c;
@@ -3001,7 +3051,8 @@
     const sig = JSON.stringify([c.messages.length, c.status]);
     if (refresh && sig === state.convSig) return;
     state.convSig = sig;
-    if (refresh && $('#msgText')?.value) { $('#msgThread').innerHTML = c.messages.map((m) => bubble(m, m.from === 'staff')).join(''); $('#msgThread').scrollTop = 1e9; return; }
+    if (refresh && $('#msgThread') && $('#msgForm')?.dataset.conv === id && (state.convStatus === c.status || $('#msgText')?.value)) { setThread(c.messages.map((m) => bubble(m, m.from === 'staff')).join('')); loadChatCounts(); return; }
+    state.convStatus = c.status;
     const st = CONV_ST[c.status] || ['', ''];
     const idt = c.idStatus ? ID_TAG[c.idStatus] : null;
     $('#msgConv').innerHTML = `
@@ -3014,9 +3065,13 @@
       </div>
       <div class="msg-thread" id="msgThread">${c.messages.map((m) => bubble(m, m.from === 'staff')).join('')}</div>
       ${replyBox(false)}`;
+    $('#msgForm').dataset.conv = id;
     $('#msgThread').scrollTop = 1e9;
     bindReply(async (text, internal) => { await api('/chat/conversations/' + enc(id) + '/messages', { method: 'POST', body: { text, internal } }); state.convSig = null; await openConv(id, true); });
-    $('#convClose')?.addEventListener('click', async () => { await api('/chat/conversations/' + enc(id) + '/close', { method: 'POST' }); toast('Conversation terminée'); viewMessaging(id); });
+    $('#convClose')?.addEventListener('click', async () => {
+      if (!confirm('Terminer cette conversation ? Le client en sera informé et pourra réécrire à tout moment.')) return;
+      try { await api('/chat/conversations/' + enc(id) + '/close', { method: 'POST' }); toast('Conversation terminée'); viewMessaging(id); } catch (err) { toast('❌ ' + err.message); }
+    });
     loadChatCounts();
   }
   async function openTeam(refresh) {
@@ -3026,11 +3081,12 @@
     if (refresh && sig === state.teamSig) return;
     state.teamSig = sig;
     const thread = t.messages.length ? t.messages.map((m) => bubble(m, m.userId === t.me)).join('') : '<p class="muted" style="text-align:center">Pas encore de message. Dites bonjour à l\'équipe !</p>';
-    if (refresh && $('#msgThread')) { $('#msgThread').innerHTML = thread; $('#msgThread').scrollTop = 1e9; loadChatCounts(); return; }
+    if (refresh && $('#msgThread') && $('#msgForm')?.dataset.conv === 'equipe') { setThread(thread); loadChatCounts(); return; }
     $('#msgConv').innerHTML = `
-      <div class="msg-top"><a class="ghost back" href="#/messagerie">${icon('caret-left')}</a><div><strong>Équipe Zado</strong><br><span class="muted">Salon interne : visible par toute l'équipe (pas par les fournisseurs ni les clients)</span></div></div>
+      <div class="msg-top"><a class="ghost back" href="#/messagerie">${icon('caret-left')}</a><div><strong>Équipe Zado</strong><br><span class="muted">Salon interne : visible par toute l'équipe, jamais par les clients</span></div></div>
       <div class="msg-thread" id="msgThread">${thread}</div>
       ${replyBox(true)}`;
+    $('#msgForm').dataset.conv = 'equipe';
     $('#msgThread').scrollTop = 1e9;
     bindReply(async (text) => { await api('/chat/team', { method: 'POST', body: { text } }); state.teamSig = null; await openTeam(true); });
     loadChatCounts();
@@ -3178,10 +3234,9 @@
     proEs.onerror = () => { if (proEs.readyState === EventSource.CLOSED) { proEs = null; setTimeout(connectProEvents, 3000); } };
   }
   function refreshMessaging(id) {
-    if (id === 'equipe') return openTeam(true);
-    if (id) openConv(id, true);
-    // liste des conversations à gauche
-    if (!id && !$('#msgText')?.value) viewMessaging(id);
+    if (id === 'equipe') openTeam(true);
+    else if (id) openConv(id, true);
+    refreshMsgList(id); // liste des conversations à gauche (sans toucher à la réponse en cours)
   }
 
   function route(opts = {}) {
