@@ -966,3 +966,9 @@ html[data-theme="light"] .btn.ghost { background: var(--paper); }
 .btn.ghost:hover { filter: none; box-shadow: none; border-color: var(--muted); }
 .btn.ghost.danger { color: #E5484D; }
 .btn.ghost:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+/* Colonne « Lien » de la liste des produits (demande Joseph 12/11/2026) */
+.plinks { display: flex; flex-direction: column; gap: 4px; white-space: nowrap; }
+.plink { display: inline-flex; align-items: center; gap: 5px; font-size: .82rem; font-weight: 600; color: var(--brand); text-decoration: none; }
+.plink:hover { text-decoration: underline; }
+.plink svg { width: 14px; height: 14px; flex: none; }

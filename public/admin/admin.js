@@ -2015,6 +2015,15 @@
   const role = () => state.user?.role;
   const isAdmin = () => role() === 'admin';
   
+  // Liens d'un produit : page chez le fournisseur d'origine (1er lien des prix constatés) et fiche sur la boutique (si en ligne)
+  function productLinks(p) {
+    const ref = (p.priceRefs || []).find((r) => /^https?:\/\//.test(r.url || ''));
+    const out = [];
+    if (ref) out.push(`<a class="plink" href="${esc(ref.url)}" target="_blank" rel="noopener noreferrer" title="Ouvrir chez ${esc(ref.store || 'le fournisseur')}">${icon('arrow-square-out-bold')} ${esc(ref.store || 'Fournisseur')}</a>`);
+    if (p.active !== false && !p.pending) out.push(`<a class="plink" href="/#/p/${enc(p.id)}" target="_blank" rel="noopener" title="Voir la fiche sur la boutique">${icon('arrow-square-out-bold')} Boutique</a>`);
+    return out.length ? `<span class="plinks">${out.join('')}</span>` : '<span class="muted">—</span>';
+  }
+
   function viewProducts() {
     const f = state.productFilter || 'all';
     const live = (p) => p.active !== false && !p.pending;
@@ -2034,8 +2043,10 @@
     columns.push({ key: 'provenance', label: 'Provenance', render: (p) => esc(p.provenance || '—') });
     columns.push({ key: 'price', label: 'Prix de vente', cls: 'num', render: (p) => (p.price ? fcfa(p.price) : '<span class="muted">à fixer</span>') });
     columns.push({ key: 'costPrice', label: "Prix d'achat", cls: 'num', render: (p) => (p.costPrice != null ? fcfa(p.costPrice) : '—') });
-    columns.push({ key: 'stock', label: 'Stock', cls: 'num', render: (p) => (p.stock === 0 ? `<strong style="color:var(--err)">0</strong>` : p.stock) });
+    columns.push({ key: 'stock', label: 'Stock', cls: 'num', render: (p) => (p.stock === 0 ? `<strong style="color:var(--err)">0</strong>` : p.stock == null ? '<span class="muted">sur commande</span>' : p.stock) });
     columns.push({ key: 'status', label: 'Statut', sortValue: (p) => (p.pending ? 0 : p.active === false ? 1 : 2), render: statusTag });
+    // Lien (demande Joseph 12/11/2026) : page de l'article chez le fournisseur d'origine + fiche sur la boutique
+    columns.push({ key: 'link', label: 'Lien', sortable: false, render: productLinks });
     app.innerHTML = pageHead({
       title: 'Produits',
       desc: 'Le catalogue de la boutique. Cliquez sur un produit pour le modifier.',

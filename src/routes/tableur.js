@@ -51,6 +51,9 @@ const SHEETS = [
     cols: [
       { k: 'id', l: 'Réf', t: 'id', w: 70 },
       { k: 'name', l: 'Nom', t: 'text', w: 300, e: 'text' },
+      // Liens à côté du nom (demande Joseph 12/11/2026) : page chez le fournisseur d'origine + fiche sur la boutique
+      { k: 'sourceUrl', l: 'Lien', t: 'link', w: 130 },
+      { k: 'shopUrl', l: 'Fiche boutique', t: 'link', w: 130 },
       { k: 'brand', l: 'Marque', t: 'text', w: 110, e: 'text' },
       { k: 'category', l: 'Rayon', t: 'tag', w: 150, e: 'select', opts: CATS },
       { k: 'condition', l: 'État', t: 'tag', w: 100 },
@@ -77,7 +80,6 @@ const SHEETS = [
       { k: 'sold', l: 'Vendus', t: 'num', w: 70 },
       { k: 'revenue', l: "Chiffre d'affaires", t: 'money', w: 120 },
       { k: 'rating', l: 'Note clients', t: 'num', w: 85 },
-      { k: 'sourceUrl', l: 'Lien source', t: 'link', w: 120 },
       { k: 'createdAt', l: 'Créé le', t: 'date', w: 95 },
       { k: 'updatedAt', l: 'Modifié le', t: 'date', w: 95 },
     ],
@@ -100,7 +102,8 @@ const SHEETS = [
           selection: p.selection || null, giftFor: p.giftFor || null, priceEur: ref?.priceEur ?? null,
           sourceRating: p.sourceRating?.avg ?? null, sourceReviews: p.sourceRating?.count ?? null,
           sold: s?.qty || 0, revenue: s?.ca || 0, rating: n ? Math.round((n.s / n.n) * 10) / 10 : null,
-          sourceUrl: ref?.url || p.sourceUrl || null, createdAt: day(p.createdAt), updatedAt: day(p.updatedAt),
+          sourceUrl: ref?.url || (p.priceRefs || []).find((r) => /^https?:\/\//.test(r.url || ''))?.url || p.sourceUrl || null,
+          shopUrl: p.active !== false && !p.pending ? `${require('../config').publicUrl}/#/p/${encodeURIComponent(p.id)}` : null, createdAt: day(p.createdAt), updatedAt: day(p.updatedAt),
         };
       });
     },
