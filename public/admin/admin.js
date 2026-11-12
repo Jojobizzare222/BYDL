@@ -2641,7 +2641,7 @@
   }
   const finQuery = () => { const r = periodRange(state.finPeriod || 'month'); return `from=${r.from}&to=${r.to}`; };
   const money = (n) => `<span class="${n < 0 ? 'neg' : ''}">${n < 0 ? '−' : ''}${fcfa(Math.abs(n))}</span>`;
-  const finTabs = (cur) => `<div class="tabbar">${[['', 'Vue d\'ensemble'], ['journal', 'Journal'], ['fournisseurs', 'Fournisseurs']].map(([k, l]) => `<a class="tab ${k === cur ? 'on' : ''}" href="#/finances${k ? '/' + k : ''}">${l}</a>`).join('')}</div>`;
+  const finTabs = (cur) => `<div class="tabbar">${[['', 'Vue d\'ensemble'], ['journal', 'Journal'], ['recurrentes', 'Dépenses récurrentes'], ['fournisseurs', 'Fournisseurs']].map(([k, l]) => `<a class="tab ${k === cur ? 'on' : ''}" href="#/finances${k ? '/' + k : ''}">${l}</a>`).join('')}</div>`;
   const periodChips = () => `<div class="chips fin-period">${PERIODS.map(([k, l]) => `<button class="chip ${k === (state.finPeriod || 'month') ? 'on' : ''}" data-per="${k}">${l}</button>`).join('')}</div>`;
   const bindPeriod = () => app.querySelectorAll('[data-per]').forEach((b) => b.addEventListener('click', () => { state.finPeriod = b.dataset.per; route(); }));
 
@@ -2656,6 +2656,7 @@
     const head = pageHead({ title: 'Finances', desc: 'Ventes, dépenses, marge et caisses de Zado. Les ventes s\'ajoutent toutes seules ; saisissez ici les dépenses et les autres mouvements d\'argent.', actions });
     if (sub === 'journal') return viewFinJournal(head);
     if (sub === 'fournisseurs') return viewFinSuppliers(head, d);
+    if (sub === 'recurrentes') return viewFinRecurring(head, new URLSearchParams(location.hash.split('?')[1] || '').get('e'));
 
     const k = d.kpis;
     const pct = k.revenue ? Math.round((k.grossMargin / k.revenue) * 100) : 0;
@@ -2668,6 +2669,7 @@
     const totalCash = Object.values(d.balances).reduce((a, b) => a + b, 0);
     const owed = (d.purchaseDebts || []).reduce((a, s) => a + Math.max(0, s.due), 0); // dettes des bons de commande (Europe)
 
+    try { const rc = await api('/finance/recurring'); const nx = rc.list.find((r) => r.next); if (rc.list.length) alerts.push(`<div class="alert info rec-strip">${icon('arrows-clockwise')} <span>Dépenses récurrentes : <b>${fcfa(rc.perMonth)}</b> par mois${nx ? ` · prochaine : <b>${esc(nx.label)}</b> le ${esc(nx.next.split('-').reverse().join('/'))} (${fcfa(nx.amount)})` : ''}${rc.created ? ` · ${rc.created} ajoutée(s) aujourd'hui` : ''}</span> <a href="#/finances/recurrentes">Gérer ›</a></div>`); } catch {}
     app.innerHTML = head + finTabs('') + periodChips() + alerts.join('') + `
       <div class="kpis">
         <div class="kpi kc0"><span class="kpi-ico">${icon('currency-circle-dollar-duotone')}</span><span class="kpi-label">Chiffre d'affaires</span><span class="kpi-value">${fcfa(k.revenue)}</span><span class="kpi-hint">${k.orders} commande(s) payée(s)</span></div>
@@ -2743,6 +2745,65 @@
         { key: 'amount', label: 'Montant', cls: 'num', render: (r) => (r.kind === 'transfer' ? fcfa(r.amount) : `<strong class="${r.amount < 0 ? 'neg' : 'pos'}">${r.amount < 0 ? '−' : '+'}${fcfa(Math.abs(r.amount))}</strong>`) },
       ],
     });
+  }
+
+  // Dépenses récurrentes (12/11/2026) : ajoutées toutes seules dans Finances le jour venu
+  async function viewFinRecurring(head, editId) {
+    let d; try { d = await api('/finance/recurring'); } catch { return; }
+    const dfr = (x) => (x ? x.split('-').reverse().join('/') : '—');
+    const MONTHS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+    const when = (r) => (r.frequency === 'yearly' ? `chaque année le ${r.day} ${MONTHS[Number(r.start.slice(5, 7)) - 1]}` : `chaque mois le ${r.day}`);
+    const cur = editId ? d.list.find((r) => r.id === editId) : null;
+    const today = d.today, ym = today.slice(0, 7);
+    const f = cur || { label: '', amount: '', category: 'telecom', method: 'momo', frequency: 'monthly', day: Number(today.slice(8, 10)), start: ym, variable: false, note: '', active: true };
+    app.innerHTML = head + finTabs('recurrentes') + `
+      <div class="kpis">
+        <div class="kpi kc2"><span class="kpi-ico">${icon('arrows-clockwise')}</span><span class="kpi-label">Charges fixes par mois</span><span class="kpi-value">${fcfa(d.perMonth)}</span><span class="kpi-hint">${d.list.filter((r) => r.active !== false).length} dépense(s) active(s) · les annuelles comptent pour 1/12</span></div>
+      </div>
+      ${d.created ? `<div class="alert ok">${icon('check-circle-duotone')} ${d.created} dépense(s) arrivée(s) à échéance viennent d'être ajoutées dans Finances.</div>` : ''}
+      <section class="card wide"><h2>${icon('list-bullets-duotone')} Vos dépenses récurrentes</h2>
+        ${d.list.length ? `<div class="table-wrap"><table class="dt rec-table"><thead><tr><th>Dépense</th><th class="r">Montant</th><th>Quand</th><th>Caisse</th><th>Prochaine</th><th>Active</th><th></th></tr></thead><tbody>
+        ${d.list.map((r) => `<tr class="${r.active === false ? 'muted-row' : ''}"><td><b>${esc(r.label)}</b><br><span class="muted">${esc(r.categoryLabel)}${r.variable ? ' · montant variable' : ''}</span></td>
+          <td class="r"><b>${fcfa(r.amount)}</b></td><td>${esc(when(r))}${r.end ? `<br><span class="muted">jusqu'à ${esc(r.end.split('-').reverse().join('/'))}</span>` : ''}</td><td>${esc(r.methodLabel)}</td>
+          <td>${r.active === false ? '<span class="tag">en pause</span>' : dfr(r.next)}</td>
+          <td><label class="switch"><input type="checkbox" data-rec-on="${esc(r.id)}" ${r.active !== false ? 'checked' : ''}><span></span></label></td>
+          <td class="row-actions"><a class="btn small" href="#/finances/recurrentes?e=${enc(r.id)}">${icon('pencil-simple')} Modifier</a> <button class="btn small ghost" data-rec-del="${esc(r.id)}" title="Supprimer">${icon('trash-bold')}</button></td></tr>`).join('')}
+        </tbody></table></div>` : '<p class="nodata">Aucune dépense récurrente pour le moment.</p>'}
+        <p class="muted">Le jour venu, l'écriture est ajoutée toute seule dans le Journal (une seule fois par échéance ; si vous la supprimez, elle n'est pas recréée). Supprimer une dépense récurrente arrête les prochaines, sans toucher aux écritures déjà enregistrées.</p>
+      </section>
+      <section class="card wide" id="recForm"><h2>${icon(cur ? 'pencil-simple' : 'plus-bold')} ${cur ? 'Modifier « ' + esc(cur.label) + ' »' : 'Ajouter une dépense récurrente'}</h2>
+        <form class="form-grid rec-form" id="recF">
+          <div class="full"><label for="rLabel">Libellé</label><input id="rLabel" required maxlength="120" value="${esc(f.label)}" placeholder="Ex. Connexion internet, Abonnement Claude, Serveur OVH"></div>
+          <div><label for="rAmount">Montant (FCFA)</label><input id="rAmount" inputmode="numeric" required value="${esc(f.amount)}" placeholder="26000"></div>
+          <div><label for="rMethod">Caisse</label><select id="rMethod">${Object.entries(d.methods).map(([k, l]) => `<option value="${k}" ${k === f.method ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select></div>
+          <div><label for="rCat">Catégorie</label><select id="rCat">${d.categories.filter((c) => c.accrual).map((c) => `<option value="${c.key}" ${c.key === f.category ? 'selected' : ''}>${esc(c.label)}</option>`).join('')}</select></div>
+          <div><label for="rFreq">Fréquence</label><select id="rFreq"><option value="monthly" ${f.frequency !== 'yearly' ? 'selected' : ''}>Chaque mois</option><option value="yearly" ${f.frequency === 'yearly' ? 'selected' : ''}>Chaque année</option></select></div>
+          <div><label for="rDay">Jour du mois</label><input id="rDay" type="number" min="1" max="31" required value="${esc(f.day)}"></div>
+          <div><label for="rStart">Première échéance (mois)</label><input id="rStart" type="month" required value="${esc(f.start)}"></div>
+          <div><label for="rEnd">Dernière échéance (facultatif)</label><input id="rEnd" type="month" value="${esc(f.end || '')}"></div>
+          <div class="full"><label for="rNote">Note (facultatif)</label><input id="rNote" maxlength="300" value="${esc(f.note || '')}" placeholder="Ex. carte prépayée UBA, payé en dollars"></div>
+          <label class="check full"><input type="checkbox" id="rVar" ${f.variable ? 'checked' : ''}> Montant variable (ex. payé en euros ou en dollars) : l'écriture sera marquée « à ajuster selon le relevé »</label>
+          <div class="full row"><button class="btn" type="submit">${icon('check-bold')} ${cur ? 'Enregistrer' : 'Ajouter'}</button>${cur ? '<a class="btn ghost" href="#/finances/recurrentes">Annuler</a>' : ''}</div>
+          <p class="muted full">Si la première échéance est déjà passée (jour compris), elle est ajoutée tout de suite dans Finances. Si vous l'avez déjà saisie à la main, choisissez le mois suivant.</p>
+        </form></section>`;
+    app.querySelector('#recF').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const v = (id) => app.querySelector(id).value;
+      const body = { label: v('#rLabel'), amount: v('#rAmount'), method: v('#rMethod'), category: v('#rCat'), frequency: v('#rFreq'), day: v('#rDay'), start: v('#rStart'), end: v('#rEnd') || null, note: v('#rNote'), variable: app.querySelector('#rVar').checked };
+      try {
+        const r = cur ? await api('/finance/recurring/' + enc(cur.id), { method: 'PATCH', body }) : await api('/finance/recurring', { method: 'POST', body });
+        toast(cur ? 'Dépense récurrente enregistrée ✓' : `Dépense récurrente ajoutée ✓${r.created ? ` (${r.created} échéance(s) déjà passée(s) ajoutée(s))` : ''}`);
+        location.hash = '#/finances/recurrentes'; viewFinRecurring(head);
+      } catch (err) { toast('❌ ' + err.message); }
+    });
+    app.querySelectorAll('[data-rec-on]').forEach((b) => b.addEventListener('change', async () => {
+      try { await api('/finance/recurring/' + enc(b.dataset.recOn), { method: 'PATCH', body: { active: b.checked } }); toast(b.checked ? 'Réactivée ✓' : 'Mise en pause ✓'); viewFinRecurring(head); } catch (err) { toast('❌ ' + err.message); b.checked = !b.checked; }
+    }));
+    app.querySelectorAll('[data-rec-del]').forEach((b) => b.addEventListener('click', async () => {
+      if (!confirm('Supprimer cette dépense récurrente ? Les prochaines échéances ne seront plus ajoutées (les écritures déjà enregistrées restent).')) return;
+      try { await api('/finance/recurring/' + enc(b.dataset.recDel), { method: 'DELETE' }); toast('Supprimée ✓'); viewFinRecurring(head); } catch (err) { toast('❌ ' + err.message); }
+    }));
+    if (cur) app.querySelector('#recForm').scrollIntoView({ block: 'start' });
   }
 
   function viewFinSuppliers(head, d) {

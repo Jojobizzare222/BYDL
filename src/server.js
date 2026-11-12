@@ -140,6 +140,7 @@ app.get('/api/cron/prices', async (req, res) => {
   res.json(await require('./price-watch').runAll({ budgetMs: 45000 }));
 });
 app.use('/api/admin', require('./routes/admin'));
+require('./recurring').start(); // dépenses récurrentes : vérifiées au démarrage puis toutes les heures
 // Vitrine de démo (Vercel) : comptes et données d'exemple, créés une fois par démarrage de la base temporaire
 require('./demo').seed();
 // Photos d'illustration du catalogue de départ supprimées (décision Joseph 19/10/2026) : une seule fois par base,

@@ -149,6 +149,7 @@ function lastMonths(n) {
 
 // ---------- Résumé ----------
 router.get('/', (req, res) => {
+  try { require('../recurring').postDue(); } catch {} // dépenses récurrentes arrivées à échéance (aussi sur la démo, sans minuterie)
   const from = isDay(req.query.from) ? req.query.from : null;
   const to = isDay(req.query.to) ? req.query.to : null;
   const sold = orders.all().filter((o) => isSold(o) && inRange(day(o.paidAt || o.createdAt), from, to));
@@ -333,6 +334,36 @@ router.post('/remit/:staffId', (req, res) => {
   const total = sum(list, (o) => o.balance || 0);
   log(req, 'Espèces reçues du livreur', { id: req.params.staffId, label: staff.get(req.params.staffId)?.name || req.params.staffId }, `${total} FCFA (${list.length} commande(s))`);
   res.json({ ok: true, total, orders: list.map((o) => o.id) });
+});
+
+// ---------- Dépenses récurrentes (abonnements, internet, serveur…) : ajoutées toutes seules le jour venu ----------
+const recurring = require('../recurring');
+const recCtx = () => ({ methods: METHODS, categories: CATEGORIES.expense });
+const recView = (r) => ({ ...r, next: recurring.nextDate(r), perMonth: recurring.monthly(r), methodLabel: METHODS[r.method] || r.method, categoryLabel: catOf('expense', r.category).label });
+router.get('/recurring', (req, res) => {
+  const created = recurring.postDue();
+  const list = recurring.all().map(recView).sort((a, b) => (a.next || '9999').localeCompare(b.next || '9999'));
+  res.json({ list, created, perMonth: list.filter((r) => r.active !== false).reduce((s, r) => s + r.perMonth, 0), methods: METHODS, categories: CATEGORIES.expense, today: recurring.congoDay() });
+});
+router.post('/recurring', (req, res) => {
+  const r = recurring.create(req.body || {}, recCtx());
+  if (r.error) return res.status(400).json({ error: r.error });
+  log(req, 'Dépense récurrente ajoutée', { id: r.value.id, label: r.value.label }, `${r.value.amount} FCFA, ${r.value.frequency === 'yearly' ? 'chaque année' : 'chaque mois'} le ${r.value.day}`);
+  const created = recurring.postDue();
+  res.status(201).json({ ...recView(recurring.all().find((x) => x.id === r.value.id)), created });
+});
+router.patch('/recurring/:id', (req, res) => {
+  const r = recurring.update(req.params.id, req.body || {}, recCtx());
+  if (r.error) return res.status(r.status || 400).json({ error: r.error });
+  log(req, 'Dépense récurrente modifiée', { id: r.value.id, label: r.value.label }, `${r.value.amount} FCFA${r.value.active === false ? ' (en pause)' : ''}`);
+  recurring.postDue();
+  res.json(recView(recurring.all().find((x) => x.id === r.value.id)));
+});
+router.delete('/recurring/:id', (req, res) => {
+  const cur = recurring.all().find((x) => x.id === req.params.id);
+  if (!cur || !recurring.remove(req.params.id)) return res.status(404).json({ error: 'Dépense récurrente introuvable' });
+  log(req, 'Dépense récurrente supprimée', { id: cur.id, label: cur.label }, 'les écritures déjà enregistrées restent');
+  res.json({ ok: true });
 });
 
 module.exports = router;

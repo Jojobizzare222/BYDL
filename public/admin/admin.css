@@ -928,3 +928,23 @@ html[data-theme="dark"] .gift-recap .muted { color: #D9C08A; }
 .xl-help { font-size: .78rem; margin-top: 10px; }
 @media (max-width: 760px) { .xl { height: calc(100vh - 170px); border-radius: 10px; } .xl-search { min-width: 0; flex: 1 1 100%; } .xl-sp { display: none; } .xl-ref { width: 70px; } }
 html[data-theme="dark"] .xt { color: color-mix(in srgb, var(--t) 55%, #fff); background: color-mix(in srgb, var(--t) 22%, transparent); }
+
+/* Dépenses récurrentes (Finances, 12/11/2026) */
+.rec-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px 14px; align-items: end; }
+.rec-form .full { grid-column: 1 / -1; }
+.rec-form label { display: block; font-size: .8rem; font-weight: 600; color: var(--muted); margin-bottom: 4px; }
+.rec-form input:not([type=checkbox]), .rec-form select { width: 100%; box-sizing: border-box; }
+.rec-form label.check { display: flex; gap: 8px; align-items: center; font-weight: 500; color: var(--ink); }
+.rec-form .row { display: flex; gap: 8px; }
+.rec-table td { vertical-align: middle; }
+.rec-table .r { text-align: right; white-space: nowrap; }
+.rec-table .row-actions { white-space: nowrap; text-align: right; }
+.rec-table tr.muted-row td { opacity: .55; }
+.rec-strip { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.rec-strip a { margin-left: auto; font-weight: 600; }
+.switch { position: relative; display: inline-block; width: 38px; height: 22px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.switch span { position: absolute; inset: 0; background: var(--line); border-radius: 999px; cursor: pointer; transition: background .15s; }
+.switch span::before { content: ''; position: absolute; width: 16px; height: 16px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: transform .15s; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+.switch input:checked + span { background: #16A34A; }
+.switch input:checked + span::before { transform: translateX(16px); }
