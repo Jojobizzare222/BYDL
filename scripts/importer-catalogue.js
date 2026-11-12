@@ -23,7 +23,10 @@ const norm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toL
 function candidates() {
   const noel = require(path.join(APP, 'data', 'selection-noel-2026.json')).filter((p) => RAYONS.includes(p.category));
   const refurb = require(path.join(APP, 'data', 'products.json')).filter((p) => /^r\d{3}$/.test(p.id));
-  return [...noel, ...refurb];
+  // Téléphones neufs relevés le 12/11/2026 sur les boutiques officielles (Apple Store, Samsung, Xiaomi) : scripts/telephones-2026-11.js
+  const phonesFile = path.join(APP, 'data', 'telephones-2026-11.json');
+  const phones = require('fs').existsSync(phonesFile) ? require(phonesFile) : [];
+  return [...noel, ...refurb, ...phones];
 }
 
 function prepare(p, now, visible = false) {
@@ -33,7 +36,7 @@ function prepare(p, now, visible = false) {
   q.stock = null;              // sur commande (rien n'a encore été acheté)
   q.createdAt = now;
   q.importedAt = now;
-  q.importedFrom = /^r\d{3}$/.test(p.id) ? 'Back Market (relevé du 22/10/2026)' : `${p.sourceSupplier || 'France'} (relevé du 10/11/2026)`;
+  q.importedFrom = /^r\d{3}$/.test(p.id) ? 'Back Market (relevé du 22/10/2026)' : /^t\d{3}$/.test(p.id) ? `${p.sourceSupplier} (boutique officielle, relevé du 12/11/2026)` : `${p.sourceSupplier || 'France'} (relevé du 10/11/2026)`;
   if (q.condition && q.condition !== 'neuf') q.refurb = { grade: null, battery: null, newPriceEur: null, ...(q.refurb || {}), warrantyMonths: q.refurb?.warrantyMonths || 6 };
   return q;
 }

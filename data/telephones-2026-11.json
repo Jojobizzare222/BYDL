@@ -1,0 +1,1136 @@
+[
+ {
+  "id": "t001",
+  "name": "Apple iPhone 17e 256 Go",
+  "brand": "Apple",
+  "universe": "Électronique",
+  "category": "Téléphones",
+  "price": 640000,
+  "oldPrice": null,
+  "stock": null,
+  "description": "Apple iPhone 17e 256 Go. Neuf, acheté en France chez Apple Store (boutique officielle de la marque) et acheminé par avion jusqu'à Pointe-Noire. Débloqué tous opérateurs.",
+  "condition": "neuf",
+  "provenance": "France",
+  "sourceSupplier": "Apple Store",
+  "sourcePrice": 570027,
+  "costPrice": 570027,
+  "weightKg": 0.5,
+  "highlights": [
+   "Stockage : 256 Go",
+   "Débloqué tous opérateurs",
+   "Le plus abordable des iPhone neufs",
+   "Double SIM : carte nano-SIM + eSIM"
+  ],
+  "specs": [
+   {
+    "label": "Stockage",
+    "value": "256 Go"
+   },
+   {
+    "label": "Acheté chez",
+    "value": "Apple Store (France)"
+   }
+  ],
+  "priceRefs": [
+   {
+    "store": "Apple Store",
+    "priceEur": 869,
+    "url": "https://www.apple.com/fr/shop/buy-iphone/iphone-17e",
+    "date": "2026-11-12",
+    "status": "ok",
+    "from": false,
+    "auto": false,
+    "watch": true
+   }
+  ],
+  "priceRefsPublic": false
+ },
+ {
+  "id": "t002",
+  "name": "Apple iPhone 17 256 Go",
+  "brand": "Apple",
+  "universe": "Électronique",
+  "category": "Téléphones",
+  "price": 820000,
+  "oldPrice": null,
+  "stock": null,
+  "description": "Apple iPhone 17 256 Go. Neuf, acheté en France chez Apple Store (boutique officielle de la marque) et acheminé par avion jusqu'à Pointe-Noire. Débloqué tous opérateurs.",
+  "condition": "neuf",
+  "provenance": "France",
+  "sourceSupplier": "Apple Store",
+  "sourcePrice": 734016,
+  "costPrice": 734016,
+  "weightKg": 0.5,
+  "highlights": [
+   "Stockage : 256 Go",
+   "Débloqué tous opérateurs",
+   "Double SIM : carte nano-SIM + eSIM"
+  ],
+  "specs": [
+   {
+    "label": "Stockage",
+    "value": "256 Go"
+   },
+   {
+    "label": "Acheté chez",
+    "value": "Apple Store (France)"
+   }
+  ],
+  "priceRefs": [
+   {
+    "store": "Apple Store",
+    "priceEur": 1119,
+    "url": "https://www.apple.com/fr/shop/buy-iphone/iphone-17",
+    "date": "2026-11-12",
+    "status": "ok",
+    "from": false,
+    "auto": false,
+    "watch": true
+   }
+  ],
+  "priceRefsPublic": false
+ },
+ {
+  "id": "t003",
+  "name": "Apple iPhone 18 Pro 256 Go",
+  "brand": "Apple",
+  "universe": "Électronique",
+  "category": "Téléphones",
+  "price": 1085000,
+  "oldPrice": null,
+  "stock": null,
+  "description": "Apple iPhone 18 Pro 256 Go. Neuf, acheté en France chez Apple Store (boutique officielle de la marque) et acheminé par avion jusqu'à Pointe-Noire. Débloqué tous opérateurs.",
+  "condition": "neuf",
+  "provenance": "France",
+  "sourceSupplier": "Apple Store",
+  "sourcePrice": 970160,
+  "costPrice": 970160,
+  "weightKg": 0.5,
+  "highlights": [
+   "Stockage : 256 Go",
+   "Débloqué tous opérateurs",
+   "Double SIM : carte nano-SIM + eSIM"
+  ],
+  "specs": [
+   {
+    "label": "Stockage",
+    "value": "256 Go"
+   },
+   {
+    "label": "Acheté chez",
+    "value": "Apple Store (France)"
+   }
+  ],
+  "priceRefs": [
+   {
+    "store": "Apple Store",
+    "priceEur": 1479,
+    "url": "https://www.apple.com/fr/shop/buy-iphone/iphone-18-pro",
+    "date": "2026-11-12",
+    "status": "ok",
+    "from": false,
+    "auto": false,
+    "watch": true
+   }
+  ],
+  "priceRefsPublic": false
+ },
+ {
+  "id": "t004",
+  "name": "Apple iPhone 18 Pro Max 256 Go",
+  "brand": "Apple",
+  "universe": "Électronique",
+  "category": "Téléphones",
+  "price": 1195000,
+  "oldPrice": null,
+  "stock": null,
+  "description": "Apple iPhone 18 Pro Max 256 Go. Neuf, acheté en France chez Apple Store (boutique officielle de la marque) et acheminé par avion jusqu'à Pointe-Noire. Débloqué tous opérateurs.",
+  "condition": "neuf",
+  "provenance": "France",
+  "sourceSupplier": "Apple Store",
+  "sourcePrice": 1068554,
+  "costPrice": 1068554,
+  "weightKg": 0.5,
+  "highlights": [
+   "Stockage : 256 Go",
+   "Débloqué tous opérateurs",
+   "Le plus grand écran des iPhone",
+   "Double SIM : carte nano-SIM + eSIM"
+  ],
+  "specs": [
+   {
+    "label": "Stockage",
+    "value": "256 Go"
+   },
+   {
+    "label": "Acheté chez",
+    "value": "Apple Store (France)"
+   }
+  ],
+  "priceRefs": [
+   {
+    "store": "Apple Store",
+    "priceEur": 1629,
+    "url": "https://www.apple.com/fr/shop/buy-iphone/iphone-18-pro",
+    "date": "2026-11-12",
+    "status": "ok",
+    "from": false,
+    "auto": false,
+    "watch": true
+   }
+  ],
+  "priceRefsPublic": false
+ },
+ {
+  "id": "t010",
+  "name": "Samsung Galaxy A17 5G 128 Go",
+  "brand": "Samsung",
+  "universe": "Électronique",
+  "category": "Téléphones",
+  "price": 220000,
+  "oldPrice": null,
+  "stock": null,
+  "description": "Samsung Galaxy A17 5G 128 Go. Neuf, acheté en France chez Samsung (boutique officielle de la marque) et acheminé par avion jusqu'à Pointe-Noire. Débloqué tous opérateurs.",
+  "condition": "neuf",
+  "provenance": "France",
+  "sourceSupplier": "Samsung",
+  "sourcePrice": 196131,
+  "costPrice": 196131,
+  "weightKg": 0.5,
+  "highlights": [
+   "Stockage : 128 Go",
+   "Débloqué tous opérateurs",
+   "Compatible 5G"
+  ],
+  "specs": [
+   {
+    "label": "Stockage",
+    "value": "128 Go"
+   },
+   {
+    "label": "Acheté chez",
+    "value": "Samsung (France)"
+   }
+  ],
+  "priceRefs": [
+   {
+    "store": "Samsung",
+    "priceEur": 299,
+    "url": "https://www.samsung.com/fr/smartphones/galaxy-a/galaxy-a17-5g-blue-128gb-sm-a176bzbaeub/",
+    "date": "2026-11-12",
+    "status": "ok",
+    "from": false,
+    "auto": false,
+    "watch": true
+   }
+  ],
+  "priceRefsPublic": false
+ },
+ {
+  "id": "t011",
+  "name": "Samsung Galaxy A18 128 Go",
+  "brand": "Samsung",
+  "universe": "Électronique",
+  "category": "Téléphones",
+  "price": 205000,
+  "oldPrice": null,
+  "stock": null,
+  "description": "Samsung Galaxy A18 128 Go. Neuf, acheté en France chez Samsung (boutique officielle de la marque) et acheminé par avion jusqu'à Pointe-Noire. Débloqué tous opérateurs.",
+  "condition": "neuf",
+  "provenance": "France",
+  "sourceSupplier": "Samsung",
+  "sourcePrice": 183012,
+  "costPrice": 183012,
+  "weightKg": 0.5,
+  "highlights": [
+   "Stockage : 128 Go",
+   "Débloqué tous opérateurs",
+   "Le Galaxy le plus abordable"
+  ],
+  "specs": [
+   {
+    "label": "Stockage",
+    "value": "128 Go"
+   },
+   {
+    "label": "Acheté chez",
+    "value": "Samsung (France)"
+   }
+  ],
+  "priceRefs": [
+   {
+    "store": "Samsung",
+    "priceEur": 279,
+    "url": "https://www.samsung.com/fr/smartphones/galaxy-a/galaxy-a18-black-128gb-galaxy-a18-sm-a185fzkdeub/",
+    "date": "2026-11-12",
+    "status": "ok",
+    "from": false,
+    "auto": false,
+    "watch": true
+   }
+  ],
+  "priceRefsPublic": false
+ },
+ {
+  "id": "t012",
+  "name": "Samsung Galaxy A27 5G 128 Go",
+  "brand": "Samsung",
+  "universe": "Électronique",
+  "category": "Téléphones",
+  "price": 280000,
+  "oldPrice": null,
+  "stock": null,
+  "description": "Samsung Galaxy A27 5G 128 Go. Neuf, acheté en France chez Samsung (boutique officielle de la marque) et acheminé par avion jusqu'à Pointe-Noire. Débloqué tous opérateurs.",
+  "condition": "neuf",
+  "provenance": "France",
+  "sourceSupplier": "Samsung",
+  "sourcePrice": 248608,
+  "costPrice": 248608,
+  "weightKg": 0.5,
+  "highlights": [
+   "Stockage : 128 Go",
+   "Débloqué tous opérateurs",
+   "Compatible 5G"
+  ],
+  "specs": [
+   {
+    "label": "Stockage",
+    "value": "128 Go"
+   },
+   {
+    "label": "Acheté chez",
+    "value": "Samsung (France)"
+   }
+  ],
+  "priceRefs": [
+   {
+    "store": "Samsung",
+    "priceEur": 379,
+    "url": "https://www.samsung.com/fr/smartphones/galaxy-a/galaxy-a27-5g-light-pink-128gb-sm-a276blibeub/",
+    "date": "2026-11-12",
+    "status": "ok",
+    "from": false,
+    "auto": false,
+    "watch": true
+   }
+  ],
+  "priceRefsPublic": false
+ },
+ {
+  "id": "t013",
+  "name": "Samsung Galaxy A37 5G 256 Go",
+  "brand": "Samsung",
+  "universe": "Électronique",
+  "category": "Téléphones",
+  "price": 435000,
+  "oldPrice": null,
+  "stock": null,
+  "description": "Samsung Galaxy A37 5G 256 Go. Neuf, acheté en France chez Samsung (boutique officielle de la marque) et acheminé par avion jusqu'à Pointe-Noire. Débloqué tous opérateurs.",
+  "condition": "neuf",
+  "provenance": "France",
+  "sourceSupplier": "Samsung",
+  "sourcePrice": 386359,
+  "costPrice": 386359,
+  "weightKg": 0.5,
+  "highlights": [
+   "Stockage : 256 Go",
+   "Débloqué tous opérateurs",
+   "Capteur principal 50 Mpx stabilisé",
+   "Dos en verre"
+  ],
+  "specs": [
+   {
+    "label": "Stockage",
+    "value": "256 Go"
+   },
+   {
+    "label": "Acheté chez",
+    "value": "Samsung (France)"
+   }
+  ],
+  "priceRefs": [
+   {
+    "store": "Samsung",
+    "priceEur": 589,
+    "url": "https://www.samsung.com/fr/smartphones/galaxy-a/galaxy-a37-5g-awesome-charcoal-256gb-sm-a376bzageub/",
+    "date": "2026-11-12",
+    "status": "ok",
+    "from": false,
+    "auto": false,
+    "watch": true
+   }
+  ],
+  "priceRefsPublic": false
+ },
+ {
+  "id": "t014",
+  "name": "Samsung Galaxy A57 5G 256 Go",
+  "brand": "Samsung",
+  "universe": "Électronique",
+  "category": "Téléphones",
+  "price": 485000,
+  "oldPrice": null,
+  "stock": null,
+  "description": "Samsung Galaxy A57 5G 256 Go. Neuf, acheté en France chez Samsung (boutique officielle de la marque) et acheminé par avion jusqu'à Pointe-Noire. Débloqué tous opérateurs.",
+  "condition": "neuf",
+  "provenance": "France",
+  "sourceSupplier": "Samsung",
+  "sourcePrice": 432276,
+  "costPrice": 432276,
+  "weightKg": 0.5,
+  "highlights": [
+   "Stockage : 256 Go",
+   "Débloqué tous opérateurs",
+   "Capteur principal 50 Mpx stabilisé",
+   "Le Galaxy A le plus fin"
+  ],
+  "specs": [
+   {
+    "label": "Stockage",
+    "value": "256 Go"
+   },
+   {
+    "label": "Acheté chez",
+    "value": "Samsung (France)"
+   }
+  ],
+  "priceRefs": [
+   {
+    "store": "Samsung",
+    "priceEur": 659,
+    "url": "https://www.samsung.com/fr/smartphones/galaxy-a/galaxy-a57-5g-awesome-navy-256gb-sm-a576bdbdeub/",
+    "date": "2026-11-12",
+    "status": "ok",
+    "from": false,
+    "auto": false,
+    "watch": true
+   }
+  ],
+  "priceRefsPublic": false
+ },
+ {
+  "id": "t015",
+  "name": "Samsung Galaxy S26 FE 128 Go",
+  "brand": "Samsung",
+  "universe": "Électronique",
+  "category": "Téléphones",
+  "price": 585000,
+  "oldPrice": null,
+  "stock": null,
+  "description": "Samsung Galaxy S26 FE 128 Go. Neuf, acheté en France chez Samsung (boutique officielle de la marque) et acheminé par avion jusqu'à Pointe-Noire. Débloqué tous opérateurs.",
+  "condition": "neuf",
+  "provenance": "France",
+  "sourceSupplier": "Samsung",
+  "sourcePrice": 524110,
+  "costPrice": 524110,
+  "weightKg": 0.5,
+  "highlights": [
+   "Stockage : 128 Go",
+   "Débloqué tous opérateurs"
+  ],
+  "specs": [
+   {
+    "label": "Stockage",
+    "value": "128 Go"
+   },
+   {
+    "label": "Acheté chez",
+    "value": "Samsung (France)"
+   }
+  ],
+  "priceRefs": [
+   {
+    "store": "Samsung",
+    "priceEur": 799,
+    "url": "https://www.samsung.com/fr/smartphones/galaxy-s/galaxy-s26-fe-pistachio-128gb-sm-s741blgdeub/",
+    "date": "2026-11-12",
+    "status": "ok",
+    "from": false,
+    "auto": false,
+    "watch": true
+   }
+  ],
+  "priceRefsPublic": false
+ },
+ {
+  "id": "t016",
+  "name": "Samsung Galaxy S25",
+  "brand": "Samsung",
+  "universe": "Électronique",
+  "category": "Téléphones",
+  "price": 665000,
+  "oldPrice": null,
+  "stock": null,
+  "description": "Samsung Galaxy S25 (version de base). Neuf, acheté en France chez Samsung (boutique officielle de la marque) et acheminé par avion jusqu'à Pointe-Noire. Débloqué tous opérateurs.",
+  "condition": "neuf",
+  "provenance": "France",
+  "sourceSupplier": "Samsung",
+  "sourcePrice": 591706,
+  "costPrice": 591706,
+  "weightKg": 0.5,
+  "highlights": [
+   "Version de base (stockage précisé à la confirmation)",
+   "Débloqué tous opérateurs"
+  ],
+  "specs": [
+   {
+    "label": "Stockage",
+    "value": "Version de base"
+   },
+   {
+    "label": "Acheté chez",
+    "value": "Samsung (France)"
+   }
+  ],
+  "priceRefs": [
+   {
+    "store": "Samsung",
+    "priceEur": 902.05,
+    "url": "https://www.samsung.com/fr/smartphones/galaxy-s25/buy/?modelCode=SM-S931BDBDEUB",
+    "date": "2026-11-12",
+    "status": "ok",
+    "from": true,
+    "auto": false,
+    "watch": true
+   }
+  ],
+  "priceRefsPublic": false
+ },
+ {
+  "id": "t017",
+  "name": "Samsung Galaxy S26",
+  "brand": "Samsung",
+  "universe": "Électronique",
+  "category": "Téléphones",
+  "price": 820000,
+  "oldPrice": null,
+  "stock": null,
+  "description": "Samsung Galaxy S26 (version de base). Neuf, acheté en France chez Samsung (boutique officielle de la marque) et acheminé par avion jusqu'à Pointe-Noire. Débloqué tous opérateurs.",
+  "condition": "neuf",
+  "provenance": "France",
+  "sourceSupplier": "Samsung",
+  "sourcePrice": 734016,
+  "costPrice": 734016,
+  "weightKg": 0.5,
+  "highlights": [
+   "Version de base (stockage précisé à la confirmation)",
+   "Débloqué tous opérateurs"
+  ],
+  "specs": [
+   {
+    "label": "Stockage",
+    "value": "Version de base"
+   },
+   {
+    "label": "Acheté chez",
+    "value": "Samsung (France)"
+   }
+  ],
+  "priceRefs": [
+   {
+    "store": "Samsung",
+    "priceEur": 1119,
+    "url": "https://www.samsung.com/fr/smartphones/galaxy-s26/buy/?modelCode=SM-S942BZVGEUB",
+    "date": "2026-11-12",
+    "status": "ok",
+    "from": true,
+    "auto": false,
+    "watch": true
+   }
+  ],
+  "priceRefsPublic": false
+ },
+ {
+  "id": "t018",
+  "name": "Samsung Galaxy S26 Ultra",
+  "brand": "Samsung",
+  "universe": "Électronique",
+  "category": "Téléphones",
+  "price": 1155000,
+  "oldPrice": null,
+  "stock": null,
+  "description": "Samsung Galaxy S26 Ultra (version de base). Neuf, acheté en France chez Samsung (boutique officielle de la marque) et acheminé par avion jusqu'à Pointe-Noire. Débloqué tous opérateurs.",
+  "condition": "neuf",
+  "provenance": "France",
+  "sourceSupplier": "Samsung",
+  "sourcePrice": 1029197,
+  "costPrice": 1029197,
+  "weightKg": 0.5,
+  "highlights": [
+   "Version de base (stockage précisé à la confirmation)",
+   "Débloqué tous opérateurs",
+   "Le haut de gamme de Samsung"
+  ],
+  "specs": [
+   {
+    "label": "Stockage",
+    "value": "Version de base"
+   },
+   {
+    "label": "Acheté chez",
+    "value": "Samsung (France)"
+   }
+  ],
+  "priceRefs": [
+   {
+    "store": "Samsung",
+    "priceEur": 1569,
+    "url": "https://www.samsung.com/fr/smartphones/galaxy-s26-ultra/buy/?modelCode=SM-S948BZVDEUB",
+    "date": "2026-11-12",
+    "status": "ok",
+    "from": true,
+    "auto": false,
+    "watch": true
+   }
+  ],
+  "priceRefsPublic": false
+ },
+ {
+  "id": "t019",
+  "name": "Samsung Galaxy Z Flip8",
+  "brand": "Samsung",
+  "universe": "Électronique",
+  "category": "Téléphones",
+  "price": 955000,
+  "oldPrice": null,
+  "stock": null,
+  "description": "Samsung Galaxy Z Flip8 (version de base). Neuf, acheté en France chez Samsung (boutique officielle de la marque) et acheminé par avion jusqu'à Pointe-Noire. Débloqué tous opérateurs.",
+  "condition": "neuf",
+  "provenance": "France",
+  "sourceSupplier": "Samsung",
+  "sourcePrice": 852088,
+  "costPrice": 852088,
+  "weightKg": 0.5,
+  "highlights": [
+   "Version de base (stockage précisé à la confirmation)",
+   "Débloqué tous opérateurs",
+   "Smartphone pliable à clapet"
+  ],
+  "specs": [
+   {
+    "label": "Stockage",
+    "value": "Version de base"
+   },
+   {
+    "label": "Acheté chez",
+    "value": "Samsung (France)"
+   }
+  ],
+  "priceRefs": [
+   {
+    "store": "Samsung",
+    "priceEur": 1299,
+    "url": "https://www.samsung.com/fr/smartphones/galaxy-z-flip8/buy/?modelCode=SM-F776BLIGEUB",
+    "date": "2026-11-12",
+    "status": "ok",
+    "from": true,
+    "auto": false,
+    "watch": true
+   }
+  ],
+  "priceRefsPublic": false
+ },
+ {
+  "id": "t020",
+  "name": "Samsung Galaxy S26 256 Go reconditionné par Samsung",
+  "brand": "Samsung",
+  "universe": "Électronique",
+  "category": "Téléphones",
+  "price": 695000,
+  "oldPrice": null,
+  "stock": null,
+  "description": "Samsung Galaxy S26 256 Go reconditionné par Samsung. Reconditionné et garanti par Samsung, acheté en France chez Samsung (boutique officielle de la marque) et acheminé par avion jusqu'à Pointe-Noire. Débloqué tous opérateurs.",
+  "condition": "reconditionné",
+  "provenance": "France",
+  "sourceSupplier": "Samsung",
+  "sourcePrice": 622503,
+  "costPrice": 622503,
+  "weightKg": 0.5,
+  "highlights": [
+   "Stockage : 256 Go",
+   "Débloqué tous opérateurs",
+   "Reconditionné Premium par Samsung"
+  ],
+  "specs": [
+   {
+    "label": "Stockage",
+    "value": "256 Go"
+   },
+   {
+    "label": "Acheté chez",
+    "value": "Samsung (France)"
+   }
+  ],
+  "priceRefs": [
+   {
+    "store": "Samsung",
+    "priceEur": 949,
+    "url": "https://www.samsung.com/fr/smartphones/galaxy-s/galaxy-s26-black-256gb-certified-re-newed-sm5s942bzkgrfr/",
+    "date": "2026-11-12",
+    "status": "ok",
+    "from": false,
+    "auto": false,
+    "watch": true
+   }
+  ],
+  "priceRefsPublic": false,
+  "refurb": {
+   "grade": "parfait",
+   "battery": null,
+   "warrantyMonths": 6,
+   "newPriceEur": 1119
+  }
+ },
+ {
+  "id": "t021",
+  "name": "Samsung Galaxy S25 Ultra 256 Go reconditionné par Samsung",
+  "brand": "Samsung",
+  "universe": "Électronique",
+  "category": "Téléphones",
+  "price": 815000,
+  "oldPrice": null,
+  "stock": null,
+  "description": "Samsung Galaxy S25 Ultra 256 Go reconditionné par Samsung. Reconditionné et garanti par Samsung, acheté en France chez Samsung (boutique officielle de la marque) et acheminé par avion jusqu'à Pointe-Noire. Débloqué tous opérateurs.",
+  "condition": "reconditionné",
+  "provenance": "France",
+  "sourceSupplier": "Samsung",
+  "sourcePrice": 727456,
+  "costPrice": 727456,
+  "weightKg": 0.5,
+  "highlights": [
+   "Stockage : 256 Go",
+   "Débloqué tous opérateurs",
+   "Reconditionné Premium par Samsung"
+  ],
+  "specs": [
+   {
+    "label": "Stockage",
+    "value": "256 Go"
+   },
+   {
+    "label": "Acheté chez",
+    "value": "Samsung (France)"
+   }
+  ],
+  "priceRefs": [
+   {
+    "store": "Samsung",
+    "priceEur": 1109,
+    "url": "https://www.samsung.com/fr/smartphones/galaxy-s/galaxy-s25-ultra-titanium-jetblack-256gb-certified-re-newed-sm5s938bakdeuh/",
+    "date": "2026-11-12",
+    "status": "ok",
+    "from": false,
+    "auto": false,
+    "watch": true
+   }
+  ],
+  "priceRefsPublic": false,
+  "refurb": {
+   "grade": "parfait",
+   "battery": null,
+   "warrantyMonths": 6,
+   "newPriceEur": null
+  }
+ },
+ {
+  "id": "t030",
+  "name": "Xiaomi Redmi A7 Pro",
+  "brand": "Xiaomi",
+  "universe": "Électronique",
+  "category": "Téléphones",
+  "price": 95000,
+  "oldPrice": null,
+  "stock": null,
+  "description": "Xiaomi Redmi A7 Pro (version de base). Neuf, acheté en France chez Xiaomi (boutique officielle de la marque) et acheminé par avion jusqu'à Pointe-Noire. Débloqué tous opérateurs.",
+  "condition": "neuf",
+  "provenance": "France",
+  "sourceSupplier": "Xiaomi",
+  "sourcePrice": 84618,
+  "costPrice": 84618,
+  "weightKg": 0.5,
+  "highlights": [
+   "Version de base (stockage précisé à la confirmation)",
+   "Débloqué tous opérateurs",
+   "Petit prix"
+  ],
+  "specs": [
+   {
+    "label": "Stockage",
+    "value": "Version de base"
+   },
+   {
+    "label": "Acheté chez",
+    "value": "Xiaomi (France)"
+   }
+  ],
+  "priceRefs": [
+   {
+    "store": "Xiaomi",
+    "priceEur": 129,
+    "url": "https://www.mi.com/fr/product/redmi-a7-pro/",
+    "date": "2026-11-12",
+    "status": "ok",
+    "from": true,
+    "auto": false,
+    "watch": true
+   }
+  ],
+  "priceRefsPublic": false
+ },
+ {
+  "id": "t031",
+  "name": "Xiaomi Redmi 17",
+  "brand": "Xiaomi",
+  "universe": "Électronique",
+  "category": "Téléphones",
+  "price": 145000,
+  "oldPrice": null,
+  "stock": null,
+  "description": "Xiaomi Redmi 17 (version de base). Neuf, acheté en France chez Xiaomi (boutique officielle de la marque) et acheminé par avion jusqu'à Pointe-Noire. Débloqué tous opérateurs.",
+  "condition": "neuf",
+  "provenance": "France",
+  "sourceSupplier": "Xiaomi",
+  "sourcePrice": 130535,
+  "costPrice": 130535,
+  "weightKg": 0.5,
+  "highlights": [
+   "Version de base (stockage précisé à la confirmation)",
+   "Débloqué tous opérateurs"
+  ],
+  "specs": [
+   {
+    "label": "Stockage",
+    "value": "Version de base"
+   },
+   {
+    "label": "Acheté chez",
+    "value": "Xiaomi (France)"
+   }
+  ],
+  "priceRefs": [
+   {
+    "store": "Xiaomi",
+    "priceEur": 199,
+    "url": "https://www.mi.com/fr/product/redmi-17/",
+    "date": "2026-11-12",
+    "status": "ok",
+    "from": true,
+    "auto": false,
+    "watch": true
+   }
+  ],
+  "priceRefsPublic": false
+ },
+ {
+  "id": "t032",
+  "name": "Xiaomi Redmi 17C 5G",
+  "brand": "Xiaomi",
+  "universe": "Électronique",
+  "category": "Téléphones",
+  "price": 150000,
+  "oldPrice": null,
+  "stock": null,
+  "description": "Xiaomi Redmi 17C 5G (version de base). Neuf, acheté en France chez Xiaomi (boutique officielle de la marque) et acheminé par avion jusqu'à Pointe-Noire. Débloqué tous opérateurs.",
+  "condition": "neuf",
+  "provenance": "France",
+  "sourceSupplier": "Xiaomi",
+  "sourcePrice": 133159,
+  "costPrice": 133159,
+  "weightKg": 0.5,
+  "highlights": [
+   "Version de base (stockage précisé à la confirmation)",
+   "Débloqué tous opérateurs",
+   "Compatible 5G"
+  ],
+  "specs": [
+   {
+    "label": "Stockage",
+    "value": "Version de base"
+   },
+   {
+    "label": "Acheté chez",
+    "value": "Xiaomi (France)"
+   }
+  ],
+  "priceRefs": [
+   {
+    "store": "Xiaomi",
+    "priceEur": 203,
+    "url": "https://www.mi.com/fr/product/redmi-17c-5g/",
+    "date": "2026-11-12",
+    "status": "ok",
+    "from": true,
+    "auto": false,
+    "watch": true
+   }
+  ],
+  "priceRefsPublic": false
+ },
+ {
+  "id": "t033",
+  "name": "Xiaomi Redmi Note 17",
+  "brand": "Xiaomi",
+  "universe": "Électronique",
+  "category": "Téléphones",
+  "price": 185000,
+  "oldPrice": null,
+  "stock": null,
+  "description": "Xiaomi Redmi Note 17 (version de base). Neuf, acheté en France chez Xiaomi (boutique officielle de la marque) et acheminé par avion jusqu'à Pointe-Noire. Débloqué tous opérateurs.",
+  "condition": "neuf",
+  "provenance": "France",
+  "sourceSupplier": "Xiaomi",
+  "sourcePrice": 165957,
+  "costPrice": 165957,
+  "weightKg": 0.5,
+  "highlights": [
+   "Version de base (stockage précisé à la confirmation)",
+   "Débloqué tous opérateurs"
+  ],
+  "specs": [
+   {
+    "label": "Stockage",
+    "value": "Version de base"
+   },
+   {
+    "label": "Acheté chez",
+    "value": "Xiaomi (France)"
+   }
+  ],
+  "priceRefs": [
+   {
+    "store": "Xiaomi",
+    "priceEur": 253,
+    "url": "https://www.mi.com/fr/product/redmi-note-17/",
+    "date": "2026-11-12",
+    "status": "ok",
+    "from": true,
+    "auto": false,
+    "watch": true
+   }
+  ],
+  "priceRefsPublic": false
+ },
+ {
+  "id": "t034",
+  "name": "Xiaomi Redmi Note 17 5G",
+  "brand": "Xiaomi",
+  "universe": "Électronique",
+  "category": "Téléphones",
+  "price": 260000,
+  "oldPrice": null,
+  "stock": null,
+  "description": "Xiaomi Redmi Note 17 5G (version de base). Neuf, acheté en France chez Xiaomi (boutique officielle de la marque) et acheminé par avion jusqu'à Pointe-Noire. Débloqué tous opérateurs.",
+  "condition": "neuf",
+  "provenance": "France",
+  "sourceSupplier": "Xiaomi",
+  "sourcePrice": 231553,
+  "costPrice": 231553,
+  "weightKg": 0.5,
+  "highlights": [
+   "Version de base (stockage précisé à la confirmation)",
+   "Débloqué tous opérateurs",
+   "Compatible 5G"
+  ],
+  "specs": [
+   {
+    "label": "Stockage",
+    "value": "Version de base"
+   },
+   {
+    "label": "Acheté chez",
+    "value": "Xiaomi (France)"
+   }
+  ],
+  "priceRefs": [
+   {
+    "store": "Xiaomi",
+    "priceEur": 353,
+    "url": "https://www.mi.com/fr/product/redmi-note-17-5g/",
+    "date": "2026-11-12",
+    "status": "ok",
+    "from": true,
+    "auto": false,
+    "watch": true
+   }
+  ],
+  "priceRefsPublic": false
+ },
+ {
+  "id": "t035",
+  "name": "Xiaomi Redmi Note 17 Pro 5G",
+  "brand": "Xiaomi",
+  "universe": "Électronique",
+  "category": "Téléphones",
+  "price": 335000,
+  "oldPrice": null,
+  "stock": null,
+  "description": "Xiaomi Redmi Note 17 Pro 5G (version de base). Neuf, acheté en France chez Xiaomi (boutique officielle de la marque) et acheminé par avion jusqu'à Pointe-Noire. Débloqué tous opérateurs.",
+  "condition": "neuf",
+  "provenance": "France",
+  "sourceSupplier": "Xiaomi",
+  "sourcePrice": 297149,
+  "costPrice": 297149,
+  "weightKg": 0.5,
+  "highlights": [
+   "Version de base (stockage précisé à la confirmation)",
+   "Débloqué tous opérateurs",
+   "Compatible 5G"
+  ],
+  "specs": [
+   {
+    "label": "Stockage",
+    "value": "Version de base"
+   },
+   {
+    "label": "Acheté chez",
+    "value": "Xiaomi (France)"
+   }
+  ],
+  "priceRefs": [
+   {
+    "store": "Xiaomi",
+    "priceEur": 453,
+    "url": "https://www.mi.com/fr/product/redmi-note-17-pro-5g/",
+    "date": "2026-11-12",
+    "status": "ok",
+    "from": true,
+    "auto": false,
+    "watch": true
+   }
+  ],
+  "priceRefsPublic": false
+ },
+ {
+  "id": "t036",
+  "name": "Xiaomi Redmi Note 17 Pro Max 5G",
+  "brand": "Xiaomi",
+  "universe": "Électronique",
+  "category": "Téléphones",
+  "price": 445000,
+  "oldPrice": null,
+  "stock": null,
+  "description": "Xiaomi Redmi Note 17 Pro Max 5G (version de base). Neuf, acheté en France chez Xiaomi (boutique officielle de la marque) et acheminé par avion jusqu'à Pointe-Noire. Débloqué tous opérateurs.",
+  "condition": "neuf",
+  "provenance": "France",
+  "sourceSupplier": "Xiaomi",
+  "sourcePrice": 395542,
+  "costPrice": 395542,
+  "weightKg": 0.5,
+  "highlights": [
+   "Version de base (stockage précisé à la confirmation)",
+   "Débloqué tous opérateurs",
+   "Compatible 5G"
+  ],
+  "specs": [
+   {
+    "label": "Stockage",
+    "value": "Version de base"
+   },
+   {
+    "label": "Acheté chez",
+    "value": "Xiaomi (France)"
+   }
+  ],
+  "priceRefs": [
+   {
+    "store": "Xiaomi",
+    "priceEur": 603,
+    "url": "https://www.mi.com/fr/product/redmi-note-17-pro-max-5g/",
+    "date": "2026-11-12",
+    "status": "ok",
+    "from": true,
+    "auto": false,
+    "watch": true
+   }
+  ],
+  "priceRefsPublic": false
+ },
+ {
+  "id": "t037",
+  "name": "Xiaomi POCO X8 Pro",
+  "brand": "Xiaomi",
+  "universe": "Électronique",
+  "category": "Téléphones",
+  "price": 270000,
+  "oldPrice": null,
+  "stock": null,
+  "description": "Xiaomi POCO X8 Pro (version de base). Neuf, acheté en France chez Xiaomi (boutique officielle de la marque) et acheminé par avion jusqu'à Pointe-Noire. Débloqué tous opérateurs.",
+  "condition": "neuf",
+  "provenance": "France",
+  "sourceSupplier": "Xiaomi",
+  "sourcePrice": 242638,
+  "costPrice": 242638,
+  "weightKg": 0.5,
+  "highlights": [
+   "Version de base (stockage précisé à la confirmation)",
+   "Débloqué tous opérateurs"
+  ],
+  "specs": [
+   {
+    "label": "Stockage",
+    "value": "Version de base"
+   },
+   {
+    "label": "Acheté chez",
+    "value": "Xiaomi (France)"
+   }
+  ],
+  "priceRefs": [
+   {
+    "store": "Xiaomi",
+    "priceEur": 369.9,
+    "url": "https://www.mi.com/fr/product/poco-x8-pro/",
+    "date": "2026-11-12",
+    "status": "ok",
+    "from": true,
+    "auto": false,
+    "watch": true
+   }
+  ],
+  "priceRefsPublic": false
+ },
+ {
+  "id": "t038",
+  "name": "Xiaomi 17T",
+  "brand": "Xiaomi",
+  "universe": "Électronique",
+  "category": "Téléphones",
+  "price": 480000,
+  "oldPrice": null,
+  "stock": null,
+  "description": "Xiaomi 17T (version de base). Neuf, acheté en France chez Xiaomi (boutique officielle de la marque) et acheminé par avion jusqu'à Pointe-Noire. Débloqué tous opérateurs.",
+  "condition": "neuf",
+  "provenance": "France",
+  "sourceSupplier": "Xiaomi",
+  "sourcePrice": 428340,
+  "costPrice": 428340,
+  "weightKg": 0.5,
+  "highlights": [
+   "Version de base (stockage précisé à la confirmation)",
+   "Débloqué tous opérateurs"
+  ],
+  "specs": [
+   {
+    "label": "Stockage",
+    "value": "Version de base"
+   },
+   {
+    "label": "Acheté chez",
+    "value": "Xiaomi (France)"
+   }
+  ],
+  "priceRefs": [
+   {
+    "store": "Xiaomi",
+    "priceEur": 653,
+    "url": "https://www.mi.com/fr/product/xiaomi-17t/",
+    "date": "2026-11-12",
+    "status": "ok",
+    "from": true,
+    "auto": false,
+    "watch": true
+   }
+  ],
+  "priceRefsPublic": false
+ }
+]
