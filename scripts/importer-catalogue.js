@@ -2,6 +2,8 @@
 // téléphonie et jeux vidéo, j'irai moi-même sur le terrain pour les photos »).
 //   node scripts/importer-catalogue.js              → aperçu : ce qui serait ajouté, rien n'est écrit
 //   node scripts/importer-catalogue.js --confirmer  → ajoute les articles (MASQUÉS : Joseph vérifie le prix, prend la photo, coche « Visible »)
+//   … --confirmer --visible                       → ajoutés directement VISIBLES sur la boutique (demande Joseph 12/11/2026)
+// 12/11/2026 (2e demande : « rajoute les autres catalogues susceptibles de vendre ») : + Jouets high-tech, TV & Maison, Beauté & bien-être.
 // Sources : sélection relevée le 10/11/2026 sur Cdiscount et Boulanger (data/selection-noel-2026.json, prix réels, ≤ 30 €)
 // + iPhone / MacBook / AirPods reconditionnés relevés sur Back Market le 22/10/2026 (r001-r008 de data/products.json).
 // Les Apple NEUFS de products.json ne sont PAS repris : prix de simulation et modèles qui ne se vendent plus neufs.
@@ -14,7 +16,8 @@ const crypto = require('crypto');
 const APP = process.env.ZADO_APP || path.join(__dirname, '..');
 require(path.join(APP, 'node_modules', 'dotenv')).config({ path: path.join(APP, '.env') });
 
-const RAYONS = ['Jeux vidéo & consoles', 'Accessoires', 'Composants', 'Audio', 'Montres', 'Photo & vidéo', 'Téléphones', 'Ordinateurs', 'Tablettes'];
+const RAYONS = ['Jeux vidéo & consoles', 'Accessoires', 'Composants', 'Audio', 'Montres', 'Photo & vidéo', 'Téléphones', 'Ordinateurs', 'Tablettes',
+  'Jouets high-tech', 'TV & Maison', 'Beauté & bien-être'];
 const norm = (s) => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 
 function candidates() {
@@ -23,10 +26,10 @@ function candidates() {
   return [...noel, ...refurb];
 }
 
-function prepare(p, now) {
+function prepare(p, now, visible = false) {
   const q = JSON.parse(JSON.stringify(p));
   delete q.image; delete q.images; delete q.imageCredit; delete q.updatedAt;
-  q.active = false;            // masqué jusqu'à la vérification de Joseph
+  q.active = visible;          // masqué jusqu'à la vérification de Joseph (sauf --visible)
   q.stock = null;              // sur commande (rien n'a encore été acheté)
   q.createdAt = now;
   q.importedAt = now;
@@ -44,7 +47,7 @@ function plan(products) {
   return { add, skip };
 }
 
-function run({ confirm = false, log = console.log } = {}) {
+function run({ confirm = false, visible = false, log = console.log } = {}) {
   const store = require(path.join(APP, 'src', 'store'));
   const { products, activity } = store;
   const { add, skip } = plan(products);
@@ -55,12 +58,12 @@ function run({ confirm = false, log = console.log } = {}) {
   if (!confirm) { log('\nAperçu seulement : rien n\'a été ajouté. Pour ajouter : node scripts/importer-catalogue.js --confirmer'); return { added: 0, add, skip }; }
   const now = new Date().toISOString();
   store.transaction(() => {
-    for (const p of add) products.insert(prepare(p, now));
-    if (add.length) activity.insert({ id: 'ACT-' + crypto.randomBytes(6).toString('hex'), at: now, userId: 'auto', userName: 'Zado (import)', role: 'admin', action: 'Catalogue importé', targetId: null, targetName: `${add.length} article(s) masqué(s)`, details: Object.entries(byCat).map(([c, n]) => `${c} : ${n}`).join(' · ') });
+    for (const p of add) products.insert(prepare(p, now, visible));
+    if (add.length) activity.insert({ id: 'ACT-' + crypto.randomBytes(6).toString('hex'), at: now, userId: 'auto', userName: 'Zado (import)', role: 'admin', action: 'Catalogue importé', targetId: null, targetName: `${add.length} article(s) ${visible ? 'visible(s)' : 'masqué(s)'}`, details: Object.entries(byCat).map(([c, n]) => `${c} : ${n}`).join(' · ') });
   });
-  log(`\n✓ ${add.length} article(s) ajouté(s), MASQUÉS. Zado Pro → Produits (ou Base de données) : vérifier le prix, ajouter la photo, cocher « Visible ».`);
+  log(visible ? `\n✓ ${add.length} article(s) ajouté(s), VISIBLES sur la boutique (sans photo : icône du rayon).` : `\n✓ ${add.length} article(s) ajouté(s), MASQUÉS. Zado Pro → Produits (ou Base de données) : vérifier le prix, ajouter la photo, cocher « Visible ».`);
   return { added: add.length, add, skip };
 }
 
-if (require.main === module) run({ confirm: process.argv.includes('--confirmer') });
+if (require.main === module) run({ confirm: process.argv.includes('--confirmer'), visible: process.argv.includes('--visible') });
 module.exports = { run, candidates, RAYONS };
