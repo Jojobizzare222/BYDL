@@ -60,3 +60,4 @@ t noel ID_DIR=$S/idnoel -- $D/id.jpg
 t petits-prix --
 t tableur -- $D/id.jpg
 t recurrentes --
+t alertes ID_DIR=$S/idal SMTP_HOST=localhost SMTP_PORT=3996 SMTP_USER=alertes@zado.test SMTP_PASS=x ALERT_EMAIL_TO=joseph@zado.test -- $D/id.jpg

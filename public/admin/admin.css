@@ -948,3 +948,21 @@ html[data-theme="dark"] .xt { color: color-mix(in srgb, var(--t) 55%, #fff); bac
 .switch span::before { content: ''; position: absolute; width: 16px; height: 16px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: transform .15s; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
 .switch input:checked + span { background: #16A34A; }
 .switch input:checked + span::before { transform: translateX(16px); }
+
+/* Notifications (alertes e-mail de l'équipe, 12/11/2026) */
+.al-cats { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px 22px; }
+.al-cat h3 { font-size: .82rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 4px 0 8px; }
+.al-type { display: flex; align-items: center; gap: 10px; padding: 6px 0; cursor: pointer; font-size: .9rem; }
+.al-type .switch { flex: none; }
+.al-list { list-style: none; margin: 12px 0 0; padding: 0; }
+.al-list li { border-top: 1px solid var(--line); padding: 10px 0 10px 12px; border-left: 3px solid transparent; }
+.al-list li.urgent { border-left-color: #FF5A3C; }
+.al-head { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.al-line { font-size: .85rem; color: var(--muted); margin-top: 2px; }
+.al-foot { margin-top: 6px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+/* « btn ghost » : bouton secondaire (le texte était blanc sur fond clair : invisible) */
+.btn.ghost { background: var(--paper-2); color: var(--ink); border: 1px solid var(--line); }
+html[data-theme="light"] .btn.ghost { background: var(--paper); }
+.btn.ghost:hover { filter: none; box-shadow: none; border-color: var(--muted); }
+.btn.ghost.danger { color: #E5484D; }
+.btn.ghost:disabled { opacity: .5; cursor: not-allowed; transform: none; }

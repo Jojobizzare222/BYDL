@@ -37,6 +37,7 @@ router.use('/documents', require('./documents-admin')); // factures, reçus, avo
 router.use('/parcels', require('./parcels-admin')); // colis, étiquettes, scan [admin, orders, courier]
 router.use('/purchases', require('./purchases-admin')); // bons de commande aux fournisseurs (Europe) [admin, catalog]
 router.use('/stock', require('./purchases-admin').stockRouter); // mouvements de stock, inventaire [admin, catalog]
+router.use('/alerts', requireRole(), require('./alerts-admin')); // Notifications : alertes e-mail de l'équipe [admin]
 router.use('/tableur', requireRole(), require('./tableur')); // « Base de données » façon Excel : toutes les données [admin]
 
 // Rafraîchissement instantané de Zado Pro : signaux filtrés selon le rôle (jamais de données dans le signal)

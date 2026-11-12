@@ -2561,6 +2561,56 @@
   }
 
   // ---------- Journal (admin) ----------
+  // Zado Pro → Notifications [admin] : alertes e-mail de l'équipe (src/alerts.js) — demande Joseph 12/11/2026
+  async function viewAlerts(filterCat = '') {
+    let d; try { d = await api('/alerts' + (filterCat ? '?cat=' + enc(filterCat) : '')); } catch { return; }
+    const s = d.settings;
+    const byCat = {};
+    for (const t of d.types) (byCat[t.cat] ||= []).push(t);
+    const status = (a) => (a.emailed === true ? `<span class="tag ok">${icon('check-bold')} e-mail envoyé</span>`
+      : a.emailed === null ? '<span class="tag">envoi en cours</span>'
+      : `<span class="tag muted" title="${esc(a.emailNote || '')}">${esc(a.emailNote || 'pas d\'e-mail')}</span>`);
+    app.innerHTML = pageHead({ title: 'Notifications', desc: "Tout ce qui se passe dans la boutique vous arrive par e-mail : nouvelles commandes, dépôts à vérifier, clients, messages, livraisons… et un résumé chaque matin." }) + `
+      <div class="kpis">
+        <div class="kpi kc0"><span class="kpi-ico">${icon('bell-bold')}</span><span class="kpi-label">Alertes des dernières 24 h</span><span class="kpi-value">${d.last24h}</span><span class="kpi-hint">historique ci-dessous</span></div>
+        <div class="kpi ${d.smtp.configured ? 'kc2' : 'kc3'}"><span class="kpi-ico">${icon('paper-plane-right-fill')}</span><span class="kpi-label">Envoi des e-mails</span><span class="kpi-value">${d.smtp.configured ? 'Actif' : 'À régler'}</span><span class="kpi-hint">${d.smtp.configured ? 'depuis ' + esc(d.smtp.from) : 'aucun e-mail ne part encore'}</span></div>
+        <div class="kpi kc1"><span class="kpi-ico">${icon('users-three-duotone')}</span><span class="kpi-label">Destinataires</span><span class="kpi-value">${s.to.length}</span><span class="kpi-hint">${s.to.length ? esc(s.to.join(', ')) : 'ajoutez une adresse'}</span></div>
+      </div>
+      ${d.smtp.configured ? '' : `<div class="alert warn">${icon('warning-duotone')} L'envoi d'e-mails n'est pas encore réglé sur le serveur : les alertes sont gardées ici, mais aucun e-mail ne part. Il faut une adresse qui envoie (ex. contact@zado-congo.com ou une adresse Gmail avec « mot de passe d'application »), réglée une fois par la commande <code>npm run email:config</code> sur le serveur.</div>`}
+      <section class="card wide"><h2>${icon('paper-plane-right-fill')} Qui reçoit les alertes</h2>
+        <form class="form-grid" id="alF">
+          <div class="full"><label for="alTo">Adresses e-mail (5 au maximum, séparées par une virgule)</label><input id="alTo" type="text" inputmode="email" value="${esc(s.to.join(', '))}" placeholder="vous@exemple.com, associe@exemple.com" autocomplete="off"></div>
+          <div><label for="alBatch">Regrouper les alertes</label><select id="alBatch">${[[0, 'Envoyer tout de suite'], [60, 'Par minute'], [300, 'Toutes les 5 minutes'], [900, 'Toutes les 15 minutes']].map(([v, l]) => `<option value="${v}" ${s.batchSeconds === v ? 'selected' : ''}>${l}</option>`).join('')}</select></div>
+          <div><label for="alHour">Résumé du matin à</label><select id="alHour">${Array.from({ length: 24 }, (_, h) => `<option value="${h}" ${s.digestHour === h ? 'selected' : ''}>${h} h</option>`).join('')}</select></div>
+          <div><label for="alLow">Alerte « stock bas » à partir de</label><input id="alLow" type="number" min="0" max="100" value="${esc(s.lowStock)}"></div>
+          <p class="muted full">Les alertes <b>urgentes</b> (⚡) partent toujours tout de suite. Les autres sont regroupées : plusieurs événements rapprochés = un seul e-mail.</p>
+          <div class="full row"><button class="btn" type="submit">${icon('check-bold')} Enregistrer</button>
+            <button class="btn ghost" type="button" id="alTest" ${d.smtp.configured ? '' : 'disabled'}>${icon('paper-plane-right-fill')} Envoyer un e-mail de test</button>
+            <button class="btn ghost" type="button" id="alDigest">${icon('sun')} Recevoir le résumé maintenant</button></div>
+        </form></section>
+      <section class="card wide"><h2>${icon('bell-bold')} Quelles alertes recevoir</h2>
+        <div class="al-cats">${Object.entries(byCat).map(([cat, list]) => `<div class="al-cat"><h3>${esc(d.categories[cat] || cat)}</h3>
+          ${list.map((t) => `<label class="al-type"><span class="switch"><input type="checkbox" data-al-type="${esc(t.key)}" ${s.types[t.key] !== false ? 'checked' : ''}><span></span></span><span>${esc(t.label)}${t.urgent ? ' <span class="tag warn">⚡ urgent</span>' : ''}</span></label>`).join('')}</div>`).join('')}</div>
+      </section>
+      <section class="card wide"><h2>${icon('list-bullets-duotone')} Historique</h2>
+        <div class="row"><label for="alCat" class="muted">Afficher</label> <select id="alCat"><option value="">Toutes les alertes</option>${Object.entries(d.categories).map(([k, l]) => `<option value="${k}" ${k === filterCat ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select></div>
+        ${d.history.length ? `<ul class="al-list">${d.history.map((a) => `<li class="${d.types.find((t) => t.key === a.type)?.urgent ? 'urgent' : ''}">
+          <div class="al-head"><b>${esc(a.title)}</b><span class="muted">${date(a.at)}</span></div>
+          ${(a.lines || []).slice(0, 4).map((l) => `<div class="al-line">${esc(l)}</div>`).join('')}
+          <div class="al-foot">${status(a)}${a.link ? ` <a class="btn small ghost" href="${esc(a.link.replace(/^.*\/admin\//, ''))}">${icon('arrow-square-out-bold')} Ouvrir</a>` : ''}</div></li>`).join('')}</ul>`
+        : '<p class="nodata">Aucune alerte pour le moment. Elles apparaîtront ici dès qu\'il se passe quelque chose dans la boutique.</p>'}
+      </section>`;
+    const save = async (body, msg) => { try { await api('/alerts/settings', { method: 'PUT', body }); toast(msg); return true; } catch (e) { toast(e.message); return false; } };
+    app.querySelector('#alF').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (await save({ to: $('#alTo').value, batchSeconds: Number($('#alBatch').value), digestHour: Number($('#alHour').value), lowStock: Number($('#alLow').value) }, 'Réglages enregistrés')) viewAlerts(filterCat);
+    });
+    app.querySelectorAll('[data-al-type]').forEach((cb) => cb.addEventListener('change', () => save({ types: { [cb.dataset.alType]: cb.checked } }, cb.checked ? 'Alerte activée' : 'Alerte coupée')));
+    $('#alTest').addEventListener('click', async (e) => { e.target.disabled = true; try { await api('/alerts/test', { method: 'POST' }); toast('E-mail de test envoyé : regardez votre boîte de réception (et les indésirables).'); } catch (err) { toast(err.message); } e.target.disabled = false; });
+    $('#alDigest').addEventListener('click', async () => { try { const r = await api('/alerts/digest', { method: 'POST' }); toast(r.ok ? 'Résumé envoyé par e-mail.' : 'Résumé ajouté à l\'historique (' + r.reason + ').'); viewAlerts(filterCat); } catch (err) { toast(err.message); } });
+    $('#alCat').addEventListener('change', (e) => viewAlerts(e.target.value));
+  }
+
   async function viewActivity() {
     let list = [];
     try { list = await api('/activity'); } catch { return; }
@@ -3139,7 +3189,7 @@
       commandes: CAN.orders, commande: CAN.orders, produits: CAN.products, produit: CAN.products,
       messagerie: () => Boolean(state.user),
       calendrier: () => CAN.orders() || CAN.courier(), achats: CAN.buyer, achat: CAN.buyer, stock: CAN.buyer, avis: () => CAN.admin() || state.user?.role === 'catalog', 'bons-de-commande': CAN.supplier, documents: CAN.orders, colis: () => CAN.orders() || CAN.courier(), scanner: () => CAN.orders() || CAN.courier(),
-      clients: CAN.admin, promos: CAN.admin, agences: CAN.admin, equipe: CAN.admin, journal: CAN.admin, base: CAN.admin, finances: CAN.admin, reglages: CAN.admin, livraisons: CAN.courier, 'mot-de-passe': () => !CAN.admin(),
+      clients: CAN.admin, promos: CAN.admin, agences: CAN.admin, equipe: CAN.admin, journal: CAN.admin, notifications: CAN.admin, base: CAN.admin, finances: CAN.admin, reglages: CAN.admin, livraisons: CAN.courier, 'mot-de-passe': () => !CAN.admin(),
     };
     if (!allowed[page]?.()) [page, id] = homeHash().slice(2).split('/');
     const tab = page.startsWith('produit') ? 'produits' : page === 'commande' ? 'commandes' : page === 'achat' ? 'achats' : page;
@@ -3159,6 +3209,7 @@
     if (page === 'agences') return viewAgencies(id);
     if (page === 'equipe') return viewStaff(id);
     if (page === 'journal') return viewActivity();
+    if (page === 'notifications') return viewAlerts();
     if (page === 'base') return window.kamwaTableur ? window.kamwaTableur(app, { api, esc, icon, pageHead, toast, fcfa }) : null;
     if (page === 'finances') return viewFinances(id);
     if (page === 'livraisons') return viewDeliveries();

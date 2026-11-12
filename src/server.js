@@ -141,6 +141,7 @@ app.get('/api/cron/prices', async (req, res) => {
 });
 app.use('/api/admin', require('./routes/admin'));
 require('./recurring').start(); // dépenses récurrentes : vérifiées au démarrage puis toutes les heures
+require('./alerts').start(); // alertes de l'équipe par e-mail (Zado Pro → Notifications) + résumé du matin
 // Vitrine de démo (Vercel) : comptes et données d'exemple, créés une fois par démarrage de la base temporaire
 require('./demo').seed();
 // Photos d'illustration du catalogue de départ supprimées (décision Joseph 19/10/2026) : une seule fois par base,
