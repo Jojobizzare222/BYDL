@@ -1,0 +1,2363 @@
+[
+ {
+  "id": "ap001",
+  "family": "iPhone",
+  "name": "Apple iPhone 16",
+  "category": "Téléphones",
+  "url": "https://www.apple.com/fr/shop/buy-iphone/iphone-16",
+  "configs": [
+   {
+    "label": "128 Go",
+    "priceEur": 1019
+   }
+  ],
+  "colors": [
+   "Noir",
+   "Blanc",
+   "Rose",
+   "Sarcelle",
+   "Outremer"
+  ],
+  "specs": {
+   "other": "Double SIM : carte nano-SIM + eSIM ; débloqué tous opérateurs"
+  },
+  "weightG": 170,
+  "notes": "MANQUANT chez Zado (écarté le 12/11 car plus cher que le 17e). Une seule capacité, 128 Go. nano-SIM + eSIM."
+ },
+ {
+  "id": "ap002",
+  "family": "iPad",
+  "name": "Apple iPad 11 pouces (A16)",
+  "category": "Tablettes",
+  "url": "https://www.apple.com/fr/shop/buy-ipad/ipad",
+  "configs": [
+   {
+    "label": "128 Go",
+    "priceEur": 509
+   },
+   {
+    "label": "256 Go",
+    "priceEur": 639
+   },
+   {
+    "label": "512 Go",
+    "priceEur": 889
+   }
+  ],
+  "colors": [
+   "Argent",
+   "Rose",
+   "Bleu",
+   "Jaune"
+  ],
+  "specs": {
+   "screen": "Liquid Retina 11 pouces (10,86 po), IPS, 2 360 x 1 640 px à 264 ppp, 500 nits, True Tone",
+   "chip": "Puce A16 : CPU 5 cœurs, GPU 4 cœurs, Neural Engine 16 cœurs",
+   "ram": null,
+   "camera": "Arrière grand-angle 12 MP ƒ/1,8, vidéo 4K ; avant 12 MP Center Stage (horizontale)",
+   "battery": "28,93 Wh, jusqu'à 10 h (Web en Wi-Fi / vidéo), 9 h en cellulaire",
+   "ports": "USB-C (USB 2, jusqu'à 480 Mbit/s, DisplayPort), Smart Connector",
+   "other": "Touch ID (bouton supérieur), Wi-Fi 6, Bluetooth 5.3; Apple Pencil USB-C / 1re gén. (adaptateur)",
+   "connectivity": "Wi-Fi (version Wi-Fi + Cellular non proposée : eSIM uniquement chez Apple)"
+  },
+  "weightG": 481,
+  "notes": "Wi-Fi 477 g / Cellular 481 g. RAM non publiée par Apple. Cellular = eSIM seulement."
+ },
+ {
+  "id": "ap003",
+  "family": "iPad mini",
+  "name": "Apple iPad mini (A20 Pro)",
+  "category": "Tablettes",
+  "url": "https://www.apple.com/fr/shop/buy-ipad/ipad-mini",
+  "configs": [
+   {
+    "label": "128 Go",
+    "priceEur": 759
+   },
+   {
+    "label": "256 Go",
+    "priceEur": 889
+   },
+   {
+    "label": "512 Go",
+    "priceEur": 1139
+   }
+  ],
+  "colors": [
+   "Minuit",
+   "Lumière stellaire"
+  ],
+  "specs": {
+   "screen": "Super Retina XDR OLED 8,5 pouces, 2 316 x 1 512 px à 326 ppp, 600 nits SDR / 1 200 nits HDR, antireflet ; verre nano-texturé en option (256 et 512 Go)",
+   "chip": "Puce A20 Pro : CPU 5 cœurs (6 cœurs sur 512 Go), GPU 7 cœurs, Neural Accelerators",
+   "ram": null,
+   "camera": "Arrière grand-angle 12 MP ƒ/1,8, flash True Tone adaptatif ; avant 12 MP Center Stage (horizontale)",
+   "battery": "18,9 Wh, jusqu'à 10 h (Web en Wi-Fi / vidéo), 9 h en cellulaire ; charge rapide 50 % en 30 min (adaptateur 35 W+)",
+   "ports": "USB-C (USB 3, jusqu'à 10 Gbit/s, DisplayPort)",
+   "other": "Étanche IP67, Touch ID, Wi-Fi 7 (puce Apple N1), Apple Pencil Pro et USB-C",
+   "connectivity": "Wi-Fi (version Wi-Fi + Cellular non proposée : eSIM uniquement chez Apple)"
+  },
+  "weightG": 263,
+  "notes": "Wi-Fi 255 g / Cellular 263 g. Option verre nano-texturé : +130 € (256 Go Wi-Fi 1019 €, Cellular 1189 € ; 512 Go Wi-Fi 1269 €, Cellular 1439 €). RAM non publiée."
+ },
+ {
+  "id": "ap004",
+  "family": "iPad Air",
+  "name": "Apple iPad Air 11 pouces (M4)",
+  "category": "Tablettes",
+  "url": "https://www.apple.com/fr/shop/buy-ipad/ipad-air",
+  "configs": [
+   {
+    "label": "128 Go",
+    "priceEur": 819
+   },
+   {
+    "label": "256 Go",
+    "priceEur": 959
+   },
+   {
+    "label": "512 Go",
+    "priceEur": 1199
+   },
+   {
+    "label": "1 To",
+    "priceEur": 1589
+   }
+  ],
+  "colors": [
+   "Violet",
+   "Bleu",
+   "Lumière stellaire",
+   "Gris sidéral"
+  ],
+  "specs": {
+   "screen": "Liquid Retina 11 pouces (10,86 po), IPS laminé, 2 360 x 1 640 px à 264 ppp, 500 nits",
+   "chip": "Puce Apple M4 : CPU 8 cœurs, GPU 9 cœurs, Neural Engine 16 cœurs",
+   "ram": "12 Go",
+   "camera": "Arrière grand-angle 12 MP ƒ/1,8 ; avant 12 MP Center Stage (horizontale)",
+   "battery": "28,93 Wh, jusqu'à 10 h (Web en Wi-Fi / vidéo), 9 h en cellulaire",
+   "ports": "USB-C (USB 3, jusqu'à 10 Gbit/s, écran externe jusqu'à 6K)",
+   "other": "Touch ID, Wi-Fi 7 (puce Apple N1), Apple Pencil USB-C",
+   "connectivity": "Wi-Fi (version Wi-Fi + Cellular non proposée : eSIM uniquement chez Apple)"
+  },
+  "weightG": 465,
+  "notes": "Wi-Fi 464 g / Cellular 465 g. Coloris « Violet » sur la page d'achat, « Mauve » sur la page Caractéristiques."
+ },
+ {
+  "id": "ap005",
+  "family": "iPad Air",
+  "name": "Apple iPad Air 13 pouces (M4)",
+  "category": "Tablettes",
+  "url": "https://www.apple.com/fr/shop/buy-ipad/ipad-air",
+  "configs": [
+   {
+    "label": "128 Go",
+    "priceEur": 1019
+   },
+   {
+    "label": "256 Go",
+    "priceEur": 1159
+   },
+   {
+    "label": "512 Go",
+    "priceEur": 1399
+   },
+   {
+    "label": "1 To",
+    "priceEur": 1789
+   }
+  ],
+  "colors": [
+   "Violet",
+   "Bleu",
+   "Lumière stellaire",
+   "Gris sidéral"
+  ],
+  "specs": {
+   "screen": "Liquid Retina 13 pouces (12,9 po), IPS laminé, 2 732 x 2 048 px à 264 ppp, 600 nits",
+   "chip": "Puce Apple M4 : CPU 8 cœurs, GPU 9 cœurs, Neural Engine 16 cœurs",
+   "ram": "12 Go",
+   "camera": "Arrière grand-angle 12 MP ƒ/1,8 ; avant 12 MP Center Stage (horizontale)",
+   "battery": "36,59 Wh, jusqu'à 10 h (Web en Wi-Fi / vidéo), 9 h en cellulaire",
+   "ports": "USB-C (USB 3, jusqu'à 10 Gbit/s, écran externe jusqu'à 6K)",
+   "other": "Touch ID, Wi-Fi 7 (puce Apple N1), Apple Pencil USB-C",
+   "connectivity": "Wi-Fi (version Wi-Fi + Cellular non proposée : eSIM uniquement chez Apple)"
+  },
+  "weightG": 617,
+  "notes": "Wi-Fi 616 g / Cellular 617 g. Coloris « Violet » sur la page d'achat, « Mauve » sur la page Caractéristiques."
+ },
+ {
+  "id": "ap006",
+  "family": "iPad Pro",
+  "name": "Apple iPad Pro 11 pouces (M5)",
+  "category": "Tablettes",
+  "url": "https://www.apple.com/fr/shop/buy-ipad/ipad-pro",
+  "configs": [
+   {
+    "label": "256 Go",
+    "priceEur": 1319
+   },
+   {
+    "label": "512 Go",
+    "priceEur": 1569
+   },
+   {
+    "label": "1 To",
+    "priceEur": 2049
+   },
+   {
+    "label": "2 To",
+    "priceEur": 2669
+   }
+  ],
+  "colors": [
+   "Noir sidéral",
+   "Argent"
+  ],
+  "specs": {
+   "screen": "Ultra Retina XDR 11 pouces (OLED tandem), 2 420 x 1 668 px à 264 ppp, 1 000 nits SDR / 1 600 nits HDR ; verre nano-texturé en option (1 et 2 To)",
+   "chip": "Puce Apple M5 : CPU 9 cœurs (256/512 Go) ou 10 cœurs (1/2 To), GPU 10 cœurs, Neural Engine 16 cœurs",
+   "ram": "12 Go (256/512 Go) ou 16 Go (1/2 To)",
+   "camera": "Arrière grand-angle 12 MP ƒ/1,8, flash True Tone adaptatif, scanner LiDAR ; avant TrueDepth 12 MP Center Stage (horizontale)",
+   "battery": "31,29 Wh, jusqu'à 10 h (Web en Wi-Fi / vidéo)",
+   "ports": "Thunderbolt / USB 4 (jusqu'à 40 Gbit/s, écran externe 6K 60 Hz)",
+   "other": "Face ID, Wi-Fi 7 (puce Apple N1)",
+   "connectivity": "Wi-Fi (version Wi-Fi + Cellular non proposée : eSIM uniquement chez Apple)"
+  },
+  "weightG": 446,
+  "notes": "Wi-Fi 444 g / Cellular 446 g. Verre nano-texturé : +130 € sur 1 To et 2 To (Wi-Fi et Cellular)."
+ },
+ {
+  "id": "ap007",
+  "family": "iPad Pro",
+  "name": "Apple iPad Pro 13 pouces (M5)",
+  "category": "Tablettes",
+  "url": "https://www.apple.com/fr/shop/buy-ipad/ipad-pro",
+  "configs": [
+   {
+    "label": "256 Go",
+    "priceEur": 1669
+   },
+   {
+    "label": "512 Go",
+    "priceEur": 1919
+   },
+   {
+    "label": "1 To",
+    "priceEur": 2399
+   },
+   {
+    "label": "2 To",
+    "priceEur": 3019
+   }
+  ],
+  "colors": [
+   "Noir sidéral",
+   "Argent"
+  ],
+  "specs": {
+   "screen": "Ultra Retina XDR 13 pouces (OLED tandem), 2 752 x 2 064 px à 264 ppp, 1 000 nits SDR / 1 600 nits HDR ; verre nano-texturé en option (1 et 2 To)",
+   "chip": "Puce Apple M5 : CPU 9 cœurs (256/512 Go) ou 10 cœurs (1/2 To), GPU 10 cœurs, Neural Engine 16 cœurs",
+   "ram": "12 Go (256/512 Go) ou 16 Go (1/2 To)",
+   "camera": "Arrière grand-angle 12 MP ƒ/1,8, flash True Tone adaptatif, scanner LiDAR ; avant TrueDepth 12 MP Center Stage (horizontale)",
+   "battery": "38,99 Wh, jusqu'à 10 h (Web en Wi-Fi / vidéo)",
+   "ports": "Thunderbolt / USB 4 (jusqu'à 40 Gbit/s, écran externe 6K 60 Hz)",
+   "other": "Face ID, Wi-Fi 7 (puce Apple N1)",
+   "connectivity": "Wi-Fi (version Wi-Fi + Cellular non proposée : eSIM uniquement chez Apple)"
+  },
+  "weightG": 582,
+  "notes": "Wi-Fi 579 g / Cellular 582 g. Verre nano-texturé : +130 € sur 1 To et 2 To (Wi-Fi et Cellular)."
+ },
+ {
+  "id": "ap008",
+  "family": "MacBook Neo",
+  "name": "Apple MacBook Neo 13 pouces (A18 Pro)",
+  "category": "Ordinateurs",
+  "url": "https://www.apple.com/fr/shop/buy-mac/macbook-neo",
+  "configs": [
+   {
+    "label": "8 Go · 256 Go",
+    "priceEur": 799
+   },
+   {
+    "label": "8 Go · 512 Go · Touch ID",
+    "priceEur": 899
+   }
+  ],
+  "colors": [
+   "Argent",
+   "Rose poudré",
+   "Jaune agrume",
+   "Indigo"
+  ],
+  "specs": {
+   "screen": "Liquid Retina 13 pouces, IPS, 2 408 x 1 506 px à 219 ppp, 500 nits, sRGB",
+   "chip": "Puce Apple A18 Pro : CPU 6 cœurs, GPU 5 cœurs, Neural Engine 16 cœurs",
+   "ram": "8 Go de mémoire unifiée",
+   "camera": "Caméra FaceTime HD 1080p",
+   "battery": "36,5 Wh, jusqu'à 16 h de streaming vidéo, 11 h de navigation",
+   "ports": "1 x USB-C USB 3 (10 Gbit/s, DisplayPort, 1 écran 4K 60 Hz), 1 x USB-C USB 2, prise casque 3,5 mm",
+   "other": "Wi-Fi 6E, Bluetooth 6, deux haut-parleurs ; Touch ID seulement sur la version 512 Go"
+  },
+  "weightG": 1230,
+  "notes": "Nouveau modèle d'entrée de gamme (puce d'iPhone). Non configurable (2 versions préconfigurées). Câble USB-C 1,5 m inclus."
+ },
+ {
+  "id": "ap009",
+  "family": "MacBook Air",
+  "name": "Apple MacBook Air 13 pouces (M5)",
+  "category": "Ordinateurs",
+  "url": "https://www.apple.com/fr/shop/buy-mac/macbook-air",
+  "configs": [
+   {
+    "label": "M5 10C/8C GPU · 16 Go · 512 Go",
+    "priceEur": 1399
+   },
+   {
+    "label": "M5 10C/10C GPU · 24 Go · 512 Go",
+    "priceEur": 1619
+   },
+   {
+    "label": "M5 10C/10C GPU · 16 Go · 1 To",
+    "priceEur": 1729
+   },
+   {
+    "label": "M5 10C/10C GPU · 24 Go · 1 To",
+    "priceEur": 1949
+   }
+  ],
+  "colors": [
+   "Bleu ciel",
+   "Argent",
+   "Lumière stellaire",
+   "Minuit"
+  ],
+  "specs": {
+   "screen": "Liquid Retina 13,6 pouces, IPS, 2 560 x 1 664 px à 224 ppp, 500 nits",
+   "chip": "Puce Apple M5 : CPU 10 cœurs, GPU 8 ou 10 cœurs, Neural Engine 16 cœurs",
+   "ram": "16 Go ou 24 Go (configurable 32 Go)",
+   "camera": "Caméra Center Stage 12 MP (Desk View), vidéo 1080p",
+   "battery": "53,8 Wh, jusqu'à 18 h de streaming vidéo, 15 h de navigation ; adaptateur vendu séparément (30 W minimum)",
+   "ports": "2 x Thunderbolt 4 (USB-C), MagSafe 3, prise casque 3,5 mm ; jusqu'à 2 écrans externes",
+   "other": "Touch ID, Wi-Fi 7 (puce Apple N1), Bluetooth 6, 4 haut-parleurs",
+   "legend": "« 18C/20C GPU » = processeur 18 cœurs et puce graphique 20 cœurs, suivis de la mémoire vive puis du stockage"
+  },
+  "weightG": 1230,
+  "notes": "Configuration sur mesure M5 10C/10C · 16 Go · 512 Go : 1509 €. Adaptateur secteur NON inclus (câble USB-C vers MagSafe 3 seulement). Jusqu'à 32 Go / 4 To sur mesure."
+ },
+ {
+  "id": "ap010",
+  "family": "MacBook Air",
+  "name": "Apple MacBook Air 15 pouces (M5)",
+  "category": "Ordinateurs",
+  "url": "https://www.apple.com/fr/shop/buy-mac/macbook-air",
+  "configs": [
+   {
+    "label": "M5 10C/10C GPU · 16 Go · 512 Go",
+    "priceEur": 1699
+   },
+   {
+    "label": "M5 10C/10C GPU · 24 Go · 512 Go",
+    "priceEur": 1919
+   },
+   {
+    "label": "M5 10C/10C GPU · 16 Go · 1 To",
+    "priceEur": 2029
+   },
+   {
+    "label": "M5 10C/10C GPU · 24 Go · 1 To",
+    "priceEur": 2249
+   }
+  ],
+  "colors": [
+   "Bleu ciel",
+   "Argent",
+   "Lumière stellaire",
+   "Minuit"
+  ],
+  "specs": {
+   "screen": "Liquid Retina 15,3 pouces, IPS, 2 880 x 1 864 px à 224 ppp, 500 nits",
+   "chip": "Puce Apple M5 : CPU 10 cœurs, GPU 8 ou 10 cœurs, Neural Engine 16 cœurs",
+   "ram": "16 Go ou 24 Go (configurable 32 Go)",
+   "camera": "Caméra Center Stage 12 MP (Desk View), vidéo 1080p",
+   "battery": "66,5 Wh, jusqu'à 18 h de streaming vidéo, 15 h de navigation ; adaptateur vendu séparément (35 W minimum)",
+   "ports": "2 x Thunderbolt 4 (USB-C), MagSafe 3, prise casque 3,5 mm ; jusqu'à 2 écrans externes",
+   "other": "Touch ID, Wi-Fi 7 (puce Apple N1), Bluetooth 6, 6 haut-parleurs",
+   "legend": "« 18C/20C GPU » = processeur 18 cœurs et puce graphique 20 cœurs, suivis de la mémoire vive puis du stockage"
+  },
+  "weightG": 1510,
+  "notes": "Adaptateur secteur NON inclus (câble USB-C vers MagSafe 3 seulement). Jusqu'à 32 Go / 4 To sur mesure."
+ },
+ {
+  "id": "ap011",
+  "family": "MacBook Pro",
+  "name": "Apple MacBook Pro 14 pouces Liquid Retina XDR (M6 / M5 Pro / M5 Max)",
+  "category": "Ordinateurs",
+  "url": "https://www.apple.com/fr/shop/buy-mac/macbook-pro",
+  "configs": [
+   {
+    "label": "M6 12C/12C GPU · 16 Go · 1 To",
+    "priceEur": 2299
+   },
+   {
+    "label": "M6 12C/12C GPU · 24 Go · 1 To",
+    "priceEur": 2519
+   },
+   {
+    "label": "M5 Pro 15C/16C GPU · 24 Go · 1 To",
+    "priceEur": 2899
+   },
+   {
+    "label": "M5 Pro 18C/20C GPU · 24 Go · 1 To",
+    "priceEur": 3149
+   },
+   {
+    "label": "M5 Max 18C/32C GPU · 36 Go · 2 To",
+    "priceEur": 4799
+   },
+   {
+    "label": "M5 Max 18C/40C GPU · 48 Go · 2 To",
+    "priceEur": 5459
+   }
+  ],
+  "colors": [
+   "Noir sidéral",
+   "Argent"
+  ],
+  "specs": {
+   "screen": "Liquid Retina XDR 14,2 pouces, 3 024 x 1 964 px à 254 ppp, ProMotion 120 Hz, 1 000 nits SDR / 1 600 nits HDR ; verre nano-texturé en option",
+   "chip": "Apple M6 (CPU 12 / GPU 12 cœurs), M5 Pro (CPU 15/GPU 16 ou CPU 18/GPU 20) ou M5 Max (CPU 18/GPU 32 ou 40)",
+   "ram": "16 à 32 Go (M6), 24 à 64 Go (M5 Pro), 36 à 128 Go (M5 Max)",
+   "camera": "Caméra Center Stage 12 MP (Desk View), vidéo 1080p",
+   "battery": "72,4 Wh, jusqu'à 24 h de streaming vidéo (M6), 22 h (M5 Pro), 20 h (M5 Max)",
+   "ports": "3 x Thunderbolt 4 (M6) ou Thunderbolt 5 (M5 Pro / Max), HDMI, lecteur SDXC, MagSafe 3, prise casque 3,5 mm",
+   "other": "Touch ID, Wi-Fi 7 (puce Apple N1), Bluetooth 6, 6 haut-parleurs",
+   "legend": "« 18C/20C GPU » = processeur 18 cœurs et puce graphique 20 cœurs, suivis de la mémoire vive puis du stockage"
+  },
+  "weightG": 1620,
+  "notes": "Poids : 1,55 kg (M6), 1,60 kg (M5 Pro), 1,62 kg (M5 Max). Autre config standard : M6 · 32 Go · 1 To = 2739 €. Verre nano-texturé : +165 €. Prix M5 Pro 18C et M5 Max 40C = « à partir de » de la page d'achat (mémoire/stockage minimum d'après la page Caractéristiques)."
+ },
+ {
+  "id": "ap012",
+  "family": "MacBook Pro",
+  "name": "Apple MacBook Pro 16 pouces Liquid Retina XDR (M5 Pro / M5 Max)",
+  "category": "Ordinateurs",
+  "url": "https://www.apple.com/fr/shop/buy-mac/macbook-pro",
+  "configs": [
+   {
+    "label": "M5 Pro 18C/20C GPU · 24 Go · 1 To",
+    "priceEur": 3399
+   },
+   {
+    "label": "M5 Max 18C/32C GPU · 36 Go · 2 To",
+    "priceEur": 5099
+   },
+   {
+    "label": "M5 Max 18C/40C GPU · 48 Go · 2 To",
+    "priceEur": 5699
+   }
+  ],
+  "colors": [
+   "Noir sidéral",
+   "Argent"
+  ],
+  "specs": {
+   "screen": "Liquid Retina XDR 16,2 pouces, 3 456 x 2 234 px à 254 ppp, ProMotion 120 Hz, 1 000 nits SDR / 1 600 nits HDR ; verre nano-texturé en option",
+   "chip": "M5 Pro (CPU 15/GPU 16 ou CPU 18/GPU 20) ou M5 Max (CPU 18/GPU 32 ou 40)",
+   "ram": "24 à 64 Go (M5 Pro), 36 à 128 Go (M5 Max)",
+   "camera": "Caméra Center Stage 12 MP (Desk View), vidéo 1080p",
+   "battery": "100 Wh",
+   "ports": "3 x Thunderbolt 5, HDMI, lecteur SDXC, MagSafe 3, prise casque 3,5 mm",
+   "other": "Touch ID, Wi-Fi 7 (puce Apple N1), Bluetooth 6, 6 haut-parleurs",
+   "legend": "« 18C/20C GPU » = processeur 18 cœurs et puce graphique 20 cœurs, suivis de la mémoire vive puis du stockage"
+  },
+  "weightG": 2150,
+  "notes": "Poids : 2,14 kg (M5 Pro), 2,15 kg (M5 Max). Verre nano-texturé : +165 €. Prix M5 Max 40C = « à partir de » de la page d'achat."
+ },
+ {
+  "id": "ap013",
+  "family": "MacBook Pro PROLED XDR",
+  "name": "Apple MacBook Pro 14 pouces avec Écran PROLED XDR (M5 Pro / M5 Max)",
+  "category": "Ordinateurs",
+  "url": "https://www.apple.com/fr/shop/buy-mac/macbook-pro-proled-xdr",
+  "configs": [
+   {
+    "label": "M5 Pro 15C/16C GPU · 24 Go · 1 To",
+    "priceEur": 3299
+   },
+   {
+    "label": "M5 Pro 18C/20C GPU · 24 Go · 1 To",
+    "priceEur": 3539
+   },
+   {
+    "label": "M5 Pro 18C/20C GPU · 48 Go · 1 To",
+    "priceEur": 4199
+   },
+   {
+    "label": "M5 Max 18C/32C GPU · 36 Go · 2 To",
+    "priceEur": 5199
+   },
+   {
+    "label": "M5 Max 18C/40C GPU · 48 Go · 2 To",
+    "priceEur": 5859
+   }
+  ],
+  "colors": [
+   "Noir sidéral",
+   "Argent"
+  ],
+  "specs": {
+   "screen": "PROLED XDR (OLED tandem) 14,2 pouces, 3 024 x 1 986 px à 254 ppp, ProMotion 10-120 Hz, 1 000 nits / 2 000 nits en pointe, contraste 10 000 000:1, TACTILE (Multi-Touch) + Dynamic Island ; verre nano-texturé en option",
+   "chip": "M5 Pro (CPU 15/GPU 16 ou CPU 18/GPU 20) ou M5 Max (CPU 18/GPU 32 ou 40)",
+   "ram": "24 à 64 Go (M5 Pro), 36 à 128 Go (M5 Max)",
+   "camera": "Caméra Center Stage 12 MP (Desk View), vidéo 1080p",
+   "battery": "72,6 Wh, jusqu'à 22 h de streaming vidéo (M5 Pro), 20 h (M5 Max)",
+   "ports": "3 x Thunderbolt 5 (120 Gbit/s), HDMI, lecteur SDXC, MagSafe 3, prise casque 3,5 mm",
+   "other": "Touch ID, Wi-Fi 7, Bluetooth 6, 6 haut-parleurs",
+   "legend": "« 18C/20C GPU » = processeur 18 cœurs et puce graphique 20 cœurs, suivis de la mémoire vive puis du stockage"
+  },
+  "weightG": 1400,
+  "notes": "Nouvelle gamme haut de gamme à écran OLED tactile, vendue à côté du MacBook Pro Liquid Retina XDR. Poids 1,38 kg (M5 Pro) / 1,40 kg (M5 Max). Verre nano-texturé : +165 €. Prix 3539 € et 5859 € = « à partir de » de la page d'achat."
+ },
+ {
+  "id": "ap014",
+  "family": "MacBook Pro PROLED XDR",
+  "name": "Apple MacBook Pro 16 pouces avec Écran PROLED XDR (M5 Pro / M5 Max)",
+  "category": "Ordinateurs",
+  "url": "https://www.apple.com/fr/shop/buy-mac/macbook-pro-proled-xdr",
+  "configs": [
+   {
+    "label": "M5 Pro 18C/20C GPU · 24 Go · 1 To",
+    "priceEur": 3899
+   },
+   {
+    "label": "M5 Pro 18C/20C GPU · 48 Go · 1 To",
+    "priceEur": 4559
+   },
+   {
+    "label": "M5 Max 18C/32C GPU · 36 Go · 2 To",
+    "priceEur": 5599
+   },
+   {
+    "label": "M5 Max 18C/40C GPU · 48 Go · 2 To",
+    "priceEur": 6199
+   }
+  ],
+  "colors": [
+   "Noir sidéral",
+   "Argent"
+  ],
+  "specs": {
+   "screen": "PROLED XDR (OLED tandem) 16,3 pouces, 3 472 x 2 266 px à 254 ppp, ProMotion 10-120 Hz, 1 000 nits / 2 000 nits en pointe, contraste 10 000 000:1, TACTILE (Multi-Touch) + Dynamic Island ; verre nano-texturé en option",
+   "chip": "M5 Pro (CPU 15/GPU 16 ou CPU 18/GPU 20) ou M5 Max (CPU 18/GPU 32 ou 40)",
+   "ram": "24 à 64 Go (M5 Pro), 36 à 128 Go (M5 Max)",
+   "camera": "Caméra Center Stage 12 MP (Desk View), vidéo 1080p",
+   "battery": "100 Wh",
+   "ports": "3 x Thunderbolt 5 (120 Gbit/s), HDMI, lecteur SDXC, MagSafe 3, prise casque 3,5 mm",
+   "other": "Touch ID, Wi-Fi 7, Bluetooth 6, 6 haut-parleurs",
+   "legend": "« 18C/20C GPU » = processeur 18 cœurs et puce graphique 20 cœurs, suivis de la mémoire vive puis du stockage"
+  },
+  "weightG": 1840,
+  "notes": "Poids 1,82 kg (M5 Pro) / 1,84 kg (M5 Max). Verre nano-texturé : +165 €."
+ },
+ {
+  "id": "ap015",
+  "family": "iMac",
+  "name": "Apple iMac 24 pouces (M6)",
+  "category": "Ordinateurs",
+  "url": "https://www.apple.com/fr/shop/buy-mac/imac",
+  "configs": [
+   {
+    "label": "M6 10C/10C GPU · 16 Go · 256 Go · 2 ports",
+    "priceEur": 1799
+   },
+   {
+    "label": "M6 12C/12C GPU · 16 Go · 256 Go · 4 ports",
+    "priceEur": 1999
+   },
+   {
+    "label": "M6 12C · 16 Go · 512 Go",
+    "priceEur": 2219
+   },
+   {
+    "label": "M6 12C · 16 Go · 256 Go · nano-texture",
+    "priceEur": 2219
+   },
+   {
+    "label": "M6 12C · 24 Go · 512 Go",
+    "priceEur": 2439
+   }
+  ],
+  "colors": [
+   "Bleu",
+   "Violet",
+   "Rose",
+   "Orange",
+   "Jaune",
+   "Vert",
+   "Argent"
+  ],
+  "specs": {
+   "screen": "Retina 4,5K 24 pouces (23,5 po), 4 480 x 2 520 px à 218 ppp, 500 nits, P3 ; nano-texturé en option (modèle 12 cœurs)",
+   "chip": "Apple M6 : CPU 10 cœurs / GPU 10 cœurs ou CPU 12 cœurs / GPU 12 cœurs, deux Neural Engine 16 cœurs",
+   "ram": "16 Go (configurable 24 Go ; 32 Go sur 12 cœurs)",
+   "camera": "Caméra Center Stage 12 MP (Desk View), vidéo 1080p",
+   "battery": null,
+   "ports": "10 cœurs : 2 x Thunderbolt / USB 4 ; 12 cœurs : 4 x Thunderbolt 4 + Ethernet 2,5 Gbit ; prise casque 3,5 mm",
+   "other": "Magic Keyboard (Touch ID sur 12 cœurs) + Magic Mouse inclus, Wi-Fi 7, 6 haut-parleurs",
+   "legend": "« 18C/20C GPU » = processeur 18 cœurs et puce graphique 20 cœurs, suivis de la mémoire vive puis du stockage"
+  },
+  "weightG": 4440,
+  "notes": "Ordinateur de bureau tout-en-un. Poids 4,42 kg (10 cœurs) / 4,44 kg (12 cœurs). Coloris « Violet » sur la page d'achat, « Mauve » sur la page Caractéristiques."
+ },
+ {
+  "id": "ap016",
+  "family": "Mac mini",
+  "name": "Apple Mac mini (M6 / M5 Pro)",
+  "category": "Ordinateurs",
+  "url": "https://www.apple.com/fr/shop/buy-mac/mac-mini",
+  "configs": [
+   {
+    "label": "M6 12C/12C GPU · 16 Go · 256 Go",
+    "priceEur": 1049
+   },
+   {
+    "label": "M6 · 16 Go · 512 Go",
+    "priceEur": 1269
+   },
+   {
+    "label": "M6 · 24 Go · 512 Go",
+    "priceEur": 1489
+   },
+   {
+    "label": "M5 Pro 15C/16C GPU · 24 Go · 512 Go",
+    "priceEur": 1999
+   },
+   {
+    "label": "M6 · 32 Go · 1 To",
+    "priceEur": 2039
+   },
+   {
+    "label": "M5 Pro 18C/20C GPU · 64 Go · 1 To",
+    "priceEur": 3649
+   }
+  ],
+  "colors": [
+   "Argent"
+  ],
+  "specs": {
+   "screen": null,
+   "chip": "Apple M6 (CPU 12 / GPU 12 cœurs) ou M5 Pro (CPU 15 / GPU 16, ou CPU 18 / GPU 20)",
+   "ram": "16 à 32 Go (M6), 24 à 64 Go (M5 Pro)",
+   "camera": null,
+   "battery": null,
+   "ports": "Avant : 2 x USB-C (USB 3) + prise casque ; arrière : 3 x Thunderbolt 4 (M6) ou Thunderbolt 5 (M5 Pro), HDMI, Ethernet 2,5 Gbit",
+   "other": "Wi-Fi 7, Bluetooth 6, jusqu'à 3 écrans ; 12,7 x 12,7 x 5 cm",
+   "legend": "« 18C/20C GPU » = processeur 18 cœurs et puce graphique 20 cœurs, suivis de la mémoire vive puis du stockage"
+  },
+  "weightG": 730,
+  "notes": "Poids 0,67 kg (M6) / 0,73 kg (M5 Pro). Clavier, souris et écran non inclus."
+ },
+ {
+  "id": "ap017",
+  "family": "Mac Studio",
+  "name": "Apple Mac Studio (M5 Max / M5 Ultra)",
+  "category": "Ordinateurs",
+  "url": "https://www.apple.com/fr/shop/buy-mac/mac-studio",
+  "configs": [
+   {
+    "label": "M5 Max 18C/32C GPU · 36 Go · 512 Go",
+    "priceEur": 2999
+   },
+   {
+    "label": "M5 Max 18C/40C GPU · 64 Go · 1 To",
+    "priceEur": 4429
+   },
+   {
+    "label": "M5 Ultra 30C/64C GPU · 96 Go · 1 To",
+    "priceEur": 6599
+   }
+  ],
+  "colors": [
+   "Argent"
+  ],
+  "specs": {
+   "screen": null,
+   "chip": "Apple M5 Max (CPU 18 / GPU 32 ou 40) ou M5 Ultra (CPU 30 / GPU 64, ou CPU 36 / GPU 80)",
+   "ram": "36 à 128 Go (M5 Max), 96 à 512 Go (M5 Ultra)",
+   "camera": null,
+   "battery": null,
+   "ports": "4 x Thunderbolt 5, 2 x USB-A, HDMI 2.1, Ethernet 10 Gbit, prise casque ; avant : 2 x USB-C (Max) ou 2 x Thunderbolt 5 (Ultra) + lecteur SDXC",
+   "other": "Wi-Fi 7, Bluetooth 6, jusqu'à 5 (Max) ou 8 (Ultra) écrans ; 19,7 x 19,7 x 9,5 cm",
+   "legend": "« 18C/20C GPU » = processeur 18 cœurs et puce graphique 20 cœurs, suivis de la mémoire vive puis du stockage"
+  },
+  "weightG": 3600,
+  "notes": "Poids 2,7 kg (M5 Max) / 3,6 kg (M5 Ultra). Les configs « à partir de » sont les prix d'entrée de la page d'achat (mémoire/stockage de base non affichés)."
+ },
+ {
+  "id": "ap018",
+  "family": "Apple Watch Series",
+  "name": "Apple Watch Series 12",
+  "category": "Montres",
+  "url": "https://www.apple.com/fr/shop/buy-watch/apple-watch",
+  "configs": [
+   {
+    "label": "42 mm · Aluminium · GPS",
+    "priceEur": 449
+   },
+   {
+    "label": "46 mm · Aluminium · GPS",
+    "priceEur": 499
+   },
+   {
+    "label": "42 mm · Aluminium · GPS + Cellular",
+    "priceEur": 569
+   },
+   {
+    "label": "46 mm · Aluminium · GPS + Cellular",
+    "priceEur": 619
+   },
+   {
+    "label": "42 mm · Titane · GPS + Cellular",
+    "priceEur": 799
+   },
+   {
+    "label": "46 mm · Titane · GPS + Cellular",
+    "priceEur": 849
+   },
+   {
+    "label": "42 mm · Céramique · GPS + Cellular",
+    "priceEur": 1049
+   },
+   {
+    "label": "46 mm · Céramique · GPS + Cellular",
+    "priceEur": 1099
+   }
+  ],
+  "colors": [
+   "Bronze sombre (alu)",
+   "Gris sidéral (alu)",
+   "Noir (alu)",
+   "Or clair (alu)",
+   "Naturel (titane)",
+   "Or brillant (titane)",
+   "Blanc nacré (céramique)",
+   "Bleu nuit (céramique)"
+  ],
+  "specs": {
+   "screen": "Retina toujours activé, OLED grand angle LTPO3, 2 000 nits ; 42 mm 374×446 px, 46 mm 416×496 px ; Ceramic Shield 2 (alu), verre saphir (titane, céramique)",
+   "chip": "S11 (bicœur 64 bits, Neural Engine 4 cœurs), 64 Go",
+   "battery": "jusqu'à 24 h (38 h en économie d'énergie), 80 % en ~30 min",
+   "water": "étanche 50 m (ISO 22810:2010), poussière IP6X",
+   "other": "capteur électrique de fréquence cardiaque 3e gén., ECG, oxygène sanguin, température, notifications d'hypertension et d'apnée du sommeil ; 5G RedCap/LTE sur modèles Cellular ; UWB 2e gén. ; version GPS + Cellular : fonctionne aussi sans forfait (comme une version GPS) ; bracelet standard inclus"
+  },
+  "weightG": 32.2,
+  "notes": "Poids : 42 mm alu GPS 32,2 g / Cellular 31,5 g ; 46 mm alu GPS 39,5 g / Cellular 38,6 g ; titane 36,5 g (42) / 44,9 g (46) ; céramique 41,7-42,8 g (42) / 51,3-52,9 g (46). Titane et céramique : GPS + Cellular uniquement. Prix « à partir de » avec le bracelet le moins cher ; bracelets proposés : Boucle unique, Sport, Sport Nike, Boucle Sport, maillons magnétique, Boucle Moderne, Boucle unique tressée, Milanais, Boucle Sport Nike, maillons."
+ },
+ {
+  "id": "ap019",
+  "family": "Apple Watch Ultra",
+  "name": "Apple Watch Ultra 4",
+  "category": "Montres",
+  "url": "https://www.apple.com/fr/shop/buy-watch/apple-watch-ultra",
+  "configs": [
+   {
+    "label": "49 mm · Titane · GPS + Cellular",
+    "priceEur": 899
+   }
+  ],
+  "colors": [
+   "Naturel",
+   "Noir"
+  ],
+  "specs": {
+   "screen": "Retina toujours activé, OLED grand angle LTPO3, écran plat en verre saphir, 3 000 nits, 422×514 px",
+   "chip": "S11 (bicœur 64 bits), 64 Go",
+   "battery": "jusqu'à 50 h (84 h en économie d'énergie)",
+   "water": "étanche 100 m (ISO 22810:2010, plongée loisir), poussière IP6X (IEC 60529)",
+   "other": "boîtier titane grade 5, bouton Action, sirène, connectivité satellite (appel d'urgence, Localiser), 5G RedCap/LTE, UWB 2e gén. ; version GPS + Cellular : fonctionne aussi sans forfait (comme une version GPS) ; bracelet standard inclus"
+  },
+  "weightG": 63,
+  "notes": "63,0 g (naturel) / 63,1 g (noir). Bracelets : Boucle Alpine, Boucle Trail, Bracelet Océan (899 € avec ces bracelets, vérifié sur les pages de configuration), Milanais en titane (plus cher). ATTENTION : la page liste /fr/shop/buy-watch affiche « À partir de 800 € » alors que la page d'achat et chaque configuration affichent 899 € : retenir 899 €."
+ },
+ {
+  "id": "ap020",
+  "family": "Apple Watch SE",
+  "name": "Apple Watch SE 3",
+  "category": "Montres",
+  "url": "https://www.apple.com/fr/shop/buy-watch/apple-watch-se",
+  "configs": [
+   {
+    "label": "40 mm · GPS",
+    "priceEur": 269
+   },
+   {
+    "label": "44 mm · GPS",
+    "priceEur": 299
+   },
+   {
+    "label": "40 mm · GPS + Cellular",
+    "priceEur": 319
+   },
+   {
+    "label": "44 mm · GPS + Cellular",
+    "priceEur": 349
+   }
+  ],
+  "colors": [
+   "Minuit",
+   "Lumière stellaire"
+  ],
+  "specs": {
+   "screen": "Retina toujours activé OLED LTPO, 1 000 nits, verre Ion-X ; 40 mm 324×394 px, 44 mm 368×448 px",
+   "chip": "S10 (bicœur 64 bits, Neural Engine 4 cœurs), 64 Go",
+   "battery": "jusqu'à 18 h (32 h en économie d'énergie)",
+   "water": "étanche 50 m (natation)",
+   "other": "boîtier aluminium ; 5G RedCap/LTE sur modèles Cellular ; version GPS + Cellular : fonctionne aussi sans forfait (comme une version GPS) ; bracelet standard inclus"
+  },
+  "weightG": 26.3,
+  "notes": "Poids : 40 mm 26,3 g (GPS) / 26,4 g (Cellular) ; 44 mm 32,9 g / 33 g. Mêmes bracelets que la Series 12 ; prix avec le bracelet le moins cher."
+ },
+ {
+  "id": "ap021",
+  "family": "Apple Watch Hermès",
+  "name": "Apple Watch Hermès Series 12",
+  "category": "Montres",
+  "url": "https://www.apple.com/fr/shop/buy-watch/apple-watch-hermes",
+  "configs": [
+   {
+    "label": "42 mm · Titane · GPS + Cellular",
+    "priceEur": 1599
+   },
+   {
+    "label": "46 mm · Titane · GPS + Cellular",
+    "priceEur": 1649
+   }
+  ],
+  "colors": [
+   "Argent",
+   "Or brillant"
+  ],
+  "specs": {
+   "screen": "comme Series 12 titane (verre saphir, 2 000 nits)",
+   "chip": "S11",
+   "battery": "jusqu'à 24 h",
+   "water": "étanche 50 m, IP6X",
+   "other": "bracelets Hermès ; version GPS + Cellular : fonctionne aussi sans forfait (comme une version GPS) ; bracelet standard inclus"
+  },
+  "weightG": 36.5,
+  "notes": "Poids titane Series 12 : 36,5 g (42) / 44,9 g (46). Prix selon le bracelet Hermès (Clou de Selle Satin, Rocabar Club, Simple Tour Kilim, Simple Tour Toile H, Grand H, Grand H Fin) : de 1 599 € jusqu'à 2 399 € (46 mm Grand H). La page liste affiche « À partir de 1 050 € », non retrouvé sur la page d'achat."
+ },
+ {
+  "id": "ap022",
+  "family": "Apple Watch Hermès",
+  "name": "Apple Watch Hermès Ultra 4",
+  "category": "Montres",
+  "url": "https://www.apple.com/fr/shop/buy-watch/apple-watch-hermes-ultra",
+  "configs": [
+   {
+    "label": "49 mm · Titane · GPS + Cellular",
+    "priceEur": 1699
+   }
+  ],
+  "colors": [
+   "Naturel"
+  ],
+  "specs": {
+   "screen": "comme Ultra 4 (saphir, 3 000 nits)",
+   "chip": "S11",
+   "battery": "jusqu'à 50 h",
+   "water": "étanche 100 m, IP6X",
+   "other": "bracelets Hermès, satellite ; version GPS + Cellular : fonctionne aussi sans forfait (comme une version GPS) ; bracelet standard inclus"
+  },
+  "weightG": 63,
+  "notes": "Prix selon le bracelet : 1 699 € (En Mer) à 3 499 € (Grand H titane). La page liste affiche « À partir de 1 100 € », non retrouvé sur la page d'achat."
+ },
+ {
+  "id": "ap023",
+  "family": "AirPods",
+  "name": "Apple AirPods 5",
+  "category": "Audio",
+  "url": "https://www.apple.com/fr/shop/buy-airpods/airpods-5",
+  "configs": [
+   {
+    "label": "Boîtier USB-C",
+    "priceEur": 149
+   },
+   {
+    "label": "Boîtier de charge sans fil",
+    "priceEur": 169
+   }
+  ],
+  "colors": [
+   "Blanc"
+  ],
+  "specs": {
+   "chip": "H2",
+   "battery": "4 h avec réduction du bruit (6 h sans), 20 h avec le boîtier ; version boîtier sans fil : 5 h / 7 h, 22 h",
+   "water": "IP57 (poussière, transpiration, eau)",
+   "other": "réduction active du bruit, Audio adaptatif, Audio spatial personnalisé, Traduction en direct, Bluetooth 5.3 ; boîtier sans fil : capteur de pression avec balayage du volume, recharge Qi / chargeur Apple Watch, haut-parleur Localiser"
+  },
+  "weightG": 40.9,
+  "notes": "Calculé : 2 écouteurs × 4,3 g + boîtier 32,3 g (34,7 g pour le boîtier sans fil → 43,3 g). Câble non listé dans le coffret.",
+  "optionName": "Boîtier"
+ },
+ {
+  "id": "ap024",
+  "family": "AirPods Pro",
+  "name": "Apple AirPods Pro 3",
+  "category": "Audio",
+  "url": "https://www.apple.com/fr/shop/buy-airpods/airpods-pro-3",
+  "configs": [
+   {
+    "label": "AirPods Pro 3 avec Boîtier de charge MagSafe (USB-C)",
+    "priceEur": 249
+   }
+  ],
+  "colors": [
+   "Blanc"
+  ],
+  "specs": {
+   "chip": "H2 (+ UWB 2e gén. dans le boîtier)",
+   "battery": "jusqu'à 8 h avec réduction du bruit, 24 h avec le boîtier",
+   "water": "IP57 écouteurs et boîtier",
+   "other": "réduction active du bruit, capteur de fréquence cardiaque pour les entraînements, boîtier MagSafe/Qi/USB-C avec haut-parleur, Bluetooth 5.3"
+  },
+  "weightG": 55.1,
+  "notes": "Calculé : 2 × 5,55 g + boîtier 43,99 g. Câble USB-C vendu séparément."
+ },
+ {
+  "id": "ap025",
+  "family": "AirPods Max",
+  "name": "Apple AirPods Max 2",
+  "category": "Audio",
+  "url": "https://www.apple.com/fr/shop/buy-airpods/airpods-max-2",
+  "configs": [
+   {
+    "label": "AirPods Max 2",
+    "priceEur": 579
+   }
+  ],
+  "colors": [
+   "Minuit",
+   "Lumière stellaire",
+   "Bleu",
+   "Violet",
+   "Orange"
+  ],
+  "specs": {
+   "chip": "H2 (une par oreillette)",
+   "battery": "jusqu'à 20 h avec réduction du bruit",
+   "other": "réduction active du bruit, audio Lossless et très faible latence via USB-C, recharge USB-C, Bluetooth 5.3 ; coffret : Smart Case + câble USB-C"
+  },
+  "weightG": 386.2,
+  "notes": "Casque 386,2 g (coussinets compris) + Smart Case 134,5 g."
+ },
+ {
+  "id": "ap026",
+  "family": "Apple TV",
+  "name": "Apple TV 4K (4e génération)",
+  "category": "TV & Maison",
+  "url": "https://www.apple.com/fr/shop/buy-tv/apple-tv-4k",
+  "configs": [
+   {
+    "label": "128 Go · Wi-Fi 7 + Gigabit Ethernet",
+    "priceEur": 349
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "chip": "A19",
+   "other": "128 Go, Wi-Fi 7, Bluetooth 6, Thread, HDMI 2.1, Gigabit Ethernet, Dolby Vision / HDR10+ / Dolby Atmos, Siri Remote (4e gén.) USB-C"
+  },
+  "weightG": 217,
+  "notes": "Un seul modèle. Siri Remote 69,6 g. Câbles HDMI et USB-C vendus séparément."
+ },
+ {
+  "id": "ap027",
+  "family": "HomePod",
+  "name": "Apple HomePod (2e génération)",
+  "category": "TV & Maison",
+  "url": "https://www.apple.com/fr/shop/buy-homepod/homepod",
+  "configs": [
+   {
+    "label": "HomePod",
+    "priceEur": 399
+   }
+  ],
+  "colors": [
+   "Blanc",
+   "Minuit"
+  ],
+  "specs": {
+   "other": "boomer longue portée + 5 tweeters, Audio spatial Dolby Atmos, analyse de l'espace, Siri, hub domotique Thread, UWB, Wi-Fi 802.11n ; 168 × 142 mm"
+  },
+  "weightG": 2300,
+  "notes": "2,3 kg."
+ },
+ {
+  "id": "ap028",
+  "family": "HomePod mini",
+  "name": "Apple HomePod mini 2",
+  "category": "TV & Maison",
+  "url": "https://www.apple.com/fr/shop/buy-homepod/homepod-mini",
+  "configs": [
+   {
+    "label": "HomePod mini 2",
+    "priceEur": 169
+   }
+  ],
+  "colors": [
+   "Blanc",
+   "Rose",
+   "Bleu",
+   "Vert",
+   "Minuit"
+  ],
+  "specs": {
+   "other": "son 360°, Wi-Fi 6E, Thread, UWB, Siri, capteurs de température et d'humidité ; 84,3 × 97,9 mm"
+  },
+  "weightG": 335,
+  "notes": "Nouveau. Pas d'Audio spatial."
+ },
+ {
+  "id": "ap029",
+  "family": "AirTag",
+  "name": "Apple AirTag (2e génération)",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/buy-airtag/airtag",
+  "configs": [
+   {
+    "label": "1 AirTag",
+    "priceEur": 35
+   },
+   {
+    "label": "Lot de 4",
+    "priceEur": 119
+   }
+  ],
+  "colors": [
+   "Blanc"
+  ],
+  "specs": {
+   "battery": "pile CR2032 remplaçable, plus d'un an",
+   "water": "IP67 (1 m, 30 min)",
+   "other": "UWB 2e gén. (Localisation précise étendue), Bluetooth, NFC, haut-parleur plus puissant ; 31,9 × 8 mm"
+  },
+  "weightG": 11.8,
+  "notes": "11,8 g par AirTag. Gravure gratuite.",
+  "optionName": "Lot"
+ },
+ {
+  "id": "ap030",
+  "name": "Apple Coque en silicone avec MagSafe pour iPhone 18 Pro",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mk8w4zm/a/coque-en-silicone-avec-magsafe-pour-iphone-18-pro-bleu-lumineux",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 59
+   }
+  ],
+  "colors": [
+   "Magenta",
+   "Bordeaux",
+   "Olive",
+   "Bleu lumineux",
+   "Bleu marine",
+   "Noir"
+  ],
+  "specs": {
+   "compatibility": "iPhone 18 Pro",
+   "other": "Matière : Silicone ; MagSafe"
+  },
+  "weightG": null,
+  "notes": "Réf. par coloris : Magenta MK8T4ZM/A, Bordeaux MK8U4ZM/A, Olive MK8V4ZM/A, Bleu lumineux MK8W4ZM/A, Bleu marine MK8X4ZM/A, Noir MK8Y4ZM/A"
+ },
+ {
+  "id": "ap031",
+  "name": "Apple Coque en silicone avec MagSafe pour iPhone 18 Pro Max",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mk904zm/a/coque-en-silicone-avec-magsafe-pour-iphone-18-pro-max-magenta",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 59
+   }
+  ],
+  "colors": [
+   "Magenta",
+   "Bordeaux",
+   "Olive",
+   "Bleu lumineux",
+   "Bleu marine",
+   "Noir"
+  ],
+  "specs": {
+   "compatibility": "iPhone 18 Pro Max",
+   "other": "Matière : Silicone ; MagSafe"
+  },
+  "weightG": null,
+  "notes": "Réf. par coloris : Magenta MK904ZM/A, Bordeaux MK914ZM/A, Olive MK924ZM/A, Bleu lumineux MK934ZM/A, Bleu marine MK944ZM/A, Noir MK954ZM/A"
+ },
+ {
+  "id": "ap032",
+  "name": "Apple Coque en tissage technique avec MagSafe pour iPhone 18 Pro",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mkd54zm/a/coque-en-tissage-technique-avec-magsafe-pour-iphone-18-pro-bleu-chambray",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 69
+   }
+  ],
+  "colors": [
+   "Bordeaux",
+   "Mûre",
+   "Olive",
+   "Taupe",
+   "Bleu chambray",
+   "Noir"
+  ],
+  "specs": {
+   "compatibility": "iPhone 18 Pro",
+   "other": "Matière : Tissage technique ; MagSafe"
+  },
+  "weightG": null,
+  "notes": "Réf. par coloris : Bordeaux MKD14ZM/A, Mûre MKD24ZM/A, Olive MKD34ZM/A, Taupe MKD44ZM/A, Bleu chambray MKD54ZM/A, Noir MKD64ZM/A"
+ },
+ {
+  "id": "ap033",
+  "name": "Apple Coque en tissage technique avec MagSafe pour iPhone 18 Pro Max",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mkdm4zm/a/coque-en-tissage-technique-avec-magsafe-pour-iphone-18-pro-max-bordeaux",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 69
+   }
+  ],
+  "colors": [
+   "Bordeaux",
+   "Mûre",
+   "Olive",
+   "Taupe",
+   "Bleu chambray",
+   "Noir"
+  ],
+  "specs": {
+   "compatibility": "iPhone 18 Pro Max",
+   "other": "Matière : Tissage technique ; MagSafe"
+  },
+  "weightG": null,
+  "notes": "Réf. par coloris : Bordeaux MKDM4ZM/A, Mûre MKDN4ZM/A, Olive MKDP4ZM/A, Taupe MKDQ4ZM/A, Bleu chambray MKDR4ZM/A, Noir MKDT4ZM/A"
+ },
+ {
+  "id": "ap034",
+  "name": "Apple Coque transparente avec MagSafe pour iPhone 18 Pro",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mkdu4zm/a",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 59
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "compatibility": "iPhone 18 Pro",
+   "other": "MagSafe"
+  },
+  "weightG": null,
+  "notes": "Réf. unique (transparente)"
+ },
+ {
+  "id": "ap035",
+  "name": "Apple Coque transparente avec MagSafe pour iPhone 18 Pro Max",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mkdv4zm/a/coque-transparente-avec-magsafe-pour-iphone-18-pro-max",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 59
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "compatibility": "iPhone 18 Pro Max",
+   "other": "MagSafe"
+  },
+  "weightG": null,
+  "notes": "Réf. unique (transparente)"
+ },
+ {
+  "id": "ap036",
+  "name": "Apple Coque en silicone avec MagSafe pour iPhone 17",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mhvt4zm/a/coque-en-silicone-avec-magsafe-pour-iphone-17-lavande-%C3%A9lectrique",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 59
+   }
+  ],
+  "colors": [
+   "Jaune fluo",
+   "Bleu maritime",
+   "Vert ardoise",
+   "Brume violette",
+   "Noir",
+   "Vanille",
+   "Rose goyave",
+   "Lavande électrique"
+  ],
+  "specs": {
+   "compatibility": "iPhone 17",
+   "other": "Matière : Silicone ; MagSafe"
+  },
+  "weightG": null,
+  "notes": "Réf. par coloris : Jaune fluo MGEV4ZM/A, Bleu maritime MGEW4ZM/A, Vert ardoise MGEX4ZM/A, Brume violette MGF04ZM/A, Noir MGF14ZM/A, Vanille MHVM4ZM/A, Rose goyave MHVQ4ZM/A, Lavande électrique MHVT4ZM/A"
+ },
+ {
+  "id": "ap037",
+  "name": "Apple Coque transparente avec MagSafe pour iPhone 17",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mgf24zm/a/coque-transparente-avec-magsafe-pour-iphone-17",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 59
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "compatibility": "iPhone 17",
+   "other": "MagSafe"
+  },
+  "weightG": null,
+  "notes": "Réf. unique (transparente)"
+ },
+ {
+  "id": "ap038",
+  "name": "Apple Coque en silicone avec MagSafe pour iPhone 17e",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mhwj4zm/a/coque-en-silicone-avec-magsafe-pour-iphone-17e-rose-pastel",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 59
+   }
+  ],
+  "colors": [
+   "Noir",
+   "Bleu maritime",
+   "Vert ardoise",
+   "Vanille",
+   "Rose goyave",
+   "Rose pastel"
+  ],
+  "specs": {
+   "compatibility": "iPhone 17e",
+   "other": "Matière : Silicone ; MagSafe"
+  },
+  "weightG": null,
+  "notes": "Réf. par coloris : Noir MHWD4ZM/A, Bleu maritime MHWE4ZM/A, Vert ardoise MHWF4ZM/A, Vanille MHWG4ZM/A, Rose goyave MHWH4ZM/A, Rose pastel MHWJ4ZM/A"
+ },
+ {
+  "id": "ap039",
+  "name": "Apple Coque transparente avec MagSafe pour iPhone 17e",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mhwc4zm/a/coque-transparente-avec-magsafe-pour-iphone-17e",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 59
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "compatibility": "iPhone 17e",
+   "other": "MagSafe"
+  },
+  "weightG": null,
+  "notes": "Réf. unique (transparente)"
+ },
+ {
+  "id": "ap040",
+  "name": "Apple Coque en silicone avec MagSafe pour iPhone 16",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/myy63zm/a/coque-en-silicone-avec-magsafe-pour-iphone-16-outremer",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 59
+   }
+  ],
+  "colors": [
+   "Aigue-marine",
+   "Noir",
+   "Denim",
+   "Gris minéral",
+   "Fuchsia",
+   "Outremer",
+   "Vert lacustre"
+  ],
+  "specs": {
+   "compatibility": "iPhone 16",
+   "other": "Matière : Silicone ; MagSafe"
+  },
+  "weightG": null,
+  "notes": "Réf. par coloris : Aigue-marine MDGP4ZM/A, Noir MYY13ZM/A, Denim MYY23ZM/A, Gris minéral MYY33ZM/A, Fuchsia MYY53ZM/A, Outremer MYY63ZM/A, Vert lacustre MYY83ZM/A"
+ },
+ {
+  "id": "ap041",
+  "name": "Apple Coque en silicone avec MagSafe pour iPhone 16 Plus",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mdgr4zm/a",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 59
+   }
+  ],
+  "colors": [
+   "Pivoine",
+   "Tangerine",
+   "Aigue-marine",
+   "Bleu pervenche",
+   "Noir",
+   "Denim",
+   "Fuchsia",
+   "Outremer",
+   "Vert lacustre"
+  ],
+  "specs": {
+   "compatibility": "iPhone 16 Plus",
+   "other": "Matière : Silicone ; MagSafe"
+  },
+  "weightG": null,
+  "notes": "Réf. par coloris : Pivoine MDGR4ZM/A, Tangerine MDGT4ZM/A, Aigue-marine MDGU4ZM/A, Bleu pervenche MDGV4ZM/A, Noir MYY93ZM/A, Denim MYYA3ZM/A, Fuchsia MYYE3ZM/A, Outremer MYYF3ZM/A, Vert lacustre MYYH3ZM/A"
+ },
+ {
+  "id": "ap042",
+  "name": "Apple Coque transparente avec MagSafe pour iPhone 16",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/ma6a4zm/a/coque-transparente-avec-magsafe-pour-iphone-16",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 59
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "compatibility": "iPhone 16",
+   "other": "MagSafe"
+  },
+  "weightG": null,
+  "notes": "Réf. unique (transparente)"
+ },
+ {
+  "id": "ap043",
+  "name": "Apple Coque transparente avec MagSafe pour iPhone 16 Plus",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/ma7d4zm/a",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 59
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "compatibility": "iPhone 16 Plus",
+   "other": "MagSafe"
+  },
+  "weightG": null,
+  "notes": "Réf. unique (transparente)"
+ },
+ {
+  "id": "ap044",
+  "name": "Apple Pencil Pro",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mx2d3zm/a/apple-pencil-pro",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 149
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "compatibility": "iPad Pro 13 pouces (M5), iPad Pro 13 pouces (M4), iPad Pro 11 pouces (M5), iPad Pro 11 pouces (M4) et autres",
+   "other": "Fixation, jumelage et charge par connexion magnétique ; Bluetooth ; 166 mm, Ø 8,9 mm"
+  },
+  "weightG": 19.15,
+  "notes": ""
+ },
+ {
+  "id": "ap045",
+  "name": "Apple Pencil (USB-C)",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/muwa3zm/a/apple-pencil-usb-c",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 89
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "compatibility": "iPhone Duo ; iPad : iPad Pro 13 pouces (M5), iPad Pro 13 pouces (M4), iPad Pro 12,9 pouces (6ᵉ génération), iPad Pro 12,9 pouces (5ᵉ génération), iPad Pro 12,9 pouces (4ᵉ génération), iPad Pro 12,9 pouces (3ᵉ génération), iPad Pro 11 pouces (M5), iPad Pro 11 pouces (M4), iPad Pro 11 pouces (4ᵉ génération), iPad Pro 11 pouces (3ᵉ génération), iPad Pro 11 pouces (2ᵉ génération), iPad Pro 11 pouces (1ʳᵉ génération), iPad Air 13 pouces (M4), iPad Air 11 pouces (M4), iPad Air 13 pouces (M3), iPad Air 11 pouces (M3), iPad Air 13 pouces (M2), iPad Air 11 pouces (M2), iPad Air (5ᵉ génération), iPad Air (4ᵉ génération), iPad (A16), iPad (10ᵉ génération), iPad mini (A20 Pro), iPad mini (A17 Pro), iPad mini (6ᵉ génération)",
+   "other": "Fixation magnétique ; Bluetooth, connecteur USB-C ; 155 mm, Ø 8,9 mm"
+  },
+  "weightG": 20.5,
+  "notes": ""
+ },
+ {
+  "id": "ap046",
+  "name": "Apple Pencil (2e génération)",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mxn43zm/a/apple-pencil-2%E1%B5%89-g%C3%A9n%C3%A9ration",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 149
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "compatibility": "iPad Pro 12,9 pouces (6ᵉ génération), iPad Pro 12,9 pouces (5ᵉ génération), iPad Pro 12,9 pouces (4ᵉ génération), iPad Pro 12,9 pouces (3ᵉ génération), iPad Pro 11 pouces (4ᵉ génération), iPad Pro 11 pouces (3ᵉ génération), iPad Pro 11 pouces (2ᵉ génération), iPad Pro 11 pouces (1ʳᵉ génération), iPad Air (5ᵉ génération), iPad Air (4ᵉ génération), iPad mini (6ᵉ génération)",
+   "other": "Jumelage et fixation magnétiques ; Bluetooth ; 166 mm, Ø 8,9 mm"
+  },
+  "weightG": 18.2,
+  "notes": ""
+ },
+ {
+  "id": "ap047",
+  "name": "Apple Pencil (1re génération)",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/myqw3zm/a/apple-pencil-1%CA%B3%E1%B5%89-g%C3%A9n%C3%A9ration",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 119
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "compatibility": "iPad Pro 12,9 pouces (2ᵉ génération), iPad Pro 12,9 pouces (1ʳᵉ génération), iPad Pro 10,5 pouces, iPad Pro 9,7 pouces, iPad Air (3ᵉ génération), iPad (A16), iPad (10ᵉ génération), iPad (9ᵉ génération), iPad (8ᵉ génération), iPad (7ᵉ génération), iPad (6ᵉ génération), iPad mini (5ᵉ génération)",
+   "other": "Capuchon maintenu magnétiquement ; Bluetooth, connecteur Lightning ; 175,7 mm, Ø 8,9 mm"
+  },
+  "weightG": 20.7,
+  "notes": ""
+ },
+ {
+  "id": "ap048",
+  "name": "Apple Pointes pour Apple Pencil - Lot de 4",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mx763zm/a/pointes-pour-apple-pencil-lot-de-4",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 25
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "compatibility": "",
+   "other": ""
+  },
+  "weightG": null,
+  "notes": ""
+ },
+ {
+  "id": "ap049",
+  "name": "Apple Adaptateur USB-C vers Apple Pencil",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mwml3zm/a/adaptateur-usb%E2%80%91c-vers-apple-pencil",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 10
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "compatibility": "iPad (A16), iPad (10ᵉ génération)",
+   "other": ""
+  },
+  "weightG": null,
+  "notes": ""
+ },
+ {
+  "id": "ap050",
+  "name": "Apple Magic Mouse (USB-C)",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mxk53z/a/magic-mouse-usb%E2%80%91c-surface-multi%E2%80%91touch-blanc",
+  "configs": [
+   {
+    "label": "Blanc",
+    "priceEur": 85
+   },
+   {
+    "label": "Noir",
+    "priceEur": 119
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "compatibility": "iPad Pro 13 pouces (M5), iPad Pro 13 pouces (M4), iPad Pro 12,9 pouces (6ᵉ génération), iPad Pro 12,9 pouces (5ᵉ génération) et autres ; Mac : MacBook Neo, MacBook Air (13 pouces, M5), MacBook Air (15 pouces, M5), MacBook Air (13 pouces, M4) et autres ; Vision Pro : Apple Vision Pro (M5), Apple Vision Pro (M2) ; Écrans : Studio Display (2026), Studio Display XDR",
+   "other": "Surface Multi-Touch ; Bluetooth, port USB-C ; 2,16 × 5,71 × 11,35 cm"
+  },
+  "weightG": 99,
+  "notes": "Réf. : Blanc MXK53Z/A, Noir MXK63Z/A",
+  "optionName": "Couleur"
+ },
+ {
+  "id": "ap051",
+  "name": "Apple Magic Trackpad (USB-C)",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mxk93z/a/magic-trackpad-usb%E2%80%91c-surface-multi%E2%80%91touch-blanc",
+  "configs": [
+   {
+    "label": "Blanc",
+    "priceEur": 139
+   },
+   {
+    "label": "Noir",
+    "priceEur": 169
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "compatibility": "iPad Pro 13 pouces (M5), iPad Pro 13 pouces (M4), iPad Pro 12,9 pouces (6ᵉ génération), iPad Pro 12,9 pouces (5ᵉ génération) et autres ; Mac : MacBook Neo, MacBook Air (13 pouces, M5), MacBook Air (15 pouces, M5), MacBook Air (13 pouces, M4) et autres ; Vision Pro : Apple Vision Pro (M5), Apple Vision Pro (M2) ; Écrans : Studio Display (2026), Studio Display XDR",
+   "other": "Force Touch, Multi-Touch ; Bluetooth, port USB-C ; 0,49-1,09 × 16 × 11,49 cm"
+  },
+  "weightG": 230,
+  "notes": "Réf. : Blanc MXK93Z/A, Noir MXKA3Z/A",
+  "optionName": "Couleur"
+ },
+ {
+  "id": "ap052",
+  "name": "Apple Magic Keyboard (USB-C) - Français",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mxcl3f/a/magic-keyboard-usb-c-fran%C3%A7ais",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 119
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "compatibility": "iPhone Duo, iPhone 18 Pro, iPhone 18 Pro Max, iPhone 17 Pro et autres ; iPad : iPad Pro 13 pouces (M5), iPad Pro 13 pouces (M4), iPad Pro 12,9 pouces (6ᵉ génération), iPad Pro 12,9 pouces (5ᵉ génération) et autres ; Mac : MacBook Neo, MacBook Air (13 pouces, M5), MacBook Air (15 pouces, M5), MacBook Air (13 pouces, M4) et autres ; Vision Pro : Apple Vision Pro (M5), Apple Vision Pro (M2) ; iPod : iPod touch (7ᵉ génération) ; Écrans : Studio Display (2026), Studio Display XDR",
+   "other": "AZERTY français ; touches multimédias ; Bluetooth, port USB-C ; 27,89 × 11,49 cm"
+  },
+  "weightG": 239,
+  "notes": "Autres dispositions de clavier proposées par Apple (non relevées)"
+ },
+ {
+  "id": "ap053",
+  "name": "Apple Magic Keyboard avec Touch ID pour les Mac avec puce Apple (USB-C) - Français",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mxck3f/a/magic-keyboard-avec-touch-id-pour-les-mac-avec-puce-apple-usb-c-fran%C3%A7ais",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 169
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "compatibility": "iPhone Duo, iPhone 18 Pro, iPhone 18 Pro Max, iPhone 17 Pro et autres ; iPad : iPad Pro 13 pouces (M4), iPad Pro 12,9 pouces (6ᵉ génération), iPad Pro 12,9 pouces (5ᵉ génération), iPad Pro 12,9 pouces (4ᵉ génération) et autres ; Mac : MacBook Neo, MacBook Air (13 pouces, M5), MacBook Air (15 pouces, M5), MacBook Air (13 pouces, M4) et autres ; Écrans : Studio Display (2026), Studio Display XDR",
+   "other": "AZERTY français ; Touch ID ; touches multimédias ; Bluetooth, port USB-C ; 27,89 × 11,49 cm"
+  },
+  "weightG": 243,
+  "notes": ""
+ },
+ {
+  "id": "ap054",
+  "name": "Apple Magic Keyboard avec Touch ID et pavé numérique pour les Mac avec puce Apple (USB-C) - Français",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mxk73f/a/magic-keyboard-avec-touch-id-et-pav%C3%A9-num%C3%A9rique-pour-les-mac-avec-puce-apple-usb%E2%80%91c-fran%C3%A7ais-touches-blanches",
+  "configs": [
+   {
+    "label": "Touches blanches",
+    "priceEur": 199
+   },
+   {
+    "label": "Touches noires",
+    "priceEur": 229
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "compatibility": "iPhone Duo, iPhone 18 Pro, iPhone 18 Pro Max, iPhone 17 Pro et autres ; iPad : iPad Pro 13 pouces (M4), iPad Pro 12,9 pouces (6ᵉ génération), iPad Pro 12,9 pouces (5ᵉ génération), iPad Pro 12,9 pouces (4ᵉ génération) et autres ; Mac : MacBook Neo, MacBook Air (13 pouces, M5), MacBook Air (15 pouces, M5), MacBook Air (13 pouces, M4) et autres ; Écrans : Studio Display (2026), Studio Display XDR",
+   "other": "AZERTY français ; Touch ID ; pavé numérique ; Bluetooth, port USB-C ; 41,87 × 11,49 cm"
+  },
+  "weightG": 369,
+  "notes": "Réf. : Touches blanches MXK73F/A, Touches noires MXK83F/A",
+  "optionName": "Couleur"
+ },
+ {
+  "id": "ap055",
+  "name": "Apple Magic Keyboard pour iPad Pro (M5) - Français",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mwr03f/a/magic-keyboard-pour-ipad-pro-11-pouces-m5-fran%C3%A7ais-blanc",
+  "configs": [
+   {
+    "label": "11 pouces",
+    "priceEur": 349
+   },
+   {
+    "label": "13 pouces",
+    "priceEur": 399
+   }
+  ],
+  "colors": [
+   "Blanc",
+   "Noir"
+  ],
+  "specs": {
+   "compatibility": "iPad Pro 11 pouces (M5), iPad Pro 11 pouces (M4)",
+   "other": "Clavier AZERTY français"
+  },
+  "weightG": null,
+  "notes": "Réf. : 11 pouces Blanc MWR03F/A, 11 pouces Noir MWR23F/A, 13 pouces Blanc MWR43F/A, 13 pouces Noir MWR53F/A",
+  "optionName": "Taille"
+ },
+ {
+  "id": "ap056",
+  "name": "Apple Magic Keyboard pour iPad Air (M4) - Français",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mdfv4f/a/magic-keyboard-pour-ipad-air-11-pouces-m4-fran%C3%A7ais-blanc",
+  "configs": [
+   {
+    "label": "11 pouces",
+    "priceEur": 329
+   },
+   {
+    "label": "13 pouces",
+    "priceEur": 349
+   }
+  ],
+  "colors": [
+   "Blanc",
+   "Noir"
+  ],
+  "specs": {
+   "compatibility": "iPad Air 11 pouces (M4), iPad Air 11 pouces (M3), iPad Air 11 pouces (M2), iPad Air (5ᵉ génération), iPad Air (4ᵉ génération)",
+   "other": "Clavier AZERTY français"
+  },
+  "weightG": null,
+  "notes": "Réf. : 11 pouces Blanc MDFV4F/A, 11 pouces Noir MGYX4F/A, 13 pouces Blanc MDFW4F/A, 13 pouces Noir MGYY4F/A",
+  "optionName": "Taille"
+ },
+ {
+  "id": "ap057",
+  "name": "Apple Magic Keyboard Folio pour iPad (A16) - Français",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mqdp3f/a/magic-keyboard-folio-pour-ipad-a16-fran%C3%A7ais",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 299
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "compatibility": "iPad (A16), iPad (10ᵉ génération)",
+   "other": "Clavier AZERTY français"
+  },
+  "weightG": null,
+  "notes": ""
+ },
+ {
+  "id": "ap058",
+  "name": "Apple Smart Folio pour iPad Pro (M5)",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mw993zm/a/smart-folio-pour-ipad-pro-11-pouces-m5-denim",
+  "configs": [
+   {
+    "label": "11 pouces",
+    "priceEur": 89
+   },
+   {
+    "label": "13 pouces",
+    "priceEur": 119
+   }
+  ],
+  "colors": [
+   "Blanc",
+   "Noir",
+   "Denim"
+  ],
+  "specs": {
+   "compatibility": "iPad Pro 11 pouces (M5), iPad Pro 11 pouces (M4) | iPad : iPad Pro 13 pouces (M5), iPad Pro 13 pouces (M4)",
+   "other": ""
+  },
+  "weightG": null,
+  "notes": "Réf. : 11 pouces Blanc MW973ZM/A, 11 pouces Noir MW983ZM/A, 11 pouces Denim MW993ZM/A, 13 pouces Blanc MWK23ZM/A, 13 pouces Noir MWK33ZM/A, 13 pouces Denim MWK43ZM/A",
+  "optionName": "Taille"
+ },
+ {
+  "id": "ap059",
+  "name": "Apple Smart Folio pour iPad Air (M4)",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mwk83zm/a/smart-folio-pour-ipad-air-11-pouces-m4-violet-clair",
+  "configs": [
+   {
+    "label": "11 pouces",
+    "priceEur": 89
+   },
+   {
+    "label": "13 pouces",
+    "priceEur": 119
+   }
+  ],
+  "colors": [
+   "Anthracite",
+   "Denim",
+   "Sauge",
+   "Violet clair"
+  ],
+  "specs": {
+   "compatibility": "iPad Air 11 pouces (M4), iPad Air 11 pouces (M3), iPad Air 11 pouces (M2), iPad Air (5ᵉ génération), iPad Air (4ᵉ génération) | iPad : iPad Air 13 pouces (M4), iPad Air 13 pouces (M3), iPad Air 13 pouces (M2)",
+   "other": ""
+  },
+  "weightG": null,
+  "notes": "Réf. : 11 pouces Anthracite MWK53ZM/A, 11 pouces Denim MWK63ZM/A, 11 pouces Sauge MWK73ZM/A, 11 pouces Violet clair MWK83ZM/A, 13 pouces Anthracite MWK93ZM/A, 13 pouces Denim MWKA3ZM/A, 13 pouces Sauge MWKC3ZM/A, 13 pouces Violet clair MWKD3ZM/A",
+  "optionName": "Taille"
+ },
+ {
+  "id": "ap060",
+  "name": "Apple Smart Folio pour iPad (A16)",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mdeq4zm/a/smart-folio-pour-ipad-a16-bleu-ciel",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 89
+   }
+  ],
+  "colors": [
+   "Blanc",
+   "Limonade",
+   "Pastèque",
+   "Bleu ciel"
+  ],
+  "specs": {
+   "compatibility": "iPad (A16), iPad (10ᵉ génération)",
+   "other": ""
+  },
+  "weightG": null,
+  "notes": "Réf. : Blanc MDEJ4ZM/A, Limonade MDEN4ZM/A, Pastèque MDEP4ZM/A, Bleu ciel MDEQ4ZM/A"
+ },
+ {
+  "id": "ap061",
+  "name": "Apple Smart Folio pour iPad mini (A20 Pro)",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mkr44zm/a/smart-folio-pour-ipad-mini-a20-pro-bleu-marine",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 89
+   }
+  ],
+  "colors": [
+   "Bleu marine",
+   "Taupe"
+  ],
+  "specs": {
+   "compatibility": "iPad mini (A20 Pro)",
+   "other": ""
+  },
+  "weightG": null,
+  "notes": "Réf. : Bleu marine MKR44ZM/A, Taupe MKR54ZM/A"
+ },
+ {
+  "id": "ap062",
+  "name": "Apple Adaptateur secteur USB-C 20 W",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/md3j4zm/a/adaptateur-secteur-usb%E2%80%91c-20-w",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 19
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "compatibility": "iPhone Duo, iPhone 18 Pro, iPhone 18 Pro Max, iPhone 17 Pro et autres ; iPad : iPad Pro 13 pouces (M5), iPad Pro 13 pouces (M4), iPad Pro 12,9 pouces (6ᵉ génération), iPad Pro 12,9 pouces (5ᵉ génération) et autres ; Mac : MacBook Neo ; Modèles d’Apple Watch : Apple Watch Ultra 4, Apple Watch Ultra 3, Apple Watch Ultra 2, Apple Watch Ultra et autres ; HomePod : HomePod mini 2, HomePod mini ; AirPods : AirPods Pro 3, AirPods Pro 2, AirPods Pro 2 avec Boîtier de charge MagSafe (Lightning), AirPods Pro (1ʳᵉ génération) avec Boîtier de charge MagSafe (Lightning) et autres",
+   "other": "USB-C, 20 W"
+  },
+  "weightG": null,
+  "notes": ""
+ },
+ {
+  "id": "ap063",
+  "name": "Apple Adaptateur secteur double port 35 W",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mw2k3zm/a/adaptateur-secteur-double-port-35-w",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 65
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "compatibility": "iPhone Duo, iPhone 18 Pro, iPhone 18 Pro Max, iPhone 17 Pro et autres ; iPad : iPad Pro 13 pouces (M5), iPad Pro 13 pouces (M4), iPad Pro 12,9 pouces (6ᵉ génération), iPad Pro 12,9 pouces (5ᵉ génération) et autres ; Mac : MacBook Neo, MacBook Air (13 pouces, M5), MacBook Air (15 pouces, M5), MacBook Air (13 pouces, M4) et autres ; Modèles d’Apple Watch : Apple Watch Ultra 4, Apple Watch Ultra 3, Apple Watch Ultra 2, Apple Watch Ultra et autres ; Vision Pro : Apple Vision Pro (M5), Apple Vision Pro (M2) ; AirPods : AirPods Pro 2, AirPods Pro 2 avec Boîtier de charge MagSafe (Lightning), AirPods Pro (1ʳᵉ génération) avec Boîtier de charge MagSafe (Lightning), AirPods 5 et autres",
+   "other": "2 ports, 35 W"
+  },
+  "weightG": null,
+  "notes": ""
+ },
+ {
+  "id": "ap064",
+  "name": "Apple Adaptateur secteur dynamique 40 W avec puissance maximale de 60 W",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mgtu4zm/a/adaptateur-secteur-dynamique-40-w-avec-puissance-maximale-de-60-w",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 45
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "compatibility": "iPhone Duo, iPhone 18 Pro, iPhone 18 Pro Max, iPhone 17 Pro et autres ; iPad : iPad Pro 13 pouces (M5), iPad Pro 13 pouces (M4), iPad Pro 12,9 pouces (6ᵉ génération), iPad Pro 12,9 pouces (5ᵉ génération) et autres ; Mac : MacBook Neo, MacBook Air (13 pouces, M5), MacBook Air (15 pouces, M5), MacBook Air (13 pouces, M4) et autres ; Modèles d’Apple Watch : Apple Watch Ultra 4, Apple Watch Ultra 3, Apple Watch Ultra 2, Apple Watch Ultra et autres ; Vision Pro : Apple Vision Pro (M5), Apple Vision Pro (M2) ; HomeView : Apple HomeView, Apple HomeView (Wall Mounted) ; AirPods : AirPods Pro 3, AirPods Pro 2, AirPods Pro 2 avec Boîtier de charge MagSafe (Lightning), AirPods Pro (1ʳᵉ génération) avec Boîtier de charge MagSafe (Lightning) et autres",
+   "other": "40 W, jusqu’à 60 W"
+  },
+  "weightG": null,
+  "notes": ""
+ },
+ {
+  "id": "ap065",
+  "name": "Apple Adaptateur secteur 70 W",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mkfp4zm/a/adaptateur-secteur-70-w",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 65
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "compatibility": "iPhone Duo, iPhone 18 Pro, iPhone 18 Pro Max, iPhone 17 Pro et autres ; iPad : iPad Pro 13 pouces (M5), iPad Pro 13 pouces (M4), iPad Pro 12,9 pouces (6ᵉ génération), iPad Pro 12,9 pouces (5ᵉ génération) et autres ; Mac : MacBook Neo, MacBook Air (13 pouces, M5), MacBook Air (15 pouces, M5), MacBook Air (13 pouces, M4) et autres ; Modèles d’Apple Watch : Apple Watch Ultra 4, Apple Watch Ultra 3, Apple Watch Ultra 2, Apple Watch Ultra et autres ; Vision Pro : Apple Vision Pro (M5), Apple Vision Pro (M2) ; AirPods : AirPods Pro 3, AirPods Pro 2, AirPods 5, AirPods 5 avec Boîtier de charge sans fil et autres",
+   "other": "70 W"
+  },
+  "weightG": null,
+  "notes": ""
+ },
+ {
+  "id": "ap066",
+  "name": "Apple Adaptateur secteur 96 W",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mw2l3zm/a/adaptateur-secteur-96-w",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 85
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "compatibility": "iPhone Duo, iPhone 18 Pro, iPhone 18 Pro Max, iPhone 17 Pro et autres ; iPad : iPad Pro 13 pouces (M5), iPad Pro 13 pouces (M4), iPad Pro 12,9 pouces (6ᵉ génération), iPad Pro 12,9 pouces (5ᵉ génération) et autres ; Mac : MacBook Neo, MacBook Air (13 pouces, M5), MacBook Air (15 pouces, M5), MacBook Air (13 pouces, M4) et autres ; Modèles d’Apple Watch : Apple Watch Ultra 4, Apple Watch Ultra 3, Apple Watch Ultra 2, Apple Watch Ultra et autres ; Vision Pro : Apple Vision Pro (M5), Apple Vision Pro (M2) ; AirPods : AirPods Pro 3, AirPods Pro 2, AirPods 5, AirPods 5 avec Boîtier de charge sans fil et autres",
+   "other": "96 W"
+  },
+  "weightG": null,
+  "notes": ""
+ },
+ {
+  "id": "ap067",
+  "name": "Apple Adaptateur secteur 140 W",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mkfq4zm/a/adaptateur-secteur-140-w",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 119
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "compatibility": "iPhone Duo, iPhone 18 Pro, iPhone 18 Pro Max, iPhone 17 Pro et autres ; iPad : iPad Pro 13 pouces (M5), iPad Pro 13 pouces (M4), iPad Pro 12,9 pouces (6ᵉ génération), iPad Pro 12,9 pouces (5ᵉ génération) et autres ; Mac : MacBook Neo, MacBook Air (13 pouces, M5), MacBook Air (15 pouces, M5), MacBook Air (13 pouces, M4) et autres ; Modèles d’Apple Watch : Apple Watch Ultra 4, Apple Watch Ultra 3, Apple Watch Ultra 2, Apple Watch Ultra et autres ; Vision Pro : Apple Vision Pro (M5), Apple Vision Pro (M2) ; AirPods : AirPods Pro 3, AirPods Pro 2, AirPods 5, AirPods 5 avec Boîtier de charge sans fil et autres",
+   "other": "140 W"
+  },
+  "weightG": null,
+  "notes": ""
+ },
+ {
+  "id": "ap068",
+  "name": "Apple Adaptateur secteur MagSafe 2 85 W (pour MacBook Pro avec écran Retina)",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/myh83z/a/adaptateur-secteur-magsafe-2-85-w-apple-pour-macbook-pro-avec-%C3%A9cran-retina",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 85
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "compatibility": "MacBook Pro avec écran Retina (MagSafe 2) – liste non publiée sur la page",
+   "other": "MagSafe 2, 85 W"
+  },
+  "weightG": null,
+  "notes": ""
+ },
+ {
+  "id": "ap069",
+  "name": "Apple Kit de voyage",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mlfr4g/a/kit-de-voyage",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 45
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "compatibility": "Adaptateurs secteur Apple (liste non publiée sur la page)",
+   "other": ""
+  },
+  "weightG": null,
+  "notes": ""
+ },
+ {
+  "id": "ap070",
+  "name": "Apple Câble d’extension pour adaptateur secteur",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mw2n3z/a/c%C3%A2ble-d%E2%80%99extension-pour-adaptateur-secteur-connecteur-secteur-1",
+  "configs": [
+   {
+    "label": "Connecteur secteur 2",
+    "priceEur": 25
+   },
+   {
+    "label": "Connecteur secteur 1",
+    "priceEur": 25
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "compatibility": "",
+   "other": "Câble d’extension"
+  },
+  "weightG": null,
+  "notes": "Réf. : Connecteur secteur 2 MKFR4Z/A, Connecteur secteur 1 MW2N3Z/A",
+  "optionName": "Connecteur"
+ },
+ {
+  "id": "ap071",
+  "name": "Apple Câble de charge USB-C 60 W (1 m)",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mw493zm/a/c%C3%A2ble-de-charge-usb%E2%80%91c-60-w-1-m",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 19
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "compatibility": "iPhone Duo, iPhone 18 Pro, iPhone 18 Pro Max, iPhone 17 Pro et autres ; iPad : iPad Pro 13 pouces (M5), iPad Pro 13 pouces (M4), iPad Pro 12,9 pouces (6ᵉ génération), iPad Pro 12,9 pouces (5ᵉ génération) et autres ; Mac : MacBook Neo, MacBook Air (13 pouces, M5), MacBook Air (15 pouces, M5), MacBook Air (13 pouces, M4) et autres ; Vision Pro : Apple Vision Pro (M5), Apple Vision Pro (M2) ; HomeView : Apple HomeView, Apple HomeView (Wall Mounted) ; AirPods : AirPods Pro 3, AirPods Pro 2, AirPods 5, AirPods 5 avec Boîtier de charge sans fil et autres",
+   "other": "USB-C vers USB-C, 60 W, 1 m"
+  },
+  "weightG": null,
+  "notes": ""
+ },
+ {
+  "id": "ap072",
+  "name": "Apple Câble de charge USB-C 240 W (2 m)",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/myqt3zm/a/c%C3%A2ble-de-charge-usb%E2%80%91c-240-w-2-m",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 35
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "compatibility": "iPhone Duo, iPhone 18 Pro, iPhone 18 Pro Max, iPhone 17 Pro et autres ; iPad : iPad Pro 13 pouces (M5), iPad Pro 13 pouces (M4), iPad Pro 12,9 pouces (6ᵉ génération), iPad Pro 12,9 pouces (5ᵉ génération) et autres ; Mac : MacBook Neo, MacBook Air (13 pouces, M5), MacBook Air (15 pouces, M5), MacBook Air (13 pouces, M4) et autres ; Vision Pro : Apple Vision Pro (M5), Apple Vision Pro (M2) ; HomeView : Apple HomeView, Apple HomeView (Wall Mounted) ; AirPods : AirPods Pro 3, AirPods Pro 2, AirPods 5, AirPods 5 avec Boîtier de charge sans fil et autres ; Écrans : Studio Display (2026), Studio Display XDR",
+   "other": "USB-C vers USB-C, 240 W, 2 m"
+  },
+  "weightG": null,
+  "notes": ""
+ },
+ {
+  "id": "ap073",
+  "name": "Apple Câble USB-C vers Lightning",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/muq93zm/a/c%C3%A2ble-usb-c-vers-lightning-1-m",
+  "configs": [
+   {
+    "label": "1 m",
+    "priceEur": 19
+   },
+   {
+    "label": "2 m",
+    "priceEur": 35
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "compatibility": "iPhone 14 Pro, iPhone 14 Pro Max, iPhone 14, iPhone 14 Plus et autres ; iPad : iPad Pro 13 pouces (M5), iPad Pro 13 pouces (M4), iPad Pro 12,9 pouces (6ᵉ génération), iPad Pro 12,9 pouces (5ᵉ génération) et autres ; Mac : MacBook Neo, MacBook Air (13 pouces, M5), MacBook Air (15 pouces, M5), MacBook Air (13 pouces, M4) et autres ; iPod : iPod touch (7ᵉ génération), iPod touch (6ᵉ génération), iPod touch (5ᵉ génération), iPod nano (7ᵉ génération) ; AirPods : AirPods Pro 2 avec Boîtier de charge MagSafe (Lightning), AirPods Pro (1ʳᵉ génération) avec Boîtier de charge MagSafe (Lightning), AirPods (3ᵉ génération) avec Boîtier de charge MagSafe, AirPods (3ᵉ génération) avec Boîtier de charge Lightning et autres ; Écrans : Studio Display (2026), Studio Display XDR",
+   "other": "USB-C vers Lightning"
+  },
+  "weightG": null,
+  "notes": "Réf. : 1 m MUQ93ZM/A, 2 m MW2R3ZM/A"
+ },
+ {
+  "id": "ap074",
+  "name": "Apple Câble Lightning vers USB (1 m)",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/muqw3zm/a/c%C3%A2ble-lightning-vers-usb-1-m",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 19
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "compatibility": "iPhone 14 Pro, iPhone 14 Pro Max, iPhone 14, iPhone 14 Plus et autres ; iPad : iPad Pro 12,9 pouces (2ᵉ génération), iPad Pro 12,9 pouces (1ʳᵉ génération), iPad Pro 10,5 pouces, iPad Pro 9,7 pouces et autres ; Mac : MacBook Air (13 pouces, M4), MacBook Air (15 pouces, M4), iMac (Retina 4K, 21,5 pouces, 2019), iMac (Retina 5K, 27 pouces, 2019 - 2020) et autres ; iPod : iPod touch (7ᵉ génération), iPod touch (6ᵉ génération), iPod touch (5ᵉ génération), iPod nano (7ᵉ génération) ; AirPods : AirPods Pro 2 avec Boîtier de charge MagSafe (Lightning), AirPods Pro (1ʳᵉ génération) avec Boîtier de charge MagSafe (Lightning), AirPods (3ᵉ génération) avec Boîtier de charge MagSafe, AirPods (3ᵉ génération) avec Boîtier de charge Lightning et autres",
+   "other": "Lightning vers USB, 1 m"
+  },
+  "weightG": null,
+  "notes": ""
+ },
+ {
+  "id": "ap075",
+  "name": "Apple Câble Thunderbolt 5 (USB-C) Pro (1 m)",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mdw94zm/a/c%C3%A2ble-thunderbolt-5-usb%E2%80%91c-pro-1-m",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 79
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "compatibility": "iPhone Duo, iPhone 18 Pro, iPhone 18 Pro Max, iPhone 17 Pro et autres ; iPad : iPad Pro 13 pouces (M4), iPad Pro 12,9 pouces (6ᵉ génération), iPad Pro 12,9 pouces (5ᵉ génération), iPad Pro 12,9 pouces (4ᵉ génération) et autres ; Mac : MacBook Neo, MacBook Air (13 pouces, M5), MacBook Air (15 pouces, M5), MacBook Air (13 pouces, M3) et autres ; Écrans : Studio Display (2026), Studio Display XDR",
+   "other": "Thunderbolt 5, 1 m"
+  },
+  "weightG": null,
+  "notes": ""
+ },
+ {
+  "id": "ap076",
+  "name": "Apple Câble Thunderbolt 4 (USB-C) Pro",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mw5j3zm/a/c%C3%A2ble-thunderbolt-4-usb%E2%80%91c-pro-18-m",
+  "configs": [
+   {
+    "label": "1,8 m",
+    "priceEur": 149
+   },
+   {
+    "label": "3 m",
+    "priceEur": 179
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "compatibility": "iPhone Duo, iPhone 18 Pro, iPhone 18 Pro Max, iPhone 17 Pro et autres ; iPad : iPad Pro 13 pouces (M4), iPad Pro 12,9 pouces (6ᵉ génération), iPad Pro 12,9 pouces (5ᵉ génération), iPad Pro 12,9 pouces (4ᵉ génération) et autres ; Mac : MacBook Neo, MacBook Air (13 pouces, M5), MacBook Air (15 pouces, M5), MacBook Air (13 pouces, M4) et autres ; Écrans : Studio Display (2026), Studio Display XDR, Studio Display (2022), Pro Display XDR",
+   "other": "Thunderbolt 4"
+  },
+  "weightG": null,
+  "notes": "Réf. : 1,8 m MW5J3ZM/A, 3 m MW5H3ZM/A"
+ },
+ {
+  "id": "ap077",
+  "name": "Apple Câble USB-C vers MagSafe 3 (2 m)",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mw613zm/a/c%C3%A2ble-usb-c-vers-magsafe-3-2-m-argent",
+  "configs": [
+   {
+    "label": "2 m",
+    "priceEur": 55
+   }
+  ],
+  "colors": [
+   "Bleu ciel",
+   "Noir sidéral",
+   "Argent",
+   "Gris sidéral",
+   "Lumière stellaire",
+   "Minuit"
+  ],
+  "specs": {
+   "compatibility": "Mac : MacBook Air (13 pouces, M5), MacBook Air (15 pouces, M5), MacBook Air (13 pouces, M4), MacBook Air (15 pouces, M4) et autres",
+   "other": "Connexions : MagSafe 3, USB-C"
+  },
+  "weightG": null,
+  "notes": "Réf. : Bleu ciel MDF14ZM/A, Noir sidéral MUVQ3ZM/A, Argent MW613ZM/A, Gris sidéral MW623ZM/A, Lumière stellaire MW633ZM/A, Minuit MW643ZM/A"
+ },
+ {
+  "id": "ap078",
+  "name": "Apple Chargeur MagSafe",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mgd74zm/a/chargeur-magsafe-1-m",
+  "configs": [
+   {
+    "label": "1 m",
+    "priceEur": 49
+   },
+   {
+    "label": "2 m",
+    "priceEur": 59
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "compatibility": "iPhone Duo, iPhone 18 Pro, iPhone 18 Pro Max, iPhone 17 Pro et autres ; AirPods : AirPods Pro 3, AirPods Pro 2, AirPods Pro 2 avec Boîtier de charge MagSafe (Lightning), AirPods Pro (1ʳᵉ génération) avec Boîtier de charge MagSafe (Lightning) et autres",
+   "other": "Chargeur MagSafe"
+  },
+  "weightG": null,
+  "notes": "Réf. : 1 m MGD74ZM/A, 2 m MGDM4ZM/A"
+ },
+ {
+  "id": "ap079",
+  "name": "Apple Câble de charge rapide magnétique vers USB-C pour Apple Watch (1 m)",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/ml434zm/a/c%C3%A2ble-de-charge-rapide-magn%C3%A9tique-vers-usb%E2%80%91c-pour-apple-watch-1-m",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 29
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "compatibility": "Mac : MacBook Air (13 pouces, M4), MacBook Air (15 pouces, M4), MacBook Air (13 pouces, M3), MacBook Air (15 pouces, M3) et autres ; Modèles d’Apple Watch : Apple Watch Ultra 4, Apple Watch Ultra 3, Apple Watch Ultra 2, Apple Watch Ultra et autres ; AirPods : AirPods Pro 3, AirPods Pro 2, AirPods 5 avec Boîtier de charge sans fil, AirPods 4 avec Réduction active du bruit",
+   "other": "Charge rapide, USB-C, 1 m"
+  },
+  "weightG": null,
+  "notes": ""
+ },
+ {
+  "id": "ap080",
+  "name": "Apple Câble de charge magnétique pour Apple Watch (1 m)",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mw6a3zm/a/c%C3%A2ble-de-charge-magn%C3%A9tique-pour-apple-watch-1-m",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 29
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "compatibility": "Mac : iMac (Retina 4K, 21,5 pouces, 2019), iMac (Retina 5K, 27 pouces, 2019 - 2020), iMac (Retina 5K, 27 pouces, fin 2014 à 2015), iMac Pro (2017) et autres ; Modèles d’Apple Watch : Apple Watch Ultra 3, Apple Watch Ultra 2, Apple Watch Ultra, Apple Watch SE 3 et autres ; AirPods : AirPods Pro 3, AirPods Pro 2, AirPods Pro 2 avec Boîtier de charge MagSafe (Lightning), AirPods 4 avec Réduction active du bruit, AirPods (3ᵉ génération) avec Boîtier de charge MagSafe",
+   "other": "1 m ; type de prise non précisé dans le titre"
+  },
+  "weightG": null,
+  "notes": ""
+ },
+ {
+  "id": "ap081",
+  "name": "Apple Adaptateur USB-C vers USB",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mw5l3zm/a/adaptateur-usb-c-vers-usb",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 25
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "compatibility": "iPhone Duo, iPhone 18 Pro, iPhone 18 Pro Max, iPhone 17 Pro et autres ; iPad : iPad Pro 13 pouces (M5), iPad Pro 13 pouces (M4), iPad Pro 12,9 pouces (6ᵉ génération), iPad Pro 12,9 pouces (5ᵉ génération) et autres ; Mac : MacBook Neo, MacBook Air (13 pouces, M5), MacBook Air (15 pouces, M5), MacBook Air (13 pouces, M4) et autres ; Écrans : Studio Display (2026), Studio Display XDR",
+   "other": "USB-C vers USB"
+  },
+  "weightG": null,
+  "notes": ""
+ },
+ {
+  "id": "ap082",
+  "name": "Apple Adaptateur multiport AV numérique USB-C",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mw5m3zm/a/adaptateur-multiport-av-num%C3%A9rique-usb%E2%80%91c",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 79
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "compatibility": "iPhone Duo, iPhone 18 Pro, iPhone 18 Pro Max, iPhone 17 Pro et autres ; iPad : iPad Pro 13 pouces (M4), iPad Pro 12,9 pouces (6ᵉ génération), iPad Pro 12,9 pouces (5ᵉ génération), iPad Pro 12,9 pouces (4ᵉ génération) et autres ; Mac : MacBook Neo, MacBook Air (13 pouces, M5), MacBook Air (15 pouces, M5), MacBook Air (13 pouces, M4) et autres ; Écrans : Studio Display (2026), Studio Display XDR",
+   "other": ""
+  },
+  "weightG": null,
+  "notes": ""
+ },
+ {
+  "id": "ap083",
+  "name": "Apple Adaptateur USB-C vers lecteur de carte SD",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mw653zm/a/adaptateur-usb%E2%80%91c-vers-lecteur-de-carte-sd",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 45
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "compatibility": "iPhone Duo, iPhone 18 Pro, iPhone 18 Pro Max, iPhone 17 Pro et autres ; iPad : iPad Pro 13 pouces (M5), iPad Pro 13 pouces (M4), iPad Pro 12,9 pouces (6ᵉ génération), iPad Pro 12,9 pouces (5ᵉ génération) et autres ; Mac : MacBook Neo, MacBook Air (13 pouces, M5), MacBook Air (15 pouces, M5), MacBook Air (13 pouces, M4) et autres ; Écrans : Studio Display (2026), Studio Display XDR",
+   "other": ""
+  },
+  "weightG": null,
+  "notes": ""
+ },
+ {
+  "id": "ap084",
+  "name": "Apple Adaptateur USB-C vers Lightning",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/muqx3zm/a/adaptateur-usb%E2%80%91c-vers-lightning",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 35
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "compatibility": "iPhone Duo, iPhone 18 Pro, iPhone 18 Pro Max, iPhone 17 Pro et autres ; iPad : iPad Pro 13 pouces (M5), iPad Pro 13 pouces (M4), iPad Pro 12,9 pouces (6ᵉ génération), iPad Pro 12,9 pouces (5ᵉ génération) et autres",
+   "other": ""
+  },
+  "weightG": null,
+  "notes": ""
+ },
+ {
+  "id": "ap085",
+  "name": "Apple Adaptateur Thunderbolt 3 (USB-C) vers Thunderbolt 2",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/myh93zm/a/adaptateur-thunderbolt-3-usb-c-vers-thunderbolt-2",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 55
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "compatibility": "Mac : MacBook Air (13 pouces, M5), MacBook Air (15 pouces, M5), MacBook Air (13 pouces, M4), MacBook Air (15 pouces, M4) et autres ; Écrans : Studio Display (2026), Studio Display XDR, Studio Display (2022), Pro Display XDR",
+   "other": ""
+  },
+  "weightG": null,
+  "notes": ""
+ },
+ {
+  "id": "ap086",
+  "name": "Apple Câble audio USB-C vers jack 3,5 mm (1,2 m)",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mdv84zm/a/c%C3%A2ble-audio-usb-c-vers-jack-35-mm-12-m",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 45
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "compatibility": "iPhone Duo, iPhone 18 Pro, iPhone 18 Pro Max, iPhone 17 Pro et autres ; iPad : iPad Pro 13 pouces (M4), iPad Pro 12,9 pouces (6ᵉ génération), iPad Pro 12,9 pouces (5ᵉ génération), iPad Pro 12,9 pouces (4ᵉ génération) et autres ; Mac : MacBook Neo, MacBook Air (13 pouces, M5), MacBook Air (15 pouces, M5), MacBook Air (13 pouces, M4) et autres ; AirPods : AirPods Max 2, AirPods Max",
+   "other": "1,2 m"
+  },
+  "weightG": null,
+  "notes": ""
+ },
+ {
+  "id": "ap087",
+  "name": "Apple Adaptateur USB-C vers mini-jack 3,5 mm",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mw2q3zm/a/adaptateur-usb%E2%80%91c-vers-mini%E2%80%91jack-35-mm",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 10
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "compatibility": "iPhone Duo, iPhone 18 Pro, iPhone 18 Pro Max, iPhone 17 Pro et autres ; iPad : iPad Pro 13 pouces (M4), iPad Pro 12,9 pouces (6ᵉ génération), iPad Pro 12,9 pouces (5ᵉ génération), iPad Pro 12,9 pouces (4ᵉ génération) et autres ; Mac : MacBook Neo, MacBook Air (13 pouces, M5), MacBook Air (15 pouces, M5), MacBook Air (13 pouces, M4) et autres",
+   "other": ""
+  },
+  "weightG": null,
+  "notes": ""
+ },
+ {
+  "id": "ap088",
+  "name": "Apple Adaptateur pour appareil photo Lightning vers USB 3",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mx5j3zm/a/adaptateur-pour-appareil-photo-lightning-vers-usb-3",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 49
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "compatibility": "iPhone 14 Pro, iPhone 14 Pro Max, iPhone 14, iPhone 14 Plus et autres ; iPad : iPad Pro 12,9 pouces (2ᵉ génération), iPad Pro 12,9 pouces (1ʳᵉ génération), iPad Pro 10,5 pouces, iPad Pro 9,7 pouces et autres",
+   "other": ""
+  },
+  "weightG": null,
+  "notes": ""
+ },
+ {
+  "id": "ap089",
+  "name": "Apple Adaptateur Lightning AV numérique",
+  "category": "Accessoires",
+  "url": "https://www.apple.com/fr/shop/product/mw2p3zm/a/adaptateur-lightning-av-num%C3%A9rique",
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 59
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "compatibility": "iPhone 14 Pro, iPhone 14 Pro Max, iPhone 14, iPhone 14 Plus et autres ; iPad : iPad Pro 12,9 pouces (2ᵉ génération), iPad Pro 12,9 pouces (1ʳᵉ génération), iPad Pro 10,5 pouces, iPad Pro 9,7 pouces et autres ; iPod : iPod touch (7ᵉ génération), iPod touch (6ᵉ génération)",
+   "other": ""
+  },
+  "weightG": null,
+  "notes": ""
+ },
+ {
+  "id": "ap090",
+  "name": "Apple EarPods",
+  "category": "Audio",
+  "url": "https://www.apple.com/fr/shop/product/myqy3zm/a/earpods-usb-c",
+  "configs": [
+   {
+    "label": "Lightning",
+    "priceEur": 19
+   },
+   {
+    "label": "Mini-jack 3,5 mm",
+    "priceEur": 19
+   },
+   {
+    "label": "USB-C",
+    "priceEur": 19
+   }
+  ],
+  "colors": [],
+  "specs": {
+   "compatibility": "iPhone Duo, iPhone 18 Pro, iPhone 18 Pro Max, iPhone 17 Pro et autres ; iPad : iPad Pro 13 pouces (M5), iPad Pro 13 pouces (M4), iPad Pro 12,9 pouces (6ᵉ génération), iPad Pro 12,9 pouces (5ᵉ génération) et autres ; Mac : MacBook Neo, MacBook Air (13 pouces, M5), MacBook Air (15 pouces, M5), MacBook Air (13 pouces, M4) et autres",
+   "other": "Écouteurs filaires"
+  },
+  "weightG": null,
+  "notes": "Réf. : Lightning MWTY3ZM/A, Mini-jack 3,5 mm MWU53ZM/A, USB-C MYQY3ZM/A",
+  "optionName": "Prise"
+ }
+]
