@@ -455,9 +455,14 @@
   window.addEventListener('hashchange', hideSuggest);
   $('#searchForm').addEventListener('submit', () => { sugSeq++; clearTimeout(sugTimer); hideSuggest(); });
 
+  const searchCatLabel = () => { const o = $('#searchCat').selectedOptions[0]; $('#searchCatLabel').textContent = o?.value ? o.textContent.trim() : 'Rayons'; };
+  // Choisir un rayon dans la liste OUVRE ce rayon (demande Joseph 14/11/2026 : « aucune action ne se voit ») ;
+  // si un mot est déjà tapé, la recherche est relancée dans ce rayon
   $('#searchCat').addEventListener('change', () => {
-    const o = $('#searchCat').selectedOptions[0];
-    $('#searchCatLabel').textContent = o.value ? o.textContent.trim() : 'Rayons';
+    searchCatLabel();
+    const q = $('#searchInput').value.trim(), v = searchCat();
+    const target = q ? '#/recherche/' + enc(q) : v ? catHash(v) : '#/';
+    if (location.hash === target) route(); else location.hash = target;
   });
 
   // Ville de livraison (en-tête) : retenue pour pré-remplir la commande
@@ -2873,6 +2878,11 @@
     renderNoelBar();
     if (parts[0] !== 'recherche') $('.header').classList.remove('search-open');
     if (parts[0] !== 'recherche') $('#searchInput').value = '';
+    // La liste « Rayons » de la recherche suit la page affichée (rayon ouvert, sinon « Tous les rayons »)
+    if (parts[0] !== 'recherche') {
+      const want = parts[0] === 'c' ? (parts[2] ? `c:${parts[2]}` : parts[1] ? `u:${parts[1]}` : '') : '';
+      if ([...$('#searchCat').options].some((o) => o.value === want)) { $('#searchCat').value = want; searchCatLabel(); }
+    }
     markTab(parts[0]);
     if (opts.keep) { const y = window.scrollY; [0, 150, 450].forEach((ms) => setTimeout(() => { if (Math.abs(window.scrollY - y) > 2) window.scrollTo(0, y); }, ms)); }
     if (!opts.keep) {
