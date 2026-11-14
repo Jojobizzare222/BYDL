@@ -39,7 +39,7 @@ ok(rc1.amount === inv1.amount && inv1.amount > 0, 'montant du reçu = montant de
 
 // Client : documents visibles avec la clé de la commande ; lien protégé
 const co = (await call(null, `/orders/${o1.id}`, { headers: { 'X-Order-Token': o1.token } })).data;
-ok(co.documents.length === 2 && co.documents.every((d) => d.link.includes('?k=')) && !('token' in co.documents[0]), 'client : facture et reçu dans sa commande (lien avec clé, sans exposer le reste)');
+ok(co.documents.filter((d) => d.type !== 'order').length === 2 && co.documents.some((d) => d.type === 'order') && co.documents.every((d) => d.link.includes('?k=')) && !('token' in co.documents[0]), 'client : bon de commande, facture et reçu dans sa commande (lien avec clé, sans exposer le reste)');
 const link = co.documents.find((d) => d.type === 'receipt').link.replace('/api', '');
 const html = await call(null, link);
 ok(html.status === 200 && html.data.includes('Reçu de paiement') && html.data.includes(rc1.number) && html.data.includes('francs CFA'), 'lien du reçu : page imprimable avec numéro et montant en lettres');
@@ -54,7 +54,7 @@ await call(A, `/admin/orders/${o1.id}`, { method: 'PATCH', body: { status: 'canc
 await sleep(150);
 const d1b = (await call(A, '/admin/orders')).data.orders.find((x) => x.id === o1.id).documents;
 const av = d1b.find((d) => d.type === 'credit');
-ok(av?.number === `AV-${Y}-00001` && av.invoiceNumber === inv1.number && d1b.length === 3, 'commande payée puis annulée : avoir AV-…-00001 qui annule la facture');
+ok(av?.number === `AV-${Y}-00001` && av.invoiceNumber === inv1.number && d1b.filter((d) => d.type !== 'order').length === 3, 'commande payée puis annulée : avoir AV-…-00001 qui annule la facture');
 
 // Numérotation continue + informations de la société figées à l'émission
 ok((await call(A, '/admin/documents/company', { method: 'PUT', body: { vatRate: 90 } })).status === 400, 'taux de TVA invalide refusé');
@@ -72,7 +72,7 @@ ok(p2.includes('CG-PNR-01-2026-B12-00001') && p2.includes('TVA 18') && !p1.inclu
 
 // Pas de doublon, rôles, export
 const again = await call(A, `/admin/documents/order/${o2.id}`, { body: {} });
-ok(again.data.documents.length === 2, '« Établir les documents » : aucun doublon');
+ok(again.data.documents.filter((d) => d.type !== 'order').length === 2 && again.data.documents.filter((d) => d.type === 'order').length <= 1, '« Établir les documents » : aucun doublon');
 const cat = (await call(A, '/admin/staff', { body: { name: 'Céline Catalogue', login: 'celine.cat', role: 'catalog' } })).data;
 const C = { c: '' }; await call(C, '/admin/login', { body: { login: 'celine.cat', password: cat.password || cat.user?.password || cat.tempPassword } });
 ok((await call(C, '/admin/documents')).status === 403, 'employé Catalogue : pas accès aux factures');

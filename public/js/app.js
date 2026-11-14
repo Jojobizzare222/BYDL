@@ -1503,6 +1503,8 @@
           <h2 style="margin-top:24px">2. Paiement</h2>
           <div class="methods">
             ${methods.mobile?.enabled ? `<label class="op"><input type="radio" name="method" value="mobile"><span>${icon('device-mobile-duotone')}<span class="txt">Mobile Money${methods.mobile?.pull ? '' : ' par dépôt'}<small>${methods.mobile?.pull ? (dep ? `Acompte de ${fcfa(dep)} pour confirmer, puis le reste` : 'MTN MoMo · Airtel Money') : `Vous envoyez l'argent au numéro MTN ou Airtel de Zado${dep ? ` : acompte de ${fcfa(dep)}, puis le reste` : ', en une fois'}`}</small></span></span></label>` : ''}
+            ${methods.soon?.momo ? `<div class="op off soon" aria-disabled="true"><span>${icon('device-mobile-duotone')}<span class="txt">Mobile Money direct<small>Validation sur votre téléphone (MTN, Airtel)</small></span><em class="soon-tag">Bientôt</em></span></div>` : ''}
+            ${methods.soon?.card ? `<div class="op off soon" aria-disabled="true"><span>${icon('credit-card-duotone')}<span class="txt">Carte bancaire<small>Visa · Mastercard, page sécurisée</small></span><em class="soon-tag">Bientôt</em></span></div>` : ''}
             ${methods.momo ? `<label class="op"><input type="radio" name="method" value="momo"><span>${icon('device-mobile-duotone')}<span class="txt">Mobile Money<small>MTN MoMo · Airtel Money</small></span></span></label>` : ''}
             ${methods.card ? `<label class="op"><input type="radio" name="method" value="card"><span>${icon('credit-card-duotone')}<span class="txt">Carte bancaire<small>Visa · Mastercard</small></span></span></label>` : ''}
             ${methods.cod?.enabled ? `<label class="op"><input type="radio" name="method" value="cod"><span>${icon('hand-coins-duotone')}<span class="txt">Payer à la réception<small>Espèces ou Mobile Money au livreur${methods.cod.deposit ? ` · acompte de ${fcfa(methods.cod.deposit)} pour confirmer` : ''}</small></span></span></label>` : ''}
@@ -1579,7 +1581,7 @@
     const grandN = () => cartTotal() - (promo.amount || 0) + fr0.fee + (fee() || 0);
     const grand = () => fcfa(grandN());
     const payMode = () => (form.paymode?.value === 'push' ? 'push' : 'pull');
-    const BTN = { mobile: () => (dep ? `${payMode() === 'push' ? 'Commander et déposer' : 'Payer'} l'acompte de ${fcfa(Math.min(dep, grandN()))}` : payMode() === 'push' ? `Commander et payer ${grand()}` : `Payer ${grand()}`), momo: () => `Payer ${grand()}`, card: () => `Payer ${grand()} par carte`, cash: () => 'Réserver et payer au point relais', cod: () => 'Confirmer ma commande' };
+    const BTN = { mobile: () => (dep ? `${payMode() === 'push' ? 'Commander et déposer' : 'Payer'} l'acompte de ${fcfa(Math.min(dep, grandN()))}` : payMode() === 'push' ? 'Valider ma commande' : `Payer ${grand()}`), momo: () => `Payer ${grand()}`, card: () => `Payer ${grand()} par carte`, cash: () => 'Réserver et payer au point relais', cod: () => 'Confirmer ma commande' };
     const BUTTON = new Proxy({}, { get: (_, k) => BTN[k]?.() });
     const showFee = () => {
       const f = fee();
@@ -1622,7 +1624,7 @@
       if (m === 'mobile') {
         const d = dep > 0 ? Math.min(dep, grandN()) : grandN(), rest = grandN() - d;
         $('#mobileHint').innerHTML = !rest
-          ? `${icon('check-circle-duotone')} <span>${payMode() === 'push' ? `Après avoir commandé, vous recevez le <strong>numéro Mobile Money de Zado</strong> (MTN ou Airtel). Envoyez-y <strong>${fcfa(d)}</strong> avec votre numéro de commande en référence : dès que Zado le reçoit, votre commande est confirmée et le récapitulatif arrive dans « Aide ».` : `Une demande de <strong>${fcfa(d)}</strong> arrive sur votre téléphone : tapez votre code secret pour valider. Le récapitulatif arrive ensuite dans « Aide ».`}</span>`
+          ? `${icon('check-circle-duotone')} <span>${payMode() === 'push' ? `En validant, vous recevez votre <strong>bon de commande</strong> : il récapitule votre achat et indique ${methods.mobile?.numbersSet ? 'le <strong>numéro Mobile Money de Zado</strong> (MTN ou Airtel)' : 'comment payer (le numéro Mobile Money de Zado vous sera communiqué très prochainement)'}. Envoyez-y <strong>${fcfa(d)}</strong> par dépôt, avec votre numéro de commande en référence : dès réception, vous recevez la <strong>confirmation de commande</strong> sur le site${state.customer?.email ? ', par e-mail' : ''} et par WhatsApp.` : `Une demande de <strong>${fcfa(d)}</strong> arrive sur votre téléphone : tapez votre code secret pour valider. Le récapitulatif arrive ensuite dans « Aide ».`}</span>`
           : payMode() === 'push' && !methods.mobile?.pull
           ? `${icon('check-circle-duotone')} <span>1) Après avoir commandé, vous recevez le <strong>numéro Mobile Money de Zado</strong> (MTN ou Airtel). Envoyez-y l'<strong>acompte de ${fcfa(d)}</strong> avec votre numéro de commande en référence : dès que Zado le reçoit, votre commande est confirmée et le récapitulatif arrive dans « Aide ». 2) Vous déposez ensuite le reste (<strong>${fcfa(rest)}</strong>) de la même façon. L'acompte est déduit du total sur votre facture.</span>`
           : `${icon('check-circle-duotone')} <span>1) Vous payez un <strong>acompte de ${fcfa(d)}</strong> : il confirme votre commande et vous recevez le récapitulatif dans « Aide ». 2) ${payMode() === 'push' ? `Vous déposez ensuite le reste (<strong>${fcfa(rest)}</strong>) sur le numéro Mobile Money de Zado indiqué, avec le numéro de commande en référence.` : `Une demande du reste (<strong>${fcfa(rest)}</strong>) arrive aussitôt sur votre téléphone : vous tapez votre code secret.`} L'acompte est déduit du total sur votre facture.</span>`;
@@ -1756,7 +1758,8 @@
           if (['paid', 'confirmed'].includes(ex.data?.orderStatus)) return finishPaid(checkout);
           throw ex;
         }
-        if (payment.operator === 'cash' || payment.operator === 'transfer') return finishReservation(checkout); // dépôt : instructions sur la page de suivi
+        if (payment.operator === 'transfer') return finishPaid(checkout); // dépôt : page « Commande enregistrée » + bon de commande
+        if (payment.operator === 'cash') return finishReservation(checkout);
         if (payment.mobile && payment.status === 'SUCCESSFUL') return finishPaid(checkout); // acompte à 0 : confirmée tout de suite
         if (payment.cod && payment.status === 'SUCCESSFUL') return finishPaid(checkout); // client fiable : confirmée sans acompte
         saveCheckout({ ...checkout, paymentId: payment.id, mobile: m === 'mobile' });
@@ -1842,7 +1845,7 @@
       const to = m.depositTo;
       return `<div class="pay-box ${failed ? 'warn' : ''}">${icon('money-duotone')}<div><b>${m.stage === 'deposit' ? (full ? 'Confirmez votre commande : déposez le montant' : 'Confirmez votre commande : déposez l\'acompte') : 'Finalisez votre paiement : déposez le reste'}</b>
         ${to ? `<span>Envoyez <strong>${fcfa(m.amount)}</strong> par dépôt ${op[to.operator] || 'Mobile Money'} au <strong class="pb-num">${esc(to.display)}</strong> (${esc(to.holder)}).<br>Référence à indiquer : <strong>${esc(o.id)}</strong></span>
-        <button type="button" class="btn ghost small" data-copy="${esc(to.number)}">${icon('copy')} Copier le numéro</button>` : '<span>Un conseiller Zado vous indique le numéro de dépôt dans « Aide ».</span>'}
+        <button type="button" class="btn ghost small" data-copy="${esc(to.number)}">${icon('copy')} Copier le numéro</button>` : `<span>Montant à envoyer : <strong>${fcfa(m.amount)}</strong>, référence <strong>${esc(o.id)}</strong>.<br>Le numéro Mobile Money officiel de Zado vous sera communiqué très prochainement, ici, dans « Aide » et par WhatsApp.</span>`}
         <small>${failed ? 'Délai dépassé : écrivez-nous dans « Aide » si vous avez déjà déposé.' : `Zado confirme dès réception${m.expiresAt ? `, avant le ${longDate(m.expiresAt)}` : ''}. Vous serez prévenu ici et dans « Aide ».`}</small></div></div>`;
     }
     if (m.stage === 'deposit') return `<div class="pay-box">${icon('device-mobile-duotone')}<div><b>Validez ${full ? 'le paiement' : "l'acompte"} de ${fcfa(m.amount)} sur votre téléphone</b><span>Tapez votre code secret ${op[m.operator] || 'Mobile Money'} pour confirmer la commande.</span></div></div>`;
@@ -1868,7 +1871,25 @@
       try { order = await api('/orders/' + enc(orderId), { headers: orderHeaders(last.token) }); } catch {}
     }
     try { state.products = await api('/products'); } catch {} // stock à jour
-    if (order && order.status === 'pending_payment' && order.paymentPlan === 'mobile') { location.hash = '#/suivi/' + order.id; return; }
+    // Commande validée, en attente du dépôt (décision Joseph 14/11/2026) : bon de commande + comment payer
+    if (order && order.status === 'pending_payment' && order.paymentPlan === 'mobile') {
+      const bdc = (order.documents || []).find((d) => d.type === 'order');
+      app.innerHTML = `
+        <div class="panel waiting order-done">
+          ${mama('yes', { size: 'md', label: 'Mama Zando est contente' }) || `<div class="big-check">${icon('check-circle-duotone')}</div>`}
+          <h1>Commande enregistrée&nbsp;!</h1>
+          <p>Commande <strong>${esc(order.id)}</strong> : <strong>${fcfa(order.total)}</strong></p>
+          ${bdc ? `<a class="btn cta" href="${esc(bdc.link)}" target="_blank" rel="noopener">${icon('receipt')} Voir mon bon de commande</a>
+          <p class="hint">Il récapitule votre achat et explique comment payer. Vous le retrouvez aussi dans Mon compte → Mes commandes.</p>` : ''}
+          ${mobileBox(order)}
+          <div class="next-steps"><b>Et ensuite ?</b>
+            <ol><li>Faites le dépôt Mobile Money avec la référence <strong>${esc(order.id)}</strong>.</li>
+            <li>Dès réception, vous recevez la <strong>confirmation de commande</strong> ici${state.customer?.email ? ', par e-mail' : ''} et par WhatsApp.</li>
+            <li>Nous lançons le traitement : achat en France, vol vers Pointe-Noire, puis livraison.</li></ol></div>
+          <p><a class="btn ghost" href="#/suivi/${enc(order.id)}">Suivre ma commande</a> <a class="btn ghost" href="#/">Continuer mes achats</a></p>
+        </div>`;
+      return;
+    }
     if (order && order.status === 'pending_payment') {
       app.innerHTML = `
         <div class="panel waiting">

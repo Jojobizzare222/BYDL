@@ -538,6 +538,7 @@
         <div class="row">
           ${paysAtAgency(o) ? `<button class="btn green" id="cashBtn">${icon('money-duotone')} Paiement reçu en agence (${fcfa(o.total)})</button>` : ''}
           ${o.paymentPlan === 'mobile' && o.mobile?.mode === 'push' && ['pending_payment', 'confirmed'].includes(o.status) ? `<button class="btn green" id="transferBtn">${icon('money-duotone')} Dépôt reçu (${fcfa(o.status === 'pending_payment' ? o.deposit : o.balance)})</button>` : ''}
+          ${['paid', 'shipped'].includes(o.status) && waConfirm(o) ? `<a class="btn ghost" href="${waConfirm(o)}" target="_blank" rel="noopener">${icon('chat-circle')} WhatsApp : confirmation au client</a>` : ''}
           ${o.paymentPlan === 'mobile' && o.mobile?.mode !== 'push' && o.status === 'confirmed' ? `<button class="ghost" id="restBtn">${icon('arrows-clockwise')} Renvoyer la demande du reste (${fcfa(o.balance)})</button>` : ''}
           ${(o.transitions || []).filter((s) => !(s === 'shipped' && o.status !== 'delivered')).map((s) => { // mise en livraison : « Confier au livreur » (bloc Livraison)
             const [label, cls] = ACTIONS[isPickup(o) && s === 'delivered' ? 'handed' : s];
@@ -619,6 +620,8 @@
         state.orders = state.orders.map((x) => (x.id === o.id ? updated : x));
         await loadOrders().catch(() => {});
         toast('Dépôt enregistré ✓'); viewOrder(o.id);
+        // Prévenir aussi le client sur WhatsApp (site, notification et e-mail partent tout seuls)
+        if (['paid'].includes(updated.status) && waConfirm(updated) && confirm(`Paiement enregistré : ${c.name} est prévenu sur le site${updated.customer?.email ? ' et par e-mail' : ''}.\n\nEnvoyer aussi la confirmation sur WhatsApp ?`)) window.open(waConfirm(updated), '_blank', 'noopener');
       } catch (err) { toast('❌ ' + err.message); }
     });
     $('#restBtn')?.addEventListener('click', async () => {
@@ -1051,10 +1054,10 @@
     $('#trForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       try {
-        await api('/settings/transport', { method: 'PUT', body: {
+        const saved = await api('/settings/transport', { method: 'PUT', body: {
           freight: { enabled: $('#trOn').checked, eurPerKg: $('#trEur').value, zadoFeeEurPerKg: $('#trFee').value, minKg: $('#trMin').value, defaultKg: $('#trDefKg').value, perArticle: $('#trPerArt').checked, logisticsMin: $('#trL1').value, logisticsMax: $('#trL2').value, deliveryHours: $('#trDH').value },
           mobile: { deposit: Number($('#trDep').value || 0), numbers: { mtn: $('#trMtn').value, airtel: $('#trAir').value }, holder: $('#trHolder').value, transferHours: Number($('#trHours').value || 24), pull: $('#trPull').checked } } });
-        toast('Transport et acompte enregistrés ✓'); $('#trMsg').innerHTML = ''; route({ keep: true });
+        toast(saved?.announced ? `Enregistré ✓ ${saved.announced} client(s) en attente ont reçu le numéro de dépôt` : 'Transport et acompte enregistrés ✓'); $('#trMsg').innerHTML = ''; route({ keep: true });
       } catch (err) { $('#trMsg').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; }
     });
     $('#salesForm').addEventListener('submit', async (e) => {
@@ -1824,12 +1827,12 @@
   }
 
   // ---------- Factures, reçus, avoirs (créés automatiquement, jamais modifiés ni supprimés) ----------
-  const DOC_TAG = { invoice: ['Facture', 'ok'], receipt: ['Reçu', 'info'], credit: ['Avoir', 'danger'] };
+  const DOC_TAG = { invoice: ['Facture', 'ok'], receipt: ['Reçu', 'info'], credit: ['Avoir', 'danger'], order: ['Bon de commande', 'warn'] };
   const docPrint = (d, ticket) => `/api/admin/documents/${enc(d.id)}/print${ticket ? '?format=ticket' : ''}`;
   const docWa = (d) => {
     if (!d.customer?.phone) return '';
     const first = (d.customer.name || '').split(' ')[0];
-    const what = d.type === 'receipt' ? `votre reçu de paiement n° ${d.number} (${fcfa(d.amount)})` : d.type === 'credit' ? `votre avoir n° ${d.number}` : `votre facture n° ${d.number} (${fcfa(d.amount)})`;
+    const what = d.type === 'order' ? `votre bon de commande n° ${d.number} (${fcfa(d.amount)}), avec les instructions de paiement,` : d.type === 'receipt' ? `votre reçu de paiement n° ${d.number} (${fcfa(d.amount)})` : d.type === 'credit' ? `votre avoir n° ${d.number}` : `votre facture n° ${d.number} (${fcfa(d.amount)})`;
     const msg = `Bonjour ${first}, merci pour votre achat sur Zado ! Voici ${what} pour la commande ${d.orderId} : ${location.origin}${d.link}`;
     return `https://wa.me/242${String(d.customer.phone).replace(/\D/g, '')}?text=${enc(msg)}`;
   };
@@ -1838,6 +1841,15 @@
       <a class="ghost" href="${docPrint(d, true)}" target="_blank" rel="noopener" title="Ticket de caisse 80 mm">${icon('receipt')} Ticket</a>
       ${docWa(d) ? `<a class="ghost" href="${docWa(d)}" target="_blank" rel="noopener" title="Envoyer au client par WhatsApp">${icon('chat-circle')} WhatsApp</a>` : ''}</div>`;
   const docAmount = (d) => (d.type === 'credit' ? '− ' : '') + fcfa(d.amount);
+  // Confirmation de commande par WhatsApp (décision Joseph 14/11/2026) : message prêt, envoyé par l'équipe en un clic
+  // (l'envoi AUTOMATIQUE demanderait l'API WhatsApp Business de Meta : compte vérifié, numéro dédié, modèles validés)
+  const waConfirm = (o) => {
+    const ph = String(o.customer?.phone || '').replace(/\D/g, '');
+    if (!ph) return '';
+    const first = (o.customer.name || '').split(' ')[0];
+    const msg = `Bonjour ${first}, nous avons bien reçu votre paiement : votre commande ${o.id} (${fcfa(o.total)}) est confirmée ✓. Nous lançons l'achat en France, puis l'envoi vers Pointe-Noire. Suivez chaque étape ici : ${location.origin}/#/suivi/${o.id}\nMerci pour votre confiance ! L'équipe Zado`;
+    return `https://wa.me/${ph.startsWith('242') ? ph : '242' + ph}?text=${enc(msg)}`;
+  };
 
   function docsPanel(o) {
     const docs = o.documents || [];
@@ -1864,7 +1876,7 @@
     try { r = await api('/documents'); } catch { return; }
     const list = r.documents;
     const f = state.docFilter || 'all';
-    const TABS = [['all', 'Tous'], ['invoice', 'Factures'], ['receipt', 'Reçus'], ['credit', 'Avoirs']];
+    const TABS = [['all', 'Tous'], ['order', 'Bons de commande'], ['invoice', 'Factures'], ['receipt', 'Reçus'], ['credit', 'Avoirs']];
     const month = new Date().toISOString().slice(0, 7);
     const inMonth = list.filter((d) => d.issuedAt.slice(0, 7) === month);
     const tot = (t, fn = () => true) => inMonth.filter((d) => d.type === t && fn(d)).reduce((s, d) => s + d.amount, 0);

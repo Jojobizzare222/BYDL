@@ -30,7 +30,11 @@ router.get('/methods', (req, res) => {
     cashDelivery: true, // espèces : le client choisit retrait en agence OU livraison à domicile après paiement
     cod: { enabled: allowed.cod && cod.enabled && pullAvailable(), deposit: cod.deposit, depositPercent: cod.depositPercent },
     // Mobile Money en deux temps : acompte puis le reste par retrait (demande sur le téléphone) ou par dépôt (numéro de Zado)
-    mobile: (() => { const m = mobilePay.mobileSettings(); const push = Boolean(m.numbers.mtn || m.numbers.airtel); return { enabled: allowed.mobile && (push || pullAvailable()), deposit: m.deposit, push, pull: pullAvailable(), modes: mobilePay.MODES }; })(),
+    // Dépôt TOUJOURS possible (décision Joseph 14/11/2026 : « le client peut passer commande sans problème ») : sans numéro de
+    // dépôt réglé, le bon de commande dit que le numéro lui sera communiqué ; numbersSet = numéro déjà réglé
+    mobile: (() => { const m = mobilePay.mobileSettings(); return { enabled: Boolean(allowed.mobile), deposit: m.deposit, push: true, numbersSet: Boolean(m.numbers.mtn || m.numbers.airtel), pull: pullAvailable(), modes: mobilePay.MODES }; })(),
+    // Moyens à venir, montrés « bientôt disponible » sur la page commande (pas encore utilisables)
+    soon: { momo: !(allowed.momo && pullAvailable()), card: !(allowed.card && cardAvailable()) },
     accountRequired: salesSettings().accountRequired,
     pickupHoldHours: config.pickupHoldHours,
     agencies: active.map(({ id, name, city, address, hours, phone, kind, lat, lng }) => ({ id, name, city, address, hours, phone, kind: kind || 'agency', lat: lat ?? null, lng: lng ?? null })),
@@ -89,9 +93,6 @@ router.post('/', async (req, res) => {
   let op = method;
   let phoneLocal = null;
   let agency = null;
-  if (method === 'mobile' && payMode === 'push' && !mobilePay.depositNumber(detectOperator(normalizeLocal(phone)) || operator || 'mtn')) {
-    return res.status(400).json({ error: "Le dépôt n'est pas encore possible (numéro de Zado non renseigné) : choisissez « Par retrait »" });
-  }
   if (method === 'momo' || method === 'mobile' || (method === 'cod' && quote.deposit > 0)) {
     phoneLocal = normalizeLocal(phone);
     if (!phoneLocal) return res.status(400).json({ error: 'Numéro Mobile Money invalide' });
@@ -163,7 +164,8 @@ router.post('/', async (req, res) => {
     operator: op,
     phone: phoneLocal,
     purpose: method === 'cod' || method === 'mobile' ? 'deposit' : 'full',
-    ...(op === 'transfer' ? { network: detectOperator(phoneLocal) || operator || 'mtn', expiresAt: new Date(now + mobilePay.mobileSettings().transferHours * 3600e3).toISOString() } : {}),
+    // délai de dépôt seulement si le numéro de Zado est déjà réglé (sinon la commande attend que Zado le communique)
+    ...(op === 'transfer' ? { network: detectOperator(phoneLocal) || operator || 'mtn', ...(mobilePay.depositNumber(detectOperator(phoneLocal) || operator || 'mtn') ? { expiresAt: new Date(now + mobilePay.mobileSettings().transferHours * 3600e3).toISOString() } : {}) } : {}),
     amount,
     currency: order.currency,
     status: 'PENDING',
@@ -364,15 +366,61 @@ function instructionsText(o, p) {
 }
 function notifyCustomerTransfer(o, p) {
   const d = mobilePay.depositNumber(p.network || o.payOperator);
+  const full = mobilePay.isFull(o);
+  const what = full ? `le montant total de ${fm(p.amount)}` : `l'acompte de ${fm(p.amount)}`;
   tellCustomer(o, p.purpose === 'deposit'
-    ? `Commande ${o.id} enregistrée. Pour la confirmer, envoyez ${mobilePay.isFull(o) ? `le montant total de ${fm(p.amount)}` : `l'acompte de ${fm(p.amount)}`} par dépôt ${OPN[d?.operator] || 'Mobile Money'} au ${mobilePay.spaced(d?.number) || '—'} (${d?.holder || 'Zado'}), référence ${o.id}.`
+    ? (d ? `Commande ${o.id} enregistrée. Pour la confirmer, envoyez ${what} par dépôt ${OPN[d.operator] || 'Mobile Money'} au ${mobilePay.spaced(d.number)} (${d.holder}), référence ${o.id}. Votre bon de commande est dans « Suivre ma commande ».`
+      : `Commande ${o.id} enregistrée. Votre bon de commande est dans « Suivre ma commande ». Pour la confirmer, vous enverrez ${what} par dépôt Mobile Money (référence ${o.id}) : le numéro officiel de Zado vous sera communiqué très prochainement ici.`)
     : instructionsText(o, p));
+  if (p.purpose === 'deposit') setImmediate(() => mailOrderSlip(orders.get(o.id), p).catch(() => {}));
+}
+/** E-mail « bon de commande » (le document est créé juste après la commande : billing.sync). */
+async function mailOrderSlip(o, p) {
+  if (!o) return;
+  const doc = require('../billing').forOrder(o.id).find((x) => x.type === 'order');
+  const d = mobilePay.depositNumber(p?.network || o.payOperator);
+  const first = String(o.customer?.name || '').split(' ')[0];
+  await require('../customer-mail').toCustomer(o, {
+    subject: `Votre bon de commande Zado ${o.id}`,
+    title: `Merci ${first} : commande ${o.id} enregistrée`,
+    lines: [...o.lines.map((l) => `• ${l.qty} × ${l.name} : ${fm(l.total)}`), o.transportFee ? `• Transport France → Pointe-Noire (estimatif) : ${fm(o.transportFee)}` : null, `Total : ${fm(o.total)}`, '',
+      d ? `Pour confirmer votre commande, envoyez ${fm(p?.amount ?? o.total)} par dépôt ${OPN[d.operator] || 'Mobile Money'} au ${mobilePay.spaced(d.number)} (${d.holder}), avec la référence ${o.id}.`
+        : `Pour confirmer votre commande, vous enverrez ${fm(p?.amount ?? o.total)} par dépôt Mobile Money avec la référence ${o.id}. Le numéro officiel de Zado vous sera communiqué très prochainement.`,
+      'Dès réception, vous recevez la confirmation de votre commande.'].filter((x) => x !== null),
+    button: doc ? { label: 'Voir mon bon de commande', url: require('../billing').publicDoc(doc).link } : { label: 'Suivre ma commande', url: `/#/suivi/${o.id}` },
+  });
+}
+/** E-mail « commande confirmée » (paiement reçu). */
+async function mailConfirmation(o) {
+  if (!o) return;
+  const first = String(o.customer?.name || '').split(' ')[0];
+  await require('../customer-mail').toCustomer(o, {
+    subject: `Commande ${o.id} confirmée`,
+    title: `Commande ${o.id} confirmée ✓`,
+    lines: [`Merci ${first} ! Nous avons bien reçu ${mobilePay.isFull(o) || !o.balance ? 'votre paiement' : `votre acompte de ${fm(o.deposit)}`}.`,
+      ...o.lines.map((l) => `• ${l.qty} × ${l.name}`), `Total : ${fm(o.total)}`, '',
+      'Nous lançons le traitement : achat en France, vol vers Pointe-Noire, puis livraison. Vous êtes prévenu à chaque étape.'],
+    button: { label: 'Suivre ma commande', url: `/#/suivi/${o.id}` },
+  });
+}
+/** Numéro de dépôt réglé APRÈS des commandes : chaque client en attente reçoit les instructions (Aide, notification, e-mail). */
+function announceDepositNumber() {
+  let n = 0;
+  for (const p of payments.all().filter((x) => x.operator === 'transfer' && x.status === 'PENDING' && !x.numberAnnouncedAt)) {
+    const o = orders.get(p.orderId);
+    if (!o || !['pending_payment', 'confirmed'].includes(o.status) || !mobilePay.depositNumber(p.network || o.payOperator)) continue;
+    payments.update(p.id, { numberAnnouncedAt: new Date().toISOString(), ...(p.expiresAt ? {} : { expiresAt: new Date(Date.now() + mobilePay.mobileSettings().transferHours * 3600e3).toISOString() }) });
+    notifyCustomerTransfer(o, payments.get(p.id));
+    n++;
+  }
+  return n;
 }
 /** Acompte reçu : commande confirmée (articles réservés), récapitulatif envoyé, puis demande du reste. */
 function afterDeposit(order, depositPaymentId) {
   const confirmed = delivery.confirmCod(order, { depositPaymentId });
   notifyPaidOrder(confirmed);
   tellCustomer(confirmed, recapText(confirmed));
+  setImmediate(() => mailConfirmation(orders.get(confirmed.id)).catch(() => {})); // confirmation par e-mail (si le client a un e-mail)
   if (confirmed.balance > 0) startRest(confirmed).catch((err) => console.error('[reste]', err.message));
   else settleSuccessfulPayment({ purpose: 'rest', orderId: confirmed.id, operator: confirmed.payOperator, id: null });
   return orders.get(confirmed.id);
@@ -430,3 +478,4 @@ module.exports.settleSuccessfulPayment = settleSuccessfulPayment;
 module.exports.refreshStatus = refreshStatus;
 module.exports.startRest = startRest;
 module.exports.recapText = recapText;
+module.exports.announceDepositNumber = announceDepositNumber;

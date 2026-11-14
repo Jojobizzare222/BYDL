@@ -54,7 +54,7 @@ ok(st.to.join() === 'joseph@zado.test,associe@zado.test' && st.batchSeconds === 
 
 // 1) Nouveau client + pièce d'identité
 const C = { c: '' };
-const reg = (await call(C, '/account/register', { body: { name: 'Awa Alerte', phone: '061234567', idType: 'cni', idPhoto: 'data:image/jpeg;base64,' + fs.readFileSync(process.argv[3]).toString('base64') } })).data;
+const reg = (await call(C, '/account/register', { body: { name: 'Awa Alerte', phone: '061234567', email: 'awa.client@zado.test', idType: 'cni', idPhoto: 'data:image/jpeg;base64,' + fs.readFileSync(process.argv[3]).toString('base64') } })).data;
 let m = await waitMail((x) => /Awa Alerte/.test(x.subject + x.body) && /Nouveau client|Pièce/.test(x.subject));
 ok(m && m.to.includes('joseph@zado.test') && m.to.includes('associe@zado.test'), `e-mail reçu par les 2 destinataires : « ${m?.subject} »`);
 ok(mails.some((x) => /Pièce d'identité à vérifier/.test(x.body)) && !mails.some((x) => /data:image|\.jpg/.test(x.body)), "pièce d'identité à vérifier signalée, JAMAIS la photo dans l'e-mail");
@@ -73,6 +73,12 @@ await call(A, `/admin/orders/${o.id}/transfer-received`, { method: 'POST' });
 ok(await waitMail((x) => /Acompte reçu/.test(x.subject) && x.subject.includes(o.id)), 'acompte reçu : commande confirmée');
 await call(A, `/admin/orders/${o.id}/transfer-received`, { method: 'POST' });
 ok(await waitMail((x) => /Commande payée/.test(x.subject) && x.subject.includes(o.id)), 'solde reçu : commande payée');
+// E-mails au CLIENT (14/11/2026) : bon de commande à la validation, confirmation au paiement
+const slip = await waitMail((x) => x.to.join().includes('awa.client@zado.test') && /bon de commande/i.test(x.subject) && x.subject.includes(o.id));
+ok(slip && /06 600 00 00/.test(slip.body) && /\/api\/documents\//.test(slip.body), 'client : e-mail « bon de commande » avec le numéro de dépôt et le lien du document');
+const conf = await waitMail((x) => x.to.join().includes('awa.client@zado.test') && /confirmée/.test(x.subject) && x.subject.includes(o.id));
+ok(conf && /suivi/.test(conf.body) && !/code/i.test(conf.subject), 'client : e-mail « commande confirmée » avec le lien de suivi');
+ok(!mails.some((x) => x.to.join().includes('awa.client@zado.test') && /Zado Pro/.test(x.body.slice(0, 2000)) && /Ouvrir dans Zado Pro/.test(x.body)), 'le client ne reçoit jamais les alertes de l\'équipe');
 await call(A, `/admin/orders/${o.id}/logistics`, { body: { step: 'bought' } });
 ok(await waitMail((x) => /Achetée en France/.test(x.subject) && x.subject.includes(o.id)), 'logistique : « Achetée en France »');
 await sleep(800);

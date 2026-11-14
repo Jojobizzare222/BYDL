@@ -76,7 +76,7 @@ v = (await call(C, '/orders/' + o1.id, { headers: { 'X-Order-Token': o1.token } 
 ok(v.status === 'paid' && v.balancePaid?.method === 'momo' && v.mobilePay.stage === null, 'reste validé : commande payée');
 // Documents : 2 reçus (acompte + solde) et une facture avec l'acompte déduit
 const docs = v.documents.map((d) => d.type).sort().join(',');
-ok(docs === 'invoice,receipt,receipt', `documents : facture + reçu d'acompte + reçu de solde (${docs})`);
+ok(docs === 'invoice,order,receipt,receipt', `documents : bon de commande + facture + reçu d'acompte + reçu de solde (${docs})`);
 const inv = v.documents.find((d) => d.type === 'invoice');
 const html = await (await fetch(`http://localhost:3999${inv.link}`)).text();
 ok(/Transport France → Pointe-Noire/.test(html) && /Acompte déjà versé/.test(html) && /Solde réglé/.test(html), 'facture : ligne transport, acompte déduit du total, solde réglé');
@@ -113,10 +113,24 @@ ok(rc.length === 2 && /Dépôt MTN Mobile Money/.test(rhtml) && /Olga/.test(rhtm
 
 // 6) Sans numéro de dépôt : seul le retrait est possible ; minimum par commande
 await call(A, '/admin/settings/transport', { method: 'PUT', body: { mobile: { numbers: { mtn: '', airtel: '' } }, freight: { perArticle: false } } });
-ok((await call(C, '/payments/methods')).data.mobile.push === false, 'sans numéro de dépôt : « Par dépôt » indisponible');
+const mm0 = (await call(C, '/payments/methods')).data.mobile;
+ok(mm0.push === true && mm0.enabled && mm0.numbersSet === false, 'sans numéro de dépôt : la commande reste possible (numéro communiqué ensuite, décision Joseph 14/11/2026)');
 const o3 = (await call(C, '/orders', { body: { customer: { name: 'Awa Mobile', phone: '061112233', city: 'Pointe-Noire', address: 'Tié-Tié' }, items: [{ productId: 'a003', qty: 1 }] } })).data;
 ok(o3.transportKg === 1 && o3.transportFee === KG, 'minimum par commande : 0,45 kg → 1 kg facturé');
-ok((await call(C, '/payments', { body: { orderId: o3.id, token: o3.token, method: 'mobile', mode: 'push', phone: '061112233' } })).status === 400, 'dépôt refusé sans numéro de Zado');
+const p3 = await call(C, '/payments', { body: { orderId: o3.id, token: o3.token, method: 'mobile', mode: 'push', phone: '061112233' } });
+ok(p3.status === 201 && p3.data.status === 'PENDING' && !p3.data.depositTo && !p3.data.expiresAt, 'dépôt accepté sans numéro de Zado : en attente, sans délai tant que le numéro n\'est pas communiqué');
+await new Promise((r) => setTimeout(r, 300));
+const w3 = (await call(C, '/orders/' + o3.id, { headers: { 'X-Order-Token': o3.token } })).data;
+const bdc = (w3.documents || []).find((d) => d.type === 'order');
+ok(bdc && /^BDC-\d{4}-\d{5}$/.test(bdc.number), `bon de commande créé à la validation : ${bdc?.number}`);
+const bh = bdc ? await (await fetch(`http://localhost:3999${bdc.link}`)).text() : '';
+ok(/Bon de commande/.test(bh) && /communiqué très prochainement/.test(bh) && bh.includes(o3.id) && /En attente de paiement/.test(bh), 'bon de commande : récapitulatif, référence, numéro « communiqué très prochainement »');
+const sv = (await call(A, '/admin/settings/transport', { method: 'PUT', body: { mobile: { numbers: { airtel: '05 590 00 00' } } } })).data;
+ok(sv.announced >= 1, `numéro de dépôt réglé ensuite : ${sv.announced} client(s) en attente prévenu(s)`);
+const bh2 = await (await fetch(`http://localhost:3999${bdc.link}`)).text();
+ok(/05 590 00 00/.test(bh2), 'bon de commande : affiche le numéro dès qu\'il est réglé');
+const chat3 = JSON.stringify((await call(C, '/chat')).data);
+ok(/05 590 00 00/.test(chat3) && chat3.includes(o3.id), 'client prévenu dans « Aide » avec le numéro de dépôt');
 
 console.log(fails ? `\n${fails} échec(s)` : '\nParcours Mobile Money en deux temps : tout est OK');
 process.exit(fails ? 1 : 0);

@@ -14,6 +14,9 @@ const TYPES = {
   invoice: { prefix: 'FA', label: 'Facture' },
   receipt: { prefix: 'RC', label: 'Reçu' },
   credit: { prefix: 'AV', label: 'Avoir' },
+  // Bon de commande remis au client dès qu'il valide son achat (décision Joseph 14/11/2026) : récapitulatif + comment payer.
+  // Ce n'est PAS une pièce comptable (pas de « vente ») ; « BDC » car « BC- » numérote les achats fournisseurs.
+  order: { prefix: 'BDC', label: 'Bon de commande' },
 };
 const METHOD_LABEL = { cash: 'Espèces', momo: 'Mobile Money', card: 'Carte bancaire', transfer: 'Dépôt Mobile Money' };
 const OPERATOR_METHOD = { mtn: 'momo', airtel: 'momo', card: 'card', cash: 'cash', transfer: 'transfer' };
@@ -155,6 +158,12 @@ function sync(orderOrId) {
     ...(o.depositPaidAt && o.deposit && !full ? { depositPaid: o.deposit, depositAt: o.depositPaidAt } : {}) };
   const agency = o.agency ? { name: o.agency.name || '', city: o.agency.city || '' } : null;
 
+  // 0) Bon de commande : dès que le client a validé son achat (moyen de paiement choisi)
+  if ((o.paymentPlan || o.paymentId) && String(o.createdAt || '') >= '2026-11-14') { // jamais pour les anciennes commandes
+    issue('order', `${o.id}:order`, o, { ...base, depositPaid: undefined, depositAt: undefined,
+      email: o.customer?.email || (o.customerId && require('./store').customers.get(o.customerId)?.email) || null, fulfillment: o.fulfillment || 'delivery', note: o.customer?.note || '', gift: o.gift ? { name: o.gift.name || '' } : null });
+  }
+
   // 1) Facture (vente réalisée)
   let invoice = findByKey(`${o.id}:invoice`);
   if (!invoice && isSold(o)) {
@@ -260,13 +269,57 @@ function totalsBlock(d, sign = '') {
     ${!sign && d.depositPaid ? `<tr class="dep"><td>Acompte déjà versé${d.depositAt ? ` le ${dateFr(d.depositAt)}` : ''}</td><td>− ${fcfa(d.depositPaid)}</td></tr><tr class="net"><td>${d.type === 'invoice' ? 'Solde réglé' : 'Reste à payer'}</td><td>${fcfa(d.total - d.depositPaid)}</td></tr>` : ''}</table>`;
 }
 
+// ---------- Bon de commande : comment payer (calculé à l'affichage : le numéro de dépôt peut être réglé après la commande) ----------
+const OPN = { mtn: 'MTN Mobile Money', airtel: 'Airtel Money' };
+function orderState(d) {
+  const o = orders.get(d.orderId);
+  const cancelled = o?.status === 'cancelled';
+  const paid = o && ['paid', 'shipped', 'delivered'].includes(o.status);
+  const confirmed = o?.status === 'confirmed';
+  const due = o && !paid && !cancelled ? (confirmed ? o.balance : o.deposit ?? o.total) : 0;
+  const p = o && payments.all().filter((x) => x.orderId === o.id && x.operator === 'transfer' && x.status === 'PENDING').pop();
+  const mp = require('./mobile-pay');
+  const to = mp.depositNumber(p?.network || o?.payOperator || 'mtn');
+  const s = mp.mobileSettings();
+  const all = [['mtn', s.numbers.mtn], ['airtel', s.numbers.airtel]].filter(([, n]) => n);
+  return { o, cancelled, paid, confirmed, due, to, all, holder: s.holder || 'Zado' };
+}
+function orderStamp(d) {
+  const st = orderState(d);
+  return st.cancelled ? '<span class="stamp credit">Annulée</span>' : st.paid ? '<span class="stamp">Payée · confirmée</span>' : '<span class="stamp wait">En attente de paiement</span>';
+}
+function orderBody(d) {
+  const st = orderState(d);
+  const pay = st.cancelled ? `<div class="paybox"><h3>Commande annulée</h3><p>${esc(st.o?.cancelReason || 'Cette commande a été annulée.')}</p></div>`
+    : st.paid ? `<div class="paybox ok"><h3>Paiement reçu : commande confirmée</h3><p>Merci ! Votre commande est en cours de traitement. Vous suivez chaque étape sur le site (Mon compte → Mes commandes).</p></div>`
+    : `<div class="paybox"><h3>Comment payer votre commande</h3>
+        <p>Montant à envoyer : <strong>${fcfa(st.due)}</strong> (${esc(amountInWords(st.due))})</p>
+        ${st.all.length ? `<p>Faites un <strong>dépôt Mobile Money</strong> au numéro de ${esc(st.holder)} :</p>
+          ${st.all.map(([op, n]) => `<p><span class="num">${esc(require('./mobile-pay').spaced(n))}</span> — ${OPN[op]}</p>`).join('')}`
+          : `<p>Le paiement se fait par <strong>dépôt Mobile Money</strong> (MTN ou Airtel) sur le numéro officiel de ${esc(st.holder)}. <strong>Ce numéro vous sera communiqué très prochainement</strong> sur le site (rubrique « Aide »)${d.email ? ', par e-mail' : ''} et par WhatsApp.</p>`}
+        <ol><li>Indiquez la référence <strong>${esc(d.orderId)}</strong> avec votre dépôt.</li>
+          <li>Dès que ${esc(st.holder)} reçoit votre dépôt, vous recevez la <strong>confirmation de commande</strong> sur le site${d.email ? ', par e-mail' : ''} et par WhatsApp.</li>
+          <li>Nous lançons alors le traitement : achat en France, vol vers Pointe-Noire, puis livraison.</li></ol>
+        <p class="note">Ne payez jamais à un autre numéro que celui indiqué par ${esc(st.holder)}.</p></div>`;
+  return `<div class="parties">
+      <div><span class="lbl">Client</span><strong>${esc(d.customer.name)}</strong><br>${esc(d.customer.phone)}${d.email ? `<br>${esc(d.email)}` : ''}</div>
+      <div><span class="lbl">${d.fulfillment === 'pickup' ? 'Retrait' : 'Livraison à domicile'}</span>Commande <strong>${esc(d.orderId)}</strong><br>${d.customer.address ? `${esc(d.customer.address)}<br>` : ''}${esc(d.customer.city || '')}${d.gift?.name ? `<br>Cadeau pour : ${esc(d.gift.name)}` : ''}</div>
+    </div>
+    ${linesTable(d)}${totalsBlock(d)}
+    ${d.transportFee ? '<p class="note">Coût logistique estimatif : selon le rapport poids / volume du colis, il peut être ajusté.</p>' : ''}
+    ${pay}
+    <p class="note">Ce bon de commande récapitule votre achat ; ce n'est pas une facture. La facture vous est remise après le paiement.</p>`;
+}
+
 function render(d, { format = 'a4', admin = false } = {}) {
   const c = d.company || company();
   const T = TYPES[d.type];
   const ticket = format === 'ticket';
   const title = d.type === 'receipt' ? 'Reçu de paiement' : T.label;
   let body = '';
-  if (d.type === 'receipt') {
+  if (d.type === 'order') {
+    body = orderBody(d);
+  } else if (d.type === 'receipt') {
     body = `<div class="big"><span>Montant reçu</span><strong>${fcfa(d.amount)}</strong><em>${esc(amountInWords(d.amount))}</em></div>
       <table class="kv">
         <tr><td>Reçu de</td><td><strong>${esc(d.customer.name)}</strong>${d.customer.phone ? ` · ${esc(d.customer.phone)}` : ''}</td></tr>
@@ -327,6 +380,10 @@ table { width: 100%; border-collapse: collapse; }
 .kv td { padding: 7px 0; border-bottom: 1px solid #ECE9F5; vertical-align: top; } .kv td:first-child { color: #6B6585; width: 170px; }
 h3 { margin: 24px 0 8px; font-size: 13px; color: #10264A; }
 .foot { position: absolute; left: 40px; right: 40px; bottom: 24px; border-top: 1px solid #ECE9F5; padding-top: 10px; color: #6B6585; font-size: 11px; display: flex; justify-content: space-between; gap: 12px; }
+.paybox { margin: 22px 0 10px; padding: 16px 18px; border-radius: 14px; border: 2px solid #FFB300; background: #FFF8E6; }
+.paybox h3 { margin: 0 0 8px; font-size: 15px; } .paybox p { margin: 6px 0; } .paybox .num { font-size: 20px; font-weight: 700; color: #10264A; letter-spacing: .03em; }
+.paybox ol { margin: 8px 0 0; padding-left: 20px; } .paybox li { margin: 4px 0; }
+.paybox.ok { border-color: #0E8A66; background: #E1F5EC; } .stamp.wait { background: #FFF1CC; color: #8A5A00; }
 .todo { background: #FFF1CC; color: #8A5A00; padding: 0 4px; border-radius: 4px; }
 .warn { max-width: 210mm; margin: 12px auto 0; padding: 10px 14px; border-radius: 10px; background: #FFF1CC; color: #8A5A00; font-size: 12px; }
 /* Ticket de caisse 80 mm */
@@ -353,7 +410,7 @@ ${admin && missing ? `<div class="warn">Informations de la société incomplète
 <div class="sheet">
   <div class="head">${companyBlock(c)}
     <div class="doc"><h1>${esc(title)}</h1><div class="num">N° ${esc(d.number)}</div><div class="date">Émis le ${dateFr(d.issuedAt, d.type === 'receipt')}</div>
-      ${d.type === 'invoice' ? `<span class="stamp">${d.paymentLabel?.startsWith('Payée à la') ? 'Payée' : 'Acquittée'}</span>` : d.type === 'credit' ? '<span class="stamp credit">Avoir</span>' : '<span class="stamp">Payé</span>'}</div></div>
+      ${d.type === 'order' ? orderStamp(d) : d.type === 'invoice' ? `<span class="stamp">${d.paymentLabel?.startsWith('Payée à la') ? 'Payée' : 'Acquittée'}</span>` : d.type === 'credit' ? '<span class="stamp credit">Avoir</span>' : '<span class="stamp">Payé</span>'}</div></div>
   ${body}
   <div class="foot"><span>${esc(c.footer)}</span><span>${esc(c.name)} · ${esc(d.number)}</span></div>
 </div></body></html>`;

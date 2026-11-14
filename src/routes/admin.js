@@ -671,7 +671,9 @@ router.put('/settings/transport', requireRole(), (req, res) => {
   if (b.mobile) { const r = require('../mobile-pay').saveMobileSettings(b.mobile); if (r.error) return res.status(400).json({ error: r.error }); }
   const f = require('../freight').freightSettings(), m = require('../mobile-pay').mobileSettings();
   log(req, 'Transport et acompte modifiés', null, `${f.eurPerKg} €/kg, minimum ${f.minKg} kg ${f.perArticle ? 'par article' : 'par commande'} · acompte ${m.deposit} FCFA`);
-  res.json({ freight: f, perKg: require('../freight').perKgFcfa(), mobile: m });
+  // Numéro de dépôt réglé après des commandes : les clients en attente reçoivent les instructions (Aide, notification, e-mail)
+  const announced = b.mobile ? require('./payments').announceDepositNumber() : 0;
+  res.json({ freight: f, perKg: require('../freight').perKgFcfa(), mobile: m, announced });
 });
 // ---------- Pack Noël (10/11/2026) : codes promo et mode Noël [admin] ----------
 const promosMod = require('../promos');

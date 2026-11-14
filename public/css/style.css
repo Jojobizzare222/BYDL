@@ -1507,6 +1507,11 @@ html[data-motion="reduce"] .idv-c { transform: none; } html[data-motion="reduce"
 .est-note svg { width: 14px; height: 14px; flex: none; margin-top: 1px; }
 #cartEst:empty { display: none; }
 .op.off { opacity: .55; }
+/* Moyens de paiement à venir (14/11/2026) : visibles mais pas encore utilisables */
+.methods .op.soon { cursor: default; border-style: dashed; }
+.methods .op.soon > span { width: 100%; }
+.soon-tag { margin-left: auto; font-style: normal; font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; padding: 3px 9px; border-radius: 999px; background: #FFF1CC; color: #8A5A00; white-space: nowrap; }
+html[data-theme="dark"] .soon-tag { background: #4A3A10; color: #FFD27A; }
 .pay-box { display: flex; gap: 12px; align-items: flex-start; margin: 14px 0; padding: 14px 16px; border-radius: var(--radius-sm); background: var(--mango-soft); border: 1px solid rgba(255,179,0,.4); }
 .pay-box > .ico { flex: none; width: 26px; height: 26px; color: var(--mango-dark); margin-top: 2px; }
 .pay-box > div { display: grid; gap: 6px; min-width: 0; }
@@ -1812,3 +1817,7 @@ html[data-theme="dark"] .pp-tag { background: rgba(14,138,102,.18); color: #5DE0
 .ups-name span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .ups-name b { display: block; margin-top: 2px; font-size: .86rem; }
 .ups-item .btn.small { padding: 7px 12px; font-size: .8rem; white-space: nowrap; }
+
+/* Page « Commande enregistrée » (bon de commande, 14/11/2026) */
+.order-done .next-steps { text-align: left; max-width: 520px; margin: 16px auto; padding: 14px 16px; border-radius: 12px; background: var(--bg, #F3F5F9); }
+.order-done .next-steps ol { margin: 6px 0 0; padding-left: 20px; } .order-done .next-steps li { margin: 4px 0; }

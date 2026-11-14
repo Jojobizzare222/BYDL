@@ -12,7 +12,7 @@ const reg = (await call(C, '/account/register', { body: { name: 'Awa Live', phon
 await call(A, `/admin/customers/${reg.customer.id}/identity`, { body: { decision: 'verify' } });
 
 let m = (await call(C, '/payments/methods')).data;
-ok(m.mode === 'live' && m.mobile.pull === false && m.momo === false && !m.mobile.enabled, 'paiements réels sans compte marchand ni numéro de dépôt : aucun Mobile Money proposé (rien ne peut échouer au paiement)');
+ok(m.mode === 'live' && m.mobile.pull === false && m.momo === false && m.mobile.enabled && m.mobile.numbersSet === false && m.soon?.momo && m.soon?.card, 'paiements réels sans compte marchand ni numéro : commande par dépôt possible, Mobile Money direct et carte annoncés « bientôt »');
 await call(A, '/admin/settings/transport', { method: 'PUT', body: { mobile: { numbers: { airtel: '05 590 00 00' } } } });
 m = (await call(C, '/payments/methods')).data;
 ok(m.mobile.enabled && m.mobile.push && m.mobile.pull === false, 'numéro Airtel de Zado saisi : seul le « dépôt » est proposé');
@@ -34,7 +34,7 @@ const rec = await call(A, `/admin/orders/${o1.id}/transfer-received`, { body: {}
 const conf = (await call(C, `/orders/${o1.id}`, { headers: { 'X-Order-Token': o1.token } })).data;
 ok(rec.status === 200 && conf.status === 'paid' && conf.balancePaid, '« Dépôt reçu » du total : commande payée en une fois');
 const docs = (conf.documents || []).map((d) => d.type).sort().join(',');
-ok(docs === 'invoice,receipt', `documents : une facture + un seul reçu (${docs})`);
+ok(docs === 'invoice,order,receipt', `documents : bon de commande + une facture + un seul reçu (${docs})`);
 const inv = (conf.documents || []).find((d) => d.type === 'invoice');
 const ih = inv ? await (await fetch(`http://localhost:3999${inv.link}`)).text() : '';
 ok(ih.length > 500 && !/Acompte/.test(ih), 'facture : aucune mention d\'acompte');
