@@ -44,7 +44,8 @@ if (sales.methods.cash && !relays) warn('Espèces au point relais cochées mais 
 
 // --- Société, documents, textes légaux ---
 const missing = billing.missingCompany();
-check(!missing.length, 'Société renseignée sur les factures', `Factures : informations de la société manquantes (${missing.join(', ')}) → Zado Pro → Réglages → Société`);
+// Lancement sous le nom « Zado » sans RCCM / NIU (décision Joseph 14/11/2026) : simple rappel, plus bloquant
+check(!missing.length, 'Société renseignée sur les factures', `Factures : RCCM, NIU… pas encore saisis (${missing.join(', ')}) : les documents n'affichent que « Zado » ; à ajouter dans Zado Pro → Réglages → Société dès le retour du ministère`, warn);
 try {
   const legal = fs.readFileSync(path.join(__dirname, '..', 'public', 'js', 'legal.js'), 'utf8');
   const todo = (legal.match(/\$\{T\(/g) || []).length;

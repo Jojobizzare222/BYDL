@@ -68,7 +68,7 @@ const inv2 = all.find((d) => d.orderId === o2.id && d.type === 'invoice');
 const rc2 = all.find((d) => d.orderId === o2.id && d.type === 'receipt');
 ok(seq(inv2.number) === seq(inv1.number) + 1 && seq(rc2.number) === seq(rc1.number) + 1, `numérotation continue : ${inv1.number} → ${inv2.number}, ${rc1.number} → ${rc2.number}`);
 const p2 = (await call(A, `/admin/documents/${inv2.id}/print`)).data, p1 = (await call(A, `/admin/documents/${inv1.id}/print`)).data;
-ok(p2.includes('CG-PNR-01-2026-B12-00001') && p2.includes('TVA 18') && !p1.includes('CG-PNR-01-2026-B12-00001') && p1.includes('À compléter'), 'nouvelle facture : RCCM + TVA ; ancienne facture inchangée');
+ok(p2.includes('CG-PNR-01-2026-B12-00001') && p2.includes('TVA 18') && !p1.includes('CG-PNR-01-2026-B12-00001') && !p1.includes('À compléter') && !p1.includes('RCCM'), 'nouvelle facture : RCCM + TVA ; ancienne facture inchangée (sans RCCM, jamais « À compléter »)');
 
 // Pas de doublon, rôles, export
 const again = await call(A, `/admin/documents/order/${o2.id}`, { body: {} });

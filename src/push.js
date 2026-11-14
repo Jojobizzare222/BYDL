@@ -19,7 +19,7 @@ let ready = false;
 function setup() {
   if (ready) return;
   const k = keys();
-  webpush.setVapidDetails(`mailto:${process.env.VAPID_CONTACT || 'contact@zado.cg'}`, k.publicKey, k.privateKey);
+  webpush.setVapidDetails(`mailto:${process.env.VAPID_CONTACT || 'contact@zado-congo.com'}`, k.publicKey, k.privateKey);
   ready = true;
 }
 const publicKey = () => keys().publicKey;

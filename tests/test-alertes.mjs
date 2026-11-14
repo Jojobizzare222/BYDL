@@ -55,7 +55,8 @@ ok(st.to.join() === 'joseph@zado.test,associe@zado.test' && st.batchSeconds === 
 // 1) Nouveau client + pièce d'identité
 const C = { c: '' };
 const reg = (await call(C, '/account/register', { body: { name: 'Awa Alerte', phone: '061234567', email: 'awa.client@zado.test', idType: 'cni', idPhoto: 'data:image/jpeg;base64,' + fs.readFileSync(process.argv[3]).toString('base64') } })).data;
-let m = await waitMail((x) => /Awa Alerte/.test(x.subject + x.body) && /Nouveau client|Pièce/.test(x.subject));
+// la lecture automatique de la pièce (Tesseract) occupe le serveur quelques secondes : on attend jusqu'à 25 s
+let m = await waitMail((x) => /Awa Alerte/.test(x.subject + x.body) && /Nouveau client|Pièce/.test(x.subject), 25000);
 ok(m && m.to.includes('joseph@zado.test') && m.to.includes('associe@zado.test'), `e-mail reçu par les 2 destinataires : « ${m?.subject} »`);
 ok(mails.some((x) => /Pièce d'identité à vérifier/.test(x.body)) && !mails.some((x) => /data:image|\.jpg/.test(x.body)), "pièce d'identité à vérifier signalée, JAMAIS la photo dans l'e-mail");
 await call(A, `/admin/customers/${reg.customer.id}/identity`, { body: { decision: 'verify' } });

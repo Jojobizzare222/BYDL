@@ -196,7 +196,8 @@ const logo = () => {
 };
 function render(bc, company) {
   const c = company;
-  const todo = (v) => (v ? esc(v) : '<span class="todo">À compléter</span>');
+  // Informations de société pas encore connues : omises (jamais « À compléter », décision Joseph 14/11/2026)
+  const place = [c.address, c.city, c.country].filter(Boolean).map(esc).join(', ');
   return `<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
 <title>Bon de commande ${esc(bc.number)} — ${esc(c.name)}</title>
 <style>
@@ -222,11 +223,11 @@ th:first-child { border-radius: 8px 0 0 8px; } th:last-child { border-radius: 0 
 </style></head><body>
 <div class="bar"><button onclick="window.print()">Imprimer / Enregistrer en PDF</button></div>
 <div class="sheet">
-  <div class="head"><div class="co"><div class="logo">${logo()}</div><p><strong>${esc(c.name)}</strong>${c.legalForm ? ` — ${esc(c.legalForm)}` : ''}<br>${todo(c.address)}${c.city ? `, ${esc(c.city)}` : ''} — ${esc(c.country)}<br>RCCM : ${todo(c.rccm)} · NIU : ${todo(c.niu)}<br>Tél. : ${todo(c.phone)}${c.email ? ` · ${esc(c.email)}` : ''}</p></div>
+  <div class="head"><div class="co"><div class="logo">${logo()}</div><p><strong>${esc(c.name)}</strong>${c.legalForm ? ` — ${esc(c.legalForm)}` : ''}<br>${place}<br>${c.rccm || c.niu ? `${[c.rccm && `RCCM : ${esc(c.rccm)}`, c.niu && `NIU : ${esc(c.niu)}`].filter(Boolean).join(' · ')}<br>` : ''}${[c.phone && `Tél. : ${esc(c.phone)}`, c.email && esc(c.email)].filter(Boolean).join(' · ')}</p></div>
     <div class="doc"><h1>Bon de commande</h1><div class="num">N° ${esc(bc.number)}</div><div class="date">Du ${dateFr(bc.sentAt || bc.createdAt)}</div>${bc.expectedAt ? `<div class="date">Livraison souhaitée : ${dateFr(bc.expectedAt)}</div>` : ''}</div></div>
   <div class="parties">
     <div><span class="lbl">Fournisseur</span><strong>${esc(bc.supplier.name)}</strong>${bc.supplier.contact && bc.supplier.contact !== bc.supplier.name ? `<br>${esc(bc.supplier.contact)}` : ''}${bc.supplier.phone ? `<br>${esc(bc.supplier.phone)}` : ''}${bc.reference ? `<br>Votre référence : ${esc(bc.reference)}` : ''}</div>
-    <div><span class="lbl">Livrer à</span><strong>${esc(c.name)}</strong><br>${todo(c.address)}${c.city ? `, ${esc(c.city)}` : ''}<br>${todo(c.phone)}</div>
+    <div><span class="lbl">Livrer à</span><strong>${esc(c.name)}</strong><br>${place}${c.phone ? `<br>${esc(c.phone)}` : ''}</div>
   </div>
   <table><thead><tr><th>Article</th><th class="n">Quantité</th><th class="n">Prix unitaire</th><th class="n">Total</th></tr></thead><tbody>
     ${bc.lines.map((l) => `<tr><td>${esc(l.name)}<br><small style="color:#6B6585">réf. ${esc(l.productId)}</small></td><td class="n">${l.qty}</td><td class="n">${fcfa(l.unitPrice)}</td><td class="n">${fcfa(l.qty * l.unitPrice)}</td></tr>`).join('')}

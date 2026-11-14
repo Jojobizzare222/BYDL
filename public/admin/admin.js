@@ -916,7 +916,7 @@
         <button type="button" class="ghost fee-del" title="Retirer cette ville">${icon('trash-bold')} <span>Retirer</span></button>
       </div>`;
     const cp = co.company;
-    const coField = (k, label, ph = '', wide = false) => `<div${wide ? ' style="grid-column:1/-1"' : ''}><label for="co_${k}">${label}${co.missing.includes(k) ? ' <span class="tag warn">à compléter</span>' : ''}</label><input id="co_${k}" type="text" data-co="${k}" value="${esc(cp[k] || '')}" placeholder="${esc(ph)}"></div>`;
+    const coField = (k, label, ph = '', wide = false) => `<div${wide ? ' style="grid-column:1/-1"' : ''}><label for="co_${k}">${label}${co.missing.includes(k) ? ' <span class="tag">plus tard</span>' : ''}</label><input id="co_${k}" type="text" data-co="${k}" value="${esc(cp[k] || '')}" placeholder="${esc(ph)}"></div>`;
     const PAY = [['mobile', 'Mobile Money en deux temps (acompte, puis retrait ou dépôt)'], ['cash', 'Espèces en agence (retrait ou livraison)'], ['momo', 'Mobile Money (MTN, Airtel)'], ['card', 'Carte bancaire (prestataire à brancher)'], ['cod', 'Paiement à la réception']];
     app.innerHTML = pageHead({ crumb: 'Gestion', title: 'Réglages', desc: 'Maintenance, règles de vente, frais de livraison, société (factures et reçus) et paiement à la réception.' }) + `
       <form class="panel maint-panel ${mt.enabled ? 'on' : ''}" id="maintForm" style="max-width:760px">
@@ -990,7 +990,7 @@
           ${coField('niu', 'NIU', 'M2026…')}${coField('phone', 'Téléphone', '06 000 00 00')}
           ${coField('address', 'Adresse', 'N°, avenue, quartier', true)}
           ${coField('city', 'Ville', 'Pointe-Noire')}${coField('country', 'Pays', 'République du Congo')}
-          ${coField('email', 'E-mail', 'contact@zado.cg')}${coField('website', 'Site', 'zado.cg')}
+          ${coField('email', 'E-mail', 'contact@zado-congo.com')}${coField('website', 'Site', 'zado-congo.com')}
         </div>
         <label class="check" style="margin-top:12px"><input type="checkbox" id="coVat" ${cp.vatEnabled ? 'checked' : ''}> Zado facture la TVA (détail HT / TVA / TTC sur les factures)</label>
         <div class="grid2" id="coVatBox" ${cp.vatEnabled ? '' : 'hidden'}>
@@ -1886,7 +1886,7 @@
       desc: "Créés automatiquement : un <strong>reçu</strong> à chaque somme reçue (espèces en agence, Mobile Money, acompte, reste à la livraison), une <strong>facture</strong> à chaque vente, un <strong>avoir</strong> si une vente facturée est annulée. Numéros qui se suivent, jamais modifiés ni supprimés. Imprimez (A4 ou ticket 80 mm), enregistrez en PDF ou envoyez au client par WhatsApp.",
       actions: `<a class="btn" href="/api/admin/documents/export.csv">${icon('download-simple-bold')} Exporter</a>`,
     })
-      + (r.companyMissing.length && CAN.admin() ? `<div class="alert warn">Les documents affichent « À compléter » à la place de : ${r.companyMissing.map((k) => ({ legalForm: 'forme juridique', rccm: 'RCCM', niu: 'NIU', address: 'adresse', phone: 'téléphone' }[k])).join(', ')}. <a href="#/reglages">Compléter dans Réglages → Société</a> (chaque document garde les informations du jour de son émission).</div>` : '')
+      + (r.companyMissing.length && CAN.admin() ? `<div class="alert">Pas encore sur les documents (ils n'affichent que « Zado » et ce qui est connu) : ${r.companyMissing.map((k) => ({ legalForm: 'forme juridique', rccm: 'RCCM', niu: 'NIU', address: 'adresse', phone: 'téléphone' }[k])).join(', ')}. Ils apparaîtront sur les nouveaux documents dès que vous les saisirez dans <a href="#/reglages">Réglages → Société</a>.</div>` : '')
       + `<div class="kpis">
           <div class="kpi kc0"><span class="kpi-ico">${icon('receipt-duotone')}</span><span class="kpi-label">Facturé en ${esc(monthName)}</span><span class="kpi-value">${fcfa(tot('invoice'))}</span><span class="kpi-hint">${inMonth.filter((d) => d.type === 'invoice').length} facture(s)</span></div>
           <div class="kpi kc1"><span class="kpi-ico">${icon('money-duotone')}</span><span class="kpi-label">Encaissé en ${esc(monthName)}</span><span class="kpi-value">${fcfa(tot('receipt'))}</span><span class="kpi-hint">dont espèces ${fcfa(tot('receipt', (d) => d.method === 'cash'))}</span></div>

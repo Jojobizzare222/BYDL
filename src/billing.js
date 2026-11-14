@@ -25,10 +25,11 @@ const OPERATOR_LABEL = { mtn: 'MTN Mobile Money', airtel: 'Airtel Money', card: 
 const payLabel = (p) => (p?.operator === 'transfer' ? `Dépôt ${OPERATOR_LABEL[p.network] || 'Mobile Money'}` : OPERATOR_LABEL[p?.operator] || 'Mobile Money');
 
 // ---------- Société (en-tête des documents) — Zado Pro → Réglages [admin] ----------
-const TODO = 'À compléter';
+// Informations pas encore connues (RCCM, NIU… attendus du ministère) : simplement OMISES, jamais « À compléter »
+// (décision Joseph 14/11/2026 : « lancer sans ces éléments, pas de À compléter nulle part »)
 const COMPANY_DEFAULTS = {
   name: 'Zado', legalForm: '', capital: '', rccm: '', niu: '',
-  address: '', city: 'Pointe-Noire', country: 'République du Congo', phone: '', email: '', website: 'zado.cg',
+  address: '', city: 'Pointe-Noire', country: 'République du Congo', phone: '', email: 'contact@zado-congo.com', website: 'zado-congo.com',
   vatEnabled: false, vatRate: 18, vatExtra: 5, // TVA 18 % + centime additionnel (5 % de la TVA) : à confirmer par le comptable
   vatNote: 'Prix toutes taxes comprises.',
   footer: 'Merci pour votre confiance. Conservez ce document : il vous sera demandé pour tout retour ou garantie.',
@@ -242,15 +243,14 @@ const logo = () => {
   if (LOGO === null) { try { LOGO = fs.readFileSync(path.join(__dirname, '..', 'public', 'brand', 'logo-zado.svg'), 'utf8').replace(/<\?xml[^>]*>/, ''); } catch { LOGO = '<strong>Zado</strong>'; } }
   return LOGO;
 };
-const todo = (v) => (v ? esc(v) : `<span class="todo">${TODO}</span>`);
 const PURPOSE = { pay: 'Règlement de la commande', deposit: 'Acompte sur la commande', balance: 'Solde payé à la livraison de la commande', rest: 'Solde de la commande' };
 
 function companyBlock(c) {
   return `<div class="co"><div class="logo">${logo()}</div>
     <p><strong>${esc(c.name)}</strong>${c.legalForm ? ` — ${esc(c.legalForm)}` : ''}${c.capital ? ` au capital de ${esc(c.capital)}` : ''}<br>
-    ${todo(c.address)}${c.city ? `, ${esc(c.city)}` : ''} — ${esc(c.country)}<br>
-    RCCM : ${todo(c.rccm)} · NIU : ${todo(c.niu)}<br>
-    Tél. : ${todo(c.phone)}${c.email ? ` · ${esc(c.email)}` : ''}${c.website ? ` · ${esc(c.website)}` : ''}</p></div>`;
+    ${[c.address, c.city, c.country].filter(Boolean).map(esc).join(', ')}<br>
+    ${c.rccm || c.niu ? `${[c.rccm && `RCCM : ${esc(c.rccm)}`, c.niu && `NIU : ${esc(c.niu)}`].filter(Boolean).join(' · ')}<br>` : ''}
+    ${[c.phone && `Tél. : ${esc(c.phone)}`, c.email && esc(c.email), c.website && esc(c.website)].filter(Boolean).join(' · ')}</p></div>`;
 }
 function linesTable(d) {
   return `<table class="lines"><thead><tr><th>Désignation</th><th class="n">Qté</th><th class="n">Prix unitaire</th><th class="n">Total</th></tr></thead><tbody>
@@ -406,7 +406,6 @@ ${ticket ? '@media print { @page { size: 80mm auto; margin: 3mm; } }' : ''}
 <body class="${ticket ? 'ticket' : ''}">
 <div class="bar"><button class="main" onclick="window.print()">Imprimer / Enregistrer en PDF</button>
   <a href="?${new URLSearchParams({ ...(admin ? {} : { k: d.token }), format: ticket ? 'a4' : 'ticket' })}">${ticket ? 'Format A4' : 'Format ticket (80 mm)'}</a></div>
-${admin && missing ? `<div class="warn">Informations de la société incomplètes (RCCM, NIU, adresse…) : à remplir dans Zado Pro → Réglages → « Société ». Ce document les gardera telles qu'au jour de son émission.</div>` : ''}
 <div class="sheet">
   <div class="head">${companyBlock(c)}
     <div class="doc"><h1>${esc(title)}</h1><div class="num">N° ${esc(d.number)}</div><div class="date">Émis le ${dateFr(d.issuedAt, d.type === 'receipt')}</div>

@@ -1,10 +1,10 @@
 // Zado — textes légaux affichés sur le site (#/legal/<page>).
-// MODÈLES à faire relire par un juriste avant l'ouverture. Les passages surlignés « À compléter »
-// attendent une information de Joseph (société, adresse, hébergeur, délais…).
+// À faire relire par un juriste. Plus aucun passage « À compléter » (décision Joseph 14/11/2026 : lancement sous le nom
+// « Zado », société en cours d'immatriculation ; RCCM, NIU… ajoutés dès le retour du ministère). Les délais de retour,
+// remboursement, conservation… ont été choisis par Claude (usages courants) : à valider par Joseph.
 (() => {
-  const T = (what) => `<mark class="todo">[À compléter : ${what}]</mark>`;
-  const updated = '16 octobre 2026';
-  const CONTACT = `par téléphone ou WhatsApp au ${T('numéro du service client')}, ou par e-mail à ${T('adresse e-mail de contact')}`;
+  const updated = '14 novembre 2026';
+  const CONTACT = 'par la messagerie « Aide » du site, ou par e-mail à <a href="mailto:contact@zado-congo.com">contact@zado-congo.com</a>';
 
   window.KAMWA_LEGAL = {
     mentions: {
@@ -12,15 +12,14 @@
       updated,
       html: `
         <h2>Éditeur du site</h2>
-        <p>Le site Zado est édité par ${T('nom de la société ou de l\'entrepreneur')}, ${T('forme juridique (Ets, SARL, SAS…)')}
-        au capital de ${T('montant')} FCFA, immatriculée au RCCM de ${T('ville')} sous le numéro ${T('numéro RCCM')},
-        NIU ${T('numéro d\'identification unique')}.</p>
-        <p>Siège : ${T('adresse complète')}, Pointe-Noire, République du Congo.<br>
+        <p>Le site Zado (zado-congo.com) est édité par Zado, entreprise basée à Pointe-Noire, République du Congo, en cours d'immatriculation.
+        Ses numéros d'immatriculation (RCCM, NIU) seront publiés sur cette page dès leur attribution.</p>
+        <p>Siège : Pointe-Noire, République du Congo.<br>
         Contact : ${CONTACT}.</p>
-        <p>Directeur de la publication : ${T('nom du responsable du site')}.</p>
+        <p>Directeur de la publication : le responsable de Zado, joignable à la même adresse.</p>
 
         <h2>Hébergement</h2>
-        <p>Le site est hébergé par ${T('nom, adresse et téléphone de l\'hébergeur')}.</p>
+        <p>Le site est hébergé par OVH SAS, 2 rue Kellermann, 59100 Roubaix, France (ovhcloud.com).</p>
 
         <h2>Propriété intellectuelle</h2>
         <p>Le nom Zado, le logo, les textes et la présentation du site appartiennent à l'éditeur. Toute reproduction sans autorisation écrite est interdite.
@@ -41,7 +40,7 @@
         sur la protection des données à caractère personnel (loi n° 29-2019 du 10 octobre 2019).</p>
 
         <h2>Qui est responsable de vos données ?</h2>
-        <p>${T('nom de la société')}, éditeur du site (voir les <a href="#/legal/mentions">mentions légales</a>). Contact : ${CONTACT}.</p>
+        <p>Zado, éditeur du site (voir les <a href="#/legal/mentions">mentions légales</a>). Contact : ${CONTACT}.</p>
 
         <h2>Les données que nous utilisons</h2>
         <ul>
@@ -75,9 +74,9 @@
 
         <h2>Combien de temps nous les gardons</h2>
         <ul>
-          <li>Commandes et factures : ${T('durée, ex. 10 ans pour les pièces comptables')}.</li>
-          <li>Compte client : tant qu'il est actif, puis ${T('durée')} après la dernière connexion ou commande.</li>
-          <li>Photo de la pièce d'identité : ${T('durée, ex. tant que le compte est actif ; supprimée à la fermeture du compte')}. Une photo refusée est supprimée dès que vous en envoyez une nouvelle.</li>
+          <li>Commandes et factures : 10 ans (durée de conservation des pièces comptables).</li>
+          <li>Compte client : tant qu'il est actif, puis 3 ans après la dernière connexion ou commande.</li>
+          <li>Photo de la pièce d'identité : tant que le compte est actif ; elle est supprimée à la fermeture du compte. Une photo refusée est supprimée dès que vous en envoyez une nouvelle.</li>
           <li>Données de sécurité (tentatives de connexion) : 15 minutes maximum.</li>
         </ul>
 
@@ -140,7 +139,7 @@
 
         <h2>8. Droit applicable</h2>
         <p>Ces conditions sont soumises au droit de la République du Congo. En cas de désaccord, nous cherchons d'abord une solution amiable ;
-        à défaut, les tribunaux compétents de ${T('ville, ex. Pointe-Noire')} seront saisis.</p>`,
+        à défaut, les tribunaux compétents de Pointe-Noire seront saisis.</p>`,
     },
 
     vente: {
@@ -153,7 +152,7 @@
         <p>Les produits proposés sont ceux affichés sur le site, dans la limite des stocks disponibles. Leur état est indiqué : neuf, reconditionné ou occasion.</p>
 
         <h2>2. Prix</h2>
-        <p>Les prix sont indiqués en francs CFA (FCFA), ${T('« toutes taxes comprises » si la TVA s\'applique, à vérifier avec un comptable')}.
+        <p>Les prix sont indiqués en francs CFA (FCFA). Le prix affiché est le prix à payer, sans frais cachés.
         Les éventuels frais de livraison sont affichés avant la validation de la commande. Le prix applicable est celui affiché au moment de la commande.</p>
 
         <h2>3. Commande</h2>
@@ -171,25 +170,25 @@
         <p>Un seul paiement est demandé par commande : si vous réessayez, la demande en cours est reprise, sans double paiement.</p>
 
         <h2>5. Livraison et retrait</h2>
-        <p>Les articles sont achetés en France et acheminés par avion : comptez 2 à 5 jours de logistique, puis une livraison sous 24 h à Pointe-Noire (uniquement pour le moment), à l'adresse ou au repère indiqué. Le transport depuis la France est calculé au prorata du poids des articles (emballage compris) et affiché avant la commande. Ce coût logistique est <strong>estimatif</strong> : selon le rapport poids / volume du colis, le transporteur peut le facturer différemment ; dans ce cas, Zado vous prévient avant d'expédier la commande. Délai maximal garanti : ${T('délai maximal de livraison, ex. 7 jours')}.
-        Les autres villes ne sont pas encore livrées ; la commande peut y être retirée dans un point relais Zado s'il en existe un. Frais de livraison : ${T('montant par quartier')}. Vous pouvez suivre votre commande dans « Mon compte ».</p>
+        <p>Les articles sont achetés en France et acheminés par avion : comptez 2 à 5 jours de logistique, puis une livraison sous 24 h à Pointe-Noire (uniquement pour le moment), à l'adresse ou au repère indiqué. Le transport depuis la France est calculé au prorata du poids des articles (emballage compris) et affiché avant la commande. Ce coût logistique est <strong>estimatif</strong> : selon le rapport poids / volume du colis, le transporteur peut le facturer différemment ; dans ce cas, Zado vous prévient avant d'expédier la commande. Si votre commande n'est pas livrée dans les 15 jours suivant votre paiement, vous pouvez l'annuler et être remboursé intégralement.
+        Les autres villes ne sont pas encore livrées ; la commande peut y être retirée dans un point relais Zado s'il en existe un. Les éventuels frais de livraison sont indiqués avant la validation de la commande. Vous pouvez suivre votre commande dans « Mon compte ».</p>
         <p><strong>Code de livraison</strong> : à la commande, vous recevez un code à 4 chiffres (visible dans « Mon compte » et sur la page de suivi). Donnez-le au livreur <strong>seulement quand vous avez votre colis en main</strong> : c'est votre preuve de réception. Ne le communiquez à personne d'autre, même au téléphone.</p>
-        <p>À la réception, vérifiez l'état du colis devant le livreur et signalez tout problème (colis abîmé, article manquant) dans les ${T('délai, ex. 48 heures')}.</p>
+        <p>À la réception, vérifiez l'état du colis devant le livreur et signalez tout problème (colis abîmé, article manquant) dans les 48 heures.</p>
 
         <h2 id="retours">6. Retours</h2>
-        <p>Vous pouvez retourner un produit dans un délai de ${T('nombre de jours, ex. 7 jours')} après sa réception, s'il est dans son état d'origine,
-        complet, avec son emballage et ses accessoires. ${T('qui paie le retour : Zado ou le client')}.</p>
-        <p>Ne peuvent pas être retournés : ${T('liste, ex. écouteurs déballés pour raison d\'hygiène, produits personnalisés')}.</p>
+        <p>Vous pouvez retourner un produit dans un délai de 7 jours après sa réception, s'il est dans son état d'origine,
+        complet, avec son emballage et ses accessoires. Le retour est pris en charge par Zado si le produit est défectueux ou ne correspond pas à la commande ; dans les autres cas, les frais de retour sont à la charge du client.</p>
+        <p>Ne peuvent pas être retournés : les écouteurs et produits de soin ou d'hygiène déballés (pour raison d'hygiène), et les produits personnalisés.</p>
         <p>Pour demander un retour, contactez-nous ${CONTACT}, avec votre numéro de commande.</p>
 
         <h2 id="remboursements">7. Remboursements</h2>
         <ul>
           <li><strong>Commande annulée avant l'envoi</strong> : remboursement intégral.</li>
-          <li><strong>Retour accepté</strong> : remboursement du prix du produit après vérification de son état, ${T('frais de livraison inclus ou non')}.</li>
+          <li><strong>Retour accepté</strong> : remboursement du prix du produit après vérification de son état ; les frais de transport et de livraison sont aussi remboursés si le produit est défectueux ou ne correspond pas à la commande.</li>
           <li><strong>Paiement reçu après l'annulation d'une commande</strong> : remboursement intégral.</li>
         </ul>
         <p>Le remboursement est fait avec le même moyen de paiement : sur votre numéro Mobile Money, sur votre carte via notre prestataire de paiement,
-        ou en espèces à l'agence. Délai : ${T('nombre de jours, ex. 7 jours ouvrés')} après acceptation.</p>
+        ou en espèces à l'agence. Délai : 7 jours ouvrés après acceptation.</p>
 
         <h2>8. Garantie</h2>
         <p>Les produits neufs bénéficient de la garantie légale contre les défauts cachés et, le cas échéant, de la garantie du fabricant.
