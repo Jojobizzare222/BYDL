@@ -709,8 +709,9 @@
   function card(p, family = [p]) {
     const multi = family.length > 1;
     const d = discount(p);
-    const tag = isRefurb(p) ? `<span class="tag tag-violet">${esc(condShort(p))}</span>`
-      : p.featured ? '<span class="tag tag-mango">Nouveau</span>' : '';
+    // État TOUJOURS affiché sur la photo (demande Joseph 14/11/2026 : « on doit voir neuf ou reconditionné ») ;
+    // l'ancienne étiquette « Nouveau » (article mis en avant) est retirée pour ne pas la confondre avec « Neuf »
+    const tag = isRefurb(p) ? `<span class="tag tag-violet">${esc(condShort(p))}</span>` : '<span class="tag tag-new">Neuf</span>';
     return `
       <article class="card">
         <a href="#/p/${p.id}" class="card-link">
@@ -1244,7 +1245,7 @@
         </div>
         <div>
           <h1>${esc(p.name)}</h1>
-          ${p.provenance || p.sourceSupplier ? `<div class="origin-row">${p.provenance ? `<span>${icon('airplane-tilt')} Provenance : <b>${esc(p.provenance)}</b></span>` : ''}${p.sourceSupplier ? `<span>${icon('seal-check-duotone')} Fournisseur : <b>${esc(p.sourceSupplier)}</b></span>` : ''}</div>` : ''}
+          ${`<div class="origin-row"><span class="cond-pill ${isRefurb(p) ? 'refurb' : 'new'}">${icon(isRefurb(p) ? 'arrows-clockwise' : 'seal-check-duotone')} État : <b>${esc(isRefurb(p) ? condShort(p) : 'Neuf')}</b></span>${p.provenance ? `<span>${icon('airplane-tilt')} Provenance : <b>${esc(p.provenance)}</b></span>` : ''}${p.sourceSupplier ? `<span>${icon('seal-check-duotone')} Fournisseur : <b>${esc(p.sourceSupplier)}</b></span>` : ''}</div>`}
           ${detailPeek(p)}
           <div class="pdp-meta">${p.rating ? `<a href="#reviews" class="rating-link" data-scroll="reviews">${ratingLine(p.rating)}</a>` : ''}<button type="button" class="share-btn" id="shareBtn">${icon('export')} Partager</button></div>
           ${(() => { const sib = siblings(p); return sib.length > 1 ? `<div class="color-pick"><span class="lbl">Couleur : <b>${esc(colorOf(p)?.label || '')}</b></span><div>${sib.map((x) => `<a href="#/p/${enc(x.id)}" class="${x.id === p.id ? 'on' : ''}" title="${esc(colorOf(x)?.label || x.name)}" aria-label="${esc(colorOf(x)?.label || x.name)}"><i style="background:${colorOf(x)?.hex || '#ccc'}"></i></a>`).join('')}</div></div>` : ''; })()}
@@ -1973,7 +1974,7 @@
   async function viewAccount(sub) {
     renderNav(null);
     if (sub === 'creer') return viewRegister();
-    app.innerHTML = mamaLoading();
+    if (!state.quiet) app.innerHTML = mamaLoading(); // mise à jour en arrière-plan : on garde la page affichée
     const list = await loadMyOrders();
     const c = state.customer;
 
@@ -2470,7 +2471,7 @@
 
   async function viewTracking(id) {
     renderNav(null);
-    app.innerHTML = mamaLoading();
+    if (!state.quiet) app.innerHTML = mamaLoading(); // mise à jour en arrière-plan : on garde la page affichée
     let o = null;
     try { o = await api('/orders/' + enc(id), { headers: orderHeaders(tokenOf(id) || '') }); } catch {}
     if (!o) {
@@ -2774,17 +2775,23 @@
     if ($('#checkoutForm') || $('.cam-overlay') || $('.code-reveal')) return true; // commande en cours, appareil photo, nouveau code affiché : on n'y touche pas
     return [...app.querySelectorAll('input:not([type=radio]):not([type=checkbox]):not([type=hidden]), textarea')].some((i) => i.value && i.defaultValue !== i.value);
   };
+  // Renvoie la liste des articles changés (ajoutés, retirés, prix, stock…), ou false si rien n'a changé
   async function refreshProducts(force) {
     if (!force && Date.now() - productsAt < 30000) return false;
     productsAt = Date.now();
     try {
       const fresh = await api('/products');
       if (prodSig(fresh) === prodSig(state.products)) return false;
+      const one = (p) => JSON.stringify([p.price, p.oldPrice, p.stock, p.active, p.image, p.name, p.condition, p.weightKg]);
+      const old = new Map(state.products.map((p) => [p.id, one(p)]));
+      const changed = new Set(fresh.filter((p) => old.get(p.id) !== one(p)).map((p) => p.id));
+      const freshIds = new Set(fresh.map((p) => p.id));
+      for (const id of old.keys()) if (!freshIds.has(id)) changed.add(id);
       state.products = fresh;
       loadPairs();
       UNIVERSES = (state.config.universes || []).map((u) => ({ ...u, categories: u.categories.filter((c) => state.products.some((p) => p.category === c)) })).filter((u) => u.categories.length);
       $('#menuBody').innerHTML = ''; // menu « Rayons » reconstruit avec les nouveaux rayons
-      return true;
+      return [...changed];
     } catch { return false; }
   }
   // Empreinte de ce qu'affiche la page (pour savoir s'il faut la redessiner)
@@ -2804,6 +2811,10 @@
     return null;
   }
   const LIVE_PAGES = ['compte', 'commande', 'suivi', 'merci'];
+  const CATALOG_PAGES = ['', 'c', 'recherche', 'promos', 'p', 'reconditionne', 'petits-prix', 'cadeaux'];
+  // Un des articles changés est-il visible sur la page (carte, lien, bouton « Ajouter », fiche ouverte) ?
+  const shows = (ids, parts) => (parts[0] === 'p' && ids.includes(parts[1]))
+    || ids.some((id) => app.querySelector(`[href="#/p/${CSS.escape(id)}"], [data-add="${CSS.escape(id)}"]`));
   async function armLive() {
     const parts = currentParts();
     liveBase = LIVE_PAGES.includes(parts[0]) ? { key: location.hash, sig: await pageSig(parts) } : null;
@@ -2817,7 +2828,10 @@
       const before = custSig(state.customer);
       await refreshCustomer();
       const changedCustomer = before !== custSig(state.customer);
-      if (await refreshProducts(false) && ['', 'c', 'recherche', 'promos', 'p'].includes(parts[0]) && !userBusy()) { route({ keep: true }); return; }
+      // Rafraîchissement INVISIBLE (demande Joseph 14/11/2026 : « plus fluide, sans que ça se remarque ») : la page n'est
+      // redessinée que si un article réellement AFFICHÉ a changé (prix, stock…) ; sinon le catalogue est mis à jour en silence
+      const changed = await refreshProducts(false);
+      if (changed && changed.length && CATALOG_PAGES.includes(parts[0]) && !userBusy() && shows(changed, parts)) { route({ keep: true }); return; }
       if (liveBase && liveBase.key === location.hash) {
         const sig = await pageSig(parts);
         if (sig !== null && sig !== liveBase.sig && !userBusy()) { liveBase.sig = sig; route({ keep: true }); return; }
@@ -2850,6 +2864,9 @@
 
   function route(opts = {}) {
     state.timers.forEach(clearInterval); state.timers = [];
+    state.quiet = Boolean(opts.keep); // mise à jour en arrière-plan : pas d'écran « Chargement… », la page reste en place
+    app.classList.toggle('quiet', state.quiet); // … ni fondu d'apparition
+    if (opts.keep) setTimeout(() => { state.quiet = false; }, 3000);
     const parts = currentParts();
     document.body.dataset.route = parts[0] || 'accueil'; // sert au style (ex. bulle « Aide » réduite sur les pages d'achat)
     renderMaintenance();
@@ -2914,5 +2931,12 @@
     await refreshCustomer();
     window.addEventListener('hashchange', route);
     route();
+    // Démarrage après une mise à jour discrète : même position qu'avant, puis on retire le mode « soft-boot »
+    try {
+      const soft = JSON.parse(sessionStorage.getItem('kamwa-soft') || 'null');
+      sessionStorage.removeItem('kamwa-soft');
+      if (soft && soft.hash === location.hash && soft.y) [0, 120, 350, 700].forEach((ms) => setTimeout(() => { if (Math.abs(window.scrollY - soft.y) > 2) window.scrollTo(0, soft.y); }, ms));
+    } catch {}
+    setTimeout(() => document.documentElement.classList.remove('soft-boot'), 800);
   })();
 })();

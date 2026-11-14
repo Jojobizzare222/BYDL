@@ -331,6 +331,11 @@ main { max-width: 1180px; margin: 0 auto; padding: 20px 20px 40px; min-height: 6
 .tag { align-self: flex-start; font-size: .7rem; font-weight: 700; padding: 2px 8px; border-radius: 999px; }
 .tag-mango { background: var(--mango-soft); color: var(--mango-dark); }
 .tag-violet { background: var(--violet-soft); color: var(--brand-text); }
+/* État « Neuf » (14/11/2026) : vert, en face de « Reconditionné » (marine) */
+.tag-new { background: #E1F5EC; color: #0B7356; }
+.origin-row .cond-pill.new { background: #E1F5EC; color: #0B7356; } .origin-row .cond-pill.new .ico { color: #0E8A66; }
+html[data-theme="dark"] .tag-new, html[data-theme="dark"] .origin-row .cond-pill.new { background: #10382C; color: #7EE0B8; }
+html[data-theme="dark"] .origin-row .cond-pill.new .ico { color: #7EE0B8; }
 .prices { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; margin-top: 2px; }
 .old { color: var(--muted); text-decoration: line-through; font-size: .82rem; }
 .price { font-weight: 700; color: var(--price); font-size: 1.05rem; white-space: nowrap; letter-spacing: -0.02em; }
@@ -628,6 +633,8 @@ html.standalone body { -webkit-user-select: none; user-select: none; -webkit-tap
 html.standalone input, html.standalone textarea, html.standalone .legal { -webkit-user-select: text; user-select: text; }
 /* Transition douce entre les écrans, comme dans une application */
 #app > * { animation: fade-in .25s ease-out; }
+/* Mise à jour en arrière-plan ou démarrage après une nouvelle version : pas de fondu, rien ne doit se remarquer */
+#app.quiet > *, html.soft-boot #app > * { animation: none; }
 @keyframes fade-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { #app > *, .install-card { animation: none; } }
 
@@ -1821,3 +1828,7 @@ html[data-theme="dark"] .pp-tag { background: rgba(14,138,102,.18); color: #5DE0
 /* Page « Commande enregistrée » (bon de commande, 14/11/2026) */
 .order-done .next-steps { text-align: left; max-width: 520px; margin: 16px auto; padding: 14px 16px; border-radius: 12px; background: var(--bg, #F3F5F9); }
 .order-done .next-steps ol { margin: 6px 0 0; padding-left: 20px; } .order-done .next-steps li { margin: 4px 0; }
+
+/* Nouvelle version chargée en douceur (14/11/2026) : pas d'écran « Chargement… », la page garde sa hauteur pendant le démarrage */
+html.soft-boot main#app { min-height: 100vh; }
+html.soft-boot main#app .mz-loading { visibility: hidden; }

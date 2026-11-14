@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8">
   <!-- Apparence (clair / sombre / automatique) appliquée AVANT l'affichage : pas de flash de couleur -->
+  <script>(function(){try{var s=JSON.parse(sessionStorage.getItem("kamwa-soft")||"null");if(s&&Date.now()-s.at<15000)document.documentElement.classList.add("soft-boot")}catch(e){}})();</script>
   <script>(function(){var k="kamwa-theme",d="light",m;try{m=localStorage.getItem(k)||d}catch(e){m=d}var q=matchMedia("(prefers-color-scheme: dark)");function a(){var t=m==="auto"?(q.matches?"dark":"light"):m;document.documentElement.setAttribute("data-theme",t);}a();if(q.addEventListener)q.addEventListener("change",function(){if(m==="auto")a()});window.kamwaTheme={mode:function(){return m},set:function(v){m=v;try{localStorage.setItem(k,v)}catch(e){}a();document.dispatchEvent(new CustomEvent("kamwa-theme"))}};})();</script>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#10264A">

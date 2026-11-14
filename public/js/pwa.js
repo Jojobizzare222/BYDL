@@ -34,11 +34,18 @@
   // Saisie en cours (champ modifié, photo choisie) : on ne recharge pas sous les doigts de la personne
   const typing = () => [...document.querySelectorAll('input, textarea')].some((i) => !['hidden', 'radio', 'checkbox', 'file'].includes(i.type) && i.value && i.value !== i.defaultValue)
     || Boolean(document.querySelector('#idPreview:not([hidden]), .cam-overlay'));
+  // Rechargement DISCRET (demande Joseph 14/11/2026 : « sans que ça se remarque, sans fermer l'application ») :
+  // de préférence pendant que l'application est en arrière-plan (invisible), sinon au changement de page ;
+  // la page suivante démarre sans écran de chargement et revient à la même position (classe « soft-boot », index.html).
+  const softReload = () => {
+    try { sessionStorage.setItem('kamwa-soft', JSON.stringify({ y: window.scrollY, hash: location.hash, at: Date.now() })); } catch {}
+    location.reload();
+  };
   checkVersion(true);
-  window.addEventListener('hashchange', async () => { if (!updateReady) await checkVersion(); if (updateReady) location.reload(); });
+  window.addEventListener('hashchange', async () => { if (!updateReady) await checkVersion(); if (updateReady && !typing()) softReload(); });
   document.addEventListener('visibilitychange', () => {
-    if (document.hidden) return;
-    if (updateReady && !typing()) location.reload(); else checkVersion(true);
+    if (document.hidden) { if (updateReady && !typing()) softReload(); return; } // invisible : l'application est en arrière-plan
+    if (updateReady && !typing()) softReload(); else checkVersion(true);
   });
   setInterval(() => { if (!document.hidden) checkVersion(); }, 60000);
 
