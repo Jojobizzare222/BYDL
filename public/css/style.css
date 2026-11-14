@@ -1525,6 +1525,8 @@ html[data-theme="dark"] .soon-tag { background: #4A3A10; color: #FFD27A; }
 .pay-box b { font-size: .98rem; } .pay-box span { line-height: 1.45; } .pay-box small { color: var(--muted); }
 .pay-box .pb-num { font-size: 1.1rem; letter-spacing: .04em; white-space: nowrap; }
 .pay-box .btn { justify-self: start; }
+/* Pages centrées (merci, commande enregistrée) : l'encadré reste centré mais son texte s'aligne à gauche, à côté de l'icône */
+.waiting .pay-box { text-align: left; max-width: 640px; margin: 16px auto; }
 .pay-box.done { background: var(--violet-soft); border-color: transparent; } .pay-box.done > .ico { color: var(--ok); }
 .pay-box.warn { background: var(--coral-soft); border-color: rgba(255,90,60,.35); } .pay-box.warn > .ico { color: var(--accent-dark); }
 /* Voyage du colis France → Pointe-Noire (suivi client, 21/10/2026) */
