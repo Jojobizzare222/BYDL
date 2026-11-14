@@ -141,6 +141,7 @@ router.post('/', (req, res) => {
   }
   // Transport France → Pointe-Noire (src/freight.js) : 15 €/kg, 1 kg minimum par article ; recalculé ici, jamais pris du navigateur
   const freight = require('../freight').orderFreight(lines);
+  const serviceFee = require('../pricing').serviceFee();
   const order = orders.insert({
     id: newOrderId(),
     accessToken: crypto.randomBytes(16).toString('hex'),
@@ -149,9 +150,10 @@ router.post('/', (req, res) => {
     subtotal,
     transportFee: freight.fee, transportKg: freight.kg, transportPerKg: freight.perKg, transportZadoFee: freight.zadoFee, // frais Zado : interne (marge)
     deliveryFee: 0, // fixé au paiement selon la ville / le quartier (src/fees.js) ; retrait au point relais : gratuit
+    serviceFee, // frais de service Zado, une fois par commande (src/pricing.js, décision Joseph 14/11/2026)
     ...(discount ? { discount } : {}),
     ...(giftInfo ? { gift: giftInfo } : {}),
-    total: subtotal - (discount?.amount || 0) + freight.fee,
+    total: subtotal - (discount?.amount || 0) + freight.fee + serviceFee,
     currency: 'XAF',
     customer: {
       name: customer.name.trim(),

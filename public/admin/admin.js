@@ -501,6 +501,7 @@
           ${o.lines.map((l) => `<div><span>${l.qty} × ${esc(l.name)}</span><span>${fcfa(l.total)}</span></div>`).join('')}
           ${o.discount ? `<div><span>Code promo ${esc(o.discount.code)} (${esc(o.discount.label || '')})</span><span>− ${fcfa(o.discount.amount)}</span></div>` : ''}
           ${o.transportFee ? `<div><span>Transport France → Pointe-Noire</span><span>${fcfa(o.transportFee)}</span></div>` : ''}
+          ${o.serviceFee ? `<div><span>Frais de service</span><span>${fcfa(o.serviceFee)}</span></div>` : ''}
           ${o.deliveryFee ? `<div><span>Livraison${o.customer.zone ? ` (${esc(o.customer.zone)})` : ''}</span><span>${fcfa(o.deliveryFee)}</span></div>` : ''}
           <div><span>Total</span><span>${fcfa(o.total)}</span></div>
         </div>
@@ -948,7 +949,7 @@
         <p class="muted" style="margin-top:0">Le transport France → Pointe-Noire est ajouté au prix des articles, à la commande, selon le poids saisi dans chaque fiche produit, <b>au prorata</b> (${fcfa(tr.perKg)} le kilo aujourd'hui : un colis de 200 g paie ${fcfa(Math.round(tr.perKg * 0.2))}). Le client voit une note : coût logistique estimatif, ajustable selon le rapport poids / volume.</p>
         <div class="grid2">
           <div><label for="trEur">Prix du transport (€ par kg)</label><input id="trEur" type="number" min="0" step="0.01" value="${tr.freight.eurPerKg}"></div>
-          <div><label for="trFee">Dont frais Zado (€ par kg)</label><input id="trFee" type="number" min="0" step="0.01" value="${tr.freight.zadoFeeEurPerKg ?? 0}"><small class="muted">Compté dans votre marge ; le reste (${String(Math.max(0, tr.freight.eurPerKg - (tr.freight.zadoFeeEurPerKg || 0))).replace('.', ',')} €) paie la société de fret. Jamais montré au client.</small></div>
+          <div><label for="trFee">Dont peines et soins Zado (€ par kg)</label><input id="trFee" type="number" min="0" step="0.01" value="${tr.freight.zadoFeeEurPerKg ?? 0}"><small class="muted">Compté dans votre marge ; le reste (${String(Math.max(0, tr.freight.eurPerKg - (tr.freight.zadoFeeEurPerKg || 0))).replace('.', ',')} €) paie la société de fret. Jamais montré au client.</small></div>
           <div><label for="trMin">Poids minimum facturé (kg) · 0 = au prorata du poids</label><input id="trMin" type="number" min="0" step="0.1" value="${tr.freight.minKg}"></div>
           <div><label for="trDefKg">Poids compté si la fiche n'a pas de poids (kg)</label><input id="trDefKg" type="number" min="0.01" step="0.1" value="${tr.freight.defaultKg ?? 1}"></div>
         </div>
@@ -958,6 +959,7 @@
           <div><label for="trL1">Logistique : délai minimum (jours)</label><input id="trL1" type="number" min="0" max="60" value="${tr.freight.logisticsMin}"></div>
           <div><label for="trL2">Logistique : délai maximum (jours)</label><input id="trL2" type="number" min="0" max="60" value="${tr.freight.logisticsMax}"></div>
           <div><label for="trDH">Livraison après l'arrivée à Pointe-Noire (heures)</label><input id="trDH" type="number" min="0" max="240" value="${tr.freight.deliveryHours}"></div>
+          <div><label for="trSvc">Frais de service par commande (FCFA)</label><input id="trSvc" type="number" min="0" step="100" value="${tr.pricing?.serviceFee ?? 2000}"><small class="muted">Ajoutés une fois au total de chaque commande.</small></div>
           <div><label for="trDep">Acompte Mobile Money (FCFA) · 0 = pas d'acompte, le client paie tout en une fois</label><input id="trDep" type="number" min="0" step="100" value="${tr.mobile.deposit}"></div>
           <div><label for="trMtn">Numéro MTN de Zado pour les dépôts</label><input id="trMtn" type="tel" value="${esc(tr.mobile.numbers.mtn || '')}" placeholder="06 000 00 00"></div>
           <div><label for="trAir">Numéro Airtel de Zado pour les dépôts</label><input id="trAir" type="tel" value="${esc(tr.mobile.numbers.airtel || '')}" placeholder="05 000 00 00"></div>
@@ -1056,6 +1058,7 @@
       try {
         const saved = await api('/settings/transport', { method: 'PUT', body: {
           freight: { enabled: $('#trOn').checked, eurPerKg: $('#trEur').value, zadoFeeEurPerKg: $('#trFee').value, minKg: $('#trMin').value, defaultKg: $('#trDefKg').value, perArticle: $('#trPerArt').checked, logisticsMin: $('#trL1').value, logisticsMax: $('#trL2').value, deliveryHours: $('#trDH').value },
+          pricing: { serviceFee: Number($('#trSvc').value || 0) },
           mobile: { deposit: Number($('#trDep').value || 0), numbers: { mtn: $('#trMtn').value, airtel: $('#trAir').value }, holder: $('#trHolder').value, transferHours: Number($('#trHours').value || 24), pull: $('#trPull').checked } } });
         toast(saved?.announced ? `Enregistré ✓ ${saved.announced} client(s) en attente ont reçu le numéro de dépôt` : 'Transport et acompte enregistrés ✓'); $('#trMsg').innerHTML = ''; route({ keep: true });
       } catch (err) { $('#trMsg').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; }
@@ -2174,7 +2177,7 @@
 
         <h2 style="margin-top:18px">Prix et disponibilité</h2>
         <div class="grid2">
-          ${showSale ? `<div><label for="price">Prix de vente (FCFA)${p.pending || isNew ? '' : ' *'}</label><input id="price" type="number" inputmode="numeric" min="1" step="1" value="${esc(p.price ?? '')}"></div>
+          ${showSale ? `<div><label for="price">Prix de vente (FCFA)${p.pending || isNew ? '' : ' *'}</label><input id="price" type="number" inputmode="numeric" min="1" step="1" value="${esc(p.price ?? '')}"><small class="muted" id="priceAdvice"></small></div>
           <div><label for="oldPrice">Prix barré (facultatif)</label><input id="oldPrice" type="number" inputmode="numeric" min="1" step="1" value="${esc(p.oldPrice ?? '')}"></div>` : ''}
           <div><label for="costPrice">Prix d'achat rendu Pointe-Noire (FCFA)</label><input id="costPrice" type="number" inputmode="numeric" min="0" step="1" value="${esc(p.costPrice ?? '')}" placeholder="achat Europe + fret + douane"></div>
           <div><label for="stock">Stock disponible *</label><input id="stock" type="number" inputmode="numeric" min="0" step="1" value="${esc(p.stock)}"></div>
@@ -2305,6 +2308,25 @@
       $('#priceBreak').innerHTML = `Le client verra : <b>${fcfa(pr + tr)}</b> livré à Pointe-Noire${tr ? ` (article ${fcfa(pr)} + transport ${fcfa(tr)} pour ${String(kg).replace('.', ',')} kg${w > 0 ? '' : ', poids non saisi'})` : ''}, avec la mention « coût logistique estimatif ».${src ? ` Votre marge sur le prix fournisseur : <b class="${pr - src < 0 ? 'bad' : ''}">${fcfa(pr - src)}</b>.` : ''}${src && pr - src < 0 ? ' <b class="bad">Attention : le prix de vente est inférieur au prix fournisseur.</b>' : ''}`;
     };
     ['#price', '#sourcePrice', '#weightKg'].forEach((sel) => $(sel)?.addEventListener('input', showBreak));
+    // Prix conseillé par la règle Zado (marge par tranche, minimum 3 000 FCFA, +25 % si reconditionné) : un clic l'applique
+    let advT = null;
+    const advise = () => {
+      clearTimeout(advT);
+      advT = setTimeout(async () => {
+        const box = $('#priceAdvice'); if (!box) return;
+        const src = Number($('#sourcePrice')?.value) || 0;
+        if (!src) { box.innerHTML = 'Saisissez le prix fournisseur en France pour obtenir le prix conseillé.'; return; }
+        try {
+          const r = await api('/pricing/advise', { method: 'POST', body: { sourcePrice: src, condition: $('#condition')?.value, weightKg: $('#weightKg')?.value } });
+          if (!r.price) { box.innerHTML = ''; return; }
+          box.innerHTML = `Prix conseillé (règle Zado) : <b>${fcfa(r.price)}</b> ${Number($('#price').value) === r.price ? '✓' : '<button type="button" class="linkish" id="applyAdvice">Appliquer</button>'}`;
+          $('#applyAdvice')?.addEventListener('click', () => { $('#price').value = r.price; $('#price').dispatchEvent(new Event('input')); advise(); });
+        } catch { box.innerHTML = ''; }
+      }, 250);
+    };
+    ['#price', '#sourcePrice', '#weightKg'].forEach((sel) => $(sel)?.addEventListener('input', advise));
+    $('#condition')?.addEventListener('change', advise);
+    if ($('#price')) advise();
     showBreak();
     $('#condition')?.addEventListener('change', () => { $('#refurbBox').hidden = $('#condition').value === 'neuf'; });
     if (!state.config) fetch('/api/config').then((r) => r.json()).then((cfg) => { state.config = cfg; if ($('#priceBreak')) showBreak(); }).catch(() => {});
@@ -2748,7 +2770,7 @@
     app.innerHTML = head + finTabs('') + periodChips() + alerts.join('') + `
       <div class="kpis">
         <div class="kpi kc0"><span class="kpi-ico">${icon('currency-circle-dollar-duotone')}</span><span class="kpi-label">Chiffre d'affaires</span><span class="kpi-value">${fcfa(k.revenue)}</span><span class="kpi-hint">${k.orders} commande(s) payée(s)</span></div>
-        <div class="kpi kc1"><span class="kpi-ico">${icon('chart-line-up-duotone')}</span><span class="kpi-label">Marge brute</span><span class="kpi-value">${money(k.grossMargin)}</span><span class="kpi-hint">${pct} % des ventes · coût des produits ${fcfa(k.cogs)}${k.transportZadoFees ? ` · dont frais Zado sur le transport ${fcfa(k.transportZadoFees)}` : ''}</span></div>
+        <div class="kpi kc1"><span class="kpi-ico">${icon('chart-line-up-duotone')}</span><span class="kpi-label">Marge brute</span><span class="kpi-value">${money(k.grossMargin)}</span><span class="kpi-hint">${pct} % des ventes · coût des produits ${fcfa(k.cogs)}${k.transportZadoFees ? ` · dont peines et soins sur le transport ${fcfa(k.transportZadoFees)}` : ''}${k.serviceFees ? ` · dont frais de service ${fcfa(k.serviceFees)}` : ''}</span></div>
         <div class="kpi kc2"><span class="kpi-ico">${icon('receipt-duotone')}</span><span class="kpi-label">Charges</span><span class="kpi-value">${fcfa(k.charges)}</span><span class="kpi-hint">loyer, livraison, salaires, pub…</span></div>
         <div class="kpi kc3 ${k.result < 0 ? 'bad' : ''}"><span class="kpi-ico">${icon('trophy-duotone')}</span><span class="kpi-label">Résultat (bénéfice)</span><span class="kpi-value">${money(k.result)}</span><span class="kpi-hint">marge brute − charges${k.retainedDeposits ? ` + ${fcfa(k.retainedDeposits)} d'acomptes conservés` : ''}</span></div>
       </div>

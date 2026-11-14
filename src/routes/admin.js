@@ -664,16 +664,23 @@ router.put('/settings/fees', requireRole(), (req, res) => {
 
 // ---------- Règles de vente : compte vérifié obligatoire, moyens de paiement (admin) ----------
 // Transport facturé au client, délais annoncés, acompte et numéros de dépôt Mobile Money (décision Joseph 21/10/2026)
-router.get('/settings/transport', requireRole(), (req, res) => res.json({ freight: require('../freight').freightSettings(), perKg: require('../freight').perKgFcfa(), mobile: require('../mobile-pay').mobileSettings() }));
+// Règle de prix Zado (14/11/2026) : prix conseillé d'un article à partir de son prix en France, de son état et de son poids
+router.post('/pricing/advise', requireRole('catalog'), (req, res) => {
+  const b = req.body || {};
+  const price = require('../pricing').salePrice({ sourcePrice: Number(b.sourcePrice), condition: b.condition || 'neuf', weightKg: Number(String(b.weightKg ?? '').replace(',', '.')) || null });
+  res.json({ price });
+});
+router.get('/settings/transport', requireRole(), (req, res) => res.json({ freight: require('../freight').freightSettings(), perKg: require('../freight').perKgFcfa(), mobile: require('../mobile-pay').mobileSettings(), pricing: require('../pricing').pricingSettings() }));
 router.put('/settings/transport', requireRole(), (req, res) => {
   const b = req.body || {};
   if (b.freight) { const r = require('../freight').saveFreightSettings(b.freight); if (r.error) return res.status(400).json({ error: r.error }); }
   if (b.mobile) { const r = require('../mobile-pay').saveMobileSettings(b.mobile); if (r.error) return res.status(400).json({ error: r.error }); }
+  if (b.pricing) { const r = require('../pricing').savePricingSettings(b.pricing); if (r.error) return res.status(400).json({ error: r.error }); }
   const f = require('../freight').freightSettings(), m = require('../mobile-pay').mobileSettings();
   log(req, 'Transport et acompte modifiés', null, `${f.eurPerKg} €/kg, minimum ${f.minKg} kg ${f.perArticle ? 'par article' : 'par commande'} · acompte ${m.deposit} FCFA`);
   // Numéro de dépôt réglé après des commandes : les clients en attente reçoivent les instructions (Aide, notification, e-mail)
   const announced = b.mobile ? require('./payments').announceDepositNumber() : 0;
-  res.json({ freight: f, perKg: require('../freight').perKgFcfa(), mobile: m, announced });
+  res.json({ freight: f, perKg: require('../freight').perKgFcfa(), mobile: m, pricing: require('../pricing').pricingSettings(), announced });
 });
 // ---------- Pack Noël (10/11/2026) : codes promo et mode Noël [admin] ----------
 const promosMod = require('../promos');

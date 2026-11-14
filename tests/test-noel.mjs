@@ -6,6 +6,8 @@ let fails = 0; const ok = (c, m) => { console.log((c ? 'OK    ' : 'ÉCHEC ') + m
 const call = async (j, p, o = {}) => { const r = await fetch(B + p, { method: o.method || (o.body ? 'POST' : 'GET'), headers: { 'Content-Type': 'application/json', Cookie: j?.c || '', ...(o.headers || {}) }, body: o.body && JSON.stringify(o.body) }); const sc = r.headers.get('set-cookie'); if (sc && j) j.c = sc.split(';')[0]; const t = await r.text(); let data; try { data = JSON.parse(t); } catch { data = t; } return { status: r.status, data }; };
 
 const A = { c: '' }; await call(A, '/admin/login', { body: { login: 'admin', password: PW } });
+// Ces contrôles datent d'avant les frais de service (14/11/2026) : coupés ici
+await call(A, '/admin/settings/transport', { method: 'PUT', body: { pricing: { serviceFee: 0 } } });
 const photo = 'data:image/jpeg;base64,' + fs.readFileSync(process.argv[3]).toString('base64');
 const client = async (name, phone) => { const J = { c: '' }; const r = (await call(J, '/account/register', { body: { name, phone, idType: 'cni', idPhoto: photo } })).data; await call(A, `/admin/customers/${r.customer.id}/identity`, { body: { decision: 'verify' } }); return J; };
 const C = await client('Grace Noël', '061117788');

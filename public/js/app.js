@@ -287,6 +287,7 @@
   const EUR_FCFA = 655.957;
   // Transport au prorata du poids (13,90 €/kg depuis le 14/11/2026), même calcul que src/freight.js
   // Note obligatoire à côté de chaque coût de transport (demande Joseph 14/11/2026)
+  const svcFee = () => state.config?.serviceFee || 0; // frais de service par commande (src/pricing.js)
   const EST_NOTE = 'Coût logistique estimatif : selon le rapport poids / volume du colis, il peut être ajusté.';
   const estNote = () => `<p class="est-note">${icon('info')} ${EST_NOTE}</p>`;
   const frCfg = () => state.config?.freight || { enabled: true, eurPerKg: 13.9, minKg: 0, defaultKg: 1, perArticle: true, perKg: 9118 };
@@ -334,7 +335,9 @@
     const fr = cartFreight();
     $('#cartTransport').innerHTML = items.length && fr.fee ? `<span>Transport France → Pointe-Noire*</span><span>${fcfa(fr.fee)}</span>` : '';
     { const n = $('#cartEst'); if (n) n.innerHTML = items.length && fr.fee ? `* ${EST_NOTE}` : ''; }
-    $('#cartTotal').textContent = fcfa(cartTotal() + fr.fee);
+    // Frais de service Zado : une fois par commande (décision Joseph 14/11/2026)
+    { const n = $('#cartService'); if (n) n.innerHTML = items.length && svcFee() ? `<span>Frais de service</span><span>${fcfa(svcFee())}</span>` : ''; }
+    $('#cartTotal').textContent = fcfa(cartTotal() + fr.fee + (items.length ? svcFee() : 0));
     const saving = cartSaving();
     $('#cartSaving').innerHTML = saving > 0 ? `<span>Vous économisez</span><span>${fcfa(saving)}</span>` : '';
     $('#cartLines').innerHTML = items.length
@@ -1475,7 +1478,7 @@
       saved.phone = saved.phone || state.customer.phone || '';
     }
     const fr0 = cartFreight();
-    const total = fcfa(cartTotal() + fr0.fee);
+    const total = fcfa(cartTotal() + fr0.fee + svcFee());
     const dep = methods.mobile?.deposit ?? 0; // 0 = pas d'acompte : tout se paie en une fois
     // Code promo (pack Noël) : aperçu demandé au serveur, qui recalcule de toute façon la remise à la commande
     const promo = { code: (() => { try { return sessionStorage.getItem('kamwa-promo') || ''; } catch { return ''; } })(), amount: 0, label: '' };
@@ -1573,6 +1576,7 @@
           ${cartSaving() > 0 ? `<div class="row saving" style="margin-top:10px"><span>Vous économisez</span><span>${fcfa(cartSaving())}</span></div>` : ''}
           <div id="promoLine"></div>
           ${fr0.fee ? `<div class="row" style="margin-top:10px"><span>Transport France → Pointe-Noire*</span><span>${fcfa(fr0.fee)}</span></div>${estNote()}` : ''}
+          ${svcFee() ? `<div class="row" style="margin-top:10px"><span>Frais de service</span><span>${fcfa(svcFee())}</span></div>` : ''}
           <div class="row" style="margin-top:10px"><span>Livraison</span><span id="feeLine">—</span></div>
           <div class="row total" style="margin-top:10px"><span>Total</span><strong id="sumTotal">${total}</strong></div>
           <div id="depositSplit"></div>
@@ -1594,7 +1598,7 @@
       }
     };
     const fee = () => (method() === 'cash' && receive() === 'pickup' ? 0 : deliveryFee(form.city.value, $('#zoneBox').hidden ? '' : form.zone.value, cartTotal()));
-    const grandN = () => cartTotal() - (promo.amount || 0) + fr0.fee + (fee() || 0);
+    const grandN = () => cartTotal() - (promo.amount || 0) + fr0.fee + svcFee() + (fee() || 0);
     const grand = () => fcfa(grandN());
     const payMode = () => (form.paymode?.value === 'push' ? 'push' : 'pull');
     const BTN = { mobile: () => (dep ? `${payMode() === 'push' ? 'Commander et déposer' : 'Payer'} l'acompte de ${fcfa(Math.min(dep, grandN()))}` : payMode() === 'push' ? 'Valider ma commande' : `Payer ${grand()}`), momo: () => `Payer ${grand()}`, card: () => `Payer ${grand()} par carte`, cash: () => 'Réserver et payer au point relais', cod: () => 'Confirmer ma commande' };
@@ -2548,6 +2552,7 @@
           ${o.lines.map((l) => `<div class="line"><span>${l.qty} × ${esc(l.name)}${o.status === 'delivered' && l.productId && byId(l.productId) ? `<br><a class="rv-link" href="#/p/${enc(l.productId)}">${icon('star-fill')} Donner mon avis</a>` : ''}</span><strong>${fcfa(l.total)}</strong></div>`).join('')}
           ${o.discount ? `<div class="line saving"><span>Code promo ${esc(o.discount.code)}</span><strong>− ${fcfa(o.discount.amount)}</strong></div>` : ''}
           ${o.transportFee ? `<div class="line"><span>Transport France → Pointe-Noire</span><strong>${fcfa(o.transportFee)}</strong></div>` : ''}
+          ${o.serviceFee ? `<div class="line"><span>Frais de service</span><strong>${fcfa(o.serviceFee)}</strong></div>` : ''}
           ${o.deliveryFee ? `<div class="line"><span>Livraison</span><strong>${fcfa(o.deliveryFee)}</strong></div>` : ''}
           <div class="row total" style="margin-top:10px"><span>Total</span><strong>${fcfa(o.total)}</strong></div>
           ${o.gift ? `<div class="gift-recap">${icon('gift')} <span><strong>Cadeau pour ${esc(o.gift.name)}</strong> (${esc(o.gift.phone)})${o.gift.message ? `<br>« ${esc(o.gift.message)} »` : ''}${o.deliveryCode && o.status !== 'delivered' ? `<br>Transmettez-lui le code de livraison <strong>${esc(o.deliveryCode)}</strong> : elle le donnera au livreur.` : ''}</span></div>` : ''}

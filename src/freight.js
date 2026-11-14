@@ -9,7 +9,8 @@ const { settings } = require('./store');
 const EUR_FCFA = 655.957; // parité fixe euro / franc CFA
 // Délais annoncés au client (décision Joseph 21/10/2026) : logistique (achat en France + vol) 2 à 5 jours, puis livraison sous 24 h
 // zadoFeeEurPerKg : part du prix au kilo qui est un FRAIS ZADO (22/10/2026 : 15 € = 13 € de fret + 2 € ; 14/11/2026 : 13,90 € = 13 € de fret + 0,90 €, À CONFIRMER par Joseph)
-const DEFAULTS = { enabled: true, eurPerKg: 13.9, zadoFeeEurPerKg: 0.9, minKg: 0, defaultKg: 1, perArticle: true, logisticsMin: 2, logisticsMax: 5, deliveryHours: 24 };
+// 14/11/2026 (2e décision Joseph) : le transporteur facture 13,90 €/kg ; le client paie 17,80 €/kg = 13,90 € + 3,90 € de « peines et soins » gardés par Zado
+const DEFAULTS = { enabled: true, eurPerKg: 17.8, zadoFeeEurPerKg: 3.9, minKg: 0, defaultKg: 1, perArticle: true, logisticsMin: 2, logisticsMax: 5, deliveryHours: 24 };
 
 function freightSettings() {
   try { return { ...DEFAULTS, ...JSON.parse(settings.get('freight') || '{}') }; } catch { return { ...DEFAULTS }; }

@@ -169,6 +169,7 @@ router.get('/', (req, res) => {
   const grossMargin = revenue - cogs;
   // Frais Zado sur le transport (2 €/kg sur 15 €, décision Joseph 22/10/2026) : déjà dans la marge, montré à part
   const transportZadoFees = sum(sold, (o) => o.transportZadoFee || 0);
+  const serviceFees = sum(sold, (o) => o.serviceFee || 0); // frais de service (2 000 FCFA par commande depuis le 14/11/2026)
   const result = grossMargin - sum(charges, (e) => e.amount) + sum(otherIncome, (e) => e.amount) + retainedDeposits;
 
   const cashIn = sum(allReceipts().filter((r) => inRange(r.date, from, to)), (r) => r.amount) + sum(entries.filter((e) => e.type === 'income'), (e) => e.amount);
@@ -197,7 +198,7 @@ router.get('/', (req, res) => {
 
   res.json({
     from, to,
-    kpis: { revenue, orders: sold.length, cogs, grossMargin, transportZadoFees, charges: sum(charges, (e) => e.amount), result, cashIn, cashOut, cashFlow: cashIn - cashOut, stockValue, retainedDeposits, failedDeliveries },
+    kpis: { revenue, orders: sold.length, cogs, grossMargin, transportZadoFees, serviceFees, charges: sum(charges, (e) => e.amount), result, cashIn, cashOut, cashFlow: cashIn - cashOut, stockValue, retainedDeposits, failedDeliveries },
     cashHeld: cashHeld(),
     unknownCostLines: unknownCost.length,
     stockNoCost,
