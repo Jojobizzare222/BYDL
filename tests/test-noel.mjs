@@ -7,7 +7,7 @@ const call = async (j, p, o = {}) => { const r = await fetch(B + p, { method: o.
 
 const A = { c: '' }; await call(A, '/admin/login', { body: { login: 'admin', password: PW } });
 // Ces contrôles datent d'avant les frais de service (14/11/2026) : coupés ici
-await call(A, '/admin/settings/transport', { method: 'PUT', body: { pricing: { serviceFee: 0 } } });
+await call(A, '/admin/settings/transport', { method: 'PUT', body: { pricing: { serviceFee: 0, momoRate: 0 } } });
 const photo = 'data:image/jpeg;base64,' + fs.readFileSync(process.argv[3]).toString('base64');
 const client = async (name, phone) => { const J = { c: '' }; const r = (await call(J, '/account/register', { body: { name, phone, idType: 'cni', idPhoto: photo } })).data; await call(A, `/admin/customers/${r.customer.id}/identity`, { body: { decision: 'verify' } }); return J; };
 const C = await client('Grace Noël', '061117788');

@@ -132,8 +132,12 @@ router.post('/', async (req, res) => {
     const transport = order.transportFee || 0; // transport France → Pointe-Noire, fixé à la création de la commande
     const discount = order.discount?.amount || 0; // code promo (src/promos.js), fixé à la création de la commande
     const service = order.serviceFee || 0; // frais de service, fixés à la création de la commande
-    const total = subtotal - discount + transport + service + f.fee;
-    if (order.deliveryFee !== f.fee || order.total !== total) order = orders.update(order.id, { subtotal, deliveryFee: f.fee, total });
+    const base = subtotal - discount + transport + service + f.fee;
+    // Frais de retrait Mobile Money (3,5 %) : calculés TOUT À LA FIN sur le prix général, seulement pour un paiement Mobile Money ;
+    // une commande créée avant cette règle (sans momoFee) n'en reçoit pas
+    const momo = order.momoFee == null ? 0 : require('../pricing').momoFee(base, method);
+    const total = base + momo;
+    if (order.deliveryFee !== f.fee || order.total !== total || (order.momoFee || 0) !== momo) order = orders.update(order.id, { subtotal, deliveryFee: f.fee, momoFee: momo, total });
   }
 
   // Plan de paiement de la commande : à la réception (acompte + reste) ou payée en ligne / en agence
@@ -357,6 +361,7 @@ function recapText(o) {
     o.transportFee ? `• Transport France → Pointe-Noire : ${fm(o.transportFee)}` : null,
     o.deliveryFee ? `• Livraison : ${fm(o.deliveryFee)}` : null,
     o.serviceFee ? `• Frais de service : ${fm(o.serviceFee)}` : null,
+    o.momoFee ? `• Frais de retrait Mobile Money : ${fm(o.momoFee)}` : null,
     `Total : ${fm(o.total)}`, ...(mobilePay.isFull(o) ? ['Paiement reçu en totalité ✓'] : [`Acompte reçu : − ${fm(o.deposit)}`, `Reste à payer : ${fm(o.balance)}`])].filter((x) => x !== null).join('\n');
 }
 function instructionsText(o, p) {
@@ -389,7 +394,7 @@ async function mailOrderSlip(o, p) {
   await require('../customer-mail').toCustomer(o, {
     subject: `Votre bon de commande Zado ${o.id}`, attachments,
     title: `Merci ${first} : commande ${o.id} enregistrée`,
-    lines: [...o.lines.map((l) => `• ${l.qty} × ${l.name} : ${fm(l.total)}`), o.transportFee ? `• Transport France → Pointe-Noire (estimatif) : ${fm(o.transportFee)}` : null, o.serviceFee ? `• Frais de service : ${fm(o.serviceFee)}` : null, `Total : ${fm(o.total)}`, '',
+    lines: [...o.lines.map((l) => `• ${l.qty} × ${l.name} : ${fm(l.total)}`), o.transportFee ? `• Transport France → Pointe-Noire (estimatif) : ${fm(o.transportFee)}` : null, o.serviceFee ? `• Frais de service : ${fm(o.serviceFee)}` : null, o.momoFee ? `• Frais de retrait Mobile Money : ${fm(o.momoFee)}` : null, `Total : ${fm(o.total)}`, '',
       d ? `Pour confirmer votre commande, envoyez ${fm(p?.amount ?? o.total)} par dépôt ${OPN[d.operator] || 'Mobile Money'} au ${mobilePay.spaced(d.number)} (${d.holder}), avec la référence ${o.id}.`
         : `Pour confirmer votre commande, vous enverrez ${fm(p?.amount ?? o.total)} par dépôt Mobile Money avec la référence ${o.id}. Le numéro officiel de Zado vous sera communiqué très prochainement.`,
       'Dès réception, vous recevez la confirmation de votre commande, puis un e-mail à chaque étape.', attachments.length ? 'Votre bon de commande est joint à cet e-mail (PDF).' : null].filter((x) => x !== null),

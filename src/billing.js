@@ -153,7 +153,7 @@ function sync(orderOrId) {
   const pay = o.paymentId && payments.get(o.paymentId);
   const full = require('./mobile-pay').isFull(o); // Mobile Money payé en une seule fois (pas d'acompte)
   const lines = snapshotLines(o);
-  const base = { lines, subtotal: o.subtotal ?? o.total, transportFee: o.transportFee || 0, transportKg: o.transportKg || 0, serviceFee: o.serviceFee || 0, discount: o.discount || null, deliveryFee: o.deliveryFee || 0, total: o.total,
+  const base = { lines, subtotal: o.subtotal ?? o.total, transportFee: o.transportFee || 0, transportKg: o.transportKg || 0, serviceFee: o.serviceFee || 0, momoFee: o.momoFee || 0, discount: o.discount || null, deliveryFee: o.deliveryFee || 0, total: o.total,
     // Acompte déjà versé : déduit du total sur la facture (décision Joseph 21/10/2026)
     // (paiement en une fois, sans acompte depuis le 14/11/2026 : rien à déduire)
     ...(o.depositPaidAt && o.deposit && !full ? { depositPaid: o.deposit, depositAt: o.depositPaidAt } : {}) };
@@ -260,11 +260,13 @@ function linesTable(d) {
 function totalsBlock(d, sign = '') {
   const t = d.taxes;
   return `<table class="totals">
-    ${d.deliveryFee || d.transportFee || d.serviceFee || d.discount ? `<tr><td>Articles</td><td>${sign}${fcfa(d.subtotal)}</td></tr>` : ''}
+    ${d.deliveryFee || d.transportFee || d.serviceFee || d.momoFee || d.discount ? `<tr><td>Articles</td><td>${sign}${fcfa(d.subtotal)}</td></tr>` : ''}
     ${d.discount ? `<tr><td>Remise (code ${esc(d.discount.code)})</td><td>${sign ? '+ ' : '− '}${fcfa(d.discount.amount)}</td></tr>` : ''}
     ${d.transportFee ? `<tr><td>Transport France → Pointe-Noire</td><td>${sign}${fcfa(d.transportFee)}</td></tr>` : ''}
+
     ${d.serviceFee ? `<tr><td>Frais de service</td><td>${sign}${fcfa(d.serviceFee)}</td></tr>` : ''}
     ${d.deliveryFee ? `<tr><td>Livraison</td><td>${sign}${fcfa(d.deliveryFee)}</td></tr>` : ''}
+    ${d.momoFee ? `<tr><td>Frais de retrait Mobile Money</td><td>${sign}${fcfa(d.momoFee)}</td></tr>` : ''}
     ${t ? `<tr><td>Total hors taxes</td><td>${sign}${fcfa(t.ht)}</td></tr><tr><td>TVA ${t.rate} %</td><td>${sign}${fcfa(t.vat)}</td></tr>${t.extra ? `<tr><td>Centime additionnel ${t.extraRate} %</td><td>${sign}${fcfa(t.extra)}</td></tr>` : ''}` : ''}
     <tr class="grand"><td>Total ${t ? 'TTC' : ''}</td><td>${sign}${fcfa(d.total)}</td></tr>
     ${!sign && d.depositPaid ? `<tr class="dep"><td>Acompte déjà versé${d.depositAt ? ` le ${dateFr(d.depositAt)}` : ''}</td><td>− ${fcfa(d.depositPaid)}</td></tr><tr class="net"><td>${d.type === 'invoice' ? 'Solde réglé' : 'Reste à payer'}</td><td>${fcfa(d.total - d.depositPaid)}</td></tr>` : ''}</table>`;

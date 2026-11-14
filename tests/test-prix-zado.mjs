@@ -16,7 +16,8 @@ ok(await adv(177764, 'reconditionné', 0.2) === 261000, 'reconditionné : +25 % 
 ok(!(await adv(0)), 'sans prix en France : pas de prix conseillé');
 ok((await call(null, '/admin/pricing/advise', { body: { sourcePrice: 1000 } })).status === 401, 'prix conseillé : réservé à Zado Pro');
 const cfg = (await call(null, '/config')).data;
-ok(cfg.serviceFee === 2000 && cfg.freight.eurPerKg === 17.8 && !('zadoFeeEurPerKg' in cfg.freight), 'boutique : frais de service 2 000 FCFA et 17,80 €/kg ; la part Zado du transport reste interne');
+ok(cfg.momoRate === 0.035 && cfg.serviceFee === 2000 && cfg.freight.eurPerKg === 17.8 && !('zadoFeeEurPerKg' in cfg.freight), 'boutique : frais de service 2 000 FCFA, frais Mobile Money 3,5 %, 17,80 €/kg ; la part Zado du transport reste interne');
+ok((await call(A, '/admin/settings/transport', { method: 'PUT', body: { pricing: { momoRate: 0.5 } } })).status === 400, 'taux Mobile Money au-delà de 20 % refusé');
 const t = (await call(A, '/admin/settings/transport', { method: 'PUT', body: { pricing: { serviceFee: 1500 } } })).data;
 ok(t.pricing.serviceFee === 1500 && (await call(null, '/config')).data.serviceFee === 1500, 'frais de service réglables dans Zado Pro');
 ok((await call(A, '/admin/settings/transport', { method: 'PUT', body: { pricing: { serviceFee: -5 } } })).status === 400, 'frais de service négatifs refusés');

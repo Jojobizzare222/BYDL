@@ -4,13 +4,15 @@
 //    prix arrondi aux 500 FCFA supérieurs ;
 //  - reconditionné / occasion : +25 % sur le prix GLOBAL (article + transport d'un article) ; le supplément est intégré
 //    au prix de l'article : prix = 1,25 × article + 0,25 × transport, arrondi aux 500 FCFA supérieurs ;
-//  - frais de service : 2 000 FCFA PAR COMMANDE (une fois, quel que soit le nombre d'articles), ajoutés au total.
+//  - frais de service : 2 000 FCFA PAR COMMANDE (une fois, quel que soit le nombre d'articles), ajoutés au total ;
+//  - frais de retrait Mobile Money : 3,5 % du prix GÉNÉRAL, calculés TOUT À LA FIN (articles − remise + transport + frais de
+//    service + livraison), arrondis au franc supérieur ; seulement pour un paiement Mobile Money (pas carte ni espèces).
 // Transport (17,80 €/kg dont 3,90 € de peines et soins) : src/freight.js. Réglable : settings `pricing`.
 const { settings } = require('./store');
 
 const DEFAULTS = {
   tiers: [{ upTo: 25000, rate: 0.35 }, { upTo: 150000, rate: 0.2 }, { upTo: null, rate: 0.17 }],
-  minMargin: 3000, roundTo: 500, refurbExtra: 0.25, serviceFee: 2000,
+  minMargin: 3000, roundTo: 500, refurbExtra: 0.25, serviceFee: 2000, momoRate: 0.035,
 };
 
 function pricingSettings() {
@@ -22,6 +24,11 @@ function savePricingSettings(input = {}) {
     const n = Math.round(Number(input.serviceFee));
     if (!(n >= 0 && n <= 100000)) return { error: 'Frais de service invalides (FCFA)' };
     next.serviceFee = n;
+  }
+  if ('momoRate' in input) {
+    const r = Number(String(input.momoRate).replace(',', '.'));
+    if (!(r >= 0 && r <= 0.2)) return { error: 'Taux des frais Mobile Money invalide (entre 0 et 20 %)' };
+    next.momoRate = Math.round(r * 10000) / 10000;
   }
   settings.set('pricing', JSON.stringify(next));
   return { value: next };
@@ -44,4 +51,13 @@ function salePrice(p, s = pricingSettings()) {
 /** Frais de service d'une commande (FCFA). */
 const serviceFee = () => pricingSettings().serviceFee || 0;
 
-module.exports = { DEFAULTS, pricingSettings, savePricingSettings, salePrice, rateFor, serviceFee };
+// Moyens de paiement qui passent par Mobile Money (frais de retrait) ; carte et espèces : pas de frais
+const MOMO_METHODS = new Set(['mobile', 'momo', 'cod']);
+/** Frais de retrait Mobile Money sur un prix général (FCFA, arrondi au franc supérieur). method absent = Mobile Money. */
+function momoFee(base, method = 'mobile') {
+  if (!MOMO_METHODS.has(method)) return 0;
+  const rate = pricingSettings().momoRate || 0;
+  return base > 0 && rate > 0 ? Math.ceil(base * rate) : 0;
+}
+
+module.exports = { DEFAULTS, pricingSettings, savePricingSettings, salePrice, rateFor, serviceFee, momoFee };

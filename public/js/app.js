@@ -288,6 +288,10 @@
   // Transport au prorata du poids (13,90 €/kg depuis le 14/11/2026), même calcul que src/freight.js
   // Note obligatoire à côté de chaque coût de transport (demande Joseph 14/11/2026)
   const svcFee = () => state.config?.serviceFee || 0; // frais de service par commande (src/pricing.js)
+  // Frais de retrait Mobile Money : 3,5 % du prix général, calculés à la toute fin (même calcul que src/pricing.js)
+  const momoRate = () => state.config?.momoRate || 0;
+  const momoOf = (base) => (base > 0 && momoRate() ? Math.ceil(base * momoRate()) : 0);
+  const momoLabel = () => `Frais de retrait Mobile Money (${String(Math.round(momoRate() * 1000) / 10).replace('.', ',')} %)`;
   const EST_NOTE = 'Coût logistique estimatif : selon le rapport poids / volume du colis, il peut être ajusté.';
   const estNote = () => `<p class="est-note">${icon('info')} ${EST_NOTE}</p>`;
   const frCfg = () => state.config?.freight || { enabled: true, eurPerKg: 13.9, minKg: 0, defaultKg: 1, perArticle: true, perKg: 9118 };
@@ -337,7 +341,9 @@
     { const n = $('#cartEst'); if (n) n.innerHTML = items.length && fr.fee ? `* ${EST_NOTE}` : ''; }
     // Frais de service Zado : une fois par commande (décision Joseph 14/11/2026)
     { const n = $('#cartService'); if (n) n.innerHTML = items.length && svcFee() ? `<span>Frais de service</span><span>${fcfa(svcFee())}</span>` : ''; }
-    $('#cartTotal').textContent = fcfa(cartTotal() + fr.fee + (items.length ? svcFee() : 0));
+    const cartBase = cartTotal() + fr.fee + (items.length ? svcFee() : 0);
+    { const n = $('#cartMomo'); if (n) n.innerHTML = items.length && momoOf(cartBase) ? `<span>${momoLabel()}</span><span>${fcfa(momoOf(cartBase))}</span>` : ''; }
+    $('#cartTotal').textContent = fcfa(cartBase + (items.length ? momoOf(cartBase) : 0));
     const saving = cartSaving();
     $('#cartSaving').innerHTML = saving > 0 ? `<span>Vous économisez</span><span>${fcfa(saving)}</span>` : '';
     $('#cartLines').innerHTML = items.length
@@ -1478,7 +1484,7 @@
       saved.phone = saved.phone || state.customer.phone || '';
     }
     const fr0 = cartFreight();
-    const total = fcfa(cartTotal() + fr0.fee + svcFee());
+    const total = fcfa(cartTotal() + fr0.fee + svcFee() + momoOf(cartTotal() + fr0.fee + svcFee()));
     const dep = methods.mobile?.deposit ?? 0; // 0 = pas d'acompte : tout se paie en une fois
     // Code promo (pack Noël) : aperçu demandé au serveur, qui recalcule de toute façon la remise à la commande
     const promo = { code: (() => { try { return sessionStorage.getItem('kamwa-promo') || ''; } catch { return ''; } })(), amount: 0, label: '' };
@@ -1578,6 +1584,7 @@
           ${fr0.fee ? `<div class="row" style="margin-top:10px"><span>Transport France → Pointe-Noire*</span><span>${fcfa(fr0.fee)}</span></div>${estNote()}` : ''}
           ${svcFee() ? `<div class="row" style="margin-top:10px"><span>Frais de service</span><span>${fcfa(svcFee())}</span></div>` : ''}
           <div class="row" style="margin-top:10px"><span>Livraison</span><span id="feeLine">—</span></div>
+          ${momoRate() ? `<div class="row" style="margin-top:10px" id="momoRow"><span>${momoLabel()}</span><span id="momoLine">—</span></div>` : ''}
           <div class="row total" style="margin-top:10px"><span>Total</span><strong id="sumTotal">${total}</strong></div>
           <div id="depositSplit"></div>
           <p class="hint" style="margin-top:10px">${icon('airplane-tilt')} ${delayText()}.</p>
@@ -1598,7 +1605,10 @@
       }
     };
     const fee = () => (method() === 'cash' && receive() === 'pickup' ? 0 : deliveryFee(form.city.value, $('#zoneBox').hidden ? '' : form.zone.value, cartTotal()));
-    const grandN = () => cartTotal() - (promo.amount || 0) + fr0.fee + svcFee() + (fee() || 0);
+    // Prix général, puis frais de retrait Mobile Money calculés tout à la fin
+    const baseN = () => cartTotal() - (promo.amount || 0) + fr0.fee + svcFee() + (fee() || 0);
+    const momoN = () => (['mobile', 'momo', 'cod'].includes(method()) ? momoOf(baseN()) : 0);
+    const grandN = () => baseN() + momoN();
     const grand = () => fcfa(grandN());
     const payMode = () => (form.paymode?.value === 'push' ? 'push' : 'pull');
     const BTN = { mobile: () => (dep ? `${payMode() === 'push' ? 'Commander et déposer' : 'Payer'} l'acompte de ${fcfa(Math.min(dep, grandN()))}` : payMode() === 'push' ? 'Valider ma commande' : `Payer ${grand()}`), momo: () => `Payer ${grand()}`, card: () => `Payer ${grand()} par carte`, cash: () => 'Réserver et payer au point relais', cod: () => 'Confirmer ma commande' };
@@ -1606,6 +1616,7 @@
     const showFee = () => {
       const f = fee();
       $('#feeLine').innerHTML = method() === 'cash' && receive() === 'pickup' ? 'Gratuite (retrait)' : f == null ? (hasRelays() ? 'Non disponible : retrait au point relais' : 'Non disponible dans cette ville') : f ? fcfa(f) : '<span class="ok-txt">Offerte</span>';
+      if ($('#momoLine')) { $('#momoLine').textContent = momoN() ? fcfa(momoN()) : '—'; $('#momoRow').hidden = !momoN(); }
       $('#sumTotal').textContent = grand();
     };
     // Point de livraison placé par le client (gardé sur ce téléphone pour la prochaine fois)
@@ -2554,6 +2565,7 @@
           ${o.transportFee ? `<div class="line"><span>Transport France → Pointe-Noire</span><strong>${fcfa(o.transportFee)}</strong></div>` : ''}
           ${o.serviceFee ? `<div class="line"><span>Frais de service</span><strong>${fcfa(o.serviceFee)}</strong></div>` : ''}
           ${o.deliveryFee ? `<div class="line"><span>Livraison</span><strong>${fcfa(o.deliveryFee)}</strong></div>` : ''}
+          ${o.momoFee ? `<div class="line"><span>Frais de retrait Mobile Money</span><strong>${fcfa(o.momoFee)}</strong></div>` : ''}
           <div class="row total" style="margin-top:10px"><span>Total</span><strong>${fcfa(o.total)}</strong></div>
           ${o.gift ? `<div class="gift-recap">${icon('gift')} <span><strong>Cadeau pour ${esc(o.gift.name)}</strong> (${esc(o.gift.phone)})${o.gift.message ? `<br>« ${esc(o.gift.message)} »` : ''}${o.deliveryCode && o.status !== 'delivered' ? `<br>Transmettez-lui le code de livraison <strong>${esc(o.deliveryCode)}</strong> : elle le donnera au livreur.` : ''}</span></div>` : ''}
           <p class="hint" style="margin-top:12px">${isPickup(o) ? `Retrait au point relais : ${esc(ag.name)} (${esc(ag.city)})` : `Livraison : ${esc(o.customer.city || '—')} · ${esc(o.customer.address || '')}`}<br>Contact : ${esc(o.customer.phone)}</p>

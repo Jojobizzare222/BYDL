@@ -21,7 +21,8 @@ const order = async () => (await call(C, '/orders', { body: { customer: { name: 
 const o1 = await order();
 const pa = (await call(C, '/products/a072')).data, wkg = pa.weightKg > 0 ? pa.weightKg : 1;
 ok(o1.transportFee === Math.round(Math.round(wkg * 100) / 100 * 17.8 * 655.957), `transport au prorata du poids (${wkg} kg × 17,80 €) : ${o1.transportFee} FCFA`);
-ok(o1.serviceFee === 2000 && o1.total === o1.subtotal + o1.transportFee + 2000, `frais de service de 2 000 FCFA ajoutés une fois au total (${o1.total} FCFA)`);
+const base1 = o1.subtotal + o1.transportFee + 2000;
+ok(o1.serviceFee === 2000 && o1.momoFee === Math.ceil(base1 * 0.035) && o1.total === base1 + o1.momoFee, `frais de service 2 000 FCFA, puis frais de retrait Mobile Money 3,5 % calculés à la fin (${o1.momoFee} FCFA) : total ${o1.total} FCFA`);
 const pull = await call(C, '/payments', { body: { orderId: o1.id, token: o1.token, method: 'mobile', mode: 'pull', phone: '053590000' } });
 ok(pull.status === 400 && /dépôt/.test(pull.data.error), '« par retrait » refusé par le serveur même si on le force : « choisissez Par dépôt »');
 const momo = await call(C, '/payments', { body: { orderId: o1.id, token: o1.token, method: 'momo', phone: '053590000' } });

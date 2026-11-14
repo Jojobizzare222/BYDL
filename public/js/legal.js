@@ -152,7 +152,7 @@
         <p>Les produits proposés sont ceux affichés sur le site, dans la limite des stocks disponibles. Leur état est indiqué : neuf, reconditionné ou occasion.</p>
 
         <h2>2. Prix</h2>
-        <p>Les prix sont indiqués en francs CFA (FCFA), toutes taxes françaises comprises. Le prix affiché est le prix à payer, sans frais cachés : s'y ajoutent seulement le transport depuis la France et des frais de service par commande, tous deux indiqués avant la validation de la commande.
+        <p>Les prix sont indiqués en francs CFA (FCFA), toutes taxes françaises comprises. Le prix affiché est le prix à payer, sans frais cachés : s'y ajoutent seulement le transport depuis la France, des frais de service par commande et, pour un paiement par Mobile Money, des frais de retrait (pourcentage du montant total), tous indiqués avant la validation de la commande.
         Les éventuels frais de livraison sont affichés avant la validation de la commande. Le prix applicable est celui affiché au moment de la commande.</p>
 
         <h2>3. Commande</h2>

@@ -502,6 +502,7 @@
           ${o.discount ? `<div><span>Code promo ${esc(o.discount.code)} (${esc(o.discount.label || '')})</span><span>− ${fcfa(o.discount.amount)}</span></div>` : ''}
           ${o.transportFee ? `<div><span>Transport France → Pointe-Noire</span><span>${fcfa(o.transportFee)}</span></div>` : ''}
           ${o.serviceFee ? `<div><span>Frais de service</span><span>${fcfa(o.serviceFee)}</span></div>` : ''}
+          ${o.momoFee ? `<div><span>Frais de retrait Mobile Money</span><span>${fcfa(o.momoFee)}</span></div>` : ''}
           ${o.deliveryFee ? `<div><span>Livraison${o.customer.zone ? ` (${esc(o.customer.zone)})` : ''}</span><span>${fcfa(o.deliveryFee)}</span></div>` : ''}
           <div><span>Total</span><span>${fcfa(o.total)}</span></div>
         </div>
@@ -960,6 +961,7 @@
           <div><label for="trL2">Logistique : délai maximum (jours)</label><input id="trL2" type="number" min="0" max="60" value="${tr.freight.logisticsMax}"></div>
           <div><label for="trDH">Livraison après l'arrivée à Pointe-Noire (heures)</label><input id="trDH" type="number" min="0" max="240" value="${tr.freight.deliveryHours}"></div>
           <div><label for="trSvc">Frais de service par commande (FCFA)</label><input id="trSvc" type="number" min="0" step="100" value="${tr.pricing?.serviceFee ?? 2000}"><small class="muted">Ajoutés une fois au total de chaque commande.</small></div>
+          <div><label for="trMomo">Frais de retrait Mobile Money (%)</label><input id="trMomo" type="number" min="0" max="20" step="0.1" value="${Math.round((tr.pricing?.momoRate ?? 0.035) * 1000) / 10}"><small class="muted">Calculés tout à la fin, sur le prix général de la commande.</small></div>
           <div><label for="trDep">Acompte Mobile Money (FCFA) · 0 = pas d'acompte, le client paie tout en une fois</label><input id="trDep" type="number" min="0" step="100" value="${tr.mobile.deposit}"></div>
           <div><label for="trMtn">Numéro MTN de Zado pour les dépôts</label><input id="trMtn" type="tel" value="${esc(tr.mobile.numbers.mtn || '')}" placeholder="06 000 00 00"></div>
           <div><label for="trAir">Numéro Airtel de Zado pour les dépôts</label><input id="trAir" type="tel" value="${esc(tr.mobile.numbers.airtel || '')}" placeholder="05 000 00 00"></div>
@@ -1058,7 +1060,7 @@
       try {
         const saved = await api('/settings/transport', { method: 'PUT', body: {
           freight: { enabled: $('#trOn').checked, eurPerKg: $('#trEur').value, zadoFeeEurPerKg: $('#trFee').value, minKg: $('#trMin').value, defaultKg: $('#trDefKg').value, perArticle: $('#trPerArt').checked, logisticsMin: $('#trL1').value, logisticsMax: $('#trL2').value, deliveryHours: $('#trDH').value },
-          pricing: { serviceFee: Number($('#trSvc').value || 0) },
+          pricing: { serviceFee: Number($('#trSvc').value || 0), momoRate: Number(String($('#trMomo').value || 0).replace(',', '.')) / 100 },
           mobile: { deposit: Number($('#trDep').value || 0), numbers: { mtn: $('#trMtn').value, airtel: $('#trAir').value }, holder: $('#trHolder').value, transferHours: Number($('#trHours').value || 24), pull: $('#trPull').checked } } });
         toast(saved?.announced ? `Enregistré ✓ ${saved.announced} client(s) en attente ont reçu le numéro de dépôt` : 'Transport et acompte enregistrés ✓'); $('#trMsg').innerHTML = ''; route({ keep: true });
       } catch (err) { $('#trMsg').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; }
@@ -2770,7 +2772,7 @@
     app.innerHTML = head + finTabs('') + periodChips() + alerts.join('') + `
       <div class="kpis">
         <div class="kpi kc0"><span class="kpi-ico">${icon('currency-circle-dollar-duotone')}</span><span class="kpi-label">Chiffre d'affaires</span><span class="kpi-value">${fcfa(k.revenue)}</span><span class="kpi-hint">${k.orders} commande(s) payée(s)</span></div>
-        <div class="kpi kc1"><span class="kpi-ico">${icon('chart-line-up-duotone')}</span><span class="kpi-label">Marge brute</span><span class="kpi-value">${money(k.grossMargin)}</span><span class="kpi-hint">${pct} % des ventes · coût des produits ${fcfa(k.cogs)}${k.transportZadoFees ? ` · dont peines et soins sur le transport ${fcfa(k.transportZadoFees)}` : ''}${k.serviceFees ? ` · dont frais de service ${fcfa(k.serviceFees)}` : ''}</span></div>
+        <div class="kpi kc1"><span class="kpi-ico">${icon('chart-line-up-duotone')}</span><span class="kpi-label">Marge brute</span><span class="kpi-value">${money(k.grossMargin)}</span><span class="kpi-hint">${pct} % des ventes · coût des produits ${fcfa(k.cogs)}${k.transportZadoFees ? ` · dont peines et soins sur le transport ${fcfa(k.transportZadoFees)}` : ''}${k.serviceFees ? ` · dont frais de service ${fcfa(k.serviceFees)}` : ''}${k.momoFees ? ` · dont frais Mobile Money encaissés ${fcfa(k.momoFees)}` : ''}</span></div>
         <div class="kpi kc2"><span class="kpi-ico">${icon('receipt-duotone')}</span><span class="kpi-label">Charges</span><span class="kpi-value">${fcfa(k.charges)}</span><span class="kpi-hint">loyer, livraison, salaires, pub…</span></div>
         <div class="kpi kc3 ${k.result < 0 ? 'bad' : ''}"><span class="kpi-ico">${icon('trophy-duotone')}</span><span class="kpi-label">Résultat (bénéfice)</span><span class="kpi-value">${money(k.result)}</span><span class="kpi-hint">marge brute − charges${k.retainedDeposits ? ` + ${fcfa(k.retainedDeposits)} d'acomptes conservés` : ''}</span></div>
       </div>

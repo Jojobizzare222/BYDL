@@ -159,7 +159,7 @@ function prune() {
 const who = (c) => [c?.name, c?.phone, c?.email].filter(Boolean).join(' · ');
 const orderLines = (o) => [
   ...(o.lines || []).slice(0, 6).map((l) => `• ${l.qty} × ${l.name} — ${fcfa(l.total ?? (l.price || 0) * l.qty)}`),
-  `Total : ${fcfa(o.total)}${o.transportFee ? ` (dont transport ${fcfa(o.transportFee)})` : ''}${o.serviceFee ? ` (dont frais de service ${fcfa(o.serviceFee)})` : ''}${o.discount?.amount ? ` · remise ${o.discount.code}` : ''}`,
+  `Total : ${fcfa(o.total)}${o.transportFee ? ` (dont transport ${fcfa(o.transportFee)})` : ''}${o.serviceFee ? ` (dont frais de service ${fcfa(o.serviceFee)})` : ''}${o.momoFee ? ` (dont frais Mobile Money ${fcfa(o.momoFee)})` : ''}${o.discount?.amount ? ` · remise ${o.discount.code}` : ''}`,
   `Client : ${who(o.customer)}`,
   o.fulfillment === 'pickup' ? `Retrait au point relais${o.agency?.name ? ' : ' + o.agency.name : ''}` : `Livraison : ${[o.customer?.city, o.customer?.zone, o.customer?.address].filter(Boolean).join(', ')}`,
   o.gift ? `🎁 Cadeau pour ${o.gift.name}` : '',

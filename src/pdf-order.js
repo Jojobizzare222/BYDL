@@ -93,11 +93,12 @@ async function orderPdf(d) {
   // Totaux
   y += 6;
   const tot = [];
-  if (d.deliveryFee || d.transportFee || d.serviceFee || d.discount) tot.push(['Articles', fcfa(d.subtotal)]);
+  if (d.deliveryFee || d.transportFee || d.serviceFee || d.momoFee || d.discount) tot.push(['Articles', fcfa(d.subtotal)]);
   if (d.discount) tot.push([`Remise (code ${d.discount.code})`, `- ${fcfa(d.discount.amount)}`]);
   if (d.transportFee) tot.push(['Transport France - Pointe-Noire*', fcfa(d.transportFee)]);
   if (d.serviceFee) tot.push(['Frais de service', fcfa(d.serviceFee)]);
   if (d.deliveryFee) tot.push(['Livraison', fcfa(d.deliveryFee)]);
+  if (d.momoFee) tot.push(['Frais de retrait Mobile Money', fcfa(d.momoFee)]);
   const TX = L + 270;
   for (const [k, v] of tot) { doc.font('R').fontSize(9.5).fillColor(INK).text(k, TX, y, { width: 170 }); doc.text(v, TX + 170, y, { width: R - TX - 170 - 10, align: 'right' }); y += 15; }
   doc.moveTo(TX, y + 2).lineTo(R, y + 2).lineWidth(1.5).strokeColor(NAVY).stroke(); y += 8;

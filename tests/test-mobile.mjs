@@ -23,7 +23,7 @@ ok(tr0.freight.eurPerKg === 17.8 && tr0.freight.zadoFeeEurPerKg === 3.9 && tr0.f
 const g200 = (await call(C, '/config')).data.freight;
 ok(Math.round(0.2 * g200.eurPerKg * 655.957) === 2335, 'un colis de 200 g : 2 335 FCFA de transport (prorata)');
 // Cette suite teste l'ANCIENNE règle (15 €/kg, 1 kg minimum par article) : réglée explicitement
-await call(A, '/admin/settings/transport', { method: 'PUT', body: { freight: { eurPerKg: 15, zadoFeeEurPerKg: 2, minKg: 1 }, pricing: { serviceFee: 0 } } });
+await call(A, '/admin/settings/transport', { method: 'PUT', body: { freight: { eurPerKg: 15, zadoFeeEurPerKg: 2, minKg: 1 }, pricing: { serviceFee: 0, momoRate: 0 } } });
 ok(tr0.mobile.deposit === 0, 'par défaut : pas d\'acompte (décision Joseph 14/11/2026)');
 // Cette suite teste le paiement EN DEUX TEMPS : acompte réglé à 500 FCFA
 const tr = (await call(A, '/admin/settings/transport', { method: 'PUT', body: { mobile: { deposit: 500 } } })).data;
