@@ -1452,7 +1452,8 @@
       }
     }
     if (!methods.momo && !methods.card && !methods.cash && !methods.cod?.enabled && !methods.mobile?.enabled) {
-      app.innerHTML = '<div class="panel empty">Aucun point relais n\'est ouvert pour le moment : la commande n\'est pas possible. Revenez bientôt ou contactez-nous.</div>';
+      // Aucun moyen de paiement ouvert (ex. numéro de dépôt Mobile Money pas encore réglé dans Zado Pro) : on le dit simplement
+      app.innerHTML = `<div class="panel empty">${hasRelays() ? 'Aucun point relais n\'est ouvert pour le moment : la commande n\'est pas possible.' : 'Les commandes en ligne ne sont pas encore ouvertes : le paiement par Mobile Money arrive très bientôt.'} Votre panier est gardé. Une question ? Écrivez-nous dans « Aide ».</div>`;
       return;
     }
 
