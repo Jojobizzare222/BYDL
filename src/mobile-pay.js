@@ -1,5 +1,7 @@
 // Paiement Mobile Money en deux temps (décision Joseph 21/10/2026) :
-//  1) un ACOMPTE de 500 FCFA (réglable) confirme la commande ; un message récapitulatif est envoyé au client ;
+//  1) un ACOMPTE (réglable) confirme la commande ; un message récapitulatif est envoyé au client ;
+//     ACOMPTE SUPPRIMÉ (décision Joseph 14/11/2026 : « ce n'est plus nécessaire ») : réglage à 0 par défaut = le client paie
+//     TOUT en une fois (le 1er paiement vaut le total, la commande passe directement « payée ») ; un acompte > 0 reste possible ;
 //  2) le reste est payé ensuite, de la façon choisie par le client au moment de commander :
 //     - « retrait » (pull) : Zado envoie la demande de paiement sur le téléphone du client (code USSD), il tape son code secret ;
 //     - « dépôt » (push) : le client envoie lui-même l'argent au numéro Mobile Money de Zado ; l'équipe confirme la réception.
@@ -9,7 +11,7 @@
 const { settings } = require('./store');
 const { normalizeLocal } = require('./utils/phone');
 
-const DEFAULTS = { deposit: 500, numbers: { mtn: '', airtel: '' }, holder: 'Zado', transferHours: 24, pull: false };
+const DEFAULTS = { deposit: 0, numbers: { mtn: '', airtel: '' }, holder: 'Zado', transferHours: 24, pull: false };
 const MODES = { pull: 'Par retrait (Zado envoie la demande sur votre téléphone)', push: 'Par dépôt (vous envoyez l\'argent au numéro Zado)' };
 
 function mobileSettings() {
@@ -44,4 +46,8 @@ function depositNumber(operator, s = mobileSettings()) {
 }
 const spaced = (n) => String(n || '').replace(/^(\d{2})(\d{3})(\d{2})(\d{2})$/, '$1 $2 $3 $4');
 
-module.exports = { MODES, mobileSettings, saveMobileSettings, depositNumber, spaced };
+/** Montant du 1er paiement d'une commande : l'acompte réglé, ou le TOTAL si l'acompte est à 0 (paiement en une fois). */
+const firstAmount = (total, s = mobileSettings()) => (s.deposit > 0 ? Math.min(total, s.deposit) : total);
+/** Commande « mobile » payée en une seule fois (pas d'acompte) */
+const isFull = (o) => o?.paymentPlan === 'mobile' && o.deposit != null && o.deposit >= o.total;
+module.exports = { firstAmount, isFull, MODES, mobileSettings, saveMobileSettings, depositNumber, spaced };

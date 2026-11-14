@@ -185,7 +185,7 @@ function onChange({ col, doc, before }) {
       if (!before) { emit('order.new', { title: `Nouvelle commande ${o.id} : ${fcfa(o.total)}`, lines: ['En attente de paiement.', ...orderLines(o)], link: orderLink(o), ref: o.id }); return; }
       const st = o.status, was = before.status;
       if (st !== was) {
-        if (st === 'confirmed') emit('order.confirmed', { title: `Acompte reçu : ${o.id} confirmée`, lines: [`Acompte ${fcfa(o.deposit || o.depositPaid || 0)} reçu, reste ${fcfa(o.balance ?? 0)} à encaisser.`, ...orderLines(o)], link: orderLink(o), ref: o.id });
+        if (st === 'confirmed' && !require('./mobile-pay').isFull(o)) emit('order.confirmed', { title: `Acompte reçu : ${o.id} confirmée`, lines: [`Acompte ${fcfa(o.deposit || o.depositPaid || 0)} reçu, reste ${fcfa(o.balance ?? 0)} à encaisser.`, ...orderLines(o)], link: orderLink(o), ref: o.id });
         if (st === 'paid' && was !== 'shipped') emit('order.paid', { title: `Commande payée ${o.id} : ${fcfa(o.total)}`, lines: [o.balancePaid ? 'Le solde est réglé : la commande est entièrement payée.' : 'Paiement complet reçu.', 'Prochaine étape : acheter l\'article et lancer la logistique.', ...orderLines(o)], link: orderLink(o), ref: o.id });
         if (st === 'shipped') emit('order.shipped', { title: `En livraison : ${o.id}`, lines: [`Confiée à ${require('./delivery').courierName(o.courierId) || 'un livreur'}.`, `Client : ${who(o.customer)}`], link: orderLink(o), ref: o.id });
         if (st === 'delivered') emit('order.delivered', { title: `Livrée : ${o.id} (${fcfa(o.total)})`, lines: [`Client : ${who(o.customer)}`, o.deliveredWithoutCode ? '⚠️ Remise forcée sans le code du client.' : 'Remise avec le code du client.'], link: orderLink(o), ref: o.id });
@@ -212,7 +212,7 @@ function onChange({ col, doc, before }) {
     if (col === 'payments' && !before) {
       const p = doc, o = store.orders.get(p.orderId);
       if (p.operator === 'transfer' && p.status === 'PENDING') {
-        emit('payment.transfer', { title: `Dépôt attendu : ${fcfa(p.amount)} (${p.orderId})`, lines: [`${p.purpose === 'rest' ? 'Solde' : p.purpose === 'deposit' || p.purpose === 'mobile' ? 'Acompte' : 'Paiement'} à recevoir par ${OPN[p.network] || 'Mobile Money'} depuis le ${p.phone || 'numéro du client'}, référence ${p.orderId}.`, 'Vérifiez votre téléphone, puis cliquez « Dépôt reçu » sur la commande.', o ? `Client : ${who(o.customer)}` : ''], link: o ? orderLink(o) : admin('#/commandes'), ref: p.orderId });
+        emit('payment.transfer', { title: `Dépôt attendu : ${fcfa(p.amount)} (${p.orderId})`, lines: [`${p.purpose === 'rest' ? 'Solde' : (p.purpose === 'deposit' || p.purpose === 'mobile') && !(o && o.total && p.amount >= o.total) ? 'Acompte' : 'Paiement'} à recevoir par ${OPN[p.network] || 'Mobile Money'} depuis le ${p.phone || 'numéro du client'}, référence ${p.orderId}.`, 'Vérifiez votre téléphone, puis cliquez « Dépôt reçu » sur la commande.', o ? `Client : ${who(o.customer)}` : ''], link: o ? orderLink(o) : admin('#/commandes'), ref: p.orderId });
       }
       if (p.operator === 'cash' && o) emit('order.reservation', { title: `Réservation au point relais : ${o.id} (${fcfa(o.total)})`, lines: [`À encaisser en espèces${o.agency?.name ? ' à ' + o.agency.name : ''}.`, ...orderLines(o)], link: orderLink(o), ref: o.id });
       return;

@@ -558,7 +558,10 @@
   // ---------- Menu catégories ----------
   // Points relais : masqués tant qu'aucun n'est actif (décision Joseph 22/10/2026 : « je n'en ai pas encore »)
   const hasRelays = () => (state.config?.relays ?? 0) > 0;
-  const depositTxt = () => fcfa(state.config?.mobileDeposit ?? 500);
+  const depositTxt = () => fcfa(state.config?.mobileDeposit ?? 0);
+  // Acompte supprimé (décision Joseph 14/11/2026) : réglage à 0 = le client paie tout en une fois par dépôt
+  const hasDeposit = () => (state.config?.mobileDeposit ?? 0) > 0;
+  const fullPay = (o) => o?.paymentPlan === 'mobile' && o.deposit != null && o.deposit >= o.total;
   // ---------- Mode Noël (pack Noël 10/11/2026) : réglé dans Zado Pro → Noël & promos ----------
   const noel = () => state.config?.noel || null;
   const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
@@ -839,7 +842,7 @@
       if (p) slides.push(slide({ theme: 'mango', kicker: esc(u.name), title: 'Le meilleur de la tech', text: esc(u.categories.slice(0, 4).join(' · ')), href: `#/c/${enc(u.name)}`, cta: 'Découvrir', p }));
     }
     if (!hasRelays()) slides.push(slide({
-      theme: 'light', kicker: `${icon('wallet')} Paiement`, title: 'Commandez, payez en Mobile Money', text: `Un acompte de ${depositTxt()}, déposé sur le numéro Mobile Money de Zado, confirme votre commande ; le reste se dépose de la même façon. Livraison à domicile à Pointe-Noire.`, href: '#/promos', cta: 'Voir les offres',
+      theme: 'light', kicker: `${icon('wallet')} Paiement`, title: 'Commandez, payez en Mobile Money', text: hasDeposit() ? `Un acompte de ${depositTxt()}, déposé sur le numéro Mobile Money de Zado, confirme votre commande ; le reste se dépose de la même façon. Livraison à domicile à Pointe-Noire.` : 'Déposez le montant de votre commande sur le numéro Mobile Money de Zado (MTN ou Airtel) : elle est confirmée dès réception. Livraison à domicile à Pointe-Noire.', href: '#/promos', cta: 'Voir les offres',
       extra: '<div class="pay-chips"><span>' + icon('device-mobile') + 'Mobile Money</span><span>' + icon('truck') + 'Livraison à domicile</span><span>' + icon('shield-check') + 'Clients vérifiés</span></div>',
       art: mama('wait', { size: 'lg', label: 'Mama Zando valide un paiement sur son téléphone' }),
     }));
@@ -918,7 +921,7 @@
 
       ${!hasRelays() ? `<section class="relay-band">
         <div class="rb-text"><p class="kicker">${icon('device-mobile')} Simple et sûr</p><h2>Commandez en 3 étapes, sans vous déplacer</h2>
-          <p>Pas besoin de chercher un appareil fiable pendant des semaines : choisissez-le sur Zado, confirmez avec un acompte de ${depositTxt()} déposé en Mobile Money, et nous vous le livrons à Pointe-Noire.</p></div>
+          <p>Pas besoin de chercher un appareil fiable pendant des semaines : choisissez-le sur Zado, ${hasDeposit() ? `confirmez avec un acompte de ${depositTxt()} déposé en Mobile Money` : 'payez-le par dépôt Mobile Money'}, et nous vous le livrons à Pointe-Noire.</p></div>
         <ol class="rb-steps"><li><b>1</b>Je choisis sur Zado</li><li><b>2</b>Je dépose en Mobile Money</li><li><b>3</b>Je suis livré chez moi</li></ol>
         <a class="btn light" href="#/promos">Commencer mes achats ${icon('arrow-right')}</a>
       </section>` : `<section class="relay-band">
@@ -941,7 +944,7 @@
 
       <section class="trust-row" aria-label="Acheter en confiance">
         <div>${icon('airplane-tilt')}<span><b>De France à chez vous</b><small>${delayText()}</small></span></div>
-        ${hasRelays() ? `<div>${icon('storefront')}<span><b>Paiement au point relais</b><small>En espèces, sans carte ni frais cachés</small></span></div>` : `<div>${icon('device-mobile')}<span><b>Paiement Mobile Money</b><small>Acompte de ${depositTxt()}, le reste ensuite</small></span></div>`}
+        ${hasRelays() ? `<div>${icon('storefront')}<span><b>Paiement au point relais</b><small>En espèces, sans carte ni frais cachés</small></span></div>` : `<div>${icon('device-mobile')}<span><b>Paiement Mobile Money</b><small>${hasDeposit() ? `Acompte de ${depositTxt()}, le reste ensuite` : 'Par dépôt MTN ou Airtel, en une fois'}</small></span></div>`}
         <div>${icon('shield-check')}<span><b>Achat en confiance</b><small>Clients vérifiés, code remis à la livraison</small></span></div>
         <div>${icon('chat-circle')}<span><b>Service client</b><small>Nous vous appelons après chaque commande</small></span></div>
       </section>`;
@@ -1218,19 +1221,7 @@
       <span class="dp-more">Voir tous les détails ${icon('caret-down')}</span></a>`;
   }
 
-  // Détail du prix montré au client avant de commander : prix fournisseur + marge Zado = prix de l'article, + transport (1 kg minimum)
-  function priceDetail(p) {
-    const t = unitTransport(p), c = frCfg();
-    const src = Number.isInteger(p.sourcePrice) && p.sourcePrice > 0 && p.sourcePrice <= p.price ? p.sourcePrice : null;
-    if (!t && !src) return '';
-    return `<details class="price-detail" open><summary>${icon('info')} Détail du prix</summary><table>
-      ${src ? `<tr><td>Prix fournisseur${p.sourceSupplier ? ` (${esc(p.sourceSupplier)})` : ''}</td><td>${fcfa(src)}</td></tr><tr><td>Marge Zado</td><td>${fcfa(p.price - src)}</td></tr>` : ''}
-      <tr class="sub"><td>Prix de l'article</td><td>${fcfa(p.price)}</td></tr>
-      ${t ? `<tr><td>Transport France → Pointe-Noire</td><td>${fcfa(t)}</td></tr>
-      <tr class="tot"><td>Total livré à Pointe-Noire</td><td>${fcfa(p.price + t)}</td></tr>` : ''}
-    </table></details>`;
-  }
-
+  // Fiche : un seul prix, le prix livré à Pointe-Noire (transport compris) ; plus de « Détail du prix » (décision Joseph 14/11/2026)
   function viewProduct(id) {
     const p = byId(id);
     if (!p) return viewHome();
@@ -1256,19 +1247,19 @@
           ${richText(p.description)}
           ${(p.specs || []).length ? `<table class="specs">${p.specs.map((x) => `<tr><th>${esc(x.label)}</th><td>${esc(x.value)}</td></tr>`).join('')}</table>` : ''}
           <div class="buybox">
-            ${d ? `<div><span class="old">${fcfa(p.oldPrice)}</span> <span class="save-tag">Économisez ${fcfa(p.oldPrice - p.price)}</span></div>` : ''}
-            <span class="price">${fcfa(p.price)}</span>
-            ${priceDetail(p)}
+            ${d ? `<div><span class="old">${fcfa(p.oldPrice + unitTransport(p))}</span> <span class="save-tag">Économisez ${fcfa(p.oldPrice - p.price)}</span></div>` : ''}
+            <span class="price">${fcfa(p.price + unitTransport(p))}</span>
+            ${unitTransport(p) ? `<span class="hint price-all">Prix livré à Pointe-Noire, transport depuis la France compris</span>` : ''}
             ${(p.options || []).map((o, i) => `<label class="opt-label" for="opt${i}">${esc(o.name)}</label><div class="opt-choices" id="opt${i}" data-opt="${esc(o.name)}">${o.values.map((v) => `<button type="button" class="opt" data-v="${esc(v)}">${esc(v)}</button>`).join('')}</div>`).join('')}
-            <span class="momo-note">${icon('check-circle-duotone')} ${hasRelays() ? 'Payable en espèces au point relais · retrait ou livraison' : `Mobile Money : acompte de ${depositTxt()}, le reste ensuite · livraison à domicile`}</span>
+            <span class="momo-note">${icon('check-circle-duotone')} ${hasRelays() ? 'Payable en espèces au point relais · retrait ou livraison' : (hasDeposit() ? `Mobile Money : acompte de ${depositTxt()}, le reste ensuite · livraison à domicile` : 'Paiement par dépôt Mobile Money · livraison à domicile')}</span>
             <span class="hint">${icon('airplane-tilt')} ${delayText()}</span>
-            ${p.stock === 0 ? '<span class="stock-low">Épuisé</span>' : p.stock <= 6 ? `<span class="stock-low">Plus que ${p.stock} en stock</span>` : '<span class="momo-note">En stock</span>'}
+            ${p.stock === 0 ? '<span class="stock-low">Épuisé</span>' : p.stock == null ? '<span class="momo-note">Disponible sur commande</span>' : p.stock <= 6 ? `<span class="stock-low">Plus que ${p.stock} en stock</span>` : '<span class="momo-note">En stock</span>'}
             <div id="optErr"></div>
             <button class="btn cta block" ${(p.options || []).length ? 'id="addOpt"' : `data-add="${p.id}"`} ${p.stock === 0 ? 'disabled' : ''}>Ajouter au panier</button>
             <a class="btn ghost block" href="#/commande" id="buyNow">Acheter maintenant</a>
             ${accountHint('pdp')}
           </div>
-          <div class="buybar"><span><small>${esc(p.name)}</small><b>${fcfa(p.price)}</b></span><button class="btn cta" type="button" id="buybarAdd" ${p.stock === 0 ? 'disabled' : ''}>${p.stock === 0 ? 'Épuisé' : 'Ajouter au panier'}</button></div>
+          <div class="buybar"><span><small>${esc(p.name)}</small><b>${fcfa(p.price + unitTransport(p))}</b></span><button class="btn cta" type="button" id="buybarAdd" ${p.stock === 0 ? 'disabled' : ''}>${p.stock === 0 ? 'Épuisé' : 'Ajouter au panier'}</button></div>
         </div>
       </div>
       ${withIt.length ? `<section class="shelf goes-with"><div class="shelf-head"><div><p class="kicker">Complétez votre achat</p><h2>Pour aller avec</h2></div></div>${railCarousel(withIt)}</section>` : ''}
@@ -1464,7 +1455,7 @@
     }
     const fr0 = cartFreight();
     const total = fcfa(cartTotal() + fr0.fee);
-    const dep = methods.mobile?.deposit ?? 500;
+    const dep = methods.mobile?.deposit ?? 0; // 0 = pas d'acompte : tout se paie en une fois
     // Code promo (pack Noël) : aperçu demandé au serveur, qui recalcule de toute façon la remise à la commande
     const promo = { code: (() => { try { return sessionStorage.getItem('kamwa-promo') || ''; } catch { return ''; } })(), amount: 0, label: '' };
 
@@ -1506,7 +1497,7 @@
 
           <h2 style="margin-top:24px">2. Paiement</h2>
           <div class="methods">
-            ${methods.mobile?.enabled ? `<label class="op"><input type="radio" name="method" value="mobile"><span>${icon('device-mobile-duotone')}<span class="txt">Mobile Money${methods.mobile?.pull ? '' : ' par dépôt'}<small>${methods.mobile?.pull ? (dep ? `Acompte de ${fcfa(dep)} pour confirmer, puis le reste` : 'MTN MoMo · Airtel Money') : `Vous envoyez l'argent au numéro MTN ou Airtel de Zado${dep ? ` : acompte de ${fcfa(dep)}, puis le reste` : ''}`}</small></span></span></label>` : ''}
+            ${methods.mobile?.enabled ? `<label class="op"><input type="radio" name="method" value="mobile"><span>${icon('device-mobile-duotone')}<span class="txt">Mobile Money${methods.mobile?.pull ? '' : ' par dépôt'}<small>${methods.mobile?.pull ? (dep ? `Acompte de ${fcfa(dep)} pour confirmer, puis le reste` : 'MTN MoMo · Airtel Money') : `Vous envoyez l'argent au numéro MTN ou Airtel de Zado${dep ? ` : acompte de ${fcfa(dep)}, puis le reste` : ', en une fois'}`}</small></span></span></label>` : ''}
             ${methods.momo ? `<label class="op"><input type="radio" name="method" value="momo"><span>${icon('device-mobile-duotone')}<span class="txt">Mobile Money<small>MTN MoMo · Airtel Money</small></span></span></label>` : ''}
             ${methods.card ? `<label class="op"><input type="radio" name="method" value="card"><span>${icon('credit-card-duotone')}<span class="txt">Carte bancaire<small>Visa · Mastercard</small></span></span></label>` : ''}
             ${methods.cod?.enabled ? `<label class="op"><input type="radio" name="method" value="cod"><span>${icon('hand-coins-duotone')}<span class="txt">Payer à la réception<small>Espèces ou Mobile Money au livreur${methods.cod.deposit ? ` · acompte de ${fcfa(methods.cod.deposit)} pour confirmer` : ''}</small></span></span></label>` : ''}
@@ -1583,7 +1574,7 @@
     const grandN = () => cartTotal() - (promo.amount || 0) + fr0.fee + (fee() || 0);
     const grand = () => fcfa(grandN());
     const payMode = () => (form.paymode?.value === 'push' ? 'push' : 'pull');
-    const BTN = { mobile: () => (dep ? `${payMode() === 'push' ? 'Commander et déposer' : 'Payer'} l'acompte de ${fcfa(Math.min(dep, grandN()))}` : 'Commander'), momo: () => `Payer ${grand()}`, card: () => `Payer ${grand()} par carte`, cash: () => 'Réserver et payer au point relais', cod: () => 'Confirmer ma commande' };
+    const BTN = { mobile: () => (dep ? `${payMode() === 'push' ? 'Commander et déposer' : 'Payer'} l'acompte de ${fcfa(Math.min(dep, grandN()))}` : payMode() === 'push' ? `Commander et payer ${grand()}` : `Payer ${grand()}`), momo: () => `Payer ${grand()}`, card: () => `Payer ${grand()} par carte`, cash: () => 'Réserver et payer au point relais', cod: () => 'Confirmer ma commande' };
     const BUTTON = new Proxy({}, { get: (_, k) => BTN[k]?.() });
     const showFee = () => {
       const f = fee();
@@ -1624,11 +1615,13 @@
       $('#momoFields').hidden = !(m === 'momo' || m === 'mobile' || (m === 'cod' && methods.cod?.deposit));
       $('#mobileFields').hidden = m !== 'mobile';
       if (m === 'mobile') {
-        const d = Math.min(dep, grandN()), rest = grandN() - d;
-        $('#mobileHint').innerHTML = payMode() === 'push' && !methods.mobile?.pull
+        const d = dep > 0 ? Math.min(dep, grandN()) : grandN(), rest = grandN() - d;
+        $('#mobileHint').innerHTML = !rest
+          ? `${icon('check-circle-duotone')} <span>${payMode() === 'push' ? `Après avoir commandé, vous recevez le <strong>numéro Mobile Money de Zado</strong> (MTN ou Airtel). Envoyez-y <strong>${fcfa(d)}</strong> avec votre numéro de commande en référence : dès que Zado le reçoit, votre commande est confirmée et le récapitulatif arrive dans « Aide ».` : `Une demande de <strong>${fcfa(d)}</strong> arrive sur votre téléphone : tapez votre code secret pour valider. Le récapitulatif arrive ensuite dans « Aide ».`}</span>`
+          : payMode() === 'push' && !methods.mobile?.pull
           ? `${icon('check-circle-duotone')} <span>1) Après avoir commandé, vous recevez le <strong>numéro Mobile Money de Zado</strong> (MTN ou Airtel). Envoyez-y l'<strong>acompte de ${fcfa(d)}</strong> avec votre numéro de commande en référence : dès que Zado le reçoit, votre commande est confirmée et le récapitulatif arrive dans « Aide ». 2) Vous déposez ensuite le reste (<strong>${fcfa(rest)}</strong>) de la même façon. L'acompte est déduit du total sur votre facture.</span>`
           : `${icon('check-circle-duotone')} <span>1) Vous payez un <strong>acompte de ${fcfa(d)}</strong> : il confirme votre commande et vous recevez le récapitulatif dans « Aide ». 2) ${payMode() === 'push' ? `Vous déposez ensuite le reste (<strong>${fcfa(rest)}</strong>) sur le numéro Mobile Money de Zado indiqué, avec le numéro de commande en référence.` : `Une demande du reste (<strong>${fcfa(rest)}</strong>) arrive aussitôt sur votre téléphone : vous tapez votre code secret.`} L'acompte est déduit du total sur votre facture.</span>`;
-        $('#depositSplit').innerHTML = `<div class="row" style="margin-top:8px"><span>Acompte à payer maintenant</span><span>${fcfa(d)}</span></div><div class="row"><span>Reste à payer ensuite</span><span>${fcfa(rest)}</span></div>`;
+        $('#depositSplit').innerHTML = !rest ? '' : `<div class="row" style="margin-top:8px"><span>Acompte à payer maintenant</span><span>${fcfa(d)}</span></div><div class="row"><span>Reste à payer ensuite</span><span>${fcfa(rest)}</span></div>`;
       } else $('#depositSplit').innerHTML = '';
       $('#codFields').hidden = m !== 'cod';
       const momoLbl = form.querySelector('label[for="momo"]');
@@ -1789,7 +1782,7 @@
         ${isCard ? `
         <h1>Vérification de votre paiement par carte</h1>
         <p>Nous confirmons le paiement de <strong>${fcfa(payment.amount)}</strong> auprès de notre partenaire bancaire.</p>` : `
-        <h1>${payment.purpose === 'deposit' ? "Validez l'acompte sur votre téléphone" : 'Validez le paiement sur votre téléphone'}</h1>
+        <h1>${payment.purpose === 'deposit' && hasDeposit() ? "Validez l'acompte sur votre téléphone" : 'Validez le paiement sur votre téléphone'}</h1>
         ${resumed ? '<div class="sim">Une demande de paiement est déjà en cours pour cette commande. Validez-la sur votre téléphone : nous n\'en envoyons pas une deuxième.</div>' : ''}
         <p>Une demande de <strong>${fcfa(payment.amount)}</strong> a été envoyée via <strong>${opName}</strong>.<br>
         Saisissez votre <strong>code secret</strong> sur votre téléphone pour confirmer.${payment.purpose === 'deposit' ? (checkout.mobile ? '<br>Ensuite, la demande du reste arrive sur votre téléphone.' : '<br>Le reste se paie à la livraison.') : ''}</p>`}
@@ -1836,17 +1829,18 @@
     const m = o?.mobilePay;
     if (!m || ['cancelled', 'delivered'].includes(o.status)) return '';
     const op = { mtn: 'MTN Mobile Money', airtel: 'Airtel Money' };
-    if (!m.stage) return `<div class="pay-box done">${icon('check-circle-duotone')}<div><b>Paiement complet reçu</b><span>Acompte ${fcfa(m.deposit)} + solde ${fcfa(m.balance)} = ${fcfa(o.total)}. Merci !</span></div></div>`;
+    const full = m.deposit != null && m.deposit >= o.total; // payé en une seule fois (pas d'acompte)
+    if (!m.stage) return `<div class="pay-box done">${icon('check-circle-duotone')}<div><b>Paiement complet reçu</b><span>${full ? `${fcfa(o.total)} reçus` : `Acompte ${fcfa(m.deposit)} + solde ${fcfa(m.balance)} = ${fcfa(o.total)}`}. Merci !</span></div></div>`;
     const what = m.stage === 'deposit' ? "l'acompte" : 'le reste';
     const failed = m.status === 'FAILED';
     if (m.mode === 'push') {
       const to = m.depositTo;
-      return `<div class="pay-box ${failed ? 'warn' : ''}">${icon('money-duotone')}<div><b>${m.stage === 'deposit' ? 'Confirmez votre commande : déposez l\'acompte' : 'Finalisez votre paiement : déposez le reste'}</b>
+      return `<div class="pay-box ${failed ? 'warn' : ''}">${icon('money-duotone')}<div><b>${m.stage === 'deposit' ? (full ? 'Confirmez votre commande : déposez le montant' : 'Confirmez votre commande : déposez l\'acompte') : 'Finalisez votre paiement : déposez le reste'}</b>
         ${to ? `<span>Envoyez <strong>${fcfa(m.amount)}</strong> par dépôt ${op[to.operator] || 'Mobile Money'} au <strong class="pb-num">${esc(to.display)}</strong> (${esc(to.holder)}).<br>Référence à indiquer : <strong>${esc(o.id)}</strong></span>
         <button type="button" class="btn ghost small" data-copy="${esc(to.number)}">${icon('copy')} Copier le numéro</button>` : '<span>Un conseiller Zado vous indique le numéro de dépôt dans « Aide ».</span>'}
         <small>${failed ? 'Délai dépassé : écrivez-nous dans « Aide » si vous avez déjà déposé.' : `Zado confirme dès réception${m.expiresAt ? `, avant le ${longDate(m.expiresAt)}` : ''}. Vous serez prévenu ici et dans « Aide ».`}</small></div></div>`;
     }
-    if (m.stage === 'deposit') return `<div class="pay-box">${icon('device-mobile-duotone')}<div><b>Validez l'acompte de ${fcfa(m.amount)} sur votre téléphone</b><span>Tapez votre code secret ${op[m.operator] || 'Mobile Money'} pour confirmer la commande.</span></div></div>`;
+    if (m.stage === 'deposit') return `<div class="pay-box">${icon('device-mobile-duotone')}<div><b>Validez ${full ? 'le paiement' : "l'acompte"} de ${fcfa(m.amount)} sur votre téléphone</b><span>Tapez votre code secret ${op[m.operator] || 'Mobile Money'} pour confirmer la commande.</span></div></div>`;
     return `<div class="pay-box ${failed ? 'warn' : ''}">${icon('device-mobile-duotone')}<div><b>${failed ? 'La demande du reste n\'a pas abouti' : `Validez le reste : ${fcfa(m.amount)}`}</b>
       <span>${failed ? `${esc(m.reason || 'Demande refusée ou expirée.')} Vous pouvez la renvoyer sur votre téléphone.` : `Une demande de paiement a été envoyée sur votre téléphone (${op[m.operator] || 'Mobile Money'}) : tapez votre code secret pour valider.`}</span>
       <button type="button" class="btn ${failed ? 'cta' : 'ghost'} small" data-rest="${esc(o.id)}">${icon('arrows-clockwise')} ${failed ? 'Renvoyer la demande' : 'Je n\'ai rien reçu : renvoyer'}</button></div></div>`;
@@ -1884,7 +1878,7 @@
         ${mama('yes', { size: 'lg', label: 'Mama Zando saute de joie' }) || `<div class="big-check">${icon('check-circle-duotone')}</div>`}
         <h1>${order?.paymentPlan === 'cod' || (order?.paymentPlan === 'mobile' && order.status === 'confirmed') ? 'Merci, commande confirmée&nbsp;!' : 'Merci, paiement reçu&nbsp;!'}</h1>
         ${order ? `<p>Commande <strong>${esc(order.id)}</strong> : ${fcfa(order.total)}</p>
-        ${order.paymentPlan === 'mobile' ? `<p>Acompte reçu : <strong>${fcfa(order.deposit)}</strong>. Le récapitulatif de votre commande est dans « Aide ».</p>${mobileBox(order)}` : ''}
+        ${order.paymentPlan === 'mobile' ? `<p>${fullPay(order) ? `Paiement reçu : <strong>${fcfa(order.total)}</strong>` : `Acompte reçu : <strong>${fcfa(order.deposit)}</strong>`}. Le récapitulatif de votre commande est dans « Aide ».</p>${mobileBox(order)}` : ''}
         ${order.paymentPlan === 'cod' ? `<p>${order.deposit ? `Acompte reçu : ${fcfa(order.deposit)}. ` : ''}Vous paierez <strong>${fcfa(order.balance ?? order.total)}</strong> à la livraison, en espèces ou en Mobile Money.</p>` : ''}
         <p>Nous vous appelons au <strong>${esc(order.customer.phone)}</strong> pour organiser la livraison à ${esc(order.customer.city)}.</p>
         ${codeCard(order)}
@@ -2401,6 +2395,7 @@
       ['Retirée', at('delivered'), 'Vous avez retiré votre commande. Merci pour votre confiance !'],
     ];
     const pay = payAg ? [['Payée au point relais', o.paidAt || at('paid'), 'Paiement reçu. Nous préparons votre commande.']]
+      : o.paymentPlan === 'mobile' && fullPay(o) ? [['Paiement confirmé', o.paidAt || at('paid'), `${fcfa(o.total)} reçus : votre commande est confirmée. Merci !`]]
       : o.paymentPlan === 'mobile' ? [
         ['Commande confirmée', o.confirmedAt || at('confirmed'), `Acompte de ${fcfa(o.deposit)} reçu : votre commande est confirmée. Il reste ${fcfa(o.balance)} à payer.`],
         ['Paiement complet', o.paidAt || at('paid'), 'Paiement complet reçu. Merci !'],

@@ -61,7 +61,7 @@ ok(mails.some((x) => /Pièce d'identité à vérifier/.test(x.body)) && !mails.s
 await call(A, `/admin/customers/${reg.customer.id}/identity`, { body: { decision: 'verify' } });
 
 // 2) Commande → dépôt attendu (urgent) → acompte → solde → logistique
-await call(A, '/admin/settings/transport', { method: 'PUT', body: { mobile: { numbers: { mtn: '06 600 00 00' } } } });
+await call(A, '/admin/settings/transport', { method: 'PUT', body: { mobile: { numbers: { mtn: '06 600 00 00' }, deposit: 500 } } });
 const o = (await call(C, '/orders', { body: { customer: { name: 'Awa Alerte', phone: '061234567', city: 'Pointe-Noire', address: 'Mpita' }, items: [{ productId: 'a072', qty: 1 }] } })).data;
 m = await waitMail((x) => x.subject.includes(o.id) && /Nouvelle commande/.test(x.subject));
 ok(m && /En attente de paiement/.test(m.body) && /Awa Alerte/.test(m.body) && /Ouvrir dans Zado Pro/.test(m.body) && m.body.includes(`/admin/#/commande/${o.id}`), 'nouvelle commande : articles, client, lien direct vers la commande');

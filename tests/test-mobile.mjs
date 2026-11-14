@@ -18,7 +18,10 @@ await call(A, `/admin/customers/${reg.customer.id}/identity`, { body: { decision
 // 1) Réglages, poids et prix fournisseur
 ok((await call(A, '/admin/settings/transport', { method: 'PUT', body: { freight: { minKg: 'abc' } } })).status === 400, 'réglage : poids minimum invalide refusé');
 ok((await call(A, '/admin/settings/transport', { method: 'PUT', body: { freight: { logisticsMin: 6, logisticsMax: 3 } } })).status === 400, 'réglage : délai minimum > maximum refusé');
-const tr = (await call(A, '/admin/settings/transport', { method: 'PUT', body: { mobile: { numbers: { mtn: '06 600 00 00' } } } })).data;
+const tr0 = (await call(A, '/admin/settings/transport', { method: 'PUT', body: { mobile: { numbers: { mtn: '06 600 00 00' } } } })).data;
+ok(tr0.mobile.deposit === 0, 'par défaut : pas d\'acompte (décision Joseph 14/11/2026)');
+// Cette suite teste le paiement EN DEUX TEMPS : acompte réglé à 500 FCFA
+const tr = (await call(A, '/admin/settings/transport', { method: 'PUT', body: { mobile: { deposit: 500 } } })).data;
 ok(tr.freight.eurPerKg === 15 && tr.freight.minKg === 1 && tr.freight.perArticle && tr.perKg === KG && tr.mobile.deposit === 500 && tr.mobile.numbers.mtn === '066000000', 'par défaut : 15 €/kg, 1 kg minimum par article, acompte 500 FCFA ; numéro de dépôt MTN enregistré');
 // Depuis le 10/11/2026 (décision Joseph) : tout par DÉPÔT sur le numéro dédié ; le « retrait » est coupé par défaut
 let mm = (await call(C, '/payments/methods')).data.mobile;

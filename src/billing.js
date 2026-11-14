@@ -147,10 +147,12 @@ function sync(orderOrId) {
   const o = typeof orderOrId === 'string' ? orders.get(orderOrId) : orderOrId;
   if (!o || !o.lines) return [];
   const pay = o.paymentId && payments.get(o.paymentId);
+  const full = require('./mobile-pay').isFull(o); // Mobile Money payé en une seule fois (pas d'acompte)
   const lines = snapshotLines(o);
   const base = { lines, subtotal: o.subtotal ?? o.total, transportFee: o.transportFee || 0, transportKg: o.transportKg || 0, discount: o.discount || null, deliveryFee: o.deliveryFee || 0, total: o.total,
     // Acompte déjà versé : déduit du total sur la facture (décision Joseph 21/10/2026)
-    ...(o.depositPaidAt && o.deposit ? { depositPaid: o.deposit, depositAt: o.depositPaidAt } : {}) };
+    // (paiement en une fois, sans acompte depuis le 14/11/2026 : rien à déduire)
+    ...(o.depositPaidAt && o.deposit && !full ? { depositPaid: o.deposit, depositAt: o.depositPaidAt } : {}) };
   const agency = o.agency ? { name: o.agency.name || '', city: o.agency.city || '' } : null;
 
   // 1) Facture (vente réalisée)
@@ -160,7 +162,7 @@ function sync(orderOrId) {
     const method = o.paymentPlan === 'cod' ? 'cod' : OPERATOR_METHOD[pay?.operator] || 'momo';
     invoice = issue('invoice', `${o.id}:invoice`, o, {
       ...base, saleAt, taxes: taxes(o.total, company()),
-      paymentLabel: o.paymentPlan === 'cod' ? 'Payée à la réception' : o.paymentPlan === 'mobile' ? `Payée — acompte puis solde (${payLabel(o.balancePaid?.paymentId && payments.get(o.balancePaid.paymentId)) || 'Mobile Money'})` : `Payée — ${OPERATOR_LABEL[pay?.operator] || METHOD_LABEL[method] || 'Mobile Money'}`,
+      paymentLabel: o.paymentPlan === 'cod' ? 'Payée à la réception' : o.paymentPlan === 'mobile' ? full ? `Payée — ${payLabel(o.depositPaymentId && payments.get(o.depositPaymentId)) || 'Mobile Money'}` : `Payée — acompte puis solde (${payLabel(o.balancePaid?.paymentId && payments.get(o.balancePaid.paymentId)) || 'Mobile Money'})` : `Payée — ${OPERATOR_LABEL[pay?.operator] || METHOD_LABEL[method] || 'Mobile Money'}`,
       fulfillment: o.fulfillment || 'delivery', agency,
     });
   }
@@ -178,7 +180,7 @@ function sync(orderOrId) {
   } else {
     if (o.depositPaidAt && o.deposit) {
       const dp = o.depositPaymentId && payments.get(o.depositPaymentId);
-      receipt('deposit', o.deposit, OPERATOR_METHOD[dp?.operator] || 'momo', o.depositPaidAt, { operator: dp?.operator, label: dp ? payLabel(dp) : null, collectedBy: dp?.confirmedBy || null });
+      receipt(full ? 'pay' : 'deposit', o.deposit, OPERATOR_METHOD[dp?.operator] || 'momo', o.depositPaidAt, { operator: dp?.operator, label: dp ? payLabel(dp) : null, collectedBy: dp?.confirmedBy || null });
     }
     // Mobile Money en deux temps : le reste payé (retrait ou dépôt)
     if (o.paymentPlan === 'mobile' && o.balancePaid && o.balance) {

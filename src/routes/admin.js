@@ -243,7 +243,7 @@ router.post('/orders/:id/transfer-received', requireRole('orders'), (req, res) =
   if (!dep) return res.status(400).json({ error: "Aucun dépôt attendu pour cette commande" });
   payments.update(dep.id, { status: 'SUCCESSFUL', reason: null, confirmedAt: new Date().toISOString(), confirmedBy: req.user.name || 'Zado' });
   settleSuccessfulPayment(payments.get(dep.id));
-  log(req, purpose === 'deposit' ? 'Acompte reçu par dépôt' : 'Reste reçu par dépôt', { id: order.id, name: order.id }, `${dep.amount} FCFA`);
+  log(req, purpose === 'deposit' ? (require('../mobile-pay').isFull(order) ? 'Paiement reçu par dépôt (total)' : 'Acompte reçu par dépôt') : 'Reste reçu par dépôt', { id: order.id, name: order.id }, `${dep.amount} FCFA`);
   res.json(adminOrder(orders.get(order.id), req.user));
 });
 // Renvoyer la demande du reste (retrait) sur le téléphone du client, ou recréer l'attente d'un dépôt expiré

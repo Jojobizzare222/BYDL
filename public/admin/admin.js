@@ -437,7 +437,7 @@
     // Mobile Money en deux temps : acompte puis reste (retrait = demande sur le téléphone ; dépôt = argent envoyé au numéro Zado)
     if (o.paymentPlan === 'mobile' && ['pending_payment', 'confirmed'].includes(o.status)) {
       const m = o.mobile || {}, stage = o.status === 'pending_payment' ? 'deposit' : 'rest', p = m[stage], amt = stage === 'deposit' ? o.deposit : o.balance;
-      const what = stage === 'deposit' ? "l'acompte" : 'le reste';
+      const what = stage === 'deposit' ? (o.deposit >= o.total ? 'la commande' : "l'acompte") : 'le reste'; // payée en une fois : pas d'acompte
       if (m.mode === 'push') return [`Vérifier le dépôt de ${what} : ${fcfa(amt)}`, `Quand l'argent arrive sur le numéro Mobile Money de Zado (référence ${o.id}), cliquez « Dépôt reçu ».${p?.status === 'FAILED' ? ' Le délai est dépassé : appelez le client.' : ''}`, '#transferBtn', p?.status === 'FAILED' ? 'warn' : ''];
       return [stage === 'deposit' ? "En attente de l'acompte" : `En attente du reste : ${fcfa(amt)}`, stage === 'deposit' ? 'Le client valide la demande sur son téléphone (code secret).' : p?.status === 'FAILED' ? 'La demande a échoué ou a expiré : renvoyez-la au client.' : 'Une demande de paiement a été envoyée sur le téléphone du client.', stage === 'rest' ? '#restBtn' : null, p?.status === 'FAILED' ? 'warn' : 'wait'];
     }
@@ -954,13 +954,13 @@
           <div><label for="trL1">Logistique : délai minimum (jours)</label><input id="trL1" type="number" min="0" max="60" value="${tr.freight.logisticsMin}"></div>
           <div><label for="trL2">Logistique : délai maximum (jours)</label><input id="trL2" type="number" min="0" max="60" value="${tr.freight.logisticsMax}"></div>
           <div><label for="trDH">Livraison après l'arrivée à Pointe-Noire (heures)</label><input id="trDH" type="number" min="0" max="240" value="${tr.freight.deliveryHours}"></div>
-          <div><label for="trDep">Acompte Mobile Money qui confirme la commande (FCFA)</label><input id="trDep" type="number" min="0" step="100" value="${tr.mobile.deposit}"></div>
+          <div><label for="trDep">Acompte Mobile Money (FCFA) · 0 = pas d'acompte, le client paie tout en une fois</label><input id="trDep" type="number" min="0" step="100" value="${tr.mobile.deposit}"></div>
           <div><label for="trMtn">Numéro MTN de Zado pour les dépôts</label><input id="trMtn" type="tel" value="${esc(tr.mobile.numbers.mtn || '')}" placeholder="06 000 00 00"></div>
           <div><label for="trAir">Numéro Airtel de Zado pour les dépôts</label><input id="trAir" type="tel" value="${esc(tr.mobile.numbers.airtel || '')}" placeholder="05 000 00 00"></div>
           <div><label for="trHolder">Nom affiché pour le dépôt</label><input id="trHolder" type="text" maxlength="60" value="${esc(tr.mobile.holder || 'Zado')}"></div>
           <div><label for="trHours">Délai pour faire un dépôt (heures)</label><input id="trHours" type="number" min="1" max="168" value="${tr.mobile.transferHours}"></div>
         </div>
-        <p class="muted"><b>Tous les paiements se font par dépôt</b> sur le numéro de Zado (décision du 10/11/2026) : le client envoie l'acompte puis le reste, avec le numéro de commande en référence ; vous cliquez « Dépôt reçu » sur la commande. ${!tr.mobile.numbers.mtn && !tr.mobile.numbers.airtel ? '<b style="color:#E0421F">Aucun numéro de dépôt : personne ne peut payer.</b>' : ''}</p>
+        <p class="muted"><b>Tous les paiements se font par dépôt</b> sur le numéro de Zado (décision du 10/11/2026) : le client envoie ${tr.mobile.deposit > 0 ? "l'acompte puis le reste" : 'le montant total (pas d\'acompte)'}, avec le numéro de commande en référence ; vous cliquez « Dépôt reçu » sur la commande. ${!tr.mobile.numbers.mtn && !tr.mobile.numbers.airtel ? '<b style="color:#E0421F">Aucun numéro de dépôt : personne ne peut payer.</b>' : ''}</p>
         <label class="check"><input type="checkbox" id="trPull" ${tr.mobile.pull ? 'checked' : ''}> Proposer aussi le paiement « par retrait » (demande envoyée sur le téléphone du client : il faut un compte marchand MTN / Airtel)</label>
         <div id="trMsg"></div>
         <button class="btn" style="margin-top:14px">Enregistrer</button>

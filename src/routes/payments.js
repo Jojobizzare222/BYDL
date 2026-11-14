@@ -144,7 +144,7 @@ router.post('/', async (req, res) => {
     }
   } else if (method === 'mobile') {
     if (order.fulfillment === 'pickup') orders.update(order.id, { fulfillment: 'delivery', agency: null, pickupDeadline: null });
-    const deposit = Math.min(order.total, mobilePay.mobileSettings().deposit);
+    const deposit = mobilePay.firstAmount(order.total); // acompte, ou le total (paiement en une fois, défaut depuis le 14/11/2026)
     order = orders.update(order.id, { paymentPlan: 'mobile', payMode, payPhone: phoneLocal, payOperator: op, deposit, balance: order.total - deposit });
     if (deposit === 0) { // acompte réglé à 0 dans Zado Pro : commande confirmée tout de suite, on passe au reste
       const confirmed = afterDeposit(orders.get(order.id), null);
@@ -352,7 +352,7 @@ function recapText(o) {
     o.discount ? `• Code promo ${o.discount.code} : − ${fm(o.discount.amount)}` : null,
     o.transportFee ? `• Transport France → Pointe-Noire : ${fm(o.transportFee)}` : null,
     o.deliveryFee ? `• Livraison : ${fm(o.deliveryFee)}` : null,
-    `Total : ${fm(o.total)}`, `Acompte reçu : − ${fm(o.deposit)}`, `Reste à payer : ${fm(o.balance)}`].filter((x) => x !== null).join('\n');
+    `Total : ${fm(o.total)}`, ...(mobilePay.isFull(o) ? ['Paiement reçu en totalité ✓'] : [`Acompte reçu : − ${fm(o.deposit)}`, `Reste à payer : ${fm(o.balance)}`])].filter((x) => x !== null).join('\n');
 }
 function instructionsText(o, p) {
   if (o.payMode === 'push') {
@@ -365,7 +365,7 @@ function instructionsText(o, p) {
 function notifyCustomerTransfer(o, p) {
   const d = mobilePay.depositNumber(p.network || o.payOperator);
   tellCustomer(o, p.purpose === 'deposit'
-    ? `Commande ${o.id} enregistrée. Pour la confirmer, envoyez l'acompte de ${fm(p.amount)} par dépôt ${OPN[d?.operator] || 'Mobile Money'} au ${mobilePay.spaced(d?.number) || '—'} (${d?.holder || 'Zado'}), référence ${o.id}.`
+    ? `Commande ${o.id} enregistrée. Pour la confirmer, envoyez ${mobilePay.isFull(o) ? `le montant total de ${fm(p.amount)}` : `l'acompte de ${fm(p.amount)}`} par dépôt ${OPN[d?.operator] || 'Mobile Money'} au ${mobilePay.spaced(d?.number) || '—'} (${d?.holder || 'Zado'}), référence ${o.id}.`
     : instructionsText(o, p));
 }
 /** Acompte reçu : commande confirmée (articles réservés), récapitulatif envoyé, puis demande du reste. */
