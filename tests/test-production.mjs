@@ -43,5 +43,12 @@ ok(ih.length > 500 && !/Acompte/.test(ih), 'facture : aucune mention d\'acompte'
 const conv = (await call(C, '/chat')).data;
 const txt = JSON.stringify(conv);
 ok(/Paiement reçu en totalité/.test(txt) && !/Acompte reçu/.test(txt), 'récapitulatif dans « Aide » : paiement reçu en totalité, pas d\'acompte');
+// Choix plus cher (stockage) : « 256 Go (+60000) » ; prix recalculé par le serveur (14/11/2026)
+const pa3 = (await call(A, '/admin/products/a003', { method: 'PATCH', body: { options: 'Stockage : 128 Go, 256 Go (+60 000)\nCouleur : Noir, Bleu' } })).data;
+ok(pa3?.options?.[0]?.extra?.['256 Go'] === 60000 && pa3.options[0].values.join() === '128 Go,256 Go', 'Zado Pro : « 256 Go (+60 000) » enregistré comme un supplément de 60 000 FCFA');
+const ov = (await call(C, '/orders', { body: { customer: { name: 'Awa Live', phone: '053590000', city: 'Pointe-Noire', address: 'Tié-Tié' }, items: [{ productId: 'a003', qty: 2, variant: { Stockage: '256 Go', Couleur: 'Bleu' } }] } })).data;
+ok(ov?.lines?.[0]?.unitPrice === pa3.price + 60000 && ov.lines[0].total === (pa3.price + 60000) * 2, `commande : 256 Go facturé ${ov?.lines?.[0]?.unitPrice} FCFA (prix de base + 60 000)`);
+const o128 = (await call(C, '/orders', { body: { customer: { name: 'Awa Live', phone: '053590000', city: 'Pointe-Noire', address: 'Tié-Tié' }, items: [{ productId: 'a003', qty: 1, variant: { Stockage: '128 Go', Couleur: 'Noir' } }] } })).data;
+ok(o128?.lines?.[0]?.unitPrice === pa3.price, '128 Go : prix de base');
 console.log(fails ? fails + ' ÉCHEC(S)' : 'TOUT EST OK');
 process.exit(fails ? 1 : 0);

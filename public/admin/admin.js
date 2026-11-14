@@ -2136,8 +2136,8 @@
         <label for="description">Description</label>
         <textarea id="description" rows="6" maxlength="4000" placeholder="Présentation du produit, contenu de la boîte, garantie… (laissez une ligne vide entre deux paragraphes)" ${dis}>${esc(p.description)}</textarea>
         <label for="options">Choix proposés au client (une ligne par choix)</label>
-        <textarea id="options" rows="2" placeholder="Couleur : Noir, Bleu, Rouge&#10;Capacité : 128 Go, 256 Go" ${dis}>${esc((p.options || []).map((o) => `${o.name} : ${o.values.join(', ')}`).join('\n'))}</textarea>
-        <p class="muted" style="margin-top:4px">Le client devra choisir avant d'ajouter au panier.</p>
+        <textarea id="options" rows="2" placeholder="Couleur : Noir, Bleu, Rouge&#10;Stockage : 128 Go, 256 Go (+60000)" ${dis}>${esc((p.options || []).map((o) => `${o.name} : ${o.values.map((v) => (o.extra?.[v] ? `${v} (+${o.extra[v]})` : v)).join(', ')}`).join('\n'))}</textarea>
+        <p class="muted" style="margin-top:4px">Le client devra choisir avant d'ajouter au panier. Un choix plus cher : ajoutez « (+montant) », ex. « 256 Go (+60000) » = 60 000 FCFA de plus que le prix de vente.</p>
         <label for="specs">Caractéristiques (une par ligne)</label>
         <textarea id="specs" rows="4" placeholder="Couleur : Noir&#10;Capacité : 128 Go&#10;Écran : 6,1 pouces" ${dis}>${esc((p.specs || []).map((x) => `${x.label} : ${x.value}`).join('\n'))}</textarea>
         <h2 style="margin-top:18px">Fiche détaillée</h2>

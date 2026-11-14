@@ -282,7 +282,11 @@
   const parseKey = (key) => { const i = key.indexOf('|'); if (i < 0) return { id: key, variant: null }; try { return { id: key.slice(0, i), variant: JSON.parse(key.slice(i + 1)) }; } catch { return { id: key.slice(0, i), variant: null }; } };
   const variantText = (v) => (v ? Object.entries(v).map(([k, x]) => `${k} : ${x}`).join(' · ') : '');
   const cartItems = () => Object.entries(state.cart).map(([key, qty]) => { const { id, variant } = parseKey(key); return { key, product: byId(id), variant, qty }; }).filter((l) => l.product);
-  const cartTotal = () => cartItems().reduce((s, l) => s + l.product.price * l.qty, 0);
+  // Prix d'un article avec ses choix (ex. stockage 256 Go : + 60 000 FCFA ; même calcul que le serveur)
+  const optExtra = (p, v) => (p.options || []).reduce((s, o) => s + (o.extra?.[(v || {})[o.name]] || 0), 0);
+  const priceOf = (p, v) => p.price + optExtra(p, v);
+  const hasExtras = (p) => (p.options || []).some((o) => o.extra && Object.keys(o.extra).length);
+  const cartTotal = () => cartItems().reduce((s, l) => s + priceOf(l.product, l.variant) * l.qty, 0);
   // Transport France → Pointe-Noire facturé au client (décision Joseph 21/10/2026) : 15 €/kg, 1 kg minimum par article (13 € avant le 22/10/2026)
   const EUR_FCFA = 655.957;
   // Transport au prorata du poids (13,90 €/kg depuis le 14/11/2026), même calcul que src/freight.js
@@ -359,7 +363,7 @@
               <button data-qty="${esc(key)}" data-d="1" aria-label="Ajouter un">+</button>
             </div>
           </div>
-          <strong>${fcfa(p.price * qty)}</strong>
+          <strong>${fcfa(priceOf(p, variant) * qty)}</strong>
         </div>`).join('') + cartUpsell(items)
       : mamaEmpty('Votre panier est vide.');
     const hint = $('#cartHint'); if (hint) hint.innerHTML = items.length ? accountHint('cart') : '';
@@ -739,7 +743,7 @@
           ${ratingLine(famRating(family))}
           ${multi ? `<div class="swatches" aria-label="${family.length} couleurs">${family.slice(0, 6).map((x) => `<i style="background:${colorOf(x)?.hex || '#ccc'}" title="${esc(colorOf(x)?.label || '')}"></i>`).join('')}<small>${family.length} couleurs</small></div>` : ''}
           ${family.some(isPetitPrix) ? `<span class="pp-tag">${icon('hand-coins-duotone')} Petit prix</span>` : ''}
-          <div class="prices"><span class="price ${d && !multi ? 'sale' : ''}">${multi && family.some((x) => x.price !== p.price) ? 'dès ' : ''}${fcfa(multi ? Math.min(...family.map((x) => x.price)) : p.price)}</span><span class="old">${d && !multi ? fcfa(p.oldPrice) : ''}</span></div>
+          <div class="prices"><span class="price ${d && !multi ? 'sale' : ''}">${(multi && family.some((x) => x.price !== p.price)) || hasExtras(p) ? 'dès ' : ''}${fcfa(multi ? Math.min(...family.map((x) => x.price)) : p.price)}</span><span class="old">${d && !multi ? fcfa(p.oldPrice) : ''}</span></div>
           <span class="stock-low ${!multi && p.stock > 0 && p.stock <= 6 ? '' : 'ok'}">${!multi && p.stock > 0 && p.stock <= 6 ? `${icon('fire')} Plus que ${p.stock} en stock` : multi || p.stock > 0 ? '<i class="dot"></i> En stock' : ''}</span>
           ${multi ? `<a class="btn cta small" href="#/p/${p.id}">Choisir la couleur</a>` : `<button class="btn cta small" data-add="${p.id}" ${p.stock === 0 ? 'disabled' : ''}>${p.stock === 0 ? 'Épuisé' : (p.options || []).length ? 'Choisir' : `${icon('plus')} Ajouter`}</button>`}
         </div>
@@ -1278,9 +1282,9 @@
           ${(p.specs || []).length ? `<table class="specs">${p.specs.map((x) => `<tr><th>${esc(x.label)}</th><td>${esc(x.value)}</td></tr>`).join('')}</table>` : ''}
           <div class="buybox">
             ${d ? `<div><span class="old">${fcfa(p.oldPrice + unitTransport(p))}</span> <span class="save-tag">Économisez ${fcfa(p.oldPrice - p.price)}</span></div>` : ''}
-            <span class="price">${fcfa(p.price + unitTransport(p))}</span>
+            <span class="price" id="pdpPrice">${hasExtras(p) ? '<small>dès </small>' : ''}${fcfa(p.price + unitTransport(p))}</span>
             ${unitTransport(p) ? `<span class="hint price-all">Prix livré à Pointe-Noire, transport depuis la France compris</span>${estNote()}` : ''}
-            ${(p.options || []).map((o, i) => `<label class="opt-label" for="opt${i}">${esc(o.name)}</label><div class="opt-choices" id="opt${i}" data-opt="${esc(o.name)}">${o.values.map((v) => `<button type="button" class="opt" data-v="${esc(v)}">${esc(v)}</button>`).join('')}</div>`).join('')}
+            ${(p.options || []).map((o, i) => `<label class="opt-label" for="opt${i}">${esc(o.name)}</label><div class="opt-choices" id="opt${i}" data-opt="${esc(o.name)}">${o.values.map((v) => `<button type="button" class="opt" data-v="${esc(v)}">${esc(v)}${o.extra?.[v] ? `<small class="opt-extra">+ ${fcfa(o.extra[v])}</small>` : ''}</button>`).join('')}</div>`).join('')}
             <span class="momo-note">${icon('check-circle-duotone')} ${hasRelays() ? 'Payable en espèces au point relais · retrait ou livraison' : (hasDeposit() ? `Mobile Money : acompte de ${depositTxt()}, le reste ensuite · livraison à domicile` : 'Paiement par dépôt Mobile Money · livraison à domicile')}</span>
             <span class="hint">${icon('airplane-tilt')} ${delayText()}</span>
             ${p.stock === 0 ? '<span class="stock-low">Épuisé</span>' : p.stock == null ? '<span class="momo-note">Disponible sur commande</span>' : p.stock <= 6 ? `<span class="stock-low">Plus que ${p.stock} en stock</span>` : '<span class="momo-note">En stock</span>'}
@@ -1312,6 +1316,13 @@
       sel[g.dataset.opt] = b.dataset.v;
       g.querySelectorAll('.opt').forEach((x) => x.classList.toggle('on', x === b));
       $('#optErr').innerHTML = '';
+      // Prix affiché selon le choix (stockage plus grand = plus cher) ; « dès » tant qu'un choix payant reste à faire
+      if (hasExtras(p)) {
+        const pending = (p.options || []).some((o) => o.extra && Object.keys(o.extra).length && !sel[o.name]);
+        const total = priceOf(p, sel) + unitTransport(p);
+        $('#pdpPrice').innerHTML = `${pending ? '<small>dès </small>' : ''}${fcfa(total)}`;
+        const bb = app.querySelector('.buybar b'); if (bb) bb.textContent = fcfa(total);
+      }
     }));
     const missing = () => (p.options || []).find((o) => !sel[o.name]);
     const addWithChoice = () => {
@@ -1578,7 +1589,7 @@
 
         <div class="panel">
           <h2>Récapitulatif</h2>
-          ${items.map(({ product: p, qty, variant }) => `<div class="line"><span>${qty} × ${esc(p.name)}${variant ? `<br><span class="hint">${esc(variantText(variant))}</span>` : ''}</span><strong>${fcfa(p.price * qty)}</strong></div>`).join('')}
+          ${items.map(({ product: p, qty, variant }) => `<div class="line"><span>${qty} × ${esc(p.name)}${variant ? `<br><span class="hint">${esc(variantText(variant))}</span>` : ''}</span><strong>${fcfa(priceOf(p, variant) * qty)}</strong></div>`).join('')}
           ${cartSaving() > 0 ? `<div class="row saving" style="margin-top:10px"><span>Vous économisez</span><span>${fcfa(cartSaving())}</span></div>` : ''}
           <div id="promoLine"></div>
           ${fr0.fee ? `<div class="row" style="margin-top:10px"><span>Transport France → Pointe-Noire*</span><span>${fcfa(fr0.fee)}</span></div>${estNote()}` : ''}

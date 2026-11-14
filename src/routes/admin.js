@@ -813,10 +813,21 @@ function cleanProduct(input, current, { role }) {
     if (p.sourcePrice != null && (!Number.isInteger(p.sourcePrice) || p.sourcePrice <= 0 || p.sourcePrice > 100000000)) return { error: 'Prix fournisseur invalide (nombre entier en FCFA)' };
   }
   // Choix proposés au client (ex. « Couleur : Noir, Bleu » / « Capacité : 128 Go, 256 Go »), une ligne par choix
+  // Un choix peut coûter plus cher (ex. stockage) : « 256 Go (+60000) » = 60 000 FCFA de plus que le prix de base (14/11/2026)
   if ('options' in input) {
-    const lines = Array.isArray(input.options) ? input.options.map((o) => `${o.name} : ${(o.values || []).join(', ')}`) : String(input.options || '').split('\n');
-    p.options = lines.map((l) => l.split(/\s*:\s*/)).map(([name, ...rest]) => ({ name: str(name, 30), values: [...new Set(rest.join(':').split(/\s*,\s*/).map((v) => str(v, 40)).filter(Boolean))].slice(0, 40) }))
-      .filter((o) => o.name && o.values.length).slice(0, 3);
+    const lines = Array.isArray(input.options) ? input.options.map((o) => `${o.name} : ${(o.values || []).map((v) => (o.extra?.[v] ? `${v} (+${o.extra[v]})` : v)).join(', ')}`) : String(input.options || '').split('\n');
+    p.options = lines.map((l) => l.split(/\s*:\s*/)).map(([name, ...rest]) => {
+      const values = [], extra = {};
+      for (const raw of rest.join(':').split(/\s*,\s*/)) {
+        const m = raw.match(/^(.*?)\s*\(\s*\+\s*([\d\s\u202f\u00a0.]+)\s*(?:FCFA)?\s*\)\s*$/i);
+        const v = str(m ? m[1] : raw, 40);
+        if (!v || values.includes(v)) continue;
+        values.push(v);
+        const n = m ? Math.round(Number(m[2].replace(/[\s\u202f\u00a0.]/g, ''))) : 0;
+        if (n > 0 && n <= 10000000) extra[v] = n;
+      }
+      return { name: str(name, 30), values: values.slice(0, 40), ...(Object.keys(extra).length ? { extra } : {}) };
+    }).filter((o) => o.name && o.values.length).slice(0, 3);
   }
   // Photos : plusieurs possibles ; la première est la photo principale
   if ('images' in input || 'image' in input) {

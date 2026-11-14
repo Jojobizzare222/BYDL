@@ -119,7 +119,9 @@ router.post('/', (req, res) => {
       }
       chosen = parts.join(' · ');
     }
-    lines.push({ productId, name: product.name, unitPrice: product.price, qty: quantity, total: product.price * quantity, ...(chosen ? { variant: chosen } : {}),
+    // Prix du choix (ex. stockage 256 Go : + 60 000 FCFA), jamais pris du navigateur
+    const unit = product.price + (product.options || []).reduce((s, o) => s + (o.extra?.[(variant || {})[o.name]] || 0), 0);
+    lines.push({ productId, name: product.name, unitPrice: unit, qty: quantity, total: unit * quantity, ...(chosen ? { variant: chosen } : {}),
       ...(Number(product.weightKg) > 0 ? { weightKg: Number(product.weightKg) } : {}) });
   }
 

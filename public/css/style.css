@@ -1845,3 +1845,8 @@ html.soft-boot main#app .mz-loading { visibility: hidden; }
   .cat-switch-btn[aria-expanded="true"] .csb-more .ico { transform: rotate(180deg); }
   .cat-switch.is-closed .chips { display: none; }
 }
+
+/* Choix plus cher (stockage) : supplément affiché sous la valeur (14/11/2026) */
+.opt .opt-extra { display: block; font-size: .72rem; font-weight: 500; color: var(--muted); margin-top: 1px; }
+.opt.on .opt-extra { color: inherit; opacity: .85; }
+#pdpPrice small { font-size: .55em; font-weight: 500; color: var(--muted); }
