@@ -416,4 +416,4 @@ ${admin && missing ? `<div class="warn">Informations de la société incomplète
 </div></body></html>`;
 }
 
-module.exports = { TYPES, company, saveCompany, missingCompany, amountInWords, inWords, taxes, sync, syncAll, watchOrders, forOrder, publicDoc, render, isSold };
+module.exports = { TYPES, company, saveCompany, missingCompany, amountInWords, inWords, taxes, sync, syncAll, watchOrders, forOrder, publicDoc, render, isSold, orderState };

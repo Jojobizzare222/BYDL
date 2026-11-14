@@ -81,6 +81,26 @@ ok(conf && /suivi/.test(conf.body) && !/code/i.test(conf.subject), 'client : e-m
 ok(!mails.some((x) => x.to.join().includes('awa.client@zado.test') && /Zado Pro/.test(x.body.slice(0, 2000)) && /Ouvrir dans Zado Pro/.test(x.body)), 'le client ne reçoit jamais les alertes de l\'équipe');
 await call(A, `/admin/orders/${o.id}/logistics`, { body: { step: 'bought' } });
 ok(await waitMail((x) => /Achetée en France/.test(x.subject) && x.subject.includes(o.id)), 'logistique : « Achetée en France »');
+// Bon de commande en PDF joint + e-mails de SUIVI au client à chaque étape avec la prochaine étape (14/11/2026)
+ok(slip && /application\/pdf/.test(slip.body) && /Bon-de-commande-BDC-\d{4}-\d{5}\.pdf/.test(slip.body), 'client : bon de commande joint en PDF');
+const toClient = (re) => waitMail((x) => x.to.join().includes('awa.client@zado.test') && re.test(x.subject) && x.subject.includes(o.id));
+const cRest = await toClient(/paiement complet/);
+ok(cRest && /Prochaine étape/.test(cRest.body) && /Achat de votre article en France/.test(cRest.body), 'client : « paiement complet reçu » + prochaine étape (achat en France)');
+const cBought = await toClient(/acheté en France/);
+ok(cBought && /Prochaine étape/.test(cBought.body) && /au plus tard le/.test(cBought.body), 'client : « article acheté » + arrivée prévue au plus tard le …');
+await call(A, `/admin/orders/${o.id}/logistics`, { body: { step: 'flying' } });
+ok(await toClient(/dans l'avion/), 'client : « dans l\'avion »');
+await call(A, `/admin/orders/${o.id}/logistics`, { body: { step: 'arrived' } });
+const cArr = await toClient(/arrivée à Pointe-Noire/);
+ok(cArr && /Livraison à domicile/.test(cArr.body) && /sous 24 h/.test(cArr.body), 'client : « arrivée à Pointe-Noire » + livraison sous 24 h');
+const tomorrow = new Date(Date.now() + 2 * 864e5).toISOString().slice(0, 10);
+await call(A, `/admin/orders/${o.id}/plan`, { body: { date: tomorrow, slot: 'morning' } });
+const cPlan = await toClient(/livraison planifiée/);
+ok(cPlan && /matin/i.test(cPlan.body), 'client : « livraison planifiée » avec le jour et le créneau');
+const code = (await call(C, `/orders/${o.id}`, { headers: { 'X-Order-Token': o.token } })).data?.deliveryCode;
+const clientMails = mails.filter((x) => x.to.join().includes('awa.client@zado.test'));
+ok(code && clientMails.length >= 6 && !clientMails.some((x) => x.body.includes(`>${code}<`) || new RegExp(`code[^\\n]{0,40}${code}`).test(x.body)), `jamais le code de livraison dans les e-mails du client (${clientMails.length} e-mails)`);
+ok(new Set(clientMails.map((x) => x.subject)).size === clientMails.length, 'aucun e-mail client en double');
 await sleep(800);
 ok(mails.filter((x) => /Commande payée/.test(x.subject) && x.subject.includes(o.id)).length === 1, 'aucun e-mail en double (anciennes alertes remplacées)');
 

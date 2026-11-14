@@ -380,29 +380,20 @@ async function mailOrderSlip(o, p) {
   const doc = require('../billing').forOrder(o.id).find((x) => x.type === 'order');
   const d = mobilePay.depositNumber(p?.network || o.payOperator);
   const first = String(o.customer?.name || '').split(' ')[0];
+  // Bon de commande en PDF joint (décision Joseph 14/11/2026) ; s'il ne peut pas être fabriqué, l'e-mail part quand même
+  let attachments = [];
+  if (doc) { try { attachments = [{ name: `Bon-de-commande-${doc.number}.pdf`, content: await require('../pdf-order').orderPdf(doc) }]; } catch (err) { console.error('[bon de commande PDF]', err.message); } }
   await require('../customer-mail').toCustomer(o, {
-    subject: `Votre bon de commande Zado ${o.id}`,
+    subject: `Votre bon de commande Zado ${o.id}`, attachments,
     title: `Merci ${first} : commande ${o.id} enregistrée`,
     lines: [...o.lines.map((l) => `• ${l.qty} × ${l.name} : ${fm(l.total)}`), o.transportFee ? `• Transport France → Pointe-Noire (estimatif) : ${fm(o.transportFee)}` : null, `Total : ${fm(o.total)}`, '',
       d ? `Pour confirmer votre commande, envoyez ${fm(p?.amount ?? o.total)} par dépôt ${OPN[d.operator] || 'Mobile Money'} au ${mobilePay.spaced(d.number)} (${d.holder}), avec la référence ${o.id}.`
         : `Pour confirmer votre commande, vous enverrez ${fm(p?.amount ?? o.total)} par dépôt Mobile Money avec la référence ${o.id}. Le numéro officiel de Zado vous sera communiqué très prochainement.`,
-      'Dès réception, vous recevez la confirmation de votre commande.'].filter((x) => x !== null),
+      'Dès réception, vous recevez la confirmation de votre commande, puis un e-mail à chaque étape.', attachments.length ? 'Votre bon de commande est joint à cet e-mail (PDF).' : null].filter((x) => x !== null),
     button: doc ? { label: 'Voir mon bon de commande', url: require('../billing').publicDoc(doc).link } : { label: 'Suivre ma commande', url: `/#/suivi/${o.id}` },
   });
 }
-/** E-mail « commande confirmée » (paiement reçu). */
-async function mailConfirmation(o) {
-  if (!o) return;
-  const first = String(o.customer?.name || '').split(' ')[0];
-  await require('../customer-mail').toCustomer(o, {
-    subject: `Commande ${o.id} confirmée`,
-    title: `Commande ${o.id} confirmée ✓`,
-    lines: [`Merci ${first} ! Nous avons bien reçu ${mobilePay.isFull(o) || !o.balance ? 'votre paiement' : `votre acompte de ${fm(o.deposit)}`}.`,
-      ...o.lines.map((l) => `• ${l.qty} × ${l.name}`), `Total : ${fm(o.total)}`, '',
-      'Nous lançons le traitement : achat en France, vol vers Pointe-Noire, puis livraison. Vous êtes prévenu à chaque étape.'],
-    button: { label: 'Suivre ma commande', url: `/#/suivi/${o.id}` },
-  });
-}
+// E-mail « commande confirmée » et e-mails de chaque étape : src/customer-updates.js (14/11/2026)
 /** Numéro de dépôt réglé APRÈS des commandes : chaque client en attente reçoit les instructions (Aide, notification, e-mail). */
 function announceDepositNumber() {
   let n = 0;
@@ -420,7 +411,6 @@ function afterDeposit(order, depositPaymentId) {
   const confirmed = delivery.confirmCod(order, { depositPaymentId });
   notifyPaidOrder(confirmed);
   tellCustomer(confirmed, recapText(confirmed));
-  setImmediate(() => mailConfirmation(orders.get(confirmed.id)).catch(() => {})); // confirmation par e-mail (si le client a un e-mail)
   if (confirmed.balance > 0) startRest(confirmed).catch((err) => console.error('[reste]', err.message));
   else settleSuccessfulPayment({ purpose: 'rest', orderId: confirmed.id, operator: confirmed.payOperator, id: null });
   return orders.get(confirmed.id);

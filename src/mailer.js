@@ -20,7 +20,8 @@ let transport = null;
 const getTransport = () => (transport ||= nodemailer.createTransport({ host: smtp.host, port: smtp.port, secure: smtp.port === 465, auth: { user: smtp.user, pass: smtp.pass }, connectionTimeout: 15000 }));
 
 /** Envoie un e-mail par l'API Brevo (clé et URL données pour le réglage `npm run email:config`). */
-async function brevoSend({ key = brevoKey(), url = BREVO_URL(), fromName, from, to, subject, text, html, replyTo }) {
+// attachments : [{ name, content (Buffer) }] — pièces jointes (ex. bon de commande en PDF)
+async function brevoSend({ key = brevoKey(), url = BREVO_URL(), fromName, from, to, subject, text, html, replyTo, attachments = [] }) {
   const r = await fetch(url, {
     method: 'POST',
     headers: { 'api-key': key, 'content-type': 'application/json', accept: 'application/json' },
@@ -28,6 +29,7 @@ async function brevoSend({ key = brevoKey(), url = BREVO_URL(), fromName, from, 
       sender: { name: fromName || 'Zado', email: from },
       to: to.map((email) => ({ email })),
       ...(replyTo ? { replyTo: { email: replyTo } } : {}),
+      ...(attachments.length ? { attachment: attachments.map((a) => ({ name: a.name, content: Buffer.from(a.content).toString('base64') })) } : {}),
       subject, htmlContent: html || `<pre>${String(text || '').replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]))}</pre>`, ...(text ? { textContent: text } : {}),
     }),
     signal: AbortSignal.timeout(15000),
@@ -44,13 +46,13 @@ async function brevoSend({ key = brevoKey(), url = BREVO_URL(), fromName, from, 
  * Envoie un e-mail. to = adresse ou liste. Renvoie { ok: true } ou lève une erreur (message lisible).
  * fromName : « Zado » (clients) ou « Zado Pro » (équipe).
  */
-async function send({ fromName = 'Zado', to, subject, text, html, replyTo }) {
+async function send({ fromName = 'Zado', to, subject, text, html, replyTo, attachments = [] }) {
   const dest = (Array.isArray(to) ? to : String(to || '').split(/[,;\s]+/)).filter(Boolean);
   if (!dest.length) throw new Error('aucun destinataire');
   const m = mode();
   if (!m) throw new Error('e-mail non configuré');
-  if (m === 'brevo') return brevoSend({ fromName, from: fromAddress(), to: dest, subject, text, html, replyTo });
-  await getTransport().sendMail({ from: `"${fromName}" <${fromAddress()}>`, ...(replyTo ? { replyTo } : {}), to: dest.join(', '), subject, text, html });
+  if (m === 'brevo') return brevoSend({ fromName, from: fromAddress(), to: dest, subject, text, html, replyTo, attachments });
+  await getTransport().sendMail({ from: `"${fromName}" <${fromAddress()}>`, ...(replyTo ? { replyTo } : {}), to: dest.join(', '), subject, text, html, attachments: attachments.map((a) => ({ filename: a.name, content: a.content })) });
   return true;
 }
 

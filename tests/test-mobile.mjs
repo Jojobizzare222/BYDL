@@ -124,6 +124,12 @@ const w3 = (await call(C, '/orders/' + o3.id, { headers: { 'X-Order-Token': o3.t
 const bdc = (w3.documents || []).find((d) => d.type === 'order');
 ok(bdc && /^BDC-\d{4}-\d{5}$/.test(bdc.number), `bon de commande créé à la validation : ${bdc?.number}`);
 const bh = bdc ? await (await fetch(`http://localhost:3999${bdc.link}`)).text() : '';
+{ // PDF du bon de commande (joint à l'e-mail du client)
+  const { execFileSync } = await import('node:child_process');
+  const out = execFileSync('node', ['-e', `require('./src/pdf-order').orderPdf(require('./src/store').documents.get('${bdc?.id}')).then((b) => { process.stdout.write(String(b.length) + ' ' + b.subarray(0, 5).toString()); process.exit(0); })`], { env: { ...process.env, DB_FILE: new URL('./.run/t-run.db', import.meta.url).pathname }, cwd: new URL('..', import.meta.url).pathname }).toString().trim().split('\n').pop();
+  const [size, head] = out.split(' ');
+  ok(head === '%PDF-' && Number(size) > 10000, `bon de commande en PDF : ${size} octets`);
+}
 ok(/Bon de commande/.test(bh) && /communiqué très prochainement/.test(bh) && bh.includes(o3.id) && /En attente de paiement/.test(bh), 'bon de commande : récapitulatif, référence, numéro « communiqué très prochainement »');
 const sv = (await call(A, '/admin/settings/transport', { method: 'PUT', body: { mobile: { numbers: { airtel: '05 590 00 00' } } } })).data;
 ok(sv.announced >= 1, `numéro de dépôt réglé ensuite : ${sv.announced} client(s) en attente prévenu(s)`);
