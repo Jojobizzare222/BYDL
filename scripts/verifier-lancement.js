@@ -54,7 +54,7 @@ try {
 // --- Livraison, e-mails ---
 const f = fees.feeSettings();
 check(f.cities.some((c) => c.fee > 0 || c.zones?.some((z) => z.fee > 0)), 'Frais de livraison fixés', 'Frais de livraison à 0 FCFA partout (Zado Pro → Réglages → Frais de livraison) : livraison offerte, est-ce voulu ?', warn);
-check(Boolean(config.smtp.host && config.smtp.user && config.smtp.to), `Alertes e-mail vers ${config.smtp.to}`, 'E-mail non configuré (SMTP_… dans .env) : pas d\'alerte e-mail à chaque commande (la sonnerie de Zado Pro marche quand même)', warn);
+check(Boolean((process.env.BREVO_API_KEY || (config.smtp.host && config.smtp.user)) && config.smtp.to), `Alertes e-mail vers ${config.smtp.to}`, 'E-mail non configuré (SMTP_… dans .env) : pas d\'alerte e-mail à chaque commande (la sonnerie de Zado Pro marche quand même)', warn);
 
 // --- Catalogue ---
 const live = products.all().filter((p) => p.active !== false && !p.pending);

@@ -8,6 +8,8 @@ const nodemailer = require('nodemailer');
 
 const ENV = path.join(__dirname, '..', '.env');
 const PROVIDERS = {
+  // Brevo : envoi par HTTPS (14/11/2026) — seul possible sur le VPS OVH « Local Zone » (ports d'envoi SMTP fermés par OVH)
+  0: { name: 'Brevo (clé API) — RECOMMANDÉ sur le serveur zado-congo.com', brevo: true },
   1: { name: 'Adresse OVH (ex. contact@zado-congo.com, Zimbra / MX Plan)', host: 'ssl0.ovh.net', port: 465 },
   2: { name: "Gmail (avec un « mot de passe d'application » Google, pas votre mot de passe habituel)", host: 'smtp.gmail.com', port: 465 },
   3: { name: 'Autre fournisseur (serveur à saisir)' },
@@ -50,9 +52,10 @@ function writeEnv(values) {
   if (!process.stdin.isTTY) { console.error('Lancez cette commande directement dans le Terminal.'); process.exit(1); }
   console.log('\nRéglage de l\'adresse qui envoie les e-mails de Zado : aux CLIENTS (bon de commande, confirmation) et à l\'équipe (alertes)\n');
   for (const [k, p] of Object.entries(PROVIDERS)) console.log(`  ${k}. ${p.name}`);
-  const choice = await ask('\nVotre choix (1, 2 ou 3) : ');
+  const choice = await ask('\nVotre choix (0, 1, 2 ou 3) : ');
   const prov = PROVIDERS[choice];
   if (!prov) { console.error('Choix inconnu : rien n\'a été changé.'); process.exit(1); }
+  if (prov.brevo) return brevo();
   let { host, port } = prov;
   if (!host) {
     host = await ask('Serveur d\'envoi (SMTP), ex. smtp.exemple.com : ');
@@ -80,3 +83,25 @@ function writeEnv(values) {
   console.log(`\n✓ E-mail de test envoyé à ${to} et réglages enregistrés dans .env.`);
   console.log('Redémarrez la boutique pour activer les alertes (sur le serveur : sudo systemctl restart zado).\n');
 })();
+
+// Brevo : la clé API (Brevo → Paramètres → SMTP & API → Clés API) est tapée par Joseph, masquée, vérifiée par un e-mail de test
+async function brevo() {
+  const DEF = 'contact@zado-congo.com';
+  const from = ((await ask(`Adresse qui envoie (doit être validée chez Brevo ; Entrée = ${DEF}) : `)) || DEF).toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(from)) { console.error('Adresse invalide : rien n\'a été changé.'); process.exit(1); }
+  const key = (await ask('Clé API Brevo (commence par xkeysib-) : ', { hidden: true })).replace(/\s/g, '');
+  if (!key) { console.error('Clé vide : rien n\'a été changé.'); process.exit(1); }
+  const toIn = await ask(`Adresse(s) qui REÇOIVENT les alertes de l'équipe (virgules ; Entrée = ${from}) : `);
+  const to = (toIn || from).split(/[,;\s]+/).filter(Boolean);
+  console.log('\nEnvoi d\'un e-mail de test par Brevo…');
+  try {
+    await require('../src/mailer').brevoSend({ key, fromName: 'Zado Pro', from, to, subject: 'Zado : les e-mails sont prêts ✅',
+      text: 'Cet e-mail confirme que Zado peut envoyer ses e-mails par Brevo : alertes de l\'équipe, bons de commande et confirmations aux clients.\nChoisissez les alertes reçues dans Zado Pro → Notifications.' });
+  } catch (err) {
+    console.error(`\n✗ Échec : ${err.message}\nRien n'a été changé. Vérifiez la clé API et que l'adresse ${from} (ou le domaine) est bien validée dans Brevo → Expéditeurs, domaines et IP dédiées, puis relancez.`);
+    process.exit(1);
+  }
+  writeEnv({ BREVO_API_KEY: key, SMTP_FROM: from, ALERT_EMAIL_TO: to.join(',') });
+  console.log(`\n✓ E-mail de test envoyé à ${to.join(', ')} et réglages enregistrés dans .env.`);
+  console.log('Redémarrez la boutique pour activer les e-mails (sur le serveur : sudo systemctl restart zado).\n');
+}

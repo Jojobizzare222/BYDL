@@ -11,7 +11,6 @@
 // Chaque type se coupe dans Zado Pro. Jamais de photo de pièce d'identité, de code client ni de code de livraison dans un e-mail.
 // Sans réglages SMTP (.env), rien ne part : l'alerte est notée « e-mail non configuré » dans l'historique.
 const crypto = require('crypto');
-const nodemailer = require('nodemailer');
 const config = require('./config');
 const store = require('./store');
 const { settings } = store;
@@ -78,10 +77,9 @@ function saveSettings(input = {}) {
 }
 
 // ---------- Envoi des e-mails ----------
-const smtp = config.smtp;
-const smtpReady = () => Boolean(smtp.host && smtp.user && smtp.pass);
-let transport = null;
-const getTransport = () => (transport ||= nodemailer.createTransport({ host: smtp.host, port: smtp.port, secure: smtp.port === 465, auth: { user: smtp.user, pass: smtp.pass }, connectionTimeout: 15000 }));
+// Envoi par src/mailer.js : API Brevo (HTTPS) ou SMTP selon .env (14/11/2026)
+const mailer = require('./mailer');
+const smtpReady = () => mailer.ready();
 let sentLog = []; // pour les tests et le diagnostic (dernier envoi)
 
 function emailHtml(items, intro) {
@@ -108,7 +106,7 @@ async function sendMail({ subject, items, intro, to }) {
   const dest = to || getSettings().to;
   if (!smtpReady() || !dest.length) return { ok: false, reason: !smtpReady() ? 'e-mail non configuré' : 'aucun destinataire' };
   try {
-    await getTransport().sendMail({ from: `"Zado Pro" <${smtp.from || smtp.user}>`, to: dest.join(', '), subject, text: emailText(items), html: emailHtml(items, intro) });
+    await mailer.send({ fromName: 'Zado Pro', to: dest, subject, text: emailText(items), html: emailHtml(items, intro) });
     sentLog = [{ at: new Date().toISOString(), subject, to: dest }, ...sentLog].slice(0, 20);
     return { ok: true };
   } catch (err) {
@@ -305,4 +303,4 @@ function start() {
   setTimeout(tick, 30e3).unref?.();
 }
 
-module.exports = { TYPES, CATEGORIES, getSettings, saveSettings, emit, flush, sendTest, sendDigest, digestItems, smtpReady, start, sentLog: () => sentLog, smtpInfo: () => ({ configured: smtpReady(), from: smtp.user || null, host: smtp.host || null }) };
+module.exports = { TYPES, CATEGORIES, getSettings, saveSettings, emit, flush, sendTest, sendDigest, digestItems, smtpReady, start, sentLog: () => sentLog, smtpInfo: () => mailer.info() };

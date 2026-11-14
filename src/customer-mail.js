@@ -2,14 +2,10 @@
 // quand Zado a reçu le paiement. Seulement si le client a un e-mail (compte créé avec un e-mail, ou Google) et si l'envoi
 // d'e-mails est réglé (SMTP_* dans .env, `npm run email:config`). Sans réglage : rien n'est envoyé (le site et « Aide »
 // préviennent quand même le client). Jamais de code client, de code de livraison ni de photo de pièce dans un e-mail.
-const nodemailer = require('nodemailer');
 const config = require('./config');
 const { customers } = require('./store');
-
-const smtp = config.smtp;
-const ready = () => Boolean(smtp.host && smtp.user && smtp.pass) && !config.demo;
-let transport = null;
-const getTransport = () => (transport ||= nodemailer.createTransport({ host: smtp.host, port: smtp.port, secure: smtp.port === 465, auth: { user: smtp.user, pass: smtp.pass }, connectionTimeout: 15000 }));
+const mailer = require('./mailer'); // API Brevo (HTTPS) ou SMTP selon .env
+const ready = () => mailer.ready();
 let sentLog = []; // diagnostic et tests
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -36,7 +32,7 @@ async function toCustomer(order, { subject, title, lines, button }) {
   if (!to) return { ok: false, reason: 'pas d\'e-mail' };
   if (!ready()) return { ok: false, reason: 'e-mail non configuré' };
   try {
-    await getTransport().sendMail({ from: `"Zado" <${smtp.from || smtp.user}>`, replyTo: smtp.from || smtp.user, to, subject, html: html({ title, lines, button }),
+    await mailer.send({ fromName: 'Zado', replyTo: mailer.fromAddress(), to, subject, html: html({ title, lines, button }),
       text: [title, '', ...lines, button ? `\n${button.label} : ${abs(button.url)}` : ''].join('\n') });
     sentLog = [{ at: new Date().toISOString(), to, subject }, ...sentLog].slice(0, 20);
     return { ok: true };
