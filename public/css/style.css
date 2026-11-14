@@ -1832,3 +1832,14 @@ html[data-theme="dark"] .pp-tag { background: rgba(14,138,102,.18); color: #5DE0
 /* Nouvelle version chargée en douceur (14/11/2026) : pas d'écran « Chargement… », la page garde sa hauteur pendant le démarrage */
 html.soft-boot main#app { min-height: 100vh; }
 html.soft-boot main#app .mz-loading { visibility: hidden; }
+
+/* Page d'un rayon (14/11/2026) : sur téléphone, liste des rayons repliée en « Rayon : X · Changer » une fois un rayon choisi */
+.cat-switch-btn { display: none; }
+@media (max-width: 760px) {
+  .cat-switch-btn { display: flex; align-items: center; gap: 8px; width: 100%; margin: 0 0 12px; padding: 10px 14px; border: 1.5px solid var(--line); border-radius: 14px; background: var(--paper); color: var(--ink); font: inherit; font-size: .92rem; cursor: pointer; text-align: left; }
+  .cat-switch-btn .ico { width: 20px; height: 20px; color: var(--brand-text); flex: none; }
+  .cat-switch-btn .csb-more { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; color: var(--link); font-weight: 600; font-size: .86rem; }
+  .cat-switch-btn .csb-more .ico { width: 14px; height: 14px; color: inherit; transition: transform .2s; }
+  .cat-switch-btn[aria-expanded="true"] .csb-more .ico { transform: rotate(180deg); }
+  .cat-switch.is-closed .chips { display: none; }
+}

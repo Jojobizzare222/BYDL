@@ -1029,14 +1029,24 @@
     const u = UNIVERSES.find((x) => x.name === universe);
     if (!u) return viewHome();
     const list = state.products.filter((p) => p.universe === universe && (!category || p.category === category));
-    const chips = `<div class="chips">
+    // Rayon choisi : sur téléphone, la liste des rayons se replie en un bouton « Changer de rayon » pour laisser la place
+    // aux produits (retour d'un client réel, 14/11/2026 : « dérangeant que les catégories restent affichées ») ;
+    // sur ordinateur, elle reste visible (une ou deux lignes)
+    const chips = `<div class="cat-switch ${category ? 'is-closed' : ''}">
+      ${category ? `<button type="button" class="cat-switch-btn" aria-expanded="false">${catIcon(category)}<span>Rayon : <b>${esc(category)}</b></span><span class="csb-more">Changer ${icon('caret-down')}</span></button>` : ''}
+      <div class="chips">
       <a class="chip ${!category ? 'active' : ''}" href="#/c/${enc(universe)}">Tout ${esc(universe)}</a>
       ${u.categories.map((c) => `<a class="chip ${c === category ? 'active' : ''}" href="#/c/${enc(universe)}/${enc(c)}">${esc(c)}</a>`).join('')}
-    </div>`;
+    </div></div>`;
     viewList({
       title: category || universe,
       crumbs: `<a href="#/">Accueil</a> › ${category ? `<a href="#/c/${enc(universe)}">${esc(universe)}</a> › ${esc(category)}` : esc(universe)}`,
       list, active: category || universe, chips,
+    });
+    $('.cat-switch-btn')?.addEventListener('click', (e) => {
+      const box = e.currentTarget.closest('.cat-switch');
+      const open = box.classList.toggle('is-closed') === false;
+      e.currentTarget.setAttribute('aria-expanded', String(open));
     });
   }
 
