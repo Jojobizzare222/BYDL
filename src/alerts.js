@@ -108,7 +108,7 @@ async function sendMail({ subject, items, intro, to }) {
   const dest = to || getSettings().to;
   if (!smtpReady() || !dest.length) return { ok: false, reason: !smtpReady() ? 'e-mail non configuré' : 'aucun destinataire' };
   try {
-    await getTransport().sendMail({ from: `"Zado Pro" <${smtp.user}>`, to: dest.join(', '), subject, text: emailText(items), html: emailHtml(items, intro) });
+    await getTransport().sendMail({ from: `"Zado Pro" <${smtp.from || smtp.user}>`, to: dest.join(', '), subject, text: emailText(items), html: emailHtml(items, intro) });
     sentLog = [{ at: new Date().toISOString(), subject, to: dest }, ...sentLog].slice(0, 20);
     return { ok: true };
   } catch (err) {

@@ -36,7 +36,7 @@ async function toCustomer(order, { subject, title, lines, button }) {
   if (!to) return { ok: false, reason: 'pas d\'e-mail' };
   if (!ready()) return { ok: false, reason: 'e-mail non configuré' };
   try {
-    await getTransport().sendMail({ from: `"Zado" <${smtp.user}>`, to, subject, html: html({ title, lines, button }),
+    await getTransport().sendMail({ from: `"Zado" <${smtp.from || smtp.user}>`, replyTo: smtp.from || smtp.user, to, subject, html: html({ title, lines, button }),
       text: [title, '', ...lines, button ? `\n${button.label} : ${abs(button.url)}` : ''].join('\n') });
     sentLog = [{ at: new Date().toISOString(), to, subject }, ...sentLog].slice(0, 20);
     return { ok: true };

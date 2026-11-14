@@ -48,7 +48,7 @@ function writeEnv(values) {
 
 (async () => {
   if (!process.stdin.isTTY) { console.error('Lancez cette commande directement dans le Terminal.'); process.exit(1); }
-  console.log('\nRéglage de l\'adresse qui envoie les alertes de Zado (nouvelles commandes, dépôts, clients, messages…)\n');
+  console.log('\nRéglage de l\'adresse qui envoie les e-mails de Zado : aux CLIENTS (bon de commande, confirmation) et à l\'équipe (alertes)\n');
   for (const [k, p] of Object.entries(PROVIDERS)) console.log(`  ${k}. ${p.name}`);
   const choice = await ask('\nVotre choix (1, 2 ou 3) : ');
   const prov = PROVIDERS[choice];
@@ -58,7 +58,9 @@ function writeEnv(values) {
     host = await ask('Serveur d\'envoi (SMTP), ex. smtp.exemple.com : ');
     port = Number(await ask('Port (465 conseillé, ou 587) : ')) || 465;
   }
-  const user = (await ask('Adresse e-mail qui envoie : ')).toLowerCase();
+  // Adresse de Zado qui écrit aux clients et à l'équipe (décision Joseph 14/11/2026) : contact@zado-congo.com par défaut
+  const DEF = choice === '1' ? 'contact@zado-congo.com' : '';
+  const user = ((await ask(`Adresse e-mail qui envoie${DEF ? ` (Entrée = ${DEF})` : ''} : `)) || DEF).toLowerCase();
   if (!/^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(user)) { console.error('Adresse invalide : rien n\'a été changé.'); process.exit(1); }
   const pass = await ask(choice === '2' ? 'Mot de passe d\'application Google (16 lettres) : ' : 'Mot de passe de cette adresse : ', { hidden: true });
   if (!pass) { console.error('Mot de passe vide : rien n\'a été changé.'); process.exit(1); }
@@ -74,7 +76,7 @@ function writeEnv(values) {
     console.error(`\n✗ Échec : ${err.message}\nRien n'a été changé. Vérifiez l'adresse et le mot de passe${choice === '2' ? " (il faut un mot de passe d'application : compte Google → Sécurité → Validation en deux étapes → Mots de passe des applications)" : ''}, puis relancez.`);
     process.exit(1);
   }
-  writeEnv({ SMTP_HOST: host, SMTP_PORT: port, SMTP_USER: user, SMTP_PASS: choice === '2' ? pass.replace(/\s/g, '') : pass, ALERT_EMAIL_TO: to });
+  writeEnv({ SMTP_HOST: host, SMTP_PORT: port, SMTP_USER: user, SMTP_FROM: user, SMTP_PASS: choice === '2' ? pass.replace(/\s/g, '') : pass, ALERT_EMAIL_TO: to });
   console.log(`\n✓ E-mail de test envoyé à ${to} et réglages enregistrés dans .env.`);
   console.log('Redémarrez la boutique pour activer les alertes (sur le serveur : sudo systemctl restart zado).\n');
 })();

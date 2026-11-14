@@ -30,6 +30,9 @@ module.exports = {
     user: env('SMTP_USER'),
     pass: env('SMTP_PASS'),
     to: env('ALERT_EMAIL_TO'),
+    // Adresse montrée aux CLIENTS (expéditeur et « Répondre à ») : contact@zado-congo.com (décision Joseph 14/11/2026).
+    // Par défaut l'adresse de connexion SMTP_USER (l'expéditeur doit être une adresse de la boîte, sinon OVH refuse).
+    from: env('SMTP_FROM') || env('SMTP_USER'),
   },
 
   mtn: {
