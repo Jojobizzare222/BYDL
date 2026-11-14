@@ -16,6 +16,7 @@ const list = [
 const r = A.rank(list, FR);
 
 ok(A.deliveredPrice(P('x', 'Accessoires', 15000), FR) === 15000 + Math.round(15 * 655.957), 'prix livré = prix + transport (1 kg minimum à 15 €/kg)');
+ok(A.deliveredPrice({ id: 'y', price: 10000, weightKg: 0.2 }, { eurPerKg: 13.9, minKg: 0 }) === 10000 + Math.round(0.2 * 13.9 * 655.957), 'prix livré au prorata : 200 g à 13,90 €/kg');
 ok(A.deliveredPrice(P('x', 'Audio', 15000, { weightKg: 2.5 }), FR) === 15000 + Math.round(2.5 * 15 * 655.957), 'article lourd : transport selon son poids');
 ok(!r.has('epuise'), 'article épuisé : jamais mis en avant');
 ok(r.get('cable').rel === 1 && r.get('coque').rel === 0, 'dans son rayon : le moins cher = 1, le plus cher = 0');

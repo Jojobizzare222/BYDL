@@ -19,6 +19,8 @@ ok(m.mobile.enabled && m.mobile.push && m.mobile.pull === false, 'numéro Airtel
 
 const order = async () => (await call(C, '/orders', { body: { customer: { name: 'Awa Live', phone: '053590000', city: 'Pointe-Noire', address: 'Tié-Tié' }, items: [{ productId: 'a072', qty: 1 }] } })).data;
 const o1 = await order();
+const pa = (await call(C, '/products/a072')).data, wkg = pa.weightKg > 0 ? pa.weightKg : 1;
+ok(o1.transportFee === Math.round(Math.round(wkg * 100) / 100 * 13.9 * 655.957), `transport au prorata du poids (${wkg} kg × 13,90 €) : ${o1.transportFee} FCFA`);
 const pull = await call(C, '/payments', { body: { orderId: o1.id, token: o1.token, method: 'mobile', mode: 'pull', phone: '053590000' } });
 ok(pull.status === 400 && /dépôt/.test(pull.data.error), '« par retrait » refusé par le serveur même si on le force : « choisissez Par dépôt »');
 const momo = await call(C, '/payments', { body: { orderId: o1.id, token: o1.token, method: 'momo', phone: '053590000' } });

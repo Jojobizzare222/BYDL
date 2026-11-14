@@ -942,11 +942,12 @@
       </form>
       <form class="panel" id="trForm" style="max-width:760px">
         <h2>${icon('airplane-tilt')} Transport, délais et acompte</h2>
-        <p class="muted" style="margin-top:0">Le transport France → Pointe-Noire est ajouté au prix des articles, à la commande, selon le poids saisi dans chaque fiche produit (${fcfa(tr.perKg)} le kilo aujourd'hui).</p>
+        <p class="muted" style="margin-top:0">Le transport France → Pointe-Noire est ajouté au prix des articles, à la commande, selon le poids saisi dans chaque fiche produit, <b>au prorata</b> (${fcfa(tr.perKg)} le kilo aujourd'hui : un colis de 200 g paie ${fcfa(Math.round(tr.perKg * 0.2))}). Le client voit une note : coût logistique estimatif, ajustable selon le rapport poids / volume.</p>
         <div class="grid2">
-          <div><label for="trEur">Prix du transport (€ par kg)</label><input id="trEur" type="number" min="0" step="0.5" value="${tr.freight.eurPerKg}"></div>
-          <div><label for="trFee">Dont frais Zado (€ par kg)</label><input id="trFee" type="number" min="0" step="0.5" value="${tr.freight.zadoFeeEurPerKg ?? 0}"><small class="muted">Compté dans votre marge ; le reste (${String(Math.max(0, tr.freight.eurPerKg - (tr.freight.zadoFeeEurPerKg || 0))).replace('.', ',')} €) paie la société de fret. Jamais montré au client.</small></div>
-          <div><label for="trMin">Poids minimum facturé (kg)</label><input id="trMin" type="number" min="0" step="0.1" value="${tr.freight.minKg}"></div>
+          <div><label for="trEur">Prix du transport (€ par kg)</label><input id="trEur" type="number" min="0" step="0.01" value="${tr.freight.eurPerKg}"></div>
+          <div><label for="trFee">Dont frais Zado (€ par kg)</label><input id="trFee" type="number" min="0" step="0.01" value="${tr.freight.zadoFeeEurPerKg ?? 0}"><small class="muted">Compté dans votre marge ; le reste (${String(Math.max(0, tr.freight.eurPerKg - (tr.freight.zadoFeeEurPerKg || 0))).replace('.', ',')} €) paie la société de fret. Jamais montré au client.</small></div>
+          <div><label for="trMin">Poids minimum facturé (kg) · 0 = au prorata du poids</label><input id="trMin" type="number" min="0" step="0.1" value="${tr.freight.minKg}"></div>
+          <div><label for="trDefKg">Poids compté si la fiche n'a pas de poids (kg)</label><input id="trDefKg" type="number" min="0.01" step="0.1" value="${tr.freight.defaultKg ?? 1}"></div>
         </div>
         <label class="check"><input type="checkbox" id="trPerArt" ${tr.freight.perArticle ? 'checked' : ''}> Minimum appliqué à <b>chaque article</b> (sinon : à la commande entière)</label>
         <label class="check"><input type="checkbox" id="trOn" ${tr.freight.enabled ? 'checked' : ''}> Facturer le transport aux clients</label>
@@ -1051,7 +1052,7 @@
       e.preventDefault();
       try {
         await api('/settings/transport', { method: 'PUT', body: {
-          freight: { enabled: $('#trOn').checked, eurPerKg: $('#trEur').value, zadoFeeEurPerKg: $('#trFee').value, minKg: $('#trMin').value, perArticle: $('#trPerArt').checked, logisticsMin: $('#trL1').value, logisticsMax: $('#trL2').value, deliveryHours: $('#trDH').value },
+          freight: { enabled: $('#trOn').checked, eurPerKg: $('#trEur').value, zadoFeeEurPerKg: $('#trFee').value, minKg: $('#trMin').value, defaultKg: $('#trDefKg').value, perArticle: $('#trPerArt').checked, logisticsMin: $('#trL1').value, logisticsMax: $('#trL2').value, deliveryHours: $('#trDH').value },
           mobile: { deposit: Number($('#trDep').value || 0), numbers: { mtn: $('#trMtn').value, airtel: $('#trAir').value }, holder: $('#trHolder').value, transferHours: Number($('#trHours').value || 24), pull: $('#trPull').checked } } });
         toast('Transport et acompte enregistrés ✓'); $('#trMsg').innerHTML = ''; route({ keep: true });
       } catch (err) { $('#trMsg').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; }
@@ -2165,8 +2166,8 @@
           <div><label for="oldPrice">Prix barré (facultatif)</label><input id="oldPrice" type="number" inputmode="numeric" min="1" step="1" value="${esc(p.oldPrice ?? '')}"></div>` : ''}
           <div><label for="costPrice">Prix d'achat rendu Pointe-Noire (FCFA)</label><input id="costPrice" type="number" inputmode="numeric" min="0" step="1" value="${esc(p.costPrice ?? '')}" placeholder="achat Europe + fret + douane"></div>
           <div><label for="stock">Stock disponible *</label><input id="stock" type="number" inputmode="numeric" min="0" step="1" value="${esc(p.stock)}"></div>
-          <div><label for="sourcePrice">Prix fournisseur montré au client (FCFA)</label><input id="sourcePrice" type="number" inputmode="numeric" min="1" step="1" value="${esc(p.sourcePrice ?? '')}" placeholder="ex. prix Apple Store converti"></div>
-          <div><label for="weightKg">Poids avec emballage (kg)</label><input id="weightKg" type="text" inputmode="decimal" value="${p.weightKg != null ? String(p.weightKg).replace('.', ',') : ''}" placeholder="ex. 0,45"></div>
+          <div><label for="sourcePrice">Prix fournisseur en France (FCFA)</label><input id="sourcePrice" type="number" inputmode="numeric" min="1" step="1" value="${esc(p.sourcePrice ?? '')}" placeholder="ex. prix Apple Store converti"></div>
+          <div><label for="weightKg">Poids avec emballage (kg)</label><input id="weightKg" type="text" inputmode="decimal" value="${p.weightKg != null ? String(p.weightKg).replace('.', ',') : ''}" placeholder="ex. 0,45"><small class="muted">Poids de l'article emballé : le transport est facturé au prorata.${p.weightKg != null && p.weightSource ? ` Source : ${esc(p.weightSource)}.` : p.weightKg == null ? ' Sans poids, on compte 1 kg.' : ''}</small></div>
         </div>
         <p class="muted" id="priceBreak"></p>
         <p class="muted">Prix d'achat rendu : ce que l'article coûte à Zado une fois à Pointe-Noire (prix payé en Europe + fret aérien + douane). Il sert au calcul de la marge et n'est visible que par l'administrateur et le responsable catalogue.</p>
@@ -2283,12 +2284,13 @@
       b.disabled = false; b.innerHTML = t;
     });
 
-    // Ce que verra le client : prix fournisseur + marge Zado = prix de l'article, + transport (1 kg minimum par article)
+    // Ce que verra le client : prix de l'article + transport au prorata du poids (14/11/2026) = prix livré
     const showBreak = () => {
       const pr = Number($('#price')?.value || p.price) || 0, src = Number($('#sourcePrice')?.value) || 0, w = Number(String($('#weightKg')?.value || '').replace(',', '.')) || 0;
-      const fr = state.config?.freight || { eurPerKg: 15, minKg: 1, perArticle: true, enabled: true };
-      const kg = fr.perArticle ? Math.max(fr.minKg, w) : w, tr = fr.enabled ? Math.round(kg * fr.eurPerKg * 655.957) : 0;
-      $('#priceBreak').innerHTML = `Le client verra : ${src ? `prix fournisseur ${fcfa(src)} + marge Zado <b class="${pr - src < 0 ? 'bad' : ''}">${fcfa(pr - src)}</b> = ` : ''}prix de l'article ${fcfa(pr)}${tr ? ` + transport ${fcfa(tr)} (${String(kg).replace('.', ',')} kg facturé${kg > 1 ? 's' : ''})` : ''}.${src && pr - src < 0 ? ' <b class="bad">Attention : le prix de vente est inférieur au prix fournisseur.</b>' : ''}`;
+      const fr = state.config?.freight || { eurPerKg: 13.9, minKg: 0, defaultKg: 1, perArticle: true, enabled: true };
+      const wk = w > 0 ? w : (fr.defaultKg ?? 1);
+      const kg = Math.round((fr.perArticle ? Math.max(fr.minKg, wk) : wk) * 100) / 100, tr = fr.enabled ? Math.round(kg * fr.eurPerKg * 655.957) : 0;
+      $('#priceBreak').innerHTML = `Le client verra : <b>${fcfa(pr + tr)}</b> livré à Pointe-Noire${tr ? ` (article ${fcfa(pr)} + transport ${fcfa(tr)} pour ${String(kg).replace('.', ',')} kg${w > 0 ? '' : ', poids non saisi'})` : ''}, avec la mention « coût logistique estimatif ».${src ? ` Votre marge sur le prix fournisseur : <b class="${pr - src < 0 ? 'bad' : ''}">${fcfa(pr - src)}</b>.` : ''}${src && pr - src < 0 ? ' <b class="bad">Attention : le prix de vente est inférieur au prix fournisseur.</b>' : ''}`;
     };
     ['#price', '#sourcePrice', '#weightKg'].forEach((sel) => $(sel)?.addEventListener('input', showBreak));
     showBreak();

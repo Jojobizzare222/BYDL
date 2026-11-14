@@ -19,6 +19,11 @@ await call(A, `/admin/customers/${reg.customer.id}/identity`, { body: { decision
 ok((await call(A, '/admin/settings/transport', { method: 'PUT', body: { freight: { minKg: 'abc' } } })).status === 400, 'réglage : poids minimum invalide refusé');
 ok((await call(A, '/admin/settings/transport', { method: 'PUT', body: { freight: { logisticsMin: 6, logisticsMax: 3 } } })).status === 400, 'réglage : délai minimum > maximum refusé');
 const tr0 = (await call(A, '/admin/settings/transport', { method: 'PUT', body: { mobile: { numbers: { mtn: '06 600 00 00' } } } })).data;
+ok(tr0.freight.eurPerKg === 13.9 && tr0.freight.minKg === 0 && tr0.freight.defaultKg === 1, 'par défaut (14/11/2026) : 13,90 €/kg au prorata du poids, 1 kg compté si la fiche n\'a pas de poids');
+const g200 = (await call(C, '/config')).data.freight;
+ok(Math.round(0.2 * g200.eurPerKg * 655.957) === 1824, 'un colis de 200 g : 1 824 FCFA de transport (prorata)');
+// Cette suite teste l'ANCIENNE règle (15 €/kg, 1 kg minimum par article) : réglée explicitement
+await call(A, '/admin/settings/transport', { method: 'PUT', body: { freight: { eurPerKg: 15, zadoFeeEurPerKg: 2, minKg: 1 } } });
 ok(tr0.mobile.deposit === 0, 'par défaut : pas d\'acompte (décision Joseph 14/11/2026)');
 // Cette suite teste le paiement EN DEUX TEMPS : acompte réglé à 500 FCFA
 const tr = (await call(A, '/admin/settings/transport', { method: 'PUT', body: { mobile: { deposit: 500 } } })).data;

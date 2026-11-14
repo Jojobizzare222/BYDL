@@ -791,11 +791,12 @@ function cleanProduct(input, current, { role }) {
   }
   // Stock vide = « sur commande » (non suivi : article acheté en France à la commande, ex. sélection Noël 2026)
   if ('stock' in input) p.stock = input.stock === '' || input.stock === null ? null : toInt(input.stock);
-  // Poids (kg) : sert au transport France → Pointe-Noire facturé au client (15 €/kg, 1 kg minimum par article)
+  // Poids du COLIS (kg) : sert au transport France → Pointe-Noire facturé au client, au prorata (13,90 €/kg depuis le 14/11/2026)
   if ('weightKg' in input) {
     const w = input.weightKg === '' || input.weightKg === null ? null : Number(String(input.weightKg).replace(',', '.'));
     if (w !== null && !(Number.isFinite(w) && w > 0 && w <= 200)) return { error: 'Poids invalide (en kg, ex. 0,45)' };
     p.weightKg = w === null ? null : Math.round(w * 1000) / 1000;
+    if (p.weightKg !== (current?.weightKg ?? null)) p.weightSource = p.weightKg === null ? null : 'Saisi dans Zado Pro'; // d'où vient le poids
   }
   // Prix fournisseur MONTRÉ au client (décision Joseph 21/10/2026 : « prix fournisseur + marge Zado ») ; la marge = prix de vente − prix fournisseur
   if ('sourcePrice' in input && ['admin', 'catalog'].includes(role)) {

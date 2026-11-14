@@ -40,14 +40,24 @@ const T = [
   ['t038', 'Xiaomi 17T', 'Xiaomi', 'Xiaomi', 653, 'https://www.mi.com/fr/product/xiaomi-17t/', null, []],
 ];
 
+// Poids de l'APPAREIL (g) lus le 14/11/2026 sur les fiches techniques officielles (apple.com/fr/<modèle>/specs,
+// pages produit samsung.com/fr, mi.com/fr/product/<modèle>/specs) ; poids facturé = appareil + emballage estimé (PACK_G)
+// (demande Joseph 14/11/2026 : transport au prorata du poids).
+const GRAMS = { t001: 170, t002: 177, t003: 211, t004: 249, t010: 192, t011: 196, t012: 200, t013: 196, t014: 179, t015: 193, t016: 162,
+  t017: 167, t018: 214, t019: 180, t020: 167, t021: 218, t030: 208, t031: 232, t032: 211, t033: 224, t034: 225, t035: 223, t036: 225.1,
+  t037: 201.47, t038: 200 };
+const PACK_G = 150; // boîte, câble, notice : estimation
+const weightOf = (id) => (GRAMS[id] ? Math.round((GRAMS[id] + PACK_G) / 10) / 100 : 0.5);
+
 const out = T.map(([id, name, brand, store, eur, url, storage, hl, refurb]) => {
   const src = Math.round(eur * EUR);
   const p = {
     id, name, brand, universe: 'Électronique', category: 'Téléphones', price: zado(eur), oldPrice: null, stock: null,
     description: `${name}${storage ? '' : ' (version de base)'}. ${refurb ? 'Reconditionné et garanti par Samsung, ' : 'Neuf, '}acheté en France chez ${store} (boutique officielle de la marque) et acheminé par avion jusqu'à Pointe-Noire. Débloqué tous opérateurs.`,
-    condition: refurb ? 'reconditionné' : 'neuf', provenance: 'France', sourceSupplier: store, sourcePrice: src, costPrice: src, weightKg: 0.5,
+    condition: refurb ? 'reconditionné' : 'neuf', provenance: 'France', sourceSupplier: store, sourcePrice: src, costPrice: src, weightKg: weightOf(id),
+    weightSource: GRAMS[id] ? `Fiche technique ${brand} : appareil ${String(GRAMS[id]).replace('.', ',')} g + emballage estimé ${PACK_G} g` : 'Estimé',
     highlights: [storage ? `Stockage : ${storage}` : 'Version de base (stockage précisé à la confirmation)', 'Débloqué tous opérateurs', ...hl],
-    specs: [{ label: 'Stockage', value: storage || 'Version de base' }, { label: 'Acheté chez', value: `${store} (France)` }],
+    specs: [{ label: 'Stockage', value: storage || 'Version de base' }, ...(GRAMS[id] ? [{ label: 'Poids', value: `${String(Math.round(GRAMS[id])).replace('.', ',')} g` }] : []), { label: 'Acheté chez', value: `${store} (France)` }],
     priceRefs: [{ store, priceEur: eur, url, date: DATE, status: 'ok', from: !storage, auto: false, watch: true }],
     priceRefsPublic: false,
   };

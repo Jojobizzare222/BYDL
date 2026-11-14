@@ -285,8 +285,12 @@
   const cartTotal = () => cartItems().reduce((s, l) => s + l.product.price * l.qty, 0);
   // Transport France → Pointe-Noire facturé au client (décision Joseph 21/10/2026) : 15 €/kg, 1 kg minimum par article (13 € avant le 22/10/2026)
   const EUR_FCFA = 655.957;
-  const frCfg = () => state.config?.freight || { enabled: true, eurPerKg: 15, minKg: 1, perArticle: true, perKg: 9839 };
-  const billedKg = (w) => { const c = frCfg(), x = Number(w) > 0 ? Number(w) : 0; return Math.round((c.perArticle ? Math.max(c.minKg, x) : x) * 100) / 100; };
+  // Transport au prorata du poids (13,90 €/kg depuis le 14/11/2026), même calcul que src/freight.js
+  // Note obligatoire à côté de chaque coût de transport (demande Joseph 14/11/2026)
+  const EST_NOTE = 'Coût logistique estimatif : selon le rapport poids / volume du colis, il peut être ajusté.';
+  const estNote = () => `<p class="est-note">${icon('info')} ${EST_NOTE}</p>`;
+  const frCfg = () => state.config?.freight || { enabled: true, eurPerKg: 13.9, minKg: 0, defaultKg: 1, perArticle: true, perKg: 9118 };
+  const billedKg = (w) => { const c = frCfg(), x = Number(w) > 0 ? Number(w) : (c.defaultKg ?? 1); return Math.round((c.perArticle ? Math.max(c.minKg, x) : x) * 100) / 100; };
   const unitTransport = (p) => (frCfg().enabled ? Math.round(billedKg(p.weightKg) * frCfg().eurPerKg * EUR_FCFA) : 0);
   const cartFreight = () => {
     const c = frCfg();
@@ -328,7 +332,8 @@
     $('#cartCount').textContent = count || '';
     $('#cartCount2').textContent = count || '';
     const fr = cartFreight();
-    $('#cartTransport').innerHTML = items.length && fr.fee ? `<span>Transport France → Pointe-Noire</span><span>${fcfa(fr.fee)}</span>` : '';
+    $('#cartTransport').innerHTML = items.length && fr.fee ? `<span>Transport France → Pointe-Noire*</span><span>${fcfa(fr.fee)}</span>` : '';
+    { const n = $('#cartEst'); if (n) n.innerHTML = items.length && fr.fee ? `* ${EST_NOTE}` : ''; }
     $('#cartTotal').textContent = fcfa(cartTotal() + fr.fee);
     const saving = cartSaving();
     $('#cartSaving').innerHTML = saving > 0 ? `<span>Vous économisez</span><span>${fcfa(saving)}</span>` : '';
@@ -1249,7 +1254,7 @@
           <div class="buybox">
             ${d ? `<div><span class="old">${fcfa(p.oldPrice + unitTransport(p))}</span> <span class="save-tag">Économisez ${fcfa(p.oldPrice - p.price)}</span></div>` : ''}
             <span class="price">${fcfa(p.price + unitTransport(p))}</span>
-            ${unitTransport(p) ? `<span class="hint price-all">Prix livré à Pointe-Noire, transport depuis la France compris</span>` : ''}
+            ${unitTransport(p) ? `<span class="hint price-all">Prix livré à Pointe-Noire, transport depuis la France compris</span>${estNote()}` : ''}
             ${(p.options || []).map((o, i) => `<label class="opt-label" for="opt${i}">${esc(o.name)}</label><div class="opt-choices" id="opt${i}" data-opt="${esc(o.name)}">${o.values.map((v) => `<button type="button" class="opt" data-v="${esc(v)}">${esc(v)}</button>`).join('')}</div>`).join('')}
             <span class="momo-note">${icon('check-circle-duotone')} ${hasRelays() ? 'Payable en espèces au point relais · retrait ou livraison' : (hasDeposit() ? `Mobile Money : acompte de ${depositTxt()}, le reste ensuite · livraison à domicile` : 'Paiement par dépôt Mobile Money · livraison à domicile')}</span>
             <span class="hint">${icon('airplane-tilt')} ${delayText()}</span>
@@ -1549,7 +1554,7 @@
           ${items.map(({ product: p, qty, variant }) => `<div class="line"><span>${qty} × ${esc(p.name)}${variant ? `<br><span class="hint">${esc(variantText(variant))}</span>` : ''}</span><strong>${fcfa(p.price * qty)}</strong></div>`).join('')}
           ${cartSaving() > 0 ? `<div class="row saving" style="margin-top:10px"><span>Vous économisez</span><span>${fcfa(cartSaving())}</span></div>` : ''}
           <div id="promoLine"></div>
-          ${fr0.fee ? `<div class="row" style="margin-top:10px"><span>Transport France → Pointe-Noire</span><span>${fcfa(fr0.fee)}</span></div>` : ''}
+          ${fr0.fee ? `<div class="row" style="margin-top:10px"><span>Transport France → Pointe-Noire*</span><span>${fcfa(fr0.fee)}</span></div>${estNote()}` : ''}
           <div class="row" style="margin-top:10px"><span>Livraison</span><span id="feeLine">—</span></div>
           <div class="row total" style="margin-top:10px"><span>Total</span><strong id="sumTotal">${total}</strong></div>
           <div id="depositSplit"></div>

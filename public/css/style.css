@@ -1502,6 +1502,10 @@ html[data-motion="reduce"] .idv-c { transform: none; } html[data-motion="reduce"
 .price-detail tr.sub td { color: var(--muted); }
 .price-detail tr.tot td { font-weight: 700; color: var(--brand-text); border-top: 2px solid var(--line); }
 #cartTransport:empty { display: none; }
+/* Note « coût logistique estimatif » (14/11/2026) */
+.est-note { display: flex; gap: 6px; align-items: flex-start; margin: 4px 0 6px; font-size: 12px; line-height: 1.35; color: var(--muted, #5F6B80); }
+.est-note svg { width: 14px; height: 14px; flex: none; margin-top: 1px; }
+#cartEst:empty { display: none; }
 .op.off { opacity: .55; }
 .pay-box { display: flex; gap: 12px; align-items: flex-start; margin: 14px 0; padding: 14px 16px; border-radius: var(--radius-sm); background: var(--mango-soft); border: 1px solid rgba(255,179,0,.4); }
 .pay-box > .ico { flex: none; width: 26px; height: 26px; color: var(--mango-dark); margin-top: 2px; }

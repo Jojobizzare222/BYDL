@@ -19,9 +19,10 @@
 
   function deliveredPrice(p, fr = {}) {
     if (fr.enabled === false) return p.price;
-    const w = Number(p.weightKg) > 0 ? Number(p.weightKg) : 0;
-    const kg = fr.perArticle === false ? w : Math.max(fr.minKg ?? 1, w);
-    return p.price + Math.round(kg * (fr.eurPerKg ?? 15) * EUR_FCFA);
+    // même calcul que src/freight.js : au prorata du poids (14/11/2026), poids inconnu = defaultKg
+    const w = Number(p.weightKg) > 0 ? Number(p.weightKg) : (fr.defaultKg ?? 1);
+    const kg = fr.perArticle === false ? w : Math.max(fr.minKg ?? 0, w);
+    return p.price + Math.round(kg * (fr.eurPerKg ?? 13.9) * EUR_FCFA);
   }
   function saving(p) {
     if (p.oldPrice && p.oldPrice > p.price) return 1 - p.price / p.oldPrice;

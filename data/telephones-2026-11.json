@@ -14,7 +14,8 @@
   "sourceSupplier": "Apple Store",
   "sourcePrice": 570027,
   "costPrice": 570027,
-  "weightKg": 0.5,
+  "weightKg": 0.32,
+  "weightSource": "Fiche technique Apple : appareil 170 g + emballage estimé 150 g",
   "highlights": [
    "Stockage : 256 Go",
    "Débloqué tous opérateurs",
@@ -25,6 +26,10 @@
    {
     "label": "Stockage",
     "value": "256 Go"
+   },
+   {
+    "label": "Poids",
+    "value": "170 g"
    },
    {
     "label": "Acheté chez",
@@ -60,7 +65,8 @@
   "sourceSupplier": "Apple Store",
   "sourcePrice": 734016,
   "costPrice": 734016,
-  "weightKg": 0.5,
+  "weightKg": 0.33,
+  "weightSource": "Fiche technique Apple : appareil 177 g + emballage estimé 150 g",
   "highlights": [
    "Stockage : 256 Go",
    "Débloqué tous opérateurs",
@@ -70,6 +76,10 @@
    {
     "label": "Stockage",
     "value": "256 Go"
+   },
+   {
+    "label": "Poids",
+    "value": "177 g"
    },
    {
     "label": "Acheté chez",
@@ -105,7 +115,8 @@
   "sourceSupplier": "Apple Store",
   "sourcePrice": 970160,
   "costPrice": 970160,
-  "weightKg": 0.5,
+  "weightKg": 0.36,
+  "weightSource": "Fiche technique Apple : appareil 211 g + emballage estimé 150 g",
   "highlights": [
    "Stockage : 256 Go",
    "Débloqué tous opérateurs",
@@ -115,6 +126,10 @@
    {
     "label": "Stockage",
     "value": "256 Go"
+   },
+   {
+    "label": "Poids",
+    "value": "211 g"
    },
    {
     "label": "Acheté chez",
@@ -150,7 +165,8 @@
   "sourceSupplier": "Apple Store",
   "sourcePrice": 1068554,
   "costPrice": 1068554,
-  "weightKg": 0.5,
+  "weightKg": 0.4,
+  "weightSource": "Fiche technique Apple : appareil 249 g + emballage estimé 150 g",
   "highlights": [
    "Stockage : 256 Go",
    "Débloqué tous opérateurs",
@@ -161,6 +177,10 @@
    {
     "label": "Stockage",
     "value": "256 Go"
+   },
+   {
+    "label": "Poids",
+    "value": "249 g"
    },
    {
     "label": "Acheté chez",
@@ -196,7 +216,8 @@
   "sourceSupplier": "Samsung",
   "sourcePrice": 196131,
   "costPrice": 196131,
-  "weightKg": 0.5,
+  "weightKg": 0.34,
+  "weightSource": "Fiche technique Samsung : appareil 192 g + emballage estimé 150 g",
   "highlights": [
    "Stockage : 128 Go",
    "Débloqué tous opérateurs",
@@ -206,6 +227,10 @@
    {
     "label": "Stockage",
     "value": "128 Go"
+   },
+   {
+    "label": "Poids",
+    "value": "192 g"
    },
    {
     "label": "Acheté chez",
@@ -241,7 +266,8 @@
   "sourceSupplier": "Samsung",
   "sourcePrice": 183012,
   "costPrice": 183012,
-  "weightKg": 0.5,
+  "weightKg": 0.35,
+  "weightSource": "Fiche technique Samsung : appareil 196 g + emballage estimé 150 g",
   "highlights": [
    "Stockage : 128 Go",
    "Débloqué tous opérateurs",
@@ -251,6 +277,10 @@
    {
     "label": "Stockage",
     "value": "128 Go"
+   },
+   {
+    "label": "Poids",
+    "value": "196 g"
    },
    {
     "label": "Acheté chez",
@@ -286,7 +316,8 @@
   "sourceSupplier": "Samsung",
   "sourcePrice": 248608,
   "costPrice": 248608,
-  "weightKg": 0.5,
+  "weightKg": 0.35,
+  "weightSource": "Fiche technique Samsung : appareil 200 g + emballage estimé 150 g",
   "highlights": [
    "Stockage : 128 Go",
    "Débloqué tous opérateurs",
@@ -296,6 +327,10 @@
    {
     "label": "Stockage",
     "value": "128 Go"
+   },
+   {
+    "label": "Poids",
+    "value": "200 g"
    },
    {
     "label": "Acheté chez",
@@ -331,7 +366,8 @@
   "sourceSupplier": "Samsung",
   "sourcePrice": 386359,
   "costPrice": 386359,
-  "weightKg": 0.5,
+  "weightKg": 0.35,
+  "weightSource": "Fiche technique Samsung : appareil 196 g + emballage estimé 150 g",
   "highlights": [
    "Stockage : 256 Go",
    "Débloqué tous opérateurs",
@@ -342,6 +378,10 @@
    {
     "label": "Stockage",
     "value": "256 Go"
+   },
+   {
+    "label": "Poids",
+    "value": "196 g"
    },
    {
     "label": "Acheté chez",
@@ -377,7 +417,8 @@
   "sourceSupplier": "Samsung",
   "sourcePrice": 432276,
   "costPrice": 432276,
-  "weightKg": 0.5,
+  "weightKg": 0.33,
+  "weightSource": "Fiche technique Samsung : appareil 179 g + emballage estimé 150 g",
   "highlights": [
    "Stockage : 256 Go",
    "Débloqué tous opérateurs",
@@ -388,6 +429,10 @@
    {
     "label": "Stockage",
     "value": "256 Go"
+   },
+   {
+    "label": "Poids",
+    "value": "179 g"
    },
    {
     "label": "Acheté chez",
@@ -423,7 +468,8 @@
   "sourceSupplier": "Samsung",
   "sourcePrice": 524110,
   "costPrice": 524110,
-  "weightKg": 0.5,
+  "weightKg": 0.34,
+  "weightSource": "Fiche technique Samsung : appareil 193 g + emballage estimé 150 g",
   "highlights": [
    "Stockage : 128 Go",
    "Débloqué tous opérateurs"
@@ -432,6 +478,10 @@
    {
     "label": "Stockage",
     "value": "128 Go"
+   },
+   {
+    "label": "Poids",
+    "value": "193 g"
    },
    {
     "label": "Acheté chez",
@@ -467,7 +517,8 @@
   "sourceSupplier": "Samsung",
   "sourcePrice": 591706,
   "costPrice": 591706,
-  "weightKg": 0.5,
+  "weightKg": 0.31,
+  "weightSource": "Fiche technique Samsung : appareil 162 g + emballage estimé 150 g",
   "highlights": [
    "Version de base (stockage précisé à la confirmation)",
    "Débloqué tous opérateurs"
@@ -476,6 +527,10 @@
    {
     "label": "Stockage",
     "value": "Version de base"
+   },
+   {
+    "label": "Poids",
+    "value": "162 g"
    },
    {
     "label": "Acheté chez",
@@ -511,7 +566,8 @@
   "sourceSupplier": "Samsung",
   "sourcePrice": 734016,
   "costPrice": 734016,
-  "weightKg": 0.5,
+  "weightKg": 0.32,
+  "weightSource": "Fiche technique Samsung : appareil 167 g + emballage estimé 150 g",
   "highlights": [
    "Version de base (stockage précisé à la confirmation)",
    "Débloqué tous opérateurs"
@@ -520,6 +576,10 @@
    {
     "label": "Stockage",
     "value": "Version de base"
+   },
+   {
+    "label": "Poids",
+    "value": "167 g"
    },
    {
     "label": "Acheté chez",
@@ -555,7 +615,8 @@
   "sourceSupplier": "Samsung",
   "sourcePrice": 1029197,
   "costPrice": 1029197,
-  "weightKg": 0.5,
+  "weightKg": 0.36,
+  "weightSource": "Fiche technique Samsung : appareil 214 g + emballage estimé 150 g",
   "highlights": [
    "Version de base (stockage précisé à la confirmation)",
    "Débloqué tous opérateurs",
@@ -565,6 +626,10 @@
    {
     "label": "Stockage",
     "value": "Version de base"
+   },
+   {
+    "label": "Poids",
+    "value": "214 g"
    },
    {
     "label": "Acheté chez",
@@ -600,7 +665,8 @@
   "sourceSupplier": "Samsung",
   "sourcePrice": 852088,
   "costPrice": 852088,
-  "weightKg": 0.5,
+  "weightKg": 0.33,
+  "weightSource": "Fiche technique Samsung : appareil 180 g + emballage estimé 150 g",
   "highlights": [
    "Version de base (stockage précisé à la confirmation)",
    "Débloqué tous opérateurs",
@@ -610,6 +676,10 @@
    {
     "label": "Stockage",
     "value": "Version de base"
+   },
+   {
+    "label": "Poids",
+    "value": "180 g"
    },
    {
     "label": "Acheté chez",
@@ -645,7 +715,8 @@
   "sourceSupplier": "Samsung",
   "sourcePrice": 622503,
   "costPrice": 622503,
-  "weightKg": 0.5,
+  "weightKg": 0.32,
+  "weightSource": "Fiche technique Samsung : appareil 167 g + emballage estimé 150 g",
   "highlights": [
    "Stockage : 256 Go",
    "Débloqué tous opérateurs",
@@ -655,6 +726,10 @@
    {
     "label": "Stockage",
     "value": "256 Go"
+   },
+   {
+    "label": "Poids",
+    "value": "167 g"
    },
    {
     "label": "Acheté chez",
@@ -696,7 +771,8 @@
   "sourceSupplier": "Samsung",
   "sourcePrice": 727456,
   "costPrice": 727456,
-  "weightKg": 0.5,
+  "weightKg": 0.37,
+  "weightSource": "Fiche technique Samsung : appareil 218 g + emballage estimé 150 g",
   "highlights": [
    "Stockage : 256 Go",
    "Débloqué tous opérateurs",
@@ -706,6 +782,10 @@
    {
     "label": "Stockage",
     "value": "256 Go"
+   },
+   {
+    "label": "Poids",
+    "value": "218 g"
    },
    {
     "label": "Acheté chez",
@@ -747,7 +827,8 @@
   "sourceSupplier": "Xiaomi",
   "sourcePrice": 84618,
   "costPrice": 84618,
-  "weightKg": 0.5,
+  "weightKg": 0.36,
+  "weightSource": "Fiche technique Xiaomi : appareil 208 g + emballage estimé 150 g",
   "highlights": [
    "Version de base (stockage précisé à la confirmation)",
    "Débloqué tous opérateurs",
@@ -757,6 +838,10 @@
    {
     "label": "Stockage",
     "value": "Version de base"
+   },
+   {
+    "label": "Poids",
+    "value": "208 g"
    },
    {
     "label": "Acheté chez",
@@ -792,7 +877,8 @@
   "sourceSupplier": "Xiaomi",
   "sourcePrice": 130535,
   "costPrice": 130535,
-  "weightKg": 0.5,
+  "weightKg": 0.38,
+  "weightSource": "Fiche technique Xiaomi : appareil 232 g + emballage estimé 150 g",
   "highlights": [
    "Version de base (stockage précisé à la confirmation)",
    "Débloqué tous opérateurs"
@@ -801,6 +887,10 @@
    {
     "label": "Stockage",
     "value": "Version de base"
+   },
+   {
+    "label": "Poids",
+    "value": "232 g"
    },
    {
     "label": "Acheté chez",
@@ -836,7 +926,8 @@
   "sourceSupplier": "Xiaomi",
   "sourcePrice": 133159,
   "costPrice": 133159,
-  "weightKg": 0.5,
+  "weightKg": 0.36,
+  "weightSource": "Fiche technique Xiaomi : appareil 211 g + emballage estimé 150 g",
   "highlights": [
    "Version de base (stockage précisé à la confirmation)",
    "Débloqué tous opérateurs",
@@ -846,6 +937,10 @@
    {
     "label": "Stockage",
     "value": "Version de base"
+   },
+   {
+    "label": "Poids",
+    "value": "211 g"
    },
    {
     "label": "Acheté chez",
@@ -881,7 +976,8 @@
   "sourceSupplier": "Xiaomi",
   "sourcePrice": 165957,
   "costPrice": 165957,
-  "weightKg": 0.5,
+  "weightKg": 0.37,
+  "weightSource": "Fiche technique Xiaomi : appareil 224 g + emballage estimé 150 g",
   "highlights": [
    "Version de base (stockage précisé à la confirmation)",
    "Débloqué tous opérateurs"
@@ -890,6 +986,10 @@
    {
     "label": "Stockage",
     "value": "Version de base"
+   },
+   {
+    "label": "Poids",
+    "value": "224 g"
    },
    {
     "label": "Acheté chez",
@@ -925,7 +1025,8 @@
   "sourceSupplier": "Xiaomi",
   "sourcePrice": 231553,
   "costPrice": 231553,
-  "weightKg": 0.5,
+  "weightKg": 0.38,
+  "weightSource": "Fiche technique Xiaomi : appareil 225 g + emballage estimé 150 g",
   "highlights": [
    "Version de base (stockage précisé à la confirmation)",
    "Débloqué tous opérateurs",
@@ -935,6 +1036,10 @@
    {
     "label": "Stockage",
     "value": "Version de base"
+   },
+   {
+    "label": "Poids",
+    "value": "225 g"
    },
    {
     "label": "Acheté chez",
@@ -970,7 +1075,8 @@
   "sourceSupplier": "Xiaomi",
   "sourcePrice": 297149,
   "costPrice": 297149,
-  "weightKg": 0.5,
+  "weightKg": 0.37,
+  "weightSource": "Fiche technique Xiaomi : appareil 223 g + emballage estimé 150 g",
   "highlights": [
    "Version de base (stockage précisé à la confirmation)",
    "Débloqué tous opérateurs",
@@ -980,6 +1086,10 @@
    {
     "label": "Stockage",
     "value": "Version de base"
+   },
+   {
+    "label": "Poids",
+    "value": "223 g"
    },
    {
     "label": "Acheté chez",
@@ -1015,7 +1125,8 @@
   "sourceSupplier": "Xiaomi",
   "sourcePrice": 395542,
   "costPrice": 395542,
-  "weightKg": 0.5,
+  "weightKg": 0.38,
+  "weightSource": "Fiche technique Xiaomi : appareil 225,1 g + emballage estimé 150 g",
   "highlights": [
    "Version de base (stockage précisé à la confirmation)",
    "Débloqué tous opérateurs",
@@ -1025,6 +1136,10 @@
    {
     "label": "Stockage",
     "value": "Version de base"
+   },
+   {
+    "label": "Poids",
+    "value": "225 g"
    },
    {
     "label": "Acheté chez",
@@ -1060,7 +1175,8 @@
   "sourceSupplier": "Xiaomi",
   "sourcePrice": 242638,
   "costPrice": 242638,
-  "weightKg": 0.5,
+  "weightKg": 0.35,
+  "weightSource": "Fiche technique Xiaomi : appareil 201,47 g + emballage estimé 150 g",
   "highlights": [
    "Version de base (stockage précisé à la confirmation)",
    "Débloqué tous opérateurs"
@@ -1069,6 +1185,10 @@
    {
     "label": "Stockage",
     "value": "Version de base"
+   },
+   {
+    "label": "Poids",
+    "value": "201 g"
    },
    {
     "label": "Acheté chez",
@@ -1104,7 +1224,8 @@
   "sourceSupplier": "Xiaomi",
   "sourcePrice": 428340,
   "costPrice": 428340,
-  "weightKg": 0.5,
+  "weightKg": 0.35,
+  "weightSource": "Fiche technique Xiaomi : appareil 200 g + emballage estimé 150 g",
   "highlights": [
    "Version de base (stockage précisé à la confirmation)",
    "Débloqué tous opérateurs"
@@ -1113,6 +1234,10 @@
    {
     "label": "Stockage",
     "value": "Version de base"
+   },
+   {
+    "label": "Poids",
+    "value": "200 g"
    },
    {
     "label": "Acheté chez",

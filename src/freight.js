@@ -1,13 +1,15 @@
 // Frais de transport France → Pointe-Noire facturés au client (décision Joseph 21/10/2026) :
-// 15 € par kilo (13 € jusqu'au 22/10/2026), et un article est TOUJOURS facturé au moins 1 kg (« même s'il pèse 100 g »).
-// Réglable dans Zado Pro → Réglages → « Transport et acompte » : prix au kilo, poids minimum, minimum par article ou par commande.
-// Le poids de chaque produit (weightKg) est saisi dans sa fiche ; sans poids, on compte le minimum.
+// 13,90 € par kilo AU PRORATA DU POIDS (décision Joseph 14/11/2026 : « un objet de 200 g sera facturé au prorata ») ;
+// avant : 15 €/kg avec 1 kg minimum par article (21/10 → 14/11/2026). Coût ESTIMATIF montré au client : selon le rapport
+// poids / volume, le transporteur peut facturer plus (note affichée sur la fiche, le panier, la commande, les conditions de vente).
+// Réglable dans Zado Pro → Réglages → « Transport et acompte » : prix au kilo, poids minimum (0 = prorata), minimum par article ou par commande.
+// Le poids de chaque produit (weightKg, poids du COLIS : article + emballage) est saisi dans sa fiche ; sans poids, on compte defaultKg (1 kg).
 const { settings } = require('./store');
 
 const EUR_FCFA = 655.957; // parité fixe euro / franc CFA
 // Délais annoncés au client (décision Joseph 21/10/2026) : logistique (achat en France + vol) 2 à 5 jours, puis livraison sous 24 h
-// zadoFeeEurPerKg : part du prix au kilo qui est un FRAIS ZADO (décision Joseph 22/10/2026 : 15 € = 13 € de fret + 2 € pour la marge)
-const DEFAULTS = { enabled: true, eurPerKg: 15, zadoFeeEurPerKg: 2, minKg: 1, perArticle: true, logisticsMin: 2, logisticsMax: 5, deliveryHours: 24 };
+// zadoFeeEurPerKg : part du prix au kilo qui est un FRAIS ZADO (22/10/2026 : 15 € = 13 € de fret + 2 € ; 14/11/2026 : 13,90 € = 13 € de fret + 0,90 €, À CONFIRMER par Joseph)
+const DEFAULTS = { enabled: true, eurPerKg: 13.9, zadoFeeEurPerKg: 0.9, minKg: 0, defaultKg: 1, perArticle: true, logisticsMin: 2, logisticsMax: 5, deliveryHours: 24 };
 
 function freightSettings() {
   try { return { ...DEFAULTS, ...JSON.parse(settings.get('freight') || '{}') }; } catch { return { ...DEFAULTS }; }
@@ -19,6 +21,7 @@ function saveFreightSettings(input = {}) {
   if ('enabled' in input) next.enabled = Boolean(input.enabled);
   if ('eurPerKg' in input) { const v = num(input.eurPerKg, 0, 500); if (v === null) return { error: 'Prix au kilo invalide (en euros)' }; next.eurPerKg = v; }
   if ('zadoFeeEurPerKg' in input) { const v = num(input.zadoFeeEurPerKg, 0, 500); if (v === null) return { error: 'Frais Zado au kilo invalide (en euros)' }; next.zadoFeeEurPerKg = v; }
+  if ('defaultKg' in input) { const v = num(input.defaultKg, 0.01, 50); if (v === null) return { error: 'Poids par défaut invalide (en kg)' }; next.defaultKg = v; }
   if ('minKg' in input) { const v = num(input.minKg, 0, 50); if (v === null) return { error: 'Poids minimum invalide (en kg)' }; next.minKg = v; }
   if ('perArticle' in input) next.perArticle = Boolean(input.perArticle);
   for (const [k, max] of [['logisticsMin', 60], ['logisticsMax', 60], ['deliveryHours', 240]]) {
@@ -34,7 +37,7 @@ function saveFreightSettings(input = {}) {
 const perKgFcfa = (s = freightSettings()) => Math.round(s.eurPerKg * EUR_FCFA);
 /** Poids facturé pour UN article (minimum appliqué si « par article »). */
 const billedKg = (weightKg, s = freightSettings()) => {
-  const w = Number(weightKg) > 0 ? Number(weightKg) : 0;
+  const w = Number(weightKg) > 0 ? Number(weightKg) : (s.defaultKg ?? 1); // poids inconnu : on compte defaultKg
   return Math.round((s.perArticle ? Math.max(s.minKg, w) : w) * 100) / 100;
 };
 /** Transport d'un article (FCFA), pour l'affichage sur la fiche produit. */
