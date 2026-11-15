@@ -301,16 +301,26 @@
   const frCfg = () => state.config?.freight || { enabled: true, eurPerKg: 13.9, minKg: 0, defaultKg: 1, perArticle: true, perKg: 9118 };
   const billedKg = (w) => { const c = frCfg(), x = Number(w) > 0 ? Number(w) : (c.defaultKg ?? 1); return Math.round((c.perArticle ? Math.max(c.minKg, x) : x) * 100) / 100; };
   const unitTransport = (p) => (frCfg().enabled ? Math.round(billedKg(p.weightKg) * frCfg().eurPerKg * EUR_FCFA) : 0);
-  // Prix LIVRÉ à Pointe-Noire (article + transport depuis la France), affiché PARTOUT où l'on montre un article
-  // (décision Joseph 15/11/2026 : « pourquoi deux prix différents ? » entre la carte et la fiche)
-  const landed = (p) => (Number(p?.price) || 0) + unitTransport(p);
+  // Prix TOUT COMPRIS, affiché PARTOUT où l'on montre un article (décisions Joseph 15/11/2026 : « pourquoi deux prix
+  // différents ? », puis « le prix de la fiche doit être le même que le total du panier ») : article + transport depuis la
+  // France + frais de service + frais de retrait Mobile Money, calculé EXACTEMENT comme le panier. Acheté seul, le total du
+  // panier tombe au franc près sur ce prix ; avec plusieurs articles, les frais de service ne comptent qu'une fois : le
+  // total est alors plus bas que la somme des prix affichés (ligne « Frais de service comptés une seule fois »), jamais plus haut.
+  const allInOf = (articlePrice, p) => { const base = (Number(articlePrice) || 0) + unitTransport(p) + svcFee(); return base + momoOf(base); };
+  const allIn = (p, v) => allInOf(priceOf(p, v), p);
+  const landed = (p) => allIn(p);
+  const lineLanded = (p, variant, qty) => allIn(p, variant) * qty;
+  // Détail d'un total (en petit, sous le total) : ce que comprennent les prix affichés
+  const priceDetail = ({ articles, transport, service, delivery, momo }) => `Dont articles ${fcfa(articles)}${transport ? ` · transport France → Pointe-Noire* ${fcfa(transport)}` : ''}${service ? ` · frais de service ${fcfa(service)}` : ''}${delivery ? ` · livraison ${fcfa(delivery)}` : ''}${momo ? ` · frais de retrait Mobile Money (${String(Math.round(momoRate() * 1000) / 10).replace('.', ',')} %) ${fcfa(momo)}` : ''}`;
+  const inclTransport = (fee, star = true) => `<span>dont transport France → Pointe-Noire${star ? '*' : ''}</span><span>${fcfa(fee)}</span>`;
   const cartFreight = () => {
     const c = frCfg();
     if (!c.enabled) return { fee: 0, kg: 0 };
     let kg = cartItems().reduce((n, l) => n + billedKg(l.product.weightKg) * l.qty, 0);
     if (!c.perArticle) kg = Math.max(c.minKg, kg);
     kg = Math.round(kg * 100) / 100;
-    return { fee: Math.round(kg * c.eurPerKg * EUR_FCFA), kg };
+    // Même calcul que le serveur : par article, somme des transports de chaque article = somme des prix « livrés »
+    return { fee: c.perArticle ? cartItems().reduce((n, l) => n + unitTransport(l.product) * l.qty, 0) : Math.round(kg * c.eurPerKg * EUR_FCFA), kg };
   };
   // Délai annoncé (décision Joseph 21/10/2026) : logistique depuis la France puis livraison à Pointe-Noire
   const delayText = () => { const c = frCfg(); return `Expédié de France en ${c.logisticsMin ?? 2} à ${c.logisticsMax ?? 5} jours, puis livré sous ${c.deliveryHours ?? 24} h à Pointe-Noire`; };
@@ -344,13 +354,14 @@
     $('#cartCount').textContent = count || '';
     $('#cartCount2').textContent = count || '';
     const fr = cartFreight();
-    $('#cartTransport').innerHTML = items.length && fr.fee ? `<span>Transport France → Pointe-Noire*</span><span>${fcfa(fr.fee)}</span>` : '';
-    { const n = $('#cartEst'); if (n) n.innerHTML = items.length && fr.fee ? `* ${EST_NOTE}` : ''; }
-    // Frais de service Zado : une fois par commande (décision Joseph 14/11/2026)
-    { const n = $('#cartService'); if (n) n.innerHTML = items.length && svcFee() ? `<span>Frais de service</span><span>${fcfa(svcFee())}</span>` : ''; }
+    // Lignes = prix tout compris de la fiche ; total = même calcul que le serveur (frais de service une seule fois)
     const cartBase = cartTotal() + fr.fee + (items.length ? svcFee() : 0);
-    { const n = $('#cartMomo'); if (n) n.innerHTML = items.length && momoOf(cartBase) ? `<span>${momoLabel()}</span><span>${fcfa(momoOf(cartBase))}</span>` : ''; }
-    $('#cartTotal').textContent = fcfa(cartBase + (items.length ? momoOf(cartBase) : 0));
+    const cartGrand = cartBase + (items.length ? momoOf(cartBase) : 0);
+    const once = items.reduce((n, l) => n + lineLanded(l.product, l.variant, l.qty), 0) - cartGrand;
+    $('#cartOnce').innerHTML = items.length && once > 0 ? `<span>Frais de service comptés une seule fois</span><span>− ${fcfa(once)}</span>` : '';
+    $('#cartTotal').textContent = fcfa(cartGrand);
+    $('#cartDetail').innerHTML = items.length ? priceDetail({ articles: cartTotal(), transport: fr.fee, service: svcFee(), momo: momoOf(cartBase) }) : '';
+    { const n = $('#cartEst'); if (n) n.innerHTML = items.length && fr.fee ? `* ${EST_NOTE}` : ''; }
     const saving = cartSaving();
     $('#cartSaving').innerHTML = saving > 0 ? `<span>Vous économisez</span><span>${fcfa(saving)}</span>` : '';
     $('#cartLines').innerHTML = items.length
@@ -366,7 +377,7 @@
               <button data-qty="${esc(key)}" data-d="1" aria-label="Ajouter un">+</button>
             </div>
           </div>
-          <strong>${fcfa(priceOf(p, variant) * qty)}</strong>
+          <strong>${fcfa(lineLanded(p, variant, qty))}</strong>
         </div>`).join('') + cartUpsell(items)
       : mamaEmpty('Votre panier est vide.');
     const hint = $('#cartHint'); if (hint) hint.innerHTML = items.length ? accountHint('cart') : '';
@@ -746,7 +757,7 @@
           ${ratingLine(famRating(family))}
           ${multi ? `<div class="swatches" aria-label="${family.length} couleurs">${family.slice(0, 6).map((x) => `<i style="background:${colorOf(x)?.hex || '#ccc'}" title="${esc(colorOf(x)?.label || '')}"></i>`).join('')}<small>${family.length} couleurs</small></div>` : ''}
           ${family.some(isPetitPrix) ? `<span class="pp-tag">${icon('hand-coins-duotone')} Petit prix</span>` : ''}
-          <div class="prices"><span class="price ${d && !multi ? 'sale' : ''}">${(multi && family.some((x) => landed(x) !== landed(p))) || hasExtras(p) ? 'dès ' : ''}${fcfa(multi ? Math.min(...family.map(landed)) : landed(p))}</span>${unitTransport(p) ? '<small class="price-landed">livré à Pointe-Noire</small>' : ''}<span class="old">${d && !multi ? fcfa(p.oldPrice + unitTransport(p)) : ''}</span></div>
+          <div class="prices"><span class="price ${d && !multi ? 'sale' : ''}">${(multi && family.some((x) => landed(x) !== landed(p))) || hasExtras(p) ? 'dès ' : ''}${fcfa(multi ? Math.min(...family.map(landed)) : landed(p))}</span><small class="price-landed">tout compris, livré</small><span class="old">${d && !multi ? fcfa(allInOf(p.oldPrice, p)) : ''}</span></div>
           <span class="stock-low ${!multi && p.stock > 0 && p.stock <= 6 ? '' : 'ok'}">${!multi && p.stock > 0 && p.stock <= 6 ? `${icon('fire')} Plus que ${p.stock} en stock` : multi || p.stock > 0 ? '<i class="dot"></i> En stock' : ''}</span>
           ${multi ? `<a class="btn cta small" href="#/p/${p.id}">Choisir la couleur</a>` : `<button class="btn cta small" data-add="${p.id}" ${p.stock === 0 ? 'disabled' : ''}>${p.stock === 0 ? 'Épuisé' : (p.options || []).length ? 'Choisir' : `${icon('plus')} Ajouter`}</button>`}
         </div>
@@ -1239,7 +1250,7 @@
       const low = Math.min(...refs.map((x) => x.priceEur));
       cards.push(`<div class="dt-card dt-prices"><h3>${icon('storefront')} Prix constatés en France</h3>
         <table>${refs.map((x) => `<tr><th>${x.url ? `<a href="${esc(x.url)}" target="_blank" rel="noopener noreferrer nofollow">${esc(x.store)}</a>` : esc(x.store)}</th><td>${x.from ? '<small>dès </small>' : ''}${x.priceEur.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €<small>≈ ${fcfa(Math.round(x.priceEur * eurFcfa))}</small></td></tr>`).join('')}</table>
-        <p class="dt-note">Prix publics TTC en France${refs.some((x) => x.date) ? `, relevés le ${esc(new Date(refs.map((x) => x.date).filter(Boolean).sort().pop()).toLocaleDateString('fr-FR'))}` : ''}, hors frais d'acheminement jusqu'à Pointe-Noire. Chez Zado : <b>${fcfa(landed(p))}</b>, livré à Pointe-Noire (transport compris), avec facture et garantie.</p></div>`);
+        <p class="dt-note">Prix publics TTC en France${refs.some((x) => x.date) ? `, relevés le ${esc(new Date(refs.map((x) => x.date).filter(Boolean).sort().pop()).toLocaleDateString('fr-FR'))}` : ''}, hors frais d'acheminement jusqu'à Pointe-Noire. Chez Zado : <b>${fcfa(landed(p))}</b> tout compris, livré à Pointe-Noire, avec facture et garantie.</p></div>`);
     }
     return `<section class="dt" id="details"><div class="dt-head"><p class="kicker">${esc(p.brand || p.category)}</p><h2>${icon('magnifying-glass')} Tout savoir sur ce produit</h2></div><div class="dt-grid">${cards.join('')}</div></section>`;
   }
@@ -1284,10 +1295,10 @@
           ${richText(p.description)}
           ${(p.specs || []).length ? `<table class="specs">${p.specs.map((x) => `<tr><th>${esc(x.label)}</th><td>${esc(x.value)}</td></tr>`).join('')}</table>` : ''}
           <div class="buybox">
-            ${d ? `<div><span class="old">${fcfa(p.oldPrice + unitTransport(p))}</span> <span class="save-tag">Économisez ${fcfa(p.oldPrice - p.price)}</span></div>` : ''}
-            <span class="price" id="pdpPrice">${hasExtras(p) ? '<small>dès </small>' : ''}${fcfa(p.price + unitTransport(p))}</span>
-            ${unitTransport(p) ? `<span class="hint price-all">Prix livré à Pointe-Noire, transport depuis la France compris</span>${estNote()}` : ''}
-            ${(p.options || []).map((o, i) => `<label class="opt-label" for="opt${i}">${esc(o.name)}</label><div class="opt-choices" id="opt${i}" data-opt="${esc(o.name)}">${o.values.map((v) => `<button type="button" class="opt" data-v="${esc(v)}">${esc(v)}${o.extra?.[v] ? `<small class="opt-extra">+ ${fcfa(o.extra[v])}</small>` : ''}</button>`).join('')}</div>`).join('')}
+            ${d ? `<div><span class="old">${fcfa(allInOf(p.oldPrice, p))}</span> <span class="save-tag">Économisez ${fcfa(allInOf(p.oldPrice, p) - allIn(p))}</span></div>` : ''}
+            <span class="price" id="pdpPrice">${hasExtras(p) ? '<small>dès </small>' : ''}${fcfa(allIn(p))}</span>
+            <span class="hint price-all">Prix tout compris, livré à Pointe-Noire : transport depuis la France, frais de service et frais de retrait Mobile Money inclus. C'est ce que vous paierez, rien ne s'ajoute au panier.</span>${unitTransport(p) ? estNote() : ''}
+            ${(p.options || []).map((o, i) => `<label class="opt-label" for="opt${i}">${esc(o.name)}</label><div class="opt-choices" id="opt${i}" data-opt="${esc(o.name)}">${o.values.map((v) => `<button type="button" class="opt" data-v="${esc(v)}">${esc(v)}${o.extra?.[v] ? `<small class="opt-extra">+ ${fcfa(allInOf(p.price + o.extra[v], p) - allIn(p))}</small>` : ''}</button>`).join('')}</div>`).join('')}
             <span class="momo-note">${icon('check-circle-duotone')} ${hasRelays() ? 'Payable en espèces au point relais · retrait ou livraison' : (hasDeposit() ? `Mobile Money : acompte de ${depositTxt()}, le reste ensuite · livraison à domicile` : 'Paiement par dépôt Mobile Money · livraison à domicile')}</span>
             <span class="hint">${icon('airplane-tilt')} ${delayText()}</span>
             ${p.stock === 0 ? '<span class="stock-low">Épuisé</span>' : p.stock == null ? '<span class="momo-note">Disponible sur commande</span>' : p.stock <= 6 ? `<span class="stock-low">Plus que ${p.stock} en stock</span>` : '<span class="momo-note">En stock</span>'}
@@ -1296,7 +1307,7 @@
             <a class="btn ghost block" href="#/commande" id="buyNow">Acheter maintenant</a>
             ${accountHint('pdp')}
           </div>
-          <div class="buybar"><span><small>${esc(p.name)}</small><b>${fcfa(p.price + unitTransport(p))}</b></span><button class="btn cta" type="button" id="buybarAdd" ${p.stock === 0 ? 'disabled' : ''}>${p.stock === 0 ? 'Épuisé' : 'Ajouter au panier'}</button></div>
+          <div class="buybar"><span><small>${esc(p.name)}</small><b>${fcfa(allIn(p))}</b></span><button class="btn cta" type="button" id="buybarAdd" ${p.stock === 0 ? 'disabled' : ''}>${p.stock === 0 ? 'Épuisé' : 'Ajouter au panier'}</button></div>
         </div>
       </div>
       ${withIt.length ? `<section class="shelf goes-with"><div class="shelf-head"><div><p class="kicker">Complétez votre achat</p><h2>Pour aller avec</h2></div></div>${railCarousel(withIt)}</section>` : ''}
@@ -1308,7 +1319,7 @@
     // Partager (WhatsApp…) : le lien /p/<id> donne un aperçu avec photo, nom et prix
     $('#shareBtn').addEventListener('click', async () => {
       const url = `${location.origin}/p/${enc(p.id)}`;
-      const text = `${p.name} à ${fcfa(landed(p))} livré à Pointe-Noire sur Zado`;
+      const text = `${p.name} à ${fcfa(landed(p))} tout compris, livré à Pointe-Noire, sur Zado`;
       if (navigator.share) { try { await navigator.share({ title: p.name, text, url }); return; } catch (err) { if (err?.name === 'AbortError') return; } }
       window.open(`https://wa.me/?text=${enc(text + '\n' + url)}`, '_blank', 'noopener');
     });
@@ -1322,7 +1333,7 @@
       // Prix affiché selon le choix (stockage plus grand = plus cher) ; « dès » tant qu'un choix payant reste à faire
       if (hasExtras(p)) {
         const pending = (p.options || []).some((o) => o.extra && Object.keys(o.extra).length && !sel[o.name]);
-        const total = priceOf(p, sel) + unitTransport(p);
+        const total = allIn(p, sel);
         $('#pdpPrice').innerHTML = `${pending ? '<small>dès </small>' : ''}${fcfa(total)}`;
         const bb = app.querySelector('.buybar b'); if (bb) bb.textContent = fcfa(total);
       }
@@ -1592,14 +1603,15 @@
 
         <div class="panel">
           <h2>Récapitulatif</h2>
-          ${items.map(({ product: p, qty, variant }) => `<div class="line"><span>${qty} × ${esc(p.name)}${variant ? `<br><span class="hint">${esc(variantText(variant))}</span>` : ''}</span><strong>${fcfa(priceOf(p, variant) * qty)}</strong></div>`).join('')}
+          ${items.map(({ product: p, qty, variant }) => `<div class="line"><span>${qty} × ${esc(p.name)}${variant ? `<br><span class="hint">${esc(variantText(variant))}</span>` : ''}</span><strong>${fcfa(lineLanded(p, variant, qty))}</strong></div>`).join('')}
           ${cartSaving() > 0 ? `<div class="row saving" style="margin-top:10px"><span>Vous économisez</span><span>${fcfa(cartSaving())}</span></div>` : ''}
+          <div id="onceLine"></div>
           <div id="promoLine"></div>
-          ${fr0.fee ? `<div class="row" style="margin-top:10px"><span>Transport France → Pointe-Noire*</span><span>${fcfa(fr0.fee)}</span></div>${estNote()}` : ''}
-          ${svcFee() ? `<div class="row" style="margin-top:10px"><span>Frais de service</span><span>${fcfa(svcFee())}</span></div>` : ''}
           <div class="row" style="margin-top:10px"><span>Livraison</span><span id="feeLine">—</span></div>
-          ${momoRate() ? `<div class="row" style="margin-top:10px" id="momoRow"><span>${momoLabel()}</span><span id="momoLine">—</span></div>` : ''}
+          <div id="methodLine"></div>
           <div class="row total" style="margin-top:10px"><span>Total</span><strong id="sumTotal">${total}</strong></div>
+          <p class="price-detail" id="sumDetail"></p>
+          ${fr0.fee ? estNote() : ''}
           <div id="depositSplit"></div>
           <p class="hint" style="margin-top:10px">${icon('airplane-tilt')} ${delayText()}.</p>
           ${state.config.promos ? `<details class="promo-box" ${promo.code ? 'open' : ''}><summary>${icon('tag')} J'ai un code promo</summary>
@@ -1622,6 +1634,10 @@
     // Prix général, puis frais de retrait Mobile Money calculés tout à la fin
     const baseN = () => cartTotal() - (promo.amount || 0) + fr0.fee + svcFee() + (fee() || 0);
     const momoN = () => (['mobile', 'momo', 'cod'].includes(method()) ? momoOf(baseN()) : 0);
+    // Total « par étapes » pour que chaque ligne du récapitulatif s'additionne au franc près : prix tout compris des lignes
+    // (comme la fiche), puis frais de service comptés une fois, code promo, livraison, moyen de paiement sans frais Mobile Money
+    const grandWith = (pr, fe, mm) => { const b = cartTotal() - pr + fr0.fee + svcFee() + fe; return b + (mm ? momoOf(b) : 0); };
+    const sumLines = items.reduce((n, l) => n + lineLanded(l.product, l.variant, l.qty), 0);
     const grandN = () => baseN() + momoN();
     const grand = () => fcfa(grandN());
     const payMode = () => (form.paymode?.value === 'push' ? 'push' : 'pull');
@@ -1630,7 +1646,12 @@
     const showFee = () => {
       const f = fee();
       $('#feeLine').innerHTML = method() === 'cash' && receive() === 'pickup' ? 'Gratuite (retrait)' : f == null ? (hasRelays() ? 'Non disponible : retrait au point relais' : 'Non disponible dans cette ville') : f ? fcfa(f) : '<span class="ok-txt">Offerte</span>';
-      if ($('#momoLine')) { $('#momoLine').textContent = momoN() ? fcfa(momoN()) : '—'; $('#momoRow').hidden = !momoN(); }
+      const t0 = grandWith(0, 0, true), t1 = grandWith(promo.amount || 0, 0, true), t2 = grandWith(promo.amount || 0, f || 0, true), t3 = grandN();
+      $('#onceLine').innerHTML = sumLines - t0 > 0 ? `<div class="row saving" style="margin-top:10px"><span>Frais de service comptés une seule fois</span><span>− ${fcfa(sumLines - t0)}</span></div>` : '';
+      $('#promoLine').innerHTML = promo.amount ? `<div class="row saving" style="margin-top:10px"><span>Code ${esc(promo.code)} (${esc(promo.label)})</span><span>− ${fcfa(t0 - t1)}</span></div>` : '';
+      if (f) $('#feeLine').textContent = fcfa(t2 - t1);
+      $('#methodLine').innerHTML = t2 - t3 > 0 ? `<div class="row saving" style="margin-top:10px"><span>Sans frais de retrait Mobile Money</span><span>− ${fcfa(t2 - t3)}</span></div>` : '';
+      $('#sumDetail').innerHTML = priceDetail({ articles: cartTotal() - (promo.amount || 0), transport: fr0.fee, service: svcFee(), delivery: f || 0, momo: momoN() });
       $('#sumTotal').textContent = grand();
     };
     // Point de livraison placé par le client (gardé sur ce téléphone pour la prochaine fois)
@@ -1704,8 +1725,7 @@
     $('#giftOn').addEventListener('change', giftSync); giftSync();
     // Code promo
     const showPromo = () => {
-      $('#promoLine').innerHTML = promo.amount ? `<div class="row saving" style="margin-top:10px"><span>Code ${esc(promo.code)} (${esc(promo.label)})</span><span>− ${fcfa(promo.amount)}</span></div>` : '';
-      syncMethod();
+      syncMethod(); // la ligne du code promo est écrite par showFee (montant exact, frais compris)
     };
     const applyPromo = async (quiet) => {
       const code = ($('#promoIn')?.value || '').trim().toUpperCase().replace(/\s+/g, '');
@@ -2574,9 +2594,8 @@
         </div>
         <div class="panel">
           <h2>Récapitulatif</h2>
-          ${o.lines.map((l) => `<div class="line"><span>${l.qty} × ${esc(l.name)}${o.status === 'delivered' && l.productId && byId(l.productId) ? `<br><a class="rv-link" href="#/p/${enc(l.productId)}">${icon('star-fill')} Donner mon avis</a>` : ''}</span><strong>${fcfa(l.total)}</strong></div>`).join('')}
+          ${(() => { const inc = o.transportFee > 0 && o.lines.reduce((n, l) => n + (l.transport || 0), 0) === o.transportFee; return o.lines.map((l) => `<div class="line"><span>${l.qty} × ${esc(l.name)}${o.status === 'delivered' && l.productId && byId(l.productId) ? `<br><a class="rv-link" href="#/p/${enc(l.productId)}">${icon('star-fill')} Donner mon avis</a>` : ''}</span><strong>${fcfa(l.total + (inc ? l.transport || 0 : 0))}</strong></div>`).join('') + (inc ? `<div class="row incl">${inclTransport(o.transportFee, false)}</div>` : o.transportFee ? `<div class="line"><span>Transport France → Pointe-Noire</span><strong>${fcfa(o.transportFee)}</strong></div>` : ''); })()}
           ${o.discount ? `<div class="line saving"><span>Code promo ${esc(o.discount.code)}</span><strong>− ${fcfa(o.discount.amount)}</strong></div>` : ''}
-          ${o.transportFee ? `<div class="line"><span>Transport France → Pointe-Noire</span><strong>${fcfa(o.transportFee)}</strong></div>` : ''}
           ${o.serviceFee ? `<div class="line"><span>Frais de service</span><strong>${fcfa(o.serviceFee)}</strong></div>` : ''}
           ${o.deliveryFee ? `<div class="line"><span>Livraison</span><strong>${fcfa(o.deliveryFee)}</strong></div>` : ''}
           ${o.momoFee ? `<div class="line"><span>Frais de retrait Mobile Money</span><strong>${fcfa(o.momoFee)}</strong></div>` : ''}

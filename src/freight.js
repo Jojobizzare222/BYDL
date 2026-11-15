@@ -54,7 +54,9 @@ function orderFreight(lines, s = freightSettings()) {
   for (const l of lines) kg += billedKg(l.weightKg, s) * (Number(l.qty) || 0);
   if (!s.perArticle) kg = Math.max(s.minKg, kg);
   kg = Math.round(kg * 100) / 100;
-  const fee = Math.round(kg * s.eurPerKg * EUR_FCFA);
+  // Par article : somme des transports de chaque article (arrondis un par un) = exactement la somme des prix « livrés »
+  // affichés sur les cartes et les fiches (décision Joseph 15/11/2026 : un seul prix partout)
+  const fee = s.perArticle ? lines.reduce((n, l) => n + unitFee(l, s) * (Number(l.qty) || 0), 0) : Math.round(kg * s.eurPerKg * EUR_FCFA);
   return { fee, kg, perKg: perKgFcfa(s), zadoFee: Math.min(fee, Math.round(kg * (s.zadoFeeEurPerKg || 0) * EUR_FCFA)) };
 }
 

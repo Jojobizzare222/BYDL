@@ -43,6 +43,10 @@ await call(A, `/admin/customers/${reg.customer.id}/identity`, { body: { decision
 const o = (await call(C, '/orders', { body: { customer: { name: 'Awa Apple', phone: '061117788', city: 'Pointe-Noire', address: 'Loandjili' }, items: [{ productId: 'ap009', qty: 1, variant: { Configuration: big, Couleur: 'Minuit' } }] } })).data;
 ok(o?.lines?.[0]?.unitPrice === mba.price + cfg.extra[big], `commande : ${big} facturé ${o?.lines?.[0]?.unitPrice} FCFA (base + supplément)`);
 ok(o.transportFee === Math.round(mba.weightKg * 17.8 * 655.957), `transport au poids du colis (${mba.weightKg} kg)`);
+ok(o.lines[0].transport === o.transportFee && o.lines[0].total + o.lines[0].transport === mba.price + cfg.extra[big] + Math.round(mba.weightKg * 17.8 * 655.957), 'ligne de commande : prix livré = article + son transport (même prix que la fiche)');
+const o2 = (await call(C, '/orders', { body: { customer: { name: 'Awa Apple', phone: '061117788', city: 'Pointe-Noire', address: 'Loandjili' }, items: [{ productId: 'ap071', qty: 3 }, { productId: 'ap090', qty: 2, variant: { Prise: 'USB-C' } }] } })).data;
+const card = async (id) => { const p = (await call(null, `/products/${id}`)).data; return p.price + Math.round(Math.round(p.weightKg * 100) / 100 * 17.8 * 655.957); };
+ok(o2.subtotal + o2.transportFee === 3 * await card('ap071') + 2 * await card('ap090'), 'plusieurs articles : articles + transport = somme exacte des prix livrés affichés (au franc près)');
 
 // Zado Pro : la fiche s'ouvre et se réenregistre sans rien perdre (choix, suppléments)
 const pro = (await call(A, '/admin/products/ap009')).data;

@@ -124,6 +124,8 @@ router.post('/', (req, res) => {
     lines.push({ productId, name: product.name, unitPrice: unit, qty: quantity, total: unit * quantity, ...(chosen ? { variant: chosen } : {}),
       ...(Number(product.weightKg) > 0 ? { weightKg: Number(product.weightKg) } : {}) });
   }
+  // Transport de chaque ligne (déjà compris dans le prix « livré » montré au client) : la boutique affiche article + transport
+  { const fs = require('../freight').freightSettings(); if (fs.enabled && fs.perArticle) for (const l of lines) l.transport = require('../freight').unitFee(l, fs) * l.qty; }
 
   const subtotal = lines.reduce((s, l) => s + l.total, 0);
   // Code promo (src/promos.js) : remise sur les articles, recalculée ici ; un code refusé bloque la commande (le client le retire)

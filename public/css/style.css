@@ -1851,3 +1851,10 @@ html.soft-boot main#app .mz-loading { visibility: hidden; }
 .opt .opt-extra { display: block; font-size: .72rem; font-weight: 500; color: var(--muted); margin-top: 1px; }
 .opt.on .opt-extra { color: inherit; opacity: .85; }
 #pdpPrice small { font-size: .55em; font-weight: 500; color: var(--muted); }
+
+/* Panier / commande / suivi : le transport est COMPRIS dans le prix de chaque ligne (décision Joseph 15/11/2026),
+   la ligne « dont transport » n'est qu'un détail : plus discrète, elle ne s'additionne pas */
+#cartTransport, .row.incl { font-size: .86rem; color: var(--muted); }
+#cartTransport span:last-child, .row.incl span:last-child { font-weight: 500; }
+/* Détail d'un total (panier, commande) : ce que comprennent les prix tout compris (décision Joseph 15/11/2026) */
+.price-detail { margin: 6px 0 0; font-size: .8rem; line-height: 1.45; color: var(--muted); }
