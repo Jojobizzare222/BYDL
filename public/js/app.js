@@ -311,7 +311,11 @@
   const landed = (p) => allIn(p);
   const lineLanded = (p, variant, qty) => allIn(p, variant) * qty;
   // Détail d'un total (en petit, sous le total) : ce que comprennent les prix affichés
-  const priceDetail = ({ articles, transport, service, delivery, momo }) => `Dont articles ${fcfa(articles)}${transport ? ` · transport France → Pointe-Noire* ${fcfa(transport)}` : ''}${service ? ` · frais de service ${fcfa(service)}` : ''}${delivery ? ` · livraison ${fcfa(delivery)}` : ''}${momo ? ` · frais de retrait Mobile Money (${String(Math.round(momoRate() * 1000) / 10).replace('.', ',')} %) ${fcfa(momo)}` : ''}`;
+  const priceDetail = ({ articles, transport, service, delivery, momo }) => {
+    const rows = [['Articles', articles], ['Transport France → Pointe-Noire*', transport], ['Frais de service', service], ['Livraison', delivery],
+      [`Frais de retrait Mobile Money (${String(Math.round(momoRate() * 1000) / 10).replace('.', ',')} %)`, momo]].filter(([, v]) => v);
+    return `<span class="td-title">Ce total comprend :</span><ul>${rows.map(([l, v]) => `<li><span>${l}</span><b>${fcfa(v)}</b></li>`).join('')}</ul>`;
+  };
   const inclTransport = (fee, star = true) => `<span>dont transport France → Pointe-Noire${star ? '*' : ''}</span><span>${fcfa(fee)}</span>`;
   const cartFreight = () => {
     const c = frCfg();
@@ -1610,7 +1614,7 @@
           <div class="row" style="margin-top:10px"><span>Livraison</span><span id="feeLine">—</span></div>
           <div id="methodLine"></div>
           <div class="row total" style="margin-top:10px"><span>Total</span><strong id="sumTotal">${total}</strong></div>
-          <p class="price-detail" id="sumDetail"></p>
+          <div class="total-detail" id="sumDetail"></div>
           ${fr0.fee ? estNote() : ''}
           <div id="depositSplit"></div>
           <p class="hint" style="margin-top:10px">${icon('airplane-tilt')} ${delayText()}.</p>

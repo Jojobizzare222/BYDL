@@ -1856,5 +1856,11 @@ html.soft-boot main#app .mz-loading { visibility: hidden; }
    la ligne « dont transport » n'est qu'un détail : plus discrète, elle ne s'additionne pas */
 #cartTransport, .row.incl { font-size: .86rem; color: var(--muted); }
 #cartTransport span:last-child, .row.incl span:last-child { font-weight: 500; }
-/* Détail d'un total (panier, commande) : ce que comprennent les prix tout compris (décision Joseph 15/11/2026) */
-.price-detail { margin: 6px 0 0; font-size: .8rem; line-height: 1.45; color: var(--muted); }
+/* Détail d'un total (panier, commande) : ce que comprend le prix tout compris, une ligne par poste (décision Joseph 15/11/2026) */
+.total-detail { margin: 8px 0 4px; font-size: .82rem; color: var(--muted); }
+.total-detail:empty { display: none; }
+.total-detail .td-title { display: block; font-weight: 600; margin-bottom: 4px; }
+.total-detail ul { list-style: none; margin: 0; padding: 0; }
+.total-detail li { display: flex; justify-content: space-between; gap: 12px; padding: 3px 0 3px 14px; position: relative; line-height: 1.35; }
+.total-detail li::before { content: ''; position: absolute; left: 2px; top: .7em; width: 5px; height: 5px; border-radius: 50%; background: var(--brand-text); opacity: .45; }
+.total-detail li b { font-weight: 500; white-space: nowrap; color: var(--ink); }
