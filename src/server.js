@@ -50,8 +50,8 @@ app.get('/p/:id', (req, res) => {
   const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const target = ok ? `/#/p/${encodeURIComponent(p.id)}` : '/';
   const img = ok && p.image ? (/^https?:/.test(p.image) ? p.image : host + p.image) : `${host}/brand/partage-zado.png?v=8`;
-  const price = ok ? new Intl.NumberFormat('fr-FR').format(p.price).replace(/\u202f/g, ' ') + ' FCFA' : '';
-  const title = ok ? `${p.name} — ${price}` : 'Zado';
+  const price = ok ? new Intl.NumberFormat('fr-FR').format(p.price + require('./freight').unitFee(p)).replace(/\u202f/g, ' ') + ' FCFA' : '';
+  const title = ok ? `${p.name} — ${price} livré à Pointe-Noire` : 'Zado';
   const desc = ok ? `${p.description ? String(p.description).slice(0, 150) + ' · ' : ''}Expédié de France, livré à Pointe-Noire.` : 'Électronique au meilleur prix, livraison rapide à Pointe-Noire.';
   res.set('Cache-Control', 'public, max-age=300');
   res.status(ok ? 200 : 404).type('html').send(`<!doctype html><html lang="fr"><head><meta charset="utf-8">

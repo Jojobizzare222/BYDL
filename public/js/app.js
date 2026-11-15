@@ -301,6 +301,9 @@
   const frCfg = () => state.config?.freight || { enabled: true, eurPerKg: 13.9, minKg: 0, defaultKg: 1, perArticle: true, perKg: 9118 };
   const billedKg = (w) => { const c = frCfg(), x = Number(w) > 0 ? Number(w) : (c.defaultKg ?? 1); return Math.round((c.perArticle ? Math.max(c.minKg, x) : x) * 100) / 100; };
   const unitTransport = (p) => (frCfg().enabled ? Math.round(billedKg(p.weightKg) * frCfg().eurPerKg * EUR_FCFA) : 0);
+  // Prix LIVRÉ à Pointe-Noire (article + transport depuis la France), affiché PARTOUT où l'on montre un article
+  // (décision Joseph 15/11/2026 : « pourquoi deux prix différents ? » entre la carte et la fiche)
+  const landed = (p) => (Number(p?.price) || 0) + unitTransport(p);
   const cartFreight = () => {
     const c = frCfg();
     if (!c.enabled) return { fee: 0, kg: 0 };
@@ -330,7 +333,7 @@
     return `<div class="upsell"><p class="upsell-title">${icon('sparkle')} Pour aller avec</p>${list.map((p) => `
       <div class="ups-item">
         <a href="#/p/${enc(p.id)}" class="line-img">${p.image ? `<img src="${esc(p.image)}" alt="" loading="lazy" width="56" height="56">` : icon(ICONS[p.category] || 'package')}</a>
-        <a href="#/p/${enc(p.id)}" class="ups-name"><span>${esc(p.name)}</span><b>${fcfa(p.price)}</b></a>
+        <a href="#/p/${enc(p.id)}" class="ups-name"><span>${esc(p.name)}</span><b>${fcfa(landed(p))}</b></a>
         <button class="btn cta small" type="button" data-add="${esc(p.id)}" aria-label="Ajouter ${esc(p.name)} au panier">${icon('plus')} Ajouter</button>
       </div>`).join('')}</div>`;
   }
@@ -446,7 +449,7 @@
     sugBox.innerHTML = `
       ${r.didYouMean ? `<p class="sug-dym">Résultats pour « ${esc(r.didYouMean)} »</p>` : ''}
       ${r.categories.map((c) => `<a href="#/c/${enc(c.universe)}/${enc(c.category)}" role="option">${icon(ICONS[c.category] || 'squares-four')}<span>Rayon <b>${esc(c.category)}</b></span><small>${c.count}</small></a>`).join('')}
-      ${r.products.map((p) => `<a href="#/p/${enc(p.id)}" role="option"><span class="sug-img">${p.image ? `<img src="${esc(p.image)}" alt="" width="36" height="36" loading="lazy">` : icon(ICONS[p.category] || 'package')}</span><span>${esc(p.name)}</span><small>${fcfa(p.price)}</small></a>`).join('')}
+      ${r.products.map((p) => `<a href="#/p/${enc(p.id)}" role="option"><span class="sug-img">${p.image ? `<img src="${esc(p.image)}" alt="" width="36" height="36" loading="lazy">` : icon(ICONS[p.category] || 'package')}</span><span>${esc(p.name)}</span><small>${fcfa(landed(p))}</small></a>`).join('')}
       <a href="#/recherche/${enc(q)}" role="option" class="sug-all">${icon('magnifying-glass')}<span>Voir tous les résultats pour « ${esc(q)} »</span></a>`;
     sugBox.hidden = false; sugIdx = -1;
   }
@@ -743,7 +746,7 @@
           ${ratingLine(famRating(family))}
           ${multi ? `<div class="swatches" aria-label="${family.length} couleurs">${family.slice(0, 6).map((x) => `<i style="background:${colorOf(x)?.hex || '#ccc'}" title="${esc(colorOf(x)?.label || '')}"></i>`).join('')}<small>${family.length} couleurs</small></div>` : ''}
           ${family.some(isPetitPrix) ? `<span class="pp-tag">${icon('hand-coins-duotone')} Petit prix</span>` : ''}
-          <div class="prices"><span class="price ${d && !multi ? 'sale' : ''}">${(multi && family.some((x) => x.price !== p.price)) || hasExtras(p) ? 'dès ' : ''}${fcfa(multi ? Math.min(...family.map((x) => x.price)) : p.price)}</span><span class="old">${d && !multi ? fcfa(p.oldPrice) : ''}</span></div>
+          <div class="prices"><span class="price ${d && !multi ? 'sale' : ''}">${(multi && family.some((x) => landed(x) !== landed(p))) || hasExtras(p) ? 'dès ' : ''}${fcfa(multi ? Math.min(...family.map(landed)) : landed(p))}</span>${unitTransport(p) ? '<small class="price-landed">livré à Pointe-Noire</small>' : ''}<span class="old">${d && !multi ? fcfa(p.oldPrice + unitTransport(p)) : ''}</span></div>
           <span class="stock-low ${!multi && p.stock > 0 && p.stock <= 6 ? '' : 'ok'}">${!multi && p.stock > 0 && p.stock <= 6 ? `${icon('fire')} Plus que ${p.stock} en stock` : multi || p.stock > 0 ? '<i class="dot"></i> En stock' : ''}</span>
           ${multi ? `<a class="btn cta small" href="#/p/${p.id}">Choisir la couleur</a>` : `<button class="btn cta small" data-add="${p.id}" ${p.stock === 0 ? 'disabled' : ''}>${p.stock === 0 ? 'Épuisé' : (p.options || []).length ? 'Choisir' : `${icon('plus')} Ajouter`}</button>`}
         </div>
@@ -813,8 +816,8 @@
     const l = [...list];
     // « pertinence » = les articles les plus abordables d'abord (sauf recherche : ordre de pertinence du moteur)
     if (state.sort === 'pertinence' && !keepOrder) l.sort((a, b) => affScore(b) - affScore(a));
-    if (state.sort === 'prix-asc') l.sort((a, b) => a.price - b.price);
-    if (state.sort === 'prix-desc') l.sort((a, b) => b.price - a.price);
+    if (state.sort === 'prix-asc') l.sort((a, b) => landed(a) - landed(b));
+    if (state.sort === 'prix-desc') l.sort((a, b) => landed(b) - landed(a));
     if (state.sort === 'remise') l.sort((a, b) => discount(b) - discount(a));
     return l;
   }
@@ -859,7 +862,7 @@
     // « C'est pour offrir » : 2e diapositive de Noël (photos libres de droits Unsplash, crédits sur #/credits)
     if (noel()) slides.push(slide({ theme: 'noel', kicker: `${icon('gift')} C'est pour offrir`, title: 'Offrez, on livre pour vous', text: 'Cochez « C\'est pour offrir » à la commande : nous livrons la personne de votre choix à Pointe-Noire, avec votre petit mot et sans aucun prix dans le colis.', href: '#/cadeaux', cta: 'Trouver un cadeau',
       img: '/images/ambiance/noel-offrir.jpg', imgAlt: 'Jeune femme qui tend un cadeau en souriant' }));
-    if (heroP) slides.push(slide({ theme: 'violet', kicker: `${icon('sparkle-fill')} Nouveauté`, title: esc(heroP.name.replace(/^Apple /, '')), text: `À partir de <strong>${fcfa(heroP.price)}</strong>, avec livraison rapide chez vous.`, href: `#/p/${heroP.id}`, cta: 'Je le veux', p: heroP }));
+    if (heroP) slides.push(slide({ theme: 'violet', kicker: `${icon('sparkle-fill')} Nouveauté`, title: esc(heroP.name.replace(/^Apple /, '')), text: `À partir de <strong>${fcfa(landed(heroP))}</strong>, livré chez vous à Pointe-Noire.`, href: `#/p/${heroP.id}`, cta: 'Je le veux', p: heroP }));
     if (deals.length) slides.push(slide({ theme: 'coral', kicker: `${icon('lightning-fill')} Bonnes affaires`, title: `Jusqu'à -${discount(deals[0])} %`, text: 'Des prix cassés sur une sélection de produits, dans la limite des stocks.', href: '#/promos', cta: 'Voir les offres', p: pick(deals) }));
     for (const u of myUniverses()) {
       const p = pick(featured(u.name));
@@ -890,14 +893,14 @@
     }
     const sideCard = ({ x, p }, i) => `<a class="side-card sc-${i}" href="#/p/${p.id}">
         <span class="sc-k">${esc(x.c)}</span><b>${esc(p.name.replace(/^Apple /, ''))}</b>
-        <span class="sc-price">${discount(p) ? 'Seulement ' : 'À partir de '}${fcfa(p.price)}</span><span class="sc-go">Découvrir ${icon('arrow-right')}</span>
+        <span class="sc-price">${discount(p) ? 'Seulement ' : 'À partir de '}${fcfa(landed(p))}</span><span class="sc-go">Découvrir ${icon('arrow-right')}</span>
         ${p.image ? `<img src="${esc(p.image)}" alt="" loading="lazy">` : ((src) => (src ? `<img class="amb" src="${src}" alt="" loading="lazy" title="Photo d'illustration">` : `<span class="sc-ico">${catIcon(p.category)}</span>`))(ambPick(p))}${discount(p) ? `<span class="zl">-${discount(p)} %</span>` : ''}</a>`;
     // Blocs « Explorer les rayons » : 4 vignettes par rayon + prix d'entrée
     const blocks = [...cats].sort((a, b) => b.list.length - a.list.length).slice(0, 4).map((x) => {
       const seenImg = new Set(); const pics = groupFamilies(x.list).map((g) => g[0]).filter((p) => !p.image || (!seenImg.has(p.image) && seenImg.add(p.image))).slice(0, 4); // 4 produits différents
       return `<a class="ublock" href="${href(x)}">
         ${amb(x.c, 2) ? `<span class="ub-amb"><img src="${amb(x.c, 2)}" alt="" loading="lazy"></span>` : ''}
-        <span class="ub-h"><b>${esc(x.c)}</b><small>${x.list.length} article${x.list.length > 1 ? 's' : ''} · dès ${fcfa(Math.min(...x.list.map((p) => p.price)))}</small></span>
+        <span class="ub-h"><b>${esc(x.c)}</b><small>${x.list.length} article${x.list.length > 1 ? 's' : ''} · dès ${fcfa(Math.min(...x.list.map(landed)))}</small></span>
         <span class="ub-g">${pics.map((p) => p.image ? `<span><img src="${esc(p.image)}" alt="" loading="lazy"></span>` : `<span class="ub-ico">${catIcon(p.category)}<small>${esc(familyName(p).replace(/^Apple /, ''))}</small></span>`).join('')}</span>
         <span class="ub-go">Voir le rayon ${icon('caret-right')}</span></a>`;
     }).join('');
@@ -991,7 +994,7 @@
   function applyFilters(list, f) {
     return list.filter((p) => {
       if (f.brand && (p.brand || '') !== f.brand) return false;
-      if (f.price) { const [a, b] = f.price.split('-').map((x) => (x ? Number(x) : null)); if ((a != null && p.price < a) || (b != null && p.price >= b)) return false; }
+      if (f.price) { const [a, b] = f.price.split('-').map((x) => (x ? Number(x) : null)); if ((a != null && landed(p) < a) || (b != null && landed(p) >= b)) return false; }
       if (f.deal && !discount(p)) return false;
       if (f.stock && p.stock === 0) return false;
       if (f.cond === 'neuf' && isRefurb(p)) return false;
@@ -1124,7 +1127,7 @@
   function viewGifts(sel) {
     const b = GIFT_BUDGETS.find((x) => x.k === sel), pr = GIFT_PROFILES.find((x) => x.k === sel);
     const all = state.products;
-    const list = b ? all.filter((p) => (b.max ? p.price <= b.max : p.price > b.min)) : pr ? all.filter(pr.test) : [...all].sort((x, y) => (y.featured ? 1 : 0) - (x.featured ? 1 : 0) || discount(y) - discount(x));
+    const list = b ? all.filter((p) => (b.max ? landed(p) <= b.max : landed(p) > b.min)) : pr ? all.filter(pr.test) : [...all].sort((x, y) => (y.featured ? 1 : 0) - (x.featured ? 1 : 0) || discount(y) - discount(x));
     const n = noel(), left = noelLeft();
     const chip = (x) => `<a class="gift-chip ${x.k === sel ? 'on' : ''}" href="#/cadeaux/${x.k}">${x.ic ? icon(x.ic) + ' ' : ''}${esc(x.label)}</a>`;
     const usable = GIFT_PROFILES.filter((x) => all.some(x.test));
@@ -1132,7 +1135,7 @@
       notice: `<div class="gift-hero" role="img" aria-label="Cadeaux de Noël : smartphone emballé, paquets, famille devant le sapin">${['noel-smartphone', 'noel-cadeau', 'noel-paquets-rouges'].map((f, i) => `<img src="/images/ambiance/${f}.jpg" alt="" ${i ? 'loading="lazy"' : ''}>`).join('')}</div>
       <div class="gift-intro">${mama('deliver', { size: 'sm' })}<div><p><strong>Faites plaisir, on s'occupe du reste.</strong> Cochez « C'est pour offrir » à la commande : nous livrons directement la personne, avec votre petit mot et sans aucun prix dans le colis.</p>
         ${n ? `<p class="hint">${left ? `${icon('clock-countdown-duotone')} Pour être livré avant Noël, commandez avant le <strong>${dayTxt(n.deadline)}</strong>.` : `${icon('clock-countdown-duotone')} Les commandes passées maintenant arriveront après Noël.`}</p>` : ''}</div></div>`,
-      chips: `<div class="gift-chips"><span class="lbl">Par budget</span>${GIFT_BUDGETS.filter((x) => all.some((p) => (x.max ? p.price <= x.max : p.price > x.min))).map(chip).join('')}</div>
+      chips: `<div class="gift-chips"><span class="lbl">Par budget</span>${GIFT_BUDGETS.filter((x) => all.some((p) => (x.max ? landed(p) <= x.max : landed(p) > x.min))).map(chip).join('')}</div>
         ${usable.length ? `<div class="gift-chips"><span class="lbl">Par profil</span>${usable.map(chip).join('')}</div>` : ''}`,
       empty: mamaEmpty('Pas encore d\'idée cadeau dans ce budget : essayez un autre choix.') });
   }
@@ -1236,7 +1239,7 @@
       const low = Math.min(...refs.map((x) => x.priceEur));
       cards.push(`<div class="dt-card dt-prices"><h3>${icon('storefront')} Prix constatés en France</h3>
         <table>${refs.map((x) => `<tr><th>${x.url ? `<a href="${esc(x.url)}" target="_blank" rel="noopener noreferrer nofollow">${esc(x.store)}</a>` : esc(x.store)}</th><td>${x.from ? '<small>dès </small>' : ''}${x.priceEur.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €<small>≈ ${fcfa(Math.round(x.priceEur * eurFcfa))}</small></td></tr>`).join('')}</table>
-        <p class="dt-note">Prix publics TTC en France${refs.some((x) => x.date) ? `, relevés le ${esc(new Date(refs.map((x) => x.date).filter(Boolean).sort().pop()).toLocaleDateString('fr-FR'))}` : ''}, hors frais d'acheminement jusqu'à Pointe-Noire. Chez Zado : <b>${fcfa(p.price)}</b>, acheminé depuis la France, avec facture et garantie.</p></div>`);
+        <p class="dt-note">Prix publics TTC en France${refs.some((x) => x.date) ? `, relevés le ${esc(new Date(refs.map((x) => x.date).filter(Boolean).sort().pop()).toLocaleDateString('fr-FR'))}` : ''}, hors frais d'acheminement jusqu'à Pointe-Noire. Chez Zado : <b>${fcfa(landed(p))}</b>, livré à Pointe-Noire (transport compris), avec facture et garantie.</p></div>`);
     }
     return `<section class="dt" id="details"><div class="dt-head"><p class="kicker">${esc(p.brand || p.category)}</p><h2>${icon('magnifying-glass')} Tout savoir sur ce produit</h2></div><div class="dt-grid">${cards.join('')}</div></section>`;
   }
@@ -1305,7 +1308,7 @@
     // Partager (WhatsApp…) : le lien /p/<id> donne un aperçu avec photo, nom et prix
     $('#shareBtn').addEventListener('click', async () => {
       const url = `${location.origin}/p/${enc(p.id)}`;
-      const text = `${p.name} à ${fcfa(p.price)} sur Zado`;
+      const text = `${p.name} à ${fcfa(landed(p))} livré à Pointe-Noire sur Zado`;
       if (navigator.share) { try { await navigator.share({ title: p.name, text, url }); return; } catch (err) { if (err?.name === 'AbortError') return; } }
       window.open(`https://wa.me/?text=${enc(text + '\n' + url)}`, '_blank', 'noopener');
     });
