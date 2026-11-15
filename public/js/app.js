@@ -9,13 +9,13 @@
   // Univers et catégories affichés dans le menu : fournis par le serveur (src/catalog.js), même liste que l'admin
   let UNIVERSES = [];
   // Icônes Phosphor (fichier /icons.svg, récupérées via Iconify)
-  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=17#${name}"></use></svg>`;
+  const icon = (name, cls = '') => `<svg class="ico ${cls}" aria-hidden="true"><use href="/icons.svg?v=18#${name}"></use></svg>`;
   // Mama Zando (public/js/mama.js) : scènes animées aux moments clés du parcours
   const mama = (name, opt) => window.kamwaMama?.scene(name, opt) || '';
   const mamaLoading = (text = 'Chargement…') => `<div class="mz-loading" role="status">${mama('load', { size: 'sm' })}<p>${text}</p></div>`;
   const mamaEmpty = (html) => `<div class="empty mz-empty">${mama('empty', { size: 'sm' })}<p>${html}</p></div>`;
   const busy = (btn, text) => { btn.disabled = true; btn.innerHTML = `${esc(text)}${window.kamwaMama?.dots() || ''}`; };
-  const ICONS = { 'Téléphones': 'device-mobile-duotone', 'Tablettes': 'device-tablet-duotone', 'Ordinateurs': 'laptop-duotone', 'Montres': 'watch-duotone', 'Audio': 'headphones-duotone', 'TV & Maison': 'television-duotone', 'Jeux vidéo & consoles': 'game-controller-duotone', 'Composants': 'cpu-duotone', 'Accessoires': 'plug-duotone', 'Photo & vidéo': 'camera-duotone', 'Jouets high-tech': 'robot-duotone', 'Beauté & bien-être': 'flower-lotus-duotone' };
+  const ICONS = { 'Téléphones': 'device-mobile-duotone', 'Tablettes': 'device-tablet-duotone', 'Ordinateurs': 'laptop-duotone', 'Montres': 'watch-duotone', 'Audio': 'headphones-duotone', 'TV & Maison': 'television-duotone', 'Jeux vidéo & consoles': 'game-controller-duotone', 'Composants': 'cpu-duotone', 'Accessoires': 'plug-duotone', 'Photo & vidéo': 'camera-duotone', 'Jouets high-tech': 'robot-duotone', 'Beauté & bien-être': 'flower-lotus-duotone', 'Écrans': 'monitor-duotone', 'Mode homme': 't-shirt-duotone', 'Mode femme': 'dress-duotone', 'Chaussures': 'sneaker-duotone', 'Lunettes': 'sunglasses-duotone', 'Maison & déco': 'armchair-duotone', 'Sport & nutrition': 'barbell-duotone' };
   const catIcon = (cat, cls = '') => icon(ICONS[cat] || 'shopping-bag-duotone', cls);
   // Vignettes sans photo : une des trois teintes de la charte, selon la catégorie
   const tintOf = (cat) => Object.keys(ICONS).indexOf(cat) % 3;
@@ -310,6 +310,8 @@
   const allIn = (p, v) => allInOf(priceOf(p, v), p);
   const landed = (p) => allIn(p);
   const lineLanded = (p, variant, qty) => allIn(p, variant) * qty;
+  // Précommande (15/11/2026, ex. GTA VI) : date de sortie encore à venir ; après la sortie, l'article redevient normal
+  const preorderOf = (p) => { const d = p?.preorder?.releaseDate; return d && Date.parse(d + 'T23:59:59+01:00') > Date.now() ? d : null; };
   // Détail d'un total (en petit, sous le total) : ce que comprennent les prix affichés
   const priceDetail = ({ articles, transport, service, delivery, momo }) => {
     const rows = [['Articles', articles], ['Transport France → Pointe-Noire*', transport], ['Frais de service', service], ['Livraison', delivery],
@@ -666,8 +668,11 @@
 
   // Image du produit si elle existe, sinon pictogramme sur fond coloré (repli)
   // Photos d'ambiance libres de droits par rayon (public/images/ambiance/, crédits dans credits.json et sur #/credits)
-  const AMB = { 'Téléphones': 'telephones', 'Tablettes': 'tablettes', 'Ordinateurs': 'ordinateurs', 'Montres': 'montres', 'Audio': 'audio', 'TV & Maison': 'tv-maison', 'Accessoires': 'accessoires', 'Composants': 'composants' };
-  const amb = (cat, n = 1) => (AMB[cat] ? `/images/ambiance/${AMB[cat]}-${n}.jpg` : null);
+  const AMB = { 'Téléphones': 'telephones', 'Tablettes': 'tablettes', 'Ordinateurs': 'ordinateurs', 'Montres': 'montres', 'Audio': 'audio', 'TV & Maison': 'tv-maison', 'Accessoires': 'accessoires', 'Composants': 'composants',
+    // Nouveaux rayons du 15/11/2026 : une seule photo chacun pour l'instant (AMB_ONE)
+    'Écrans': 'ecrans', 'Jeux vidéo & consoles': 'jeux-video', 'Mode homme': 'mode-homme', 'Mode femme': 'mode-femme', 'Chaussures': 'chaussures', 'Lunettes': 'lunettes', 'Maison & déco': 'maison-deco', 'Sport & nutrition': 'nutrition' };
+  const AMB_ONE = new Set(['ecrans', 'jeux-video', 'mode-homme', 'mode-femme', 'chaussures', 'lunettes', 'maison-deco', 'nutrition']);
+  const amb = (cat, n = 1) => (AMB[cat] ? `/images/ambiance/${AMB[cat]}-${AMB_ONE.has(AMB[cat]) ? 1 : n}.jpg` : null);
   // À côté d'un PRODUIT, seulement une photo du même type d'objet (Joseph 22/10/2026 : pas de câble pour une coque) ; sinon l'icône
   const AMB_TYPES = [[/coque|étui/i, ['coques-1']], [/airpods max/i, ['audio-1']], [/airpods|écouteurs/i, ['ecouteurs-1']],
     [/câble|cable|chargeur|adaptateur secteur/i, ['accessoires-1', 'accessoires-2']], [/iphone|smartphone|galaxy/i, ['telephones-1', 'telephones-2']],
@@ -747,7 +752,7 @@
     const d = discount(p);
     // État TOUJOURS affiché sur la photo (demande Joseph 14/11/2026 : « on doit voir neuf ou reconditionné ») ;
     // l'ancienne étiquette « Nouveau » (article mis en avant) est retirée pour ne pas la confondre avec « Neuf »
-    const tag = isRefurb(p) ? `<span class="tag tag-violet">${esc(condShort(p))}</span>` : '<span class="tag tag-new">Neuf</span>';
+    const tag = isRefurb(p) ? `<span class="tag tag-violet">${esc(condShort(p))}</span>` : preorderOf(p) ? '<span class="tag tag-pre">Précommande</span>' : '<span class="tag tag-new">Neuf</span>';
     return `
       <article class="card">
         <a href="#/p/${p.id}" class="card-link">
@@ -838,6 +843,61 @@
   }
 
   // ---------- Vues ----------
+  // Section « TV & Maison » de l'accueil, façon magazine (demande Joseph 15/11/2026 : inspirée d'une maquette Dribbble de
+  // boutique de meubles, mise en page et couleurs propres à Zado, photos libres de droits Unsplash, accent sur Noël).
+  // Familles du rayon TV & Maison + Maison & déco, reconnues au nom de l'article (ordre important), avec leur photo d'ambiance.
+  const LIVING_CATS = ['TV & Maison', 'Maison & déco'];
+  const LIVING = [
+    { k: 'televiseurs', label: 'Téléviseurs', re: /téléviseur/i, img: 'noel-salon-tv', alt: 'Salon décoré pour Noël avec un téléviseur' },
+    { k: 'son-cinema', label: 'Son & cinéma', re: /homepod|apple tv|barre de son|enceinte|projecteur(?!.*(étoil|galaxie|ciel|astronaute|planétarium))/i, img: 'noel-tv-famille', alt: 'Famille réunie devant l\'écran pendant les fêtes' },
+    { k: 'lumieres-noel', label: 'Lumières & déco de Noël', re: /sapin|guirlande|boule|noël|ruban|bandeau led|projecteur|planétarium/i, img: 'noel-interieur', alt: 'Intérieur décoré de lumières de Noël' },
+    { k: 'maison-connectee', label: 'Maison connectée', re: /connecté|tapo|hue|prise|sonoff|ezviz/i, img: 'noel-enceinte', alt: 'Salon moderne aux lumières de fête' },
+    { k: 'chambre', label: 'Chambre & chevet', re: /chevet|veilleuse|réveil|lampe/i, img: 'noel-chevet', alt: 'Chambre douillette avec lampe de chevet' },
+    { k: 'meubles-deco', label: 'Petits meubles & déco', re: /.*/, only: 'Maison & déco', img: 'maison-deco-1', alt: 'Petit meuble et décoration' },
+    { k: 'confort', label: 'Confort de la maison', re: /.*/, img: 'tv-maison-1', alt: '' },
+  ];
+  const livingGroup = (p) => (LIVING_CATS.includes(p.category) ? LIVING.find((g) => (!g.only || g.only === p.category) && g.re.test(p.name)) : null);
+  const livingItems = (k) => state.products.filter((p) => livingGroup(p)?.k === k);
+  function viewLiving(k) {
+    const g = LIVING.find((x) => x.k === k);
+    if (!g) { location.hash = '#/'; return; }
+    viewList({ title: g.label, crumbs: '<a href="#/">Accueil</a> › TV & Maison › ' + esc(g.label), list: livingItems(k), active: null,
+      notice: `<div class="living-banner"><img src="/images/ambiance/${g.img}.jpg" alt="${esc(g.alt)}" loading="lazy"><span>${icon('gift')} ${noel() ? 'Pour un Noël bien installé' : 'Pour une maison bien équipée'}, livré à Pointe-Noire</span></div>` });
+  }
+  function livingSection() {
+    const groups = LIVING.map((g) => ({ ...g, list: livingItems(g.k) })).filter((g) => g.list.length);
+    const all = groups.flatMap((g) => g.list);
+    if (all.length < 4) return '';
+    const isNoel = Boolean(noel());
+    // Bande mangue : un article de chaque famille d'abord (télé, son, lumières…), puis le reste, le moins cher d'abord
+    const seen = new Set(), row = [], fk = (x) => familyKey(x) || x.id;
+    for (const g of groups) { const p = [...g.list].sort((a, b) => landed(a) - landed(b)).find((x) => !seen.has(fk(x))); if (p) { seen.add(fk(p)); row.push(p); } }
+    for (const p of [...all].sort((a, b) => landed(a) - landed(b))) { if (row.length >= 12) break; if (!seen.has(fk(p))) { seen.add(fk(p)); row.push(p); } }
+    const from = Math.min(...all.map(landed));
+    return `<section class="living" aria-label="TV et maison">
+      <div class="lv-top">
+        <a class="lv-hero" href="#/maison/${groups[0].k}">
+          <img src="/images/ambiance/${isNoel ? 'noel-salon-tv' : 'tv-maison-1'}.jpg" alt="Salon décoré pour les fêtes" loading="lazy">
+          <span class="lv-hero-txt">
+            <span class="lv-kicker">${icon('gift')} TV &amp; Maison${isNoel ? ' · Noël 2026' : ''}</span>
+            <span class="lv-title">${isNoel ? 'Un Noël bien installé' : 'Une maison bien installée'}</span>
+            <span class="lv-sub">${isNoel ? 'Écran, son, lumières et petits meubles pour recevoir pendant les fêtes' : 'Écran, son, lumières et petits meubles'}</span>
+            <span class="btn cta lv-cta">Découvrir la sélection ${icon('arrow-right')}</span>
+          </span>
+        </a>
+        <div class="lv-side">
+          <p class="lv-intro">Tout pour la maison, choisi en France et livré chez vous à Pointe-Noire${isNoel && noelLeft() ? ` : <strong>commandez avant le ${dayTxt(noel().deadline)}</strong> pour l'avoir avant Noël` : ''}.</p>
+          <ul class="lv-list">${groups.map((g, i) => `<li><a href="#/maison/${g.k}" data-lv="${i}"><span class="lv-name">${esc(g.label)}</span><span class="lv-count">${g.list.length}</span><img class="lv-thumb" src="/images/ambiance/${g.img}.jpg" alt="" loading="lazy"></a></li>`).join('')}</ul>
+          <div class="lv-stats"><span><b>${all.length}</b> articles</span><span><b>dès ${fcfa(from)}</b> tout compris</span><span><b>${isNoel && noelLeft() ? dayTxt(noel().deadline) : '24 h'}</b> ${isNoel && noelLeft() ? 'pour l\'avoir à Noël' : 'livré après l\'arrivée'}</span></div>
+        </div>
+      </div>
+      <div class="lv-band">
+        <div class="lv-band-head"><p>${icon('sparkle-fill')} ${isNoel ? 'Idées pour les fêtes, à la maison' : 'La sélection maison'}</p><a href="#/maison/${groups[0].k}">Tout voir ${icon('caret-right')}</a></div>
+        ${railCarousel(row)}
+      </div>
+    </section>`;
+  }
+
   function viewHome() {
     renderNav(null);
     const deals = [...state.products].filter((p) => discount(p) > 0).sort((a, b) => discount(b) - discount(a)).slice(0, 12);
@@ -973,6 +1033,8 @@
         <a class="btn light" href="#/promos">Commencer mes achats ${icon('arrow-right')}</a>
       </section>`}
 
+      ${livingSection()}
+
       ${blocks ? `<section class="shelf">
         <div class="shelf-head"><div><p class="kicker">${icon('squares-four')} Nos rayons</p><h2>Explorer les rayons</h2></div></div>
         <div class="ublocks">${blocks}</div>
@@ -992,6 +1054,8 @@
       </section>`;
 
     setupSlider($('#hero'));
+    // Section TV & Maison : la grande photo suit la famille survolée (ordinateur), comme dans un magazine
+    { const hero = app.querySelector('.lv-hero img'); app.querySelectorAll('.lv-list a').forEach((a) => a.addEventListener('mouseenter', () => { const t = a.querySelector('.lv-thumb'); if (hero && t) { hero.src = t.src; a.closest('.lv-top').querySelector('.lv-hero').href = a.getAttribute('href'); } })); }
     app.querySelector('.home-tabs')?.addEventListener('click', (e) => {
       const b = e.target.closest('[data-home-tab]'); if (!b) return;
       app.querySelectorAll('[data-home-tab]').forEach((x) => { x.classList.toggle('on', x === b); x.setAttribute('aria-selected', String(x === b)); });
@@ -1305,7 +1369,7 @@
             ${(p.options || []).map((o, i) => `<label class="opt-label" for="opt${i}">${esc(o.name)}</label><div class="opt-choices" id="opt${i}" data-opt="${esc(o.name)}">${o.values.map((v) => `<button type="button" class="opt" data-v="${esc(v)}">${esc(v)}${o.extra?.[v] ? `<small class="opt-extra">+ ${fcfa(allInOf(p.price + o.extra[v], p) - allIn(p))}</small>` : ''}</button>`).join('')}</div>`).join('')}
             <span class="momo-note">${icon('check-circle-duotone')} ${hasRelays() ? 'Payable en espèces au point relais · retrait ou livraison' : (hasDeposit() ? `Mobile Money : acompte de ${depositTxt()}, le reste ensuite · livraison à domicile` : 'Paiement par dépôt Mobile Money · livraison à domicile')}</span>
             <span class="hint">${icon('airplane-tilt')} ${delayText()}</span>
-            ${p.stock === 0 ? '<span class="stock-low">Épuisé</span>' : p.stock == null ? '<span class="momo-note">Disponible sur commande</span>' : p.stock <= 6 ? `<span class="stock-low">Plus que ${p.stock} en stock</span>` : '<span class="momo-note">En stock</span>'}
+            ${preorderOf(p) ? `<span class="momo-note pre-note">${icon('clock-countdown-duotone')} Précommande : sortie prévue le ${esc(dayTxt(preorderOf(p)))}, livré dès que possible après</span>` : ''}${p.stock === 0 ? '<span class="stock-low">Épuisé</span>' : preorderOf(p) ? '' : p.stock == null ? '<span class="momo-note">Disponible sur commande</span>' : p.stock <= 6 ? `<span class="stock-low">Plus que ${p.stock} en stock</span>` : '<span class="momo-note">En stock</span>'}
             <div id="optErr"></div>
             <button class="btn cta block" ${(p.options || []).length ? 'id="addOpt"' : `data-add="${p.id}"`} ${p.stock === 0 ? 'disabled' : ''}>Ajouter au panier</button>
             <a class="btn ghost block" href="#/commande" id="buyNow">Acheter maintenant</a>
@@ -2530,7 +2594,7 @@
         <g class="vy-pin vy-fr"><circle cx="34" cy="96" r="7"/><rect x="26" y="104" width="5.3" height="8" fill="#0055A4"/><rect x="31.3" y="104" width="5.3" height="8" fill="#fff"/><rect x="36.6" y="104" width="5.3" height="8" fill="#EF4135"/></g>
         <g class="vy-pin vy-cg"><circle cx="286" cy="96" r="7"/><path d="M278 104h16l-16 8z" fill="#009543"/><path d="M294 104v8h-16z" fill="#DC241F"/><path d="M290 104h4l-12 8h-4z" fill="#FBDE4A"/></g>
         ${stage === 'arrived' ? '<circle class="vy-ping" cx="286" cy="96" r="7"/>' : ''}
-        <g class="vy-plane"><g transform="rotate(90)"><use href="/icons.svg?v=17#airplane-fill" x="-13" y="-13" width="26" height="26"/></g>${motion}</g>
+        <g class="vy-plane"><g transform="rotate(90)"><use href="/icons.svg?v=18#airplane-fill" x="-13" y="-13" width="26" height="26"/></g>${motion}</g>
       </svg>
       <div class="vy-labels"><span>Paris, France</span><span>Pointe-Noire</span></div>
       ${when ? `<p class="vy-when">${icon('clock-bold')} ${esc(when)}</p>` : ''}
@@ -2880,7 +2944,7 @@
     return null;
   }
   const LIVE_PAGES = ['compte', 'commande', 'suivi', 'merci'];
-  const CATALOG_PAGES = ['', 'c', 'recherche', 'promos', 'p', 'reconditionne', 'petits-prix', 'cadeaux'];
+  const CATALOG_PAGES = ['', 'c', 'recherche', 'promos', 'p', 'reconditionne', 'petits-prix', 'cadeaux', 'maison'];
   // Un des articles changés est-il visible sur la page (carte, lien, bouton « Ajouter », fiche ouverte) ?
   const shows = (ids, parts) => (parts[0] === 'p' && ids.includes(parts[1]))
     || ids.some((id) => app.querySelector(`[href="#/p/${CSS.escape(id)}"], [data-add="${CSS.escape(id)}"]`));
@@ -2964,6 +3028,7 @@
       case 'reconditionne': return viewRefurb();
       case 'cadeaux': return viewGifts(parts[1]);
       case 'petits-prix': return viewCheap();
+      case 'maison': return viewLiving(parts[1]);
       case 'commande': return viewCheckout();
       case 'merci': return viewThanks(parts[1]);
       case 'compte': return viewAccount(parts[1]);

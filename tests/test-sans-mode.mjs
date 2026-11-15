@@ -1,10 +1,11 @@
-// Volet Mode supprimé (19/10/2026) : rayon absent, ancien produit de Mode caché et refusé à la commande
+// Volet Mode supprimé (19/10/2026) puis revenu sous une autre forme (15/11/2026 : univers Mode avec Mode homme, Mode femme,
+// Chaussures, Lunettes) : les ANCIENNES catégories de mode (« Homme »…) restent hors catalogue, leurs produits cachés et refusés
 import { DatabaseSync } from 'node:sqlite';
 const BASE = process.env.BASE || 'http://localhost:3999';
 let okN = 0, ko = 0; const ok = (c, m) => { if (c) { okN++; console.log('OK   ', m); } else { ko++; console.log('ÉCHEC', m); } };
 const cfg = await (await fetch(BASE + '/api/config')).json();
-ok(cfg.universes.length === 1 && cfg.universes[0].name === 'Électronique', 'un seul rayon : Électronique');
-ok(!JSON.stringify(cfg.universes).includes('Chaussures'), 'plus de catégorie Homme / Femme / Chaussures');
+ok(cfg.universes.map((u) => u.name).join() === 'Électronique,Mode,Maison,Sport', 'univers : Électronique, Mode, Maison, Sport (15/11/2026)');
+ok(!cfg.universes.some((u) => u.categories.includes('Homme') || u.categories.includes('Femme')), 'anciennes catégories « Homme » / « Femme » toujours absentes');
 const list = await (await fetch(BASE + '/api/products')).json();
 ok(list.length > 0 && list.every((p) => p.universe === 'Électronique'), 'boutique : uniquement de l\'électronique (' + list.length + ' produits)');
 // Ancien produit de Mode resté dans la base (comme chez Joseph) : on l'ajoute directement dans la base

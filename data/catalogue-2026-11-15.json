@@ -1,0 +1,5794 @@
+[
+ {
+  "id": "tv001",
+  "name": "Téléviseur Samsung 32\" HD Smart TV H5005F (TU32H5005FK)",
+  "brand": "Samsung",
+  "category": "TV & Maison",
+  "store": "Samsung",
+  "url": "https://www.samsung.com/fr/tvs/hd-tv/h5000-32-inch-tu32h5005fkxxc/",
+  "configs": [
+   {
+    "label": "32\"",
+    "priceEur": 259,
+    "weightG": 5000
+   }
+  ],
+  "specs": {
+   "screen": "32\" (80 cm), HD 1366 x 768, LED, 50 Hz",
+   "smart": "Tizen",
+   "hdmi": "2 HDMI (eARC), 1 USB-A",
+   "other": "Wi-Fi 5, 10 W, modèle 2025"
+  },
+  "weightG": 5000,
+  "productWeightG": 3800,
+  "weightNote": "colis publié par Samsung, 800 x 500 x 114 mm ; poids volumétrique ≈ 7.6 kg si le transporteur facture au volume",
+  "highlights": [
+   "Écran 32\" (80 cm), HD 1366 x 768, LED, 50 Hz",
+   "Smart TV : Tizen"
+  ]
+ },
+ {
+  "id": "tv002",
+  "name": "Téléviseur Samsung 32\" QLED Full HD Q5F (TQ32Q5FA)",
+  "brand": "Samsung",
+  "category": "TV & Maison",
+  "store": "Son-Vidéo",
+  "url": "https://www.son-video.com/article/television-televiseurs-televiseurs-qled/samsung/tq32q5fa",
+  "configs": [
+   {
+    "label": "32\"",
+    "priceEur": 379,
+    "weightG": 5700
+   }
+  ],
+  "specs": {
+   "screen": "32\" (81 cm), Full HD 1920 x 1080, QLED, HDR10+/HLG",
+   "smart": "Tizen",
+   "hdmi": "2 HDMI, 1 USB-A",
+   "other": "Wi-Fi 5, Bluetooth 5.3, 10 W"
+  },
+  "weightG": 5700,
+  "productWeightG": 4100,
+  "weightNote": "colis publié par Son-Vidéo, 800 x 500 x 114 mm ; poids volumétrique ≈ 7.6 kg si le transporteur facture au volume",
+  "highlights": [
+   "Écran 32\" (81 cm), Full HD 1920 x 1080, QLED, HDR10+/HLG",
+   "Smart TV : Tizen"
+  ]
+ },
+ {
+  "id": "tv003",
+  "name": "Téléviseur Samsung 43\" Crystal UHD 4K U8005H (TU43U8005H)",
+  "brand": "Samsung",
+  "category": "TV & Maison",
+  "store": "Samsung",
+  "url": "https://www.samsung.com/fr/tvs/uhd-4k-tv/u8005h-43-inch-crystal-uhd-4k-smart-tv-tu43u8005huxxc/",
+  "configs": [
+   {
+    "label": "43\"",
+    "priceEur": 399,
+    "weightG": 9400
+   }
+  ],
+  "specs": {
+   "screen": "43\" (109 cm), 4K UHD 3840 x 2160, LED Crystal UHD, HDR10+, 50 Hz",
+   "smart": "Tizen (Vision AI)",
+   "hdmi": "3 HDMI (4K 60 Hz, eARC), 1 USB-A",
+   "other": "Wi-Fi 5, Bluetooth 5.3, 20 W, AirPlay, ALLM/VRR, modèle 2026"
+  },
+  "weightG": 9400,
+  "productWeightG": 6700,
+  "weightNote": "colis publié par Samsung, 1065 x 635 x 118 mm ; poids volumétrique ≈ 13.3 kg si le transporteur facture au volume",
+  "highlights": [
+   "Écran 43\" (109 cm), 4K UHD 3840 x 2160, LED Crystal UHD, HDR10+, 50 Hz",
+   "Smart TV : Tizen (Vision AI)"
+  ]
+ },
+ {
+  "id": "tv004",
+  "name": "Téléviseur TCL 43\" QLED 4K P7L (43P7L)",
+  "brand": "TCL",
+  "category": "TV & Maison",
+  "store": "Son-Vidéo",
+  "url": "https://www.son-video.com/article/television-televiseurs-televiseurs-qled/tcl/43p7l",
+  "configs": [
+   {
+    "label": "43\"",
+    "priceEur": 429,
+    "weightG": 9000
+   }
+  ],
+  "specs": {
+   "screen": "43\", 4K UHD 3840 x 2160, QLED (dalle HVA), HDR10+/HLG/Dolby Vision, 60 Hz",
+   "smart": "Google TV",
+   "hdmi": "3 HDMI (4K 60 Hz, dont 1 eARC), USB 2.0 + USB 3.0",
+   "other": "Wi-Fi 5, Bluetooth 5.4, 2 x 10 W, AirPlay 2, modèle 2026"
+  },
+  "weightG": 9000,
+  "productWeightG": 6700,
+  "weightNote": "colis publié par Son-Vidéo, 1075 x 122 x 646 mm ; poids volumétrique ≈ 14.1 kg si le transporteur facture au volume",
+  "highlights": [
+   "Écran 43\", 4K UHD 3840 x 2160, QLED (dalle HVA), HDR10+/HLG/Dolby Vision, 60 Hz",
+   "Smart TV : Google TV"
+  ]
+ },
+ {
+  "id": "tv005",
+  "name": "Téléviseur Hisense 43\" QLED 4K A7S (43A7S)",
+  "brand": "Hisense",
+  "category": "TV & Maison",
+  "store": "Son-Vidéo",
+  "url": "https://www.son-video.com/article/television-televiseurs-televiseurs-qled/hisense/43a7s",
+  "configs": [
+   {
+    "label": "43\"",
+    "priceEur": 399,
+    "weightG": 12200
+   }
+  ],
+  "specs": {
+   "screen": "43\", 4K UHD 3840 x 2160, QLED Direct LED, 60 Hz (120 Hz HSR)",
+   "smart": "VIDAA U9 (Alexa, Vidaa Voice)",
+   "hdmi": "3 HDMI 2.1 (ALLM, VRR, 1 eARC)",
+   "other": "Wi-Fi 5 (2,4/5 GHz), Bluetooth 5.4, 2 x 10 W, modèle 2026"
+  },
+  "weightG": 12200,
+  "productWeightG": 9200,
+  "weightNote": "colis publié par Son-Vidéo, 1076 x 141 x 730 mm ; poids volumétrique ≈ 18.5 kg si le transporteur facture au volume",
+  "highlights": [
+   "Écran 43\", 4K UHD 3840 x 2160, QLED Direct LED, 60 Hz (120 Hz HSR)",
+   "Smart TV : VIDAA U9 (Alexa, Vidaa Voice)"
+  ]
+ },
+ {
+  "id": "tv006",
+  "name": "Téléviseur LG 43\" NanoCell 4K NU85 (43NU850B6)",
+  "brand": "LG",
+  "category": "TV & Maison",
+  "store": "Son-Vidéo",
+  "url": "https://www.son-video.com/article/television-televiseurs-televiseurs-hd/lg/43nu850b6",
+  "configs": [
+   {
+    "label": "43\"",
+    "priceEur": 399,
+    "weightG": 8400
+   }
+  ],
+  "specs": {
+   "screen": "43\", 4K UHD 3840 x 2160, NanoCell, 60 Hz",
+   "smart": "webOS 26",
+   "hdmi": "3 HDMI 2.0 (ARC sur HDMI 2), 1 USB 2.0",
+   "other": "Processeur α7 AI 4K Gen9, Wi-Fi 5, Bluetooth 5.3, 20 W, modèle 2026"
+  },
+  "weightG": 8400,
+  "productWeightG": 6500,
+  "weightNote": "colis publié par Son-Vidéo, 1055 x 660 x 114 mm ; poids volumétrique ≈ 13.2 kg si le transporteur facture au volume",
+  "highlights": [
+   "Écran 43\", 4K UHD 3840 x 2160, NanoCell, 60 Hz",
+   "Smart TV : webOS 26"
+  ]
+ },
+ {
+  "id": "tv007",
+  "name": "Téléviseur Samsung 50\" Crystal UHD 4K U8005H (TU50U8005H)",
+  "brand": "Samsung",
+  "category": "TV & Maison",
+  "store": "Samsung",
+  "url": "https://www.samsung.com/fr/tvs/uhd-4k-tv/u8005h-50-inch-crystal-uhd-4k-smart-tv-tu50u8005huxxc/",
+  "configs": [
+   {
+    "label": "50\"",
+    "priceEur": 479,
+    "weightG": 11700
+   }
+  ],
+  "specs": {
+   "screen": "50\" (127 cm), 4K UHD 3840 x 2160, LED Crystal UHD, HDR10+, 50 Hz",
+   "smart": "Tizen (Vision AI)",
+   "hdmi": "3 HDMI (4K 60 Hz, eARC), 1 USB-A",
+   "other": "Wi-Fi 5, 20 W, modèle 2026"
+  },
+  "weightG": 11700,
+  "productWeightG": 8700,
+  "weightNote": "colis publié par Samsung, 1228 x 743 x 127 mm ; poids volumétrique ≈ 19.3 kg si le transporteur facture au volume",
+  "highlights": [
+   "Écran 50\" (127 cm), 4K UHD 3840 x 2160, LED Crystal UHD, HDR10+, 50 Hz",
+   "Smart TV : Tizen (Vision AI)"
+  ]
+ },
+ {
+  "id": "tv008",
+  "name": "Téléviseur TCL 50\" QLED 4K P7L (50P7L)",
+  "brand": "TCL",
+  "category": "TV & Maison",
+  "store": "Son-Vidéo",
+  "url": "https://www.son-video.com/article/television-televiseurs-televiseurs-qled/tcl/50p7l",
+  "configs": [
+   {
+    "label": "50\"",
+    "priceEur": 489,
+    "weightG": 12100
+   }
+  ],
+  "specs": {
+   "screen": "50\", 4K UHD 3840 x 2160, QLED (dalle HVA), HDR10+/HLG/Dolby Vision, 60 Hz",
+   "smart": "Google TV",
+   "hdmi": "3 HDMI (4K 60 Hz, dont 1 eARC), USB 2.0 + USB 3.0",
+   "other": "Wi-Fi 5, Bluetooth 5.4, 2 x 10 W, AirPlay 2, modèle 2026"
+  },
+  "weightG": 12100,
+  "productWeightG": 8900,
+  "weightNote": "colis publié par Son-Vidéo, 1265 x 135 x 775 mm ; poids volumétrique ≈ 22.1 kg si le transporteur facture au volume",
+  "highlights": [
+   "Écran 50\", 4K UHD 3840 x 2160, QLED (dalle HVA), HDR10+/HLG/Dolby Vision, 60 Hz",
+   "Smart TV : Google TV"
+  ]
+ },
+ {
+  "id": "tv009",
+  "name": "Téléviseur Hisense 50\" QLED 4K A7S (50A7S)",
+  "brand": "Hisense",
+  "category": "TV & Maison",
+  "store": "Son-Vidéo",
+  "url": "https://www.son-video.com/article/television-televiseurs-televiseurs-qled/hisense/50a7s",
+  "configs": [
+   {
+    "label": "50\"",
+    "priceEur": 549,
+    "weightG": 15100
+   }
+  ],
+  "specs": {
+   "screen": "50\", 4K UHD 3840 x 2160, QLED Direct LED, 60 Hz (120 Hz HSR)",
+   "smart": "VIDAA U9 (Alexa, Vidaa Voice)",
+   "hdmi": "3 HDMI 2.1 (ALLM, VRR, 1 eARC)",
+   "other": "Wi-Fi 5, Bluetooth 5.4, 2 x 10 W, modèle 2026"
+  },
+  "weightG": 15100,
+  "productWeightG": 10800,
+  "weightNote": "colis publié par Son-Vidéo, 1265 x 142 x 799 mm ; poids volumétrique ≈ 23.9 kg si le transporteur facture au volume",
+  "highlights": [
+   "Écran 50\", 4K UHD 3840 x 2160, QLED Direct LED, 60 Hz (120 Hz HSR)",
+   "Smart TV : VIDAA U9 (Alexa, Vidaa Voice)"
+  ]
+ },
+ {
+  "id": "tv010",
+  "name": "Téléviseur Samsung 55\" Crystal UHD 4K U8005H (TU55U8005H)",
+  "brand": "Samsung",
+  "category": "TV & Maison",
+  "store": "Samsung",
+  "url": "https://www.samsung.com/fr/tvs/uhd-4k-tv/u8000h-55-inch-crystal-uhd-4k-smart-tv-tu55u8005huxxc/",
+  "configs": [
+   {
+    "label": "55\"",
+    "priceEur": 529,
+    "weightG": 14500
+   }
+  ],
+  "specs": {
+   "screen": "55\" (140 cm), 4K UHD 3840 x 2160, LED Crystal UHD, HDR10+, 50 Hz",
+   "smart": "Tizen (Vision AI)",
+   "hdmi": "3 HDMI (4K 60 Hz, eARC), 1 USB-A",
+   "other": "Wi-Fi 5, 20 W, modèle 2026"
+  },
+  "weightG": 14500,
+  "productWeightG": 10200,
+  "weightNote": "colis publié par Samsung, 1354 x 810 x 127 mm ; poids volumétrique ≈ 23.2 kg si le transporteur facture au volume",
+  "highlights": [
+   "Écran 55\" (140 cm), 4K UHD 3840 x 2160, LED Crystal UHD, HDR10+, 50 Hz",
+   "Smart TV : Tizen (Vision AI)"
+  ]
+ },
+ {
+  "id": "tv011",
+  "name": "Téléviseur TCL 55\" QLED 4K P7L (55P7L)",
+  "brand": "TCL",
+  "category": "TV & Maison",
+  "store": "Son-Vidéo",
+  "url": "https://www.son-video.com/article/television-televiseurs-televiseurs-qled/tcl/55p7l",
+  "configs": [
+   {
+    "label": "55\"",
+    "priceEur": 599,
+    "weightG": 14200
+   }
+  ],
+  "specs": {
+   "screen": "55\", 4K UHD 3840 x 2160, QLED (dalle HVA), HDR10+/HLG/Dolby Vision, 60 Hz (VRR 48-144 Hz / DLG 144 Hz)",
+   "smart": "Google TV",
+   "hdmi": "3 HDMI (4K 60 Hz, dont 1 eARC), USB 2.0 + USB 3.0",
+   "other": "Wi-Fi 5, Bluetooth 5.4, 2 x 10 W, AirPlay 2, modèle 2026"
+  },
+  "weightG": 14200,
+  "productWeightG": 10700,
+  "weightNote": "colis publié par Son-Vidéo, 1360 x 128 x 830 mm ; poids volumétrique ≈ 24.1 kg si le transporteur facture au volume",
+  "highlights": [
+   "Écran 55\", 4K UHD 3840 x 2160, QLED (dalle HVA), HDR10+/HLG/Dolby Vision, 60 Hz (VRR 48-144 Hz / DLG 144 Hz)",
+   "Smart TV : Google TV"
+  ]
+ },
+ {
+  "id": "tv012",
+  "name": "Téléviseur LG 55\" NanoCell 4K NU85 (55NU850B6)",
+  "brand": "LG",
+  "category": "TV & Maison",
+  "store": "Son-Vidéo",
+  "url": "https://www.son-video.com/article/television-televiseurs-televiseurs-hd/lg/55nu850b6",
+  "configs": [
+   {
+    "label": "55\"",
+    "priceEur": 499,
+    "weightG": 12600
+   }
+  ],
+  "specs": {
+   "screen": "55\", 4K UHD 3840 x 2160, NanoCell, 60 Hz",
+   "smart": "webOS 26",
+   "hdmi": "3 HDMI 2.0 (ARC sur HDMI 2), 1 USB 2.0",
+   "other": "Processeur α7 AI 4K Gen9, Wi-Fi 5, Bluetooth 5.3, 20 W, modèle 2026"
+  },
+  "weightG": 12600,
+  "productWeightG": 9600,
+  "weightNote": "colis publié par Son-Vidéo, 1356 x 805 x 120 mm ; poids volumétrique ≈ 21.8 kg si le transporteur facture au volume",
+  "highlights": [
+   "Écran 55\", 4K UHD 3840 x 2160, NanoCell, 60 Hz",
+   "Smart TV : webOS 26"
+  ]
+ },
+ {
+  "id": "md001",
+  "name": "IKEA KNARREVIK table de chevet",
+  "brand": "IKEA",
+  "category": "Maison & déco",
+  "store": "IKEA",
+  "url": "https://www.ikea.com/fr/fr/p/knarrevik-table-chevet-noir-00576318/",
+  "optionName": "Version",
+  "configs": [
+   {
+    "label": "Noir",
+    "priceEur": 12.99,
+    "weightG": 2850
+   }
+  ],
+  "specs": {
+   "dimensions": "Largeur 37 cm, Profondeur 28 cm, Hauteur 45 cm",
+   "material": "acier, revêtement époxy/polyester (poudre)",
+   "assembly": "à monter (notice de montage IKEA fournie)",
+   "other": "Uniquement pour une utilisation à l'intérieur."
+  },
+  "weightG": 2850,
+  "productWeightG": null,
+  "weightNote": "colis publié par IKEA",
+  "highlights": [
+   "Dimensions : Largeur 37 cm, Profondeur 28 cm, Hauteur 45 cm",
+   "Montage : à monter (notice de montage IKEA fournie)"
+  ]
+ },
+ {
+  "id": "md002",
+  "name": "IKEA HATTÅSEN table de chevet / étagère",
+  "brand": "IKEA",
+  "category": "Maison & déco",
+  "store": "IKEA",
+  "url": "https://www.ikea.com/fr/fr/p/hattasen-table-de-chevet-etagere-blanc-80569234/",
+  "optionName": "Version",
+  "configs": [
+   {
+    "label": "Blanc",
+    "priceEur": 24.99,
+    "weightG": 3160
+   }
+  ],
+  "specs": {
+   "dimensions": "Profondeur 43 cm, Largeur 27 cm, Hauteur 58 cm",
+   "material": "acier, acier, revêtement époxy/polyester (poudre); polypropylène",
+   "assembly": "à monter (notice de montage IKEA fournie)",
+   "other": null
+  },
+  "weightG": 3160,
+  "productWeightG": null,
+  "weightNote": "colis publié par IKEA",
+  "highlights": [
+   "Dimensions : Profondeur 43 cm, Largeur 27 cm, Hauteur 58 cm",
+   "Montage : à monter (notice de montage IKEA fournie)"
+  ]
+ },
+ {
+  "id": "md003",
+  "name": "IKEA GLADOM table / plateau",
+  "brand": "IKEA",
+  "category": "Maison & déco",
+  "store": "IKEA",
+  "url": "https://www.ikea.com/fr/fr/p/gladom-table-plateau-blanc-70337819/",
+  "optionName": "Couleur",
+  "configs": [
+   {
+    "label": "Blanc",
+    "priceEur": 14.99,
+    "weightG": 3640
+   },
+   {
+    "label": "Noir",
+    "priceEur": 14.99,
+    "weightG": 3380
+   },
+   {
+    "label": "Bleu clair",
+    "priceEur": 14.99,
+    "weightG": 3380
+   },
+   {
+    "label": "Gris-vert foncé",
+    "priceEur": 14.99,
+    "weightG": 3340
+   }
+  ],
+  "specs": {
+   "dimensions": "Hauteur 53 cm, Diamètre 45 cm, Charge max. 10 kg",
+   "material": "acier, revêtement époxy/polyester (poudre)",
+   "assembly": "à monter (notice de montage IKEA fournie)",
+   "other": "Uniquement pour une utilisation à l'intérieur. Le trou sur le bord du plateau est essentiel au processus de fabrication. Charge max. sur plateau de la table : 10 kg."
+  },
+  "weightG": 3640,
+  "productWeightG": null,
+  "weightNote": "colis publié par IKEA",
+  "highlights": [
+   "Dimensions : Hauteur 53 cm, Diamètre 45 cm, Charge max. 10 kg",
+   "Montage : à monter (notice de montage IKEA fournie)"
+  ]
+ },
+ {
+  "id": "md004",
+  "name": "IKEA LACK table d'appoint",
+  "brand": "IKEA",
+  "category": "Maison & déco",
+  "store": "IKEA",
+  "url": "https://www.ikea.com/fr/fr/p/lack-table-dappoint-blanc-30514791/",
+  "optionName": "Version",
+  "configs": [
+   {
+    "label": "Blanc, 35x35 cm",
+    "priceEur": 6.99,
+    "weightG": 1960
+   },
+   {
+    "label": "Blanc, 55x55 cm",
+    "priceEur": 9.99,
+    "weightG": 3590
+   },
+   {
+    "label": "Brun-noir, 55x55 cm",
+    "priceEur": 9.99,
+    "weightG": 3590
+   },
+   {
+    "label": "Effet chêne blanchi, 55x55 cm",
+    "priceEur": 9.99,
+    "weightG": 3590
+   }
+  ],
+  "specs": {
+   "dimensions": "Blanc, 35x35 cm: Longueur 35 cm, Largeur 35 cm, Hauteur 35 cm, Charge max. 10 kg | Blanc, 55x55 cm: Longueur 55 cm, Largeur 55 cm, Hauteur 45 cm, Charge max. 10 kg | Brun-noir, 55x55 cm: Longueur 55 cm, Largeur 55 cm, Hauteur 45 cm, Charge max. 10 kg | Effet chêne blanchi, 55x55 cm: Longueur 55 cm, Largeur 55 cm, Hauteur 45 cm, Charge max. 10 kg",
+   "material": "Panneau de particules, Panneau de fibres de bois, papier métallisé; Panneau de particules, Carton nid d'abeille (100 % recyclé), Panneau de fibres de bois, peinture acrylique, Bord en plastique; Panneau de particules, peinture acrylique, Feuille de mélamine, vernis acrylique incolore, Feuille de mélamine, Bord en plastique, Bord en plastique; Panneau de particules, Carton nid d'abeille (100 % recyclé), Panneau de fibres de bois, Peinture acrylique imprimée et en relief, Bord en plastique; Panneau de particules, Panneau de fibres de bois, Bord en plastique, Peinture acrylique imprimée et en relief, vernis acrylique incolore; Carton nid d'abeille (min. 70 % recyclé)",
+   "assembly": "à monter (notice de montage IKEA fournie)",
+   "other": "Charge max. sur plateau de la table : 10 kg. Table LACK 55x55 cm vendu séparément. Table LACK 35x35 cm vendu séparément. Peut se coordonner aux autres produits de la série LACK."
+  },
+  "weightG": 3590,
+  "productWeightG": null,
+  "weightNote": "colis publié par IKEA",
+  "highlights": [
+   "Dimensions : Blanc, 35x35 cm: Longueur 35 cm, Largeur 35 cm, Hauteur 35 cm, Charge max. 10 kg | Blanc, 55x55 cm: Longueur 55 cm, Largeur 55 cm, Hauteur 45 cm, Charge max. 10 kg | Brun-noir, 55x55 cm: Longueur 55 cm, Largeur 55 cm, Hauteur 45 cm, Charge max. 10 kg | Effet chêne blanchi, 55x55 cm: Longueur 55 cm, Largeur 55 cm, Hauteur 45 cm, Charge max. 10 kg",
+   "Montage : à monter (notice de montage IKEA fournie)"
+  ]
+ },
+ {
+  "id": "md005",
+  "name": "IKEA SOLUPPGÅNG table pliante",
+  "brand": "IKEA",
+  "category": "Maison & déco",
+  "store": "IKEA",
+  "url": "https://www.ikea.com/fr/fr/p/soluppgang-table-pliante-eucalyptus-70621299/",
+  "optionName": "Version",
+  "configs": [
+   {
+    "label": "Eucalyptus",
+    "priceEur": 39.99,
+    "weightG": 5380
+   }
+  ],
+  "specs": {
+   "dimensions": "Hauteur 42 cm, Longueur 82 cm, Profondeur 45 cm",
+   "material": "Eucalyptus massif, Teinture acrylique; Plastique polyamide; acier, Revêtement polyester en poudre; caoutchouc synthétique",
+   "assembly": "à monter (notice de montage IKEA fournie)",
+   "other": null
+  },
+  "weightG": 5380,
+  "productWeightG": null,
+  "weightNote": "colis publié par IKEA",
+  "highlights": [
+   "Dimensions : Hauteur 42 cm, Longueur 82 cm, Profondeur 45 cm",
+   "Montage : à monter (notice de montage IKEA fournie)"
+  ]
+ },
+ {
+  "id": "md006",
+  "name": "IKEA LACK étagère murale",
+  "brand": "IKEA",
+  "category": "Maison & déco",
+  "store": "IKEA",
+  "url": "https://www.ikea.com/fr/fr/p/lack-etagere-murale-blanc-50282177/",
+  "optionName": "Version",
+  "configs": [
+   {
+    "label": "Blanc, 30x26 cm",
+    "priceEur": 5.99,
+    "weightG": 850
+   },
+   {
+    "label": "Brun-noir, 30x26 cm",
+    "priceEur": 7.99,
+    "weightG": 850
+   },
+   {
+    "label": "Effet chêne blanchi, 30x26 cm",
+    "priceEur": 7.99,
+    "weightG": 850
+   },
+   {
+    "label": "Rouge, 30x26 cm",
+    "priceEur": 7.99,
+    "weightG": 850
+   },
+   {
+    "label": "Blanc, 110x26 cm",
+    "priceEur": 14.99,
+    "weightG": 3450
+   },
+   {
+    "label": "Brun-noir, 110x26 cm",
+    "priceEur": 16.99,
+    "weightG": 3450
+   },
+   {
+    "label": "Bleu noir, 110x26 cm",
+    "priceEur": 16.99,
+    "weightG": 3350
+   },
+   {
+    "label": "Brun motif noyer, 110x26 cm",
+    "priceEur": 16.99,
+    "weightG": 3200
+   },
+   {
+    "label": "Effet chêne blanchi, 110x26 cm",
+    "priceEur": 16.99,
+    "weightG": 3200
+   }
+  ],
+  "specs": {
+   "dimensions": "Blanc, 30x26 cm: Longueur 30 cm, Profondeur 26 cm, Hauteur 5 cm, Charge max. 3 kg | Brun-noir, 30x26 cm: Longueur 30 cm, Profondeur 26 cm, Hauteur 5 cm, Charge max. 3 kg | Effet chêne blanchi, 30x26 cm: Longueur 30 cm, Profondeur 26 cm, Hauteur 5 cm, Charge max. 3 kg | Rouge, 30x26 cm: Longueur 30 cm, Profondeur 26 cm, Hauteur 5 cm, Charge max. 3 kg | Blanc, 110x26 cm: Longueur 110 cm, Profondeur 26 cm, Epaisseur 5 cm, Charge max. 10 kg | Brun-noir, 110x26 cm: Longueur 110 cm, Profondeur 26 cm, Epaisseur 5 cm, Charge max. 10 kg | Bleu noir, 110x26 cm: Longueur 110 cm, Profondeur 26 cm, Epaisseur 5 cm, Charge max. 10 kg | Brun motif noyer, 110x26 cm: Longueur 110 cm, Profondeur 26 cm, Epaisseur 5 cm, Charge max. 10 kg | Effet chêne blanchi, 110x26 cm: Largeur 110 cm, Profondeur 26 cm, Epaisseur 5 cm, Charge max. 10 kg",
+   "material": "Panneau de particules, Panneau de fibres de bois, Bord en plastique, Bord en plastique, peinture acrylique; Carton nid d'abeille (min. 70 % recyclé); Panneau de particules, Panneau de fibres de bois, Bord en plastique, vernis acrylique incolore; Carton nid d'abeille (100 % recyclé); acier, acier, revêtement époxy/polyester (poudre); Panneau de particules, Panneau de fibres de bois, Bord en plastique, Peinture acrylique imprimée et en relief, vernis acrylique incolore; Panneau de particules, Panneau de fibres de bois, Bord en plastique, Bord en plastique, papier métallisé",
+   "assembly": "à monter (notice de montage IKEA fournie)",
+   "other": "Consoles de fixation cachées incluses Charge max. 3 kg en fonction du type de mur et de fixation. Peut être combiné avec d'autres produits de la série LACK. Peut se coordonner aux autres produits de la série LACK."
+  },
+  "weightG": 3450,
+  "productWeightG": null,
+  "weightNote": "colis publié par IKEA",
+  "highlights": [
+   "Dimensions : Blanc, 30x26 cm: Longueur 30 cm, Profondeur 26 cm, Hauteur 5 cm, Charge max. 3 kg | Brun-noir, 30x26 cm: Longueur 30 cm, Profondeur 26 cm, Hauteur 5 cm, Charge max. 3 kg | Effet chêne blanchi, 30x26 cm: Longueur 30 cm, Profondeur 26 cm, Hauteur 5 cm, Charge max. 3 kg | Rouge, 30x26 cm: Longueur 30 cm, Profondeur 26 cm, Hauteur 5 cm, Charge max. 3 kg | Blanc, 110x26 cm: Longueur 110 cm, Profondeur 26 cm, Epaisseur 5 cm, Charge max. 10 kg | Brun-noir, 110x26 cm: Longueur 110 cm, Profondeur 26 cm, Epaisseur 5 cm, Charge max. 10 kg | Bleu noir, 110x26 cm: Longueur 110 cm, Profondeur 26 cm, Epaisseur 5 cm, Charge max. 10 kg | Brun motif noyer, 110x26 cm: Longueur 110 cm, Profondeur 26 cm, Epaisseur 5 cm, Charge max. 10 kg | Effet chêne blanchi, 110x26 cm: Largeur 110 cm, Profondeur 26 cm, Epaisseur 5 cm, Charge max. 10 kg",
+   "Montage : à monter (notice de montage IKEA fournie)"
+  ]
+ },
+ {
+  "id": "md007",
+  "name": "IKEA MOSSLANDA tablette pour photos",
+  "brand": "IKEA",
+  "category": "Maison & déco",
+  "store": "IKEA",
+  "url": "https://www.ikea.com/fr/fr/p/mosslanda-tablette-pour-photos-blanc-40291766/",
+  "optionName": "Version",
+  "configs": [
+   {
+    "label": "Blanc, 55 cm",
+    "priceEur": 5.99,
+    "weightG": 920
+   },
+   {
+    "label": "Motif chêne, 55 cm",
+    "priceEur": 5.99,
+    "weightG": 920
+   },
+   {
+    "label": "Motif noyer, 55 cm",
+    "priceEur": 5.99,
+    "weightG": 920
+   },
+   {
+    "label": "Blanc, 115 cm",
+    "priceEur": 9.99,
+    "weightG": 1910
+   },
+   {
+    "label": "Motif chêne, 115 cm",
+    "priceEur": 9.99,
+    "weightG": 1910
+   }
+  ],
+  "specs": {
+   "dimensions": "Blanc, 55 cm: Longueur 55 cm, Profondeur 12 cm, Charge max. 5.00 kg | Motif chêne, 55 cm: Longueur 55 cm, Profondeur 12 cm, Charge max. 5.00 kg | Motif noyer, 55 cm: Longueur 55 cm, Profondeur 12 cm, Charge max. 5.00 kg | Blanc, 115 cm: Longueur 115 cm, Profondeur 12 cm, Charge max. 7.50 kg | Motif chêne, 115 cm: Longueur 115 cm, Profondeur 12 cm, Charge max. 7.50 kg",
+   "material": "Panneau de fibres de bois, papier métallisé",
+   "assembly": "à monter (notice de montage IKEA fournie)",
+   "other": "Ne sont pas inclus les vis ni les autres éléments nécessaires pour fixer votre solution au mur (comme les chevilles par exemple). Le type de fixation dépend du matériau du support. Choisissez vos fixations en fonction de vos murs (vendues séparément). Peut être complété par des vis/fixations adaptées de la série TRIXIG."
+  },
+  "weightG": 1910,
+  "productWeightG": null,
+  "weightNote": "colis publié par IKEA",
+  "highlights": [
+   "Dimensions : Blanc, 55 cm: Longueur 55 cm, Profondeur 12 cm, Charge max. 5.00 kg | Motif chêne, 55 cm: Longueur 55 cm, Profondeur 12 cm, Charge max. 5.00 kg | Motif noyer, 55 cm: Longueur 55 cm, Profondeur 12 cm, Charge max. 5.00 kg | Blanc, 115 cm: Longueur 115 cm, Profondeur 12 cm, Charge max. 7.50 kg | Motif chêne, 115 cm: Longueur 115 cm, Profondeur 12 cm, Charge max. 7.50 kg",
+   "Montage : à monter (notice de montage IKEA fournie)"
+  ]
+ },
+ {
+  "id": "md008",
+  "name": "IKEA FJÄLLBO étagère murale",
+  "brand": "IKEA",
+  "category": "Maison & déco",
+  "store": "IKEA",
+  "url": "https://www.ikea.com/fr/fr/p/fjaellbo-etagere-murale-noir-80421247/",
+  "optionName": "Version",
+  "configs": [
+   {
+    "label": "Noir",
+    "priceEur": 29.99,
+    "weightG": 3100
+   }
+  ],
+  "specs": {
+   "dimensions": "Largeur 101 cm, Profondeur 20 cm, Hauteur 21 cm, Charge max. 15 kg",
+   "material": "acier, revêtement époxy/polyester (poudre); Pin massif, Teinté, vernis acrylique incolore, vernis acrylique incolore",
+   "assembly": "à monter (notice de montage IKEA fournie)",
+   "other": "Vis pour étagère murale vendues séparément. Peut être combiné à d'autres produits de la série FJÄLLBO. Vis pour fixation murale vendues séparément."
+  },
+  "weightG": 3100,
+  "productWeightG": null,
+  "weightNote": "colis publié par IKEA",
+  "highlights": [
+   "Dimensions : Largeur 101 cm, Profondeur 20 cm, Hauteur 21 cm, Charge max. 15 kg",
+   "Montage : à monter (notice de montage IKEA fournie)"
+  ]
+ },
+ {
+  "id": "md009",
+  "name": "IKEA RÅSKOG desserte",
+  "brand": "IKEA",
+  "category": "Maison & déco",
+  "store": "IKEA",
+  "url": "https://www.ikea.com/fr/fr/p/raskog-desserte-blanc-00586789/",
+  "optionName": "Version",
+  "configs": [
+   {
+    "label": "Blanc, petite 28x38x61 cm",
+    "priceEur": 24.99,
+    "weightG": 4860
+   },
+   {
+    "label": "Noir, petite 28x38x61 cm",
+    "priceEur": 24.99,
+    "weightG": 4860
+   },
+   {
+    "label": "Gris vert, petite 28x38x61 cm",
+    "priceEur": 24.99,
+    "weightG": 4860
+   },
+   {
+    "label": "Brun-rouge, petite 28x38x61 cm",
+    "priceEur": 24.99,
+    "weightG": 4680
+   },
+   {
+    "label": "Blanc, 35x45x77 cm",
+    "priceEur": 29.99,
+    "weightG": 6830
+   },
+   {
+    "label": "Noir, 35x45x77 cm",
+    "priceEur": 29.99,
+    "weightG": 6830
+   },
+   {
+    "label": "Gris vert, 35x45x77 cm",
+    "priceEur": 29.99,
+    "weightG": 6830
+   },
+   {
+    "label": "Brun-rouge, 35x45x77 cm",
+    "priceEur": 29.99,
+    "weightG": 6400
+   }
+  ],
+  "specs": {
+   "dimensions": "Blanc, petite 28x38x61 cm: Hauteur 61 cm, Longueur 28 cm, charge/étagère 4 kg, Charge max. 12 kg, Largeur 38 cm | Noir, petite 28x38x61 cm: Hauteur 61 cm, Longueur 28 cm, charge/étagère 4 kg, Charge max. 12 kg, Largeur 38 cm | Gris vert, petite 28x38x61 cm: Hauteur 61 cm, Longueur 28 cm, charge/étagère 4 kg, Charge max. 12 kg, Largeur 38 cm | Brun-rouge, petite 28x38x61 cm: Hauteur 61 cm, Longueur 28 cm, charge/étagère 4 kg, Charge max. 12 kg, Largeur 38 cm | Blanc, 35x45x77 cm: Hauteur 77 cm, Longueur 35 cm, charge/étagère 6 kg, Charge max. 18 kg, Largeur 45 cm | Noir, 35x45x77 cm: Hauteur 77 cm, Longueur 35 cm, charge/étagère 6 kg, Charge max. 18 kg, Largeur 45 cm | Gris vert, 35x45x77 cm: Hauteur 77 cm, Longueur 35 cm, charge/étagère 6 kg, Charge max. 18 kg, Largeur 45 cm | Brun-rouge, 35x45x77 cm: Hauteur 77 cm, Longueur 35 cm, charge/étagère 6 kg, Charge max. 18 kg, Largeur 45 cm",
+   "material": "acier, revêtement époxy (poudre)",
+   "assembly": "à monter (notice de montage IKEA fournie)",
+   "other": "Charge max./tablette : 4 kg. Pour usage intérieur. Non approuvé pour le contact alimentaire. Charge max. par tablette : 6 kg"
+  },
+  "weightG": 6830,
+  "productWeightG": null,
+  "weightNote": "colis publié par IKEA",
+  "highlights": [
+   "Dimensions : Blanc, petite 28x38x61 cm: Hauteur 61 cm, Longueur 28 cm, charge/étagère 4 kg, Charge max. 12 kg, Largeur 38 cm | Noir, petite 28x38x61 cm: Hauteur 61 cm, Longueur 28 cm, charge/étagère 4 kg, Charge max. 12 kg, Largeur 38 cm | Gris vert, petite 28x38x61 cm: Hauteur 61 cm, Longueur 28 cm, charge/étagère 4 kg, Charge max. 12 kg, Largeur 38 cm | Brun-rouge, petite 28x38x61 cm: Hauteur 61 cm, Longueur 28 cm, charge/étagère 4 kg, Charge max. 12 kg, Largeur 38 cm | Blanc, 35x45x77 cm: Hauteur 77 cm, Longueur 35 cm, charge/étagère 6 kg, Charge max. 18 kg, Largeur 45 cm | Noir, 35x45x77 cm: Hauteur 77 cm, Longueur 35 cm, charge/étagère 6 kg, Charge max. 18 kg, Largeur 45 cm | Gris vert, 35x45x77 cm: Hauteur 77 cm, Longueur 35 cm, charge/étagère 6 kg, Charge max. 18 kg, Largeur 45 cm | Brun-rouge, 35x45x77 cm: Hauteur 77 cm, Longueur 35 cm, charge/étagère 6 kg, Charge max. 18 kg, Largeur 45 cm",
+   "Montage : à monter (notice de montage IKEA fournie)"
+  ]
+ },
+ {
+  "id": "md010",
+  "name": "IKEA VESKEN chariot",
+  "brand": "IKEA",
+  "category": "Maison & déco",
+  "store": "IKEA",
+  "url": "https://www.ikea.com/fr/fr/p/vesken-chariot-blanc-00471222/",
+  "optionName": "Couleur",
+  "configs": [
+   {
+    "label": "Blanc",
+    "priceEur": 7.99,
+    "weightG": 1750
+   },
+   {
+    "label": "Noir",
+    "priceEur": 7.99,
+    "weightG": 1730
+   }
+  ],
+  "specs": {
+   "dimensions": "Largeur 54 cm, Profondeur 18 cm, Hauteur 71 cm, Charge max. 6 kg",
+   "material": "plastique polypropylène (min. 50 % recyclé); Polypropylène (minimum 50 % recyclé)",
+   "assembly": "à monter (notice de montage IKEA fournie)",
+   "other": "Peut être complété par les autres produits de la série VESKEN."
+  },
+  "weightG": 1750,
+  "productWeightG": null,
+  "weightNote": "colis publié par IKEA",
+  "highlights": [
+   "Dimensions : Largeur 54 cm, Profondeur 18 cm, Hauteur 71 cm, Charge max. 6 kg",
+   "Montage : à monter (notice de montage IKEA fournie)"
+  ]
+ },
+ {
+  "id": "md011",
+  "name": "IKEA KUGGIS rangement 8 compartiments",
+  "brand": "IKEA",
+  "category": "Maison & déco",
+  "store": "IKEA",
+  "url": "https://www.ikea.com/fr/fr/p/kuggis-rangement-8-compartiments-blanc-00280208/",
+  "optionName": "Version",
+  "configs": [
+   {
+    "label": "Blanc",
+    "priceEur": 10,
+    "weightG": 1110
+   }
+  ],
+  "specs": {
+   "dimensions": "Longueur 53 cm, Largeur 36 cm, Hauteur 6 cm",
+   "material": "plastique PET (min. 50 % recyclé)",
+   "assembly": "prêt à l'emploi",
+   "other": "Convient à la boîte avec couvercle KUGGIS, 37x54x21 cm."
+  },
+  "weightG": 1110,
+  "productWeightG": null,
+  "weightNote": "colis publié par IKEA",
+  "highlights": [
+   "Dimensions : Longueur 53 cm, Largeur 36 cm, Hauteur 6 cm",
+   "Montage : prêt à l'emploi"
+  ]
+ },
+ {
+  "id": "md012",
+  "name": "IKEA FADO lampe de table",
+  "brand": "IKEA",
+  "category": "Maison & déco",
+  "store": "IKEA",
+  "url": "https://www.ikea.com/fr/fr/p/fado-lampe-de-table-blanc-80096372/",
+  "optionName": "Couleur",
+  "configs": [
+   {
+    "label": "Blanc (verre opalin)",
+    "priceEur": 19.99,
+    "weightG": 1200
+   },
+   {
+    "label": "Rose / verre",
+    "priceEur": 24.99,
+    "weightG": 1430
+   }
+  ],
+  "specs": {
+   "dimensions": "Max. 75 W, Hauteur 24 cm, Diamètre 25 cm, Longueur fil électrique 1.8 m",
+   "material": "polypropylène; verre",
+   "assembly": "à monter (notice de montage IKEA fournie)",
+   "other": "Ampoule vendue séparément. IKEA recommande l'ampoule LED E27 globe opalin, blanc. Utilisez une ampoule opale dans le cas d'un luminaire courant si vous souhaitez une diffusion uniforme de la lumière. En choisissant une ampoule connectée pour votre lampe, vous pouvez modifier la couleur et varier l'intensité de la lumière."
+  },
+  "weightG": 1430,
+  "productWeightG": null,
+  "weightNote": "colis publié par IKEA",
+  "highlights": [
+   "Dimensions : Max. 75 W, Hauteur 24 cm, Diamètre 25 cm, Longueur fil électrique 1.8 m",
+   "Montage : à monter (notice de montage IKEA fournie)"
+  ]
+ },
+ {
+  "id": "md013",
+  "name": "IKEA LAMPAN lampe de table",
+  "brand": "IKEA",
+  "category": "Maison & déco",
+  "store": "IKEA",
+  "url": "https://www.ikea.com/fr/fr/p/lampan-lampe-de-table-blanc-20046988/",
+  "optionName": "Version",
+  "configs": [
+   {
+    "label": "Blanc",
+    "priceEur": 4.99,
+    "weightG": 320
+   }
+  ],
+  "specs": {
+   "dimensions": "Max. 40 W, Hauteur 29 cm, Diamètre du pied 13 cm, Diam. abat-jour 19 cm, Longueur fil électrique 130 cm",
+   "material": "plastique polypropylène (min. 50 % recyclé); Polystyrène; Plastique polycarbonate, Polystyrène, polypropylène",
+   "assembly": "à monter (notice de montage IKEA fournie)",
+   "other": "Ampoule vendue séparément. IKEA recommande l'ampoule LED E14 globe opalin, blanc. Utilisez une ampoule opale dans le cas d'un luminaire courant si vous souhaitez une diffusion uniforme de la lumière. Utilisez une ampoule transparente si votre luminaire comporte un abat-jour perforé, ajouré ou très découpé et que vous souhaitez que des motifs soit projetés sur les murs et le plafond."
+  },
+  "weightG": 320,
+  "productWeightG": null,
+  "weightNote": "colis publié par IKEA",
+  "highlights": [
+   "Dimensions : Max. 40 W, Hauteur 29 cm, Diamètre du pied 13 cm, Diam. abat-jour 19 cm, Longueur fil électrique 130 cm",
+   "Montage : à monter (notice de montage IKEA fournie)"
+  ]
+ },
+ {
+  "id": "md014",
+  "name": "IKEA TÄRNABY lampe de table (intensité réglable)",
+  "brand": "IKEA",
+  "category": "Maison & déco",
+  "store": "IKEA",
+  "url": "https://www.ikea.com/fr/fr/p/taernaby-lampe-de-table-intensite-lumineuse-reglable-anthracite-60323894/",
+  "optionName": "Couleur",
+  "configs": [
+   {
+    "label": "Anthracite",
+    "priceEur": 19.99,
+    "weightG": 910
+   },
+   {
+    "label": "Beige",
+    "priceEur": 19.99,
+    "weightG": 910
+   },
+   {
+    "label": "Jaune foncé",
+    "priceEur": 19.99,
+    "weightG": 910
+   }
+  ],
+  "specs": {
+   "dimensions": "Max. 6.0 W, largeur abat-jour 10 cm, Hauteur 25 cm, Diamètre du pied 15 cm, Longueur fil électrique 1.8 m",
+   "material": "acier, Revêtement (poudre); acier inoxydable, Nickelé, revêtement acrylique; acier, Nickelé, revêtement acrylique; verre",
+   "assembly": "à monter (notice de montage IKEA fournie)",
+   "other": "Ampoule vendue séparément. IKEA recommande l'ampoule LED E14, intensité réglable, flamme, verre transparent brun. S’utilise uniquement avec les ampoules dotées d’un variateur d’intensité."
+  },
+  "weightG": 910,
+  "productWeightG": null,
+  "weightNote": "colis publié par IKEA",
+  "highlights": [
+   "Dimensions : Max. 6.0 W, largeur abat-jour 10 cm, Hauteur 25 cm, Diamètre du pied 15 cm, Longueur fil électrique 1.8 m",
+   "Montage : à monter (notice de montage IKEA fournie)"
+  ]
+ },
+ {
+  "id": "md015",
+  "name": "IKEA TÅGARP lampadaire",
+  "brand": "IKEA",
+  "category": "Maison & déco",
+  "store": "IKEA",
+  "url": "https://www.ikea.com/fr/fr/p/tagarp-lampadaire-noir-blanc-20404095/",
+  "optionName": "Version",
+  "configs": [
+   {
+    "label": "Noir / blanc",
+    "priceEur": 9.99,
+    "weightG": 2590
+   }
+  ],
+  "specs": {
+   "dimensions": "Max. 13 W, Hauteur 180 cm, Diamètre du pied 21 cm, Diam. abat-jour 24 cm, Longueur fil électrique 80 cm",
+   "material": "béton; plastique polypropylène (min. 20 % recyclé); acier, peinture laque; polypropylène",
+   "assembly": "à monter (notice de montage IKEA fournie)",
+   "other": "Ampoule vendue séparément. IKEA recommande l'ampoule LED E27 globe opalin, blanc."
+  },
+  "weightG": 2590,
+  "productWeightG": null,
+  "weightNote": "colis publié par IKEA",
+  "highlights": [
+   "Dimensions : Max. 13 W, Hauteur 180 cm, Diamètre du pied 21 cm, Diam. abat-jour 24 cm, Longueur fil électrique 80 cm",
+   "Montage : à monter (notice de montage IKEA fournie)"
+  ]
+ },
+ {
+  "id": "md016",
+  "name": "IKEA LAUTERS lampadaire",
+  "brand": "IKEA",
+  "category": "Maison & déco",
+  "store": "IKEA",
+  "url": "https://www.ikea.com/fr/fr/p/lauters-lampadaire-frene-blanc-30405042/",
+  "optionName": "Version",
+  "configs": [
+   {
+    "label": "Frêne / blanc",
+    "priceEur": 49.99,
+    "weightG": 3580
+   }
+  ],
+  "specs": {
+   "dimensions": "Max. 13 W, largeur abat-jour 37 cm, Haut. min. 119 cm, Hauteur max. 151 cm, Diamètre du pied 62 cm, Longueur fil électrique 3.5 m",
+   "material": "Frêne massif, vernis acrylique incolore; 100% polyester (min. 90% recyclé), plastique polypropylène (min. 50 % recyclé)",
+   "assembly": "à monter (notice de montage IKEA fournie)",
+   "other": "Ampoule vendue séparément. IKEA recommande l'ampoule LED E27 globe opalin, blanc. Utilisez une ampoule opale dans le cas d'un luminaire courant si vous souhaitez une diffusion uniforme de la lumière."
+  },
+  "weightG": 3580,
+  "productWeightG": null,
+  "weightNote": "colis publié par IKEA",
+  "highlights": [
+   "Dimensions : Max. 13 W, largeur abat-jour 37 cm, Haut. min. 119 cm, Hauteur max. 151 cm, Diamètre du pied 62 cm, Longueur fil électrique 3.5 m",
+   "Montage : à monter (notice de montage IKEA fournie)"
+  ]
+ },
+ {
+  "id": "md017",
+  "name": "IKEA STRÅLA lampadaire à LED « allumette »",
+  "brand": "IKEA",
+  "category": "Maison & déco",
+  "store": "IKEA",
+  "url": "https://www.ikea.com/fr/fr/p/strala-lampadaire-a-led-forme-dallumette-bois-40645602/",
+  "optionName": "Version",
+  "configs": [
+   {
+    "label": "Bois",
+    "priceEur": 24.99,
+    "weightG": 1250
+   }
+  ],
+  "specs": {
+   "dimensions": "Longueur fil électrique 2.5 m, Hauteur 67 cm, Flux lumineux 5 lm, Largeur 32 cm",
+   "material": "Pin massif, vernis incolore; Plastique polycarbonate, peinture laque; Plastique polycarbonate; acier, Revêtement (poudre)",
+   "assembly": "à monter (notice de montage IKEA fournie)",
+   "other": "Source lumineuse LED intégrée. La LED a une durée de vie de 25 000 heures environ."
+  },
+  "weightG": 1250,
+  "productWeightG": null,
+  "weightNote": "colis publié par IKEA",
+  "highlights": [
+   "Dimensions : Longueur fil électrique 2.5 m, Hauteur 67 cm, Flux lumineux 5 lm, Largeur 32 cm",
+   "Montage : à monter (notice de montage IKEA fournie)"
+  ]
+ },
+ {
+  "id": "md018",
+  "name": "IKEA VINTERFINT sapin de Noël artificiel en pot (84 cm)",
+  "brand": "IKEA",
+  "category": "Maison & déco",
+  "store": "IKEA",
+  "url": "https://www.ikea.com/fr/fr/p/vinterfint-plante-artificielle-interieur-exterieur-sapin-de-noel-vert-10636388/",
+  "optionName": "Version",
+  "configs": [
+   {
+    "label": "Vert, hauteur 84 cm, pot Ø15 cm",
+    "priceEur": 14.99,
+    "weightG": 1050
+   }
+  ],
+  "specs": {
+   "dimensions": "Diamètre du pot 15 cm, Hauteur de la plante 84 cm",
+   "material": "Plastique polyéthylène (min. 70% recyclé), plastique PET (min. 50 % recyclé), acier; acier, polypropylène; plastique polypropylène (min. 70 % recyclé), Plastique polyéthylène, Eau non potable",
+   "assembly": "prêt à l'emploi",
+   "other": "Pour une utilisation en extérieur ou en intérieur."
+  },
+  "weightG": 1050,
+  "productWeightG": null,
+  "weightNote": "colis publié par IKEA",
+  "highlights": [
+   "Dimensions : Diamètre du pot 15 cm, Hauteur de la plante 84 cm",
+   "Montage : prêt à l'emploi"
+  ]
+ },
+ {
+  "id": "md019",
+  "name": "IKEA VINTERFINT boules de Noël, lot de 20 (Ø 7 cm)",
+  "brand": "IKEA",
+  "category": "Maison & déco",
+  "store": "IKEA",
+  "url": "https://www.ikea.com/fr/fr/p/vinterfint-decoration-sapin-de-noel-boule-couleur-or-40633369/",
+  "optionName": "Version",
+  "configs": [
+   {
+    "label": "Couleur or, 20 boules Ø7 cm",
+    "priceEur": 12.99,
+    "weightG": 280
+   },
+   {
+    "label": "Rouge, 20 boules Ø7 cm",
+    "priceEur": 12.99,
+    "weightG": 280
+   }
+  ],
+  "specs": {
+   "dimensions": "Diamètre 7 cm, Quantité/paquet 20 pièces",
+   "material": "100 % polyester; Polystyrène; 100% polyester",
+   "assembly": "prêt à l'emploi",
+   "other": null
+  },
+  "weightG": 280,
+  "productWeightG": null,
+  "weightNote": "colis publié par IKEA",
+  "highlights": [
+   "Dimensions : Diamètre 7 cm, Quantité/paquet 20 pièces",
+   "Montage : prêt à l'emploi"
+  ]
+ },
+ {
+  "id": "md020",
+  "name": "IKEA VINTERFINT décoration sapin, lot de 20",
+  "brand": "IKEA",
+  "category": "Maison & déco",
+  "store": "IKEA",
+  "url": "https://www.ikea.com/fr/fr/p/vinterfint-decoration-sapin-lot-de-20-boule-rouge-50633383/",
+  "optionName": "Version",
+  "configs": [
+   {
+    "label": "Boules rouges (8 x Ø6 + 12 x Ø5 cm)",
+    "priceEur": 5.99,
+    "weightG": 150
+   },
+   {
+    "label": "Vert / blanc (4 x Ø6 + 16 x Ø5 cm + 20 rubans)",
+    "priceEur": 7.99,
+    "weightG": 130
+   }
+  ],
+  "specs": {
+   "dimensions": "Quantité/paquet 20 pièces",
+   "material": "100 % polyester; Polystyrène; 100% polyester",
+   "assembly": "prêt à l'emploi",
+   "other": "Comprend : 8 boules (diam. 6 cm) et 12 boules (diam. 5 cm). Comprend : 4 boules (diam. 6 cm), 16 boules (diam. 5 cm) et 20 rubans (longueur 22 cm)."
+  },
+  "weightG": 150,
+  "productWeightG": null,
+  "weightNote": "colis publié par IKEA",
+  "highlights": [
+   "Dimensions : Quantité/paquet 20 pièces",
+   "Montage : prêt à l'emploi"
+  ]
+ },
+ {
+  "id": "md021",
+  "name": "IKEA VINTERFINT boules de Noël en verre",
+  "brand": "IKEA",
+  "category": "Maison & déco",
+  "store": "IKEA",
+  "url": "https://www.ikea.com/fr/fr/p/vinterfint-decoration-sapin-de-noel-boule-verre-multicolore-40635434/",
+  "optionName": "Version",
+  "configs": [
+   {
+    "label": "Multicolore, 8 boules Ø6 cm",
+    "priceEur": 9.99,
+    "weightG": 230
+   },
+   {
+    "label": "Multicolore, 6 boules Ø8 cm",
+    "priceEur": 12.99,
+    "weightG": 340
+   }
+  ],
+  "specs": {
+   "dimensions": "Multicolore, 8 boules Ø6 cm: Diamètre 6 cm, Quantité/paquet 8 pièces | Multicolore, 6 boules Ø8 cm: Diamètre 8 cm, Quantité/paquet 6 pièces",
+   "material": "verre, peinture laque; aluminium, acier inoxydable; 100% polyester",
+   "assembly": "prêt à l'emploi",
+   "other": null
+  },
+  "weightG": 340,
+  "productWeightG": null,
+  "weightNote": "colis publié par IKEA",
+  "highlights": [
+   "Dimensions : Multicolore, 8 boules Ø6 cm: Diamètre 6 cm, Quantité/paquet 8 pièces | Multicolore, 6 boules Ø8 cm: Diamètre 8 cm, Quantité/paquet 6 pièces",
+   "Montage : prêt à l'emploi"
+  ]
+ },
+ {
+  "id": "md022",
+  "name": "IKEA STRÅLA guirlande à LED à piles",
+  "brand": "IKEA",
+  "category": "Maison & déco",
+  "store": "IKEA",
+  "url": "https://www.ikea.com/fr/fr/p/strala-guirlande-a-led-a-pile-micro-60633245/",
+  "optionName": "Couleur",
+  "configs": [
+   {
+    "label": "Micro",
+    "priceEur": 9.99,
+    "weightG": 130
+   },
+   {
+    "label": "Feuille couleur or",
+    "priceEur": 4.99,
+    "weightG": 100
+   }
+  ],
+  "specs": {
+   "dimensions": "Micro: Longueur jusqu'à la 1e ampoule. 0.5 m, Flux lumineux 11 lm, Longueur fil entre lumières 1 cm, Puissance 0.18 W, Longueur totale 2.5 m, Durée de vie estimée 25000 hr | Feuille couleur or: Longueur fil entre lumières 10 cm, Longueur jusqu'à la 1e ampoule. 0.5 m, Flux lumineux 3 lm, Puissance 0.18 W, Longueur totale 4.5 m, Durée de vie estimée 25000 hr",
+   "material": "Plastique polycarbonate; Élastomère thermoplastique; plastique ABS; 100% polyester",
+   "assembly": "prêt à l'emploi",
+   "other": "Source lumineuse LED intégrée. La LED a une durée de vie de 25 000 heures environ. Couleur de la lumière : blanc chaud (2700 Kelvin). N'utiliser que des piles compatibles avec le produit. Ne pas mélanger des piles neuves et anciennes, ou des piles de marques et types différents."
+  },
+  "weightG": 130,
+  "productWeightG": null,
+  "weightNote": "colis publié par IKEA",
+  "highlights": [
+   "Dimensions : Micro: Longueur jusqu'à la 1e ampoule. 0.5 m, Flux lumineux 11 lm, Longueur fil entre lumières 1 cm, Puissance 0.18 W, Longueur totale 2.5 m, Durée de vie estimée 25000 hr | Feuille couleur or: Longueur fil entre lumières 10 cm, Longueur jusqu'à la 1e ampoule. 0.5 m, Flux lumineux 3 lm, Puissance 0.18 W, Longueur totale 4.5 m, Durée de vie estimée 25000 hr",
+   "Montage : prêt à l'emploi"
+  ]
+ },
+ {
+  "id": "md023",
+  "name": "IKEA STRÅLA guirlande lumineuse à LED étoiles",
+  "brand": "IKEA",
+  "category": "Maison & déco",
+  "store": "IKEA",
+  "url": "https://www.ikea.com/fr/fr/p/strala-guirlande-lumineuse-a-led-etoiles-20633488/",
+  "optionName": "Version",
+  "configs": [
+   {
+    "label": "Étoiles",
+    "priceEur": 19.99,
+    "weightG": 380
+   }
+  ],
+  "specs": {
+   "dimensions": "Largeur 120 cm, Hauteur 160 cm, Flux lumineux 100 lm, Durée de vie estimée 25000 hr",
+   "material": "plastique ABS; Plastique polyamide; polypropylène, Plastique EVA",
+   "assembly": "prêt à l'emploi",
+   "other": "Source lumineuse LED intégrée. Les ampoules ne peuvent pas être changées."
+  },
+  "weightG": 380,
+  "productWeightG": null,
+  "weightNote": "colis publié par IKEA",
+  "highlights": [
+   "Dimensions : Largeur 120 cm, Hauteur 160 cm, Flux lumineux 100 lm, Durée de vie estimée 25000 hr",
+   "Montage : prêt à l'emploi"
+  ]
+ },
+ {
+  "id": "md024",
+  "name": "IKEA LEDFYR guirlande lumineuse à LED",
+  "brand": "IKEA",
+  "category": "Maison & déco",
+  "store": "IKEA",
+  "url": "https://www.ikea.com/fr/fr/p/ledfyr-guirlande-lumineuse-a-led-12-amp-interieur-a-pile-couleur-argent-30421023/",
+  "optionName": "Version",
+  "configs": [
+   {
+    "label": "12 ampoules, à piles (2 x AA non incluses), 2,1 m",
+    "priceEur": 4.99,
+    "weightG": 70
+   },
+   {
+    "label": "24 ampoules, sur secteur (transformateur inclus), 5 m",
+    "priceEur": 9.99,
+    "weightG": 150
+   }
+  ],
+  "specs": {
+   "dimensions": "12 ampoules, à piles (2 x AA non incluses), 2,1 m: Longueur jusqu'à la 1e ampoule. 0.5 m, Longueur fil entre lumières 15 cm, Puissance 0.3 W, Longueur totale 2.1 m | 24 ampoules, sur secteur (transformateur inclus), 5 m: Longueur jusqu'à la 1e ampoule. 1.5 m, Longueur fil entre lumières 15 cm, Puissance 1.6 W, Longueur totale 5 m",
+   "material": "plastique ABS; Plastique polycarbonate",
+   "assembly": "prêt à l'emploi",
+   "other": "Piles vendues séparément : 2 piles AA sont requises. Uniquement pour une utilisation à l'intérieur. Couleur de la lumière : blanc chaud (2700 Kelvin). N'utiliser que des piles compatibles avec le produit. Ne pas mélanger des piles neuves et anciennes, ou des piles de marques et types différents."
+  },
+  "weightG": 150,
+  "productWeightG": null,
+  "weightNote": "colis publié par IKEA",
+  "highlights": [
+   "Dimensions : 12 ampoules, à piles (2 x AA non incluses), 2,1 m: Longueur jusqu'à la 1e ampoule. 0.5 m, Longueur fil entre lumières 15 cm, Puissance 0.3 W, Longueur totale 2.1 m | 24 ampoules, sur secteur (transformateur inclus), 5 m: Longueur jusqu'à la 1e ampoule. 1.5 m, Longueur fil entre lumières 15 cm, Puissance 1.6 W, Longueur totale 5 m",
+   "Montage : prêt à l'emploi"
+  ]
+ },
+ {
+  "id": "md025",
+  "name": "IKEA PROFETBLOMMA coussin",
+  "brand": "IKEA",
+  "category": "Maison & déco",
+  "store": "IKEA",
+  "url": "https://www.ikea.com/fr/fr/p/profetblomma-coussin-anthracite-90614207/",
+  "optionName": "Couleur",
+  "configs": [
+   {
+    "label": "Anthracite",
+    "priceEur": 4.49,
+    "weightG": 360
+   },
+   {
+    "label": "Beige clair",
+    "priceEur": 4.49,
+    "weightG": 360
+   },
+   {
+    "label": "Bleu gris",
+    "priceEur": 4.49,
+    "weightG": 360
+   },
+   {
+    "label": "Jaune",
+    "priceEur": 4.49,
+    "weightG": 360
+   }
+  ],
+  "specs": {
+   "dimensions": "Longueur 50 cm, Largeur 50 cm, Poids garnissage 280 g, Poids total 345 g",
+   "material": "100 % polyester (100% recyclé); 100 % polyester - fibres creuses (100 % recyclé)",
+   "assembly": "prêt à l'emploi",
+   "other": null
+  },
+  "weightG": 360,
+  "productWeightG": 345,
+  "weightNote": "colis publié par IKEA",
+  "highlights": [
+   "Dimensions : Longueur 50 cm, Largeur 50 cm, Poids garnissage 280 g, Poids total 345 g",
+   "Montage : prêt à l'emploi"
+  ]
+ },
+ {
+  "id": "md026",
+  "name": "IKEA SYRENBUSKE coussin rond",
+  "brand": "IKEA",
+  "category": "Maison & déco",
+  "store": "IKEA",
+  "url": "https://www.ikea.com/fr/fr/p/syrenbuske-coussin-beige-clair-10625276/",
+  "optionName": "Couleur",
+  "configs": [
+   {
+    "label": "Beige clair",
+    "priceEur": 9.99,
+    "weightG": 250
+   },
+   {
+    "label": "Rouille",
+    "priceEur": 9.99,
+    "weightG": 250
+   }
+  ],
+  "specs": {
+   "dimensions": "Diamètre 36 cm, Poids garnissage 160 g, Poids total 248 g",
+   "material": "100 % polyester (100% recyclé); 100 % polyester - fibres creuses (100 % recyclé)",
+   "assembly": "prêt à l'emploi",
+   "other": null
+  },
+  "weightG": 250,
+  "productWeightG": 248,
+  "weightNote": "colis publié par IKEA",
+  "highlights": [
+   "Dimensions : Diamètre 36 cm, Poids garnissage 160 g, Poids total 248 g",
+   "Montage : prêt à l'emploi"
+  ]
+ },
+ {
+  "id": "md027",
+  "name": "IKEA DAGGKÅPOR plaid",
+  "brand": "IKEA",
+  "category": "Maison & déco",
+  "store": "IKEA",
+  "url": "https://www.ikea.com/fr/fr/p/daggkapor-plaid-beige-clair-20624592/",
+  "optionName": "Couleur",
+  "configs": [
+   {
+    "label": "Beige clair",
+    "priceEur": 4.99,
+    "weightG": 470
+   },
+   {
+    "label": "Bleu vif",
+    "priceEur": 4.99,
+    "weightG": 460
+   },
+   {
+    "label": "Gris foncé",
+    "priceEur": 4.99,
+    "weightG": 460
+   },
+   {
+    "label": "Jaune vif",
+    "priceEur": 4.99,
+    "weightG": 460
+   },
+   {
+    "label": "Rose",
+    "priceEur": 4.99,
+    "weightG": 460
+   },
+   {
+    "label": "Vert",
+    "priceEur": 4.99,
+    "weightG": 460
+   }
+  ],
+  "specs": {
+   "dimensions": "Largeur 130 cm, Longueur 170 cm",
+   "material": "100% polyester (min. 90% recyclé)",
+   "assembly": "prêt à l'emploi",
+   "other": null
+  },
+  "weightG": 470,
+  "productWeightG": null,
+  "weightNote": "colis publié par IKEA",
+  "highlights": [
+   "Dimensions : Largeur 130 cm, Longueur 170 cm",
+   "Montage : prêt à l'emploi"
+  ]
+ },
+ {
+  "id": "md028",
+  "name": "IKEA HOLMVI plaid",
+  "brand": "IKEA",
+  "category": "Maison & déco",
+  "store": "IKEA",
+  "url": "https://www.ikea.com/fr/fr/p/holmvi-plaid-beige-jaune-50604682/",
+  "optionName": "Couleur",
+  "configs": [
+   {
+    "label": "Beige-jaune",
+    "priceEur": 4.99,
+    "weightG": 340
+   },
+   {
+    "label": "Bleu",
+    "priceEur": 4.99,
+    "weightG": 340
+   },
+   {
+    "label": "Gris",
+    "priceEur": 4.99,
+    "weightG": 310
+   },
+   {
+    "label": "Rose",
+    "priceEur": 4.99,
+    "weightG": 340
+   }
+  ],
+  "specs": {
+   "dimensions": "Longueur 160 cm, Largeur 120 cm",
+   "material": "100% polyester (min. 90% recyclé)",
+   "assembly": "prêt à l'emploi",
+   "other": "Ce produit conçu pour durer convient aux espaces publics comme les cafés, les commerces et les réceptions, car il est fabriqué à partir de matériaux qui résistent à un usage fréquent et à un entretien régulier."
+  },
+  "weightG": 340,
+  "productWeightG": null,
+  "weightNote": "colis publié par IKEA",
+  "highlights": [
+   "Dimensions : Longueur 160 cm, Largeur 120 cm",
+   "Montage : prêt à l'emploi"
+  ]
+ },
+ {
+  "id": "md029",
+  "name": "IKEA KONVALJBUSKE plaid rouge",
+  "brand": "IKEA",
+  "category": "Maison & déco",
+  "store": "IKEA",
+  "url": "https://www.ikea.com/fr/fr/p/konvaljbuske-plaid-rouge-80635125/",
+  "optionName": "Version",
+  "configs": [
+   {
+    "label": "Rouge",
+    "priceEur": 9.99,
+    "weightG": 360
+   }
+  ],
+  "specs": {
+   "dimensions": "Longueur 170 cm, Largeur 130 cm",
+   "material": "100 % polyester (100% recyclé)",
+   "assembly": "prêt à l'emploi",
+   "other": null
+  },
+  "weightG": 360,
+  "productWeightG": null,
+  "weightNote": "colis publié par IKEA",
+  "highlights": [
+   "Dimensions : Longueur 170 cm, Largeur 130 cm",
+   "Montage : prêt à l'emploi"
+  ]
+ },
+ {
+  "id": "md030",
+  "name": "GiFi Sapin de Noël artificiel pied bois H120 cm 228 branches",
+  "brand": "GiFi",
+  "category": "Maison & déco",
+  "store": "GiFi",
+  "url": "https://www.gifi.fr/fete-et-cadeaux/noel/sapin-de-noel-et-accessoires/sapin-de-noel/sapin-de-noel-artificiel-pied-bois-h120-cm-228-branches-vert/000000000000554623.html",
+  "optionName": "Version",
+  "configs": [
+   {
+    "label": "Vert, H120 cm",
+    "priceEur": 29.99,
+    "weightG": 2500
+   }
+  ],
+  "specs": {
+   "dimensions": "Hauteur 120 cm (diamètre non publié)",
+   "material": "PVC, bois",
+   "assembly": "à monter (branches à déployer, pied en bois)",
+   "other": "228 branches, réutilisable."
+  },
+  "weightG": 2500,
+  "productWeightG": null,
+  "weightNote": "colis estimé (non publié par le site)",
+  "highlights": [
+   "Dimensions : Hauteur 120 cm (diamètre non publié)",
+   "Montage : à monter (branches à déployer, pied en bois)"
+  ]
+ },
+ {
+  "id": "md031",
+  "name": "GiFi Boules de Noël Candy thème rouge x25 Ø6,5 cm",
+  "brand": "GiFi",
+  "category": "Maison & déco",
+  "store": "GiFi",
+  "url": "https://www.gifi.fr/fete-et-cadeaux/noel/decoration-sapin/boule-de-noel-et-suspension-de-noel/boule-de-noel-theme-rouge-x25-candy-o6.5cm/000000000000647137.html",
+  "optionName": "Version",
+  "configs": [
+   {
+    "label": "Rouge / rose / argenté, 25 boules",
+    "priceEur": 7.99,
+    "weightG": 500
+   }
+  ],
+  "specs": {
+   "dimensions": "Ø 6,5 cm par boule",
+   "material": "plastique",
+   "assembly": "prêt à l'emploi",
+   "other": "Coffret de 25 boules, finitions assorties."
+  },
+  "weightG": 500,
+  "productWeightG": null,
+  "weightNote": "colis estimé (non publié par le site)",
+  "highlights": [
+   "Dimensions : Ø 6,5 cm par boule",
+   "Montage : prêt à l'emploi"
+  ]
+ },
+ {
+  "id": "sn001",
+  "name": "Myprotein Impact Whey Protein",
+  "brand": "Myprotein",
+  "category": "Sport & nutrition",
+  "store": "Myprotein",
+  "url": "https://fr.myprotein.com/p/nutrition-sportive/impact-whey-protein/10530943/",
+  "optionName": "Format",
+  "configs": [
+   {
+    "label": "900 g (30 portions)",
+    "priceEur": 34.99,
+    "weightG": 1090
+   },
+   {
+    "label": "1,8 kg (60 portions)",
+    "priceEur": 65.99,
+    "weightG": 2080
+   },
+   {
+    "label": "2,7 kg (90 portions)",
+    "priceEur": 96.99,
+    "weightG": 3070
+   }
+  ],
+  "flavors": [
+   "Chocolat Onctueux",
+   "Chocolat Brownie",
+   "Vanille",
+   "Sans arôme ajouté",
+   "Chocolat Naturel",
+   "Crème à la fraise"
+  ],
+  "specs": {
+   "protein": "22 g par portion de 30 g (72 g/100 g) ; page : « jusqu'à 23 g »",
+   "servings": "30 / 60 / 90",
+   "other": "114 kcal par portion, 1,5 g de sucres ; concentré de whey ; certifié Informed Choice"
+  },
+  "weightNote": "poids net + emballage estimé",
+  "highlights": [
+   "Protéines : 22 g par portion de 30 g (72 g/100 g) ; page : « jusqu'à 23 g »"
+  ]
+ },
+ {
+  "id": "sn002",
+  "name": "Myprotein Impact Whey Isolate",
+  "brand": "Myprotein",
+  "category": "Sport & nutrition",
+  "store": "Myprotein",
+  "url": "https://fr.myprotein.com/p/nutrition-sportive/impact-whey-isolate/10530911/",
+  "optionName": "Format",
+  "configs": [
+   {
+    "label": "900 g (30 portions)",
+    "priceEur": 49.99,
+    "weightG": 1090
+   },
+   {
+    "label": "2,7 kg (90 portions)",
+    "priceEur": 128.99,
+    "weightG": 3070
+   }
+  ],
+  "flavors": [
+   "Chocolat Onctueux",
+   "Chocolat Brownie",
+   "Chocolat Naturel",
+   "Vanille",
+   "Vanille Naturelle",
+   "Sans arôme ajouté"
+  ],
+  "specs": {
+   "protein": "25 g par 30 g (82 g/100 g) ; page : « 23 g par portion » (version sans arôme)",
+   "servings": "30 / 90",
+   "other": "108 kcal, 0,6 g de sucres par 30 g ; isolat de whey"
+  },
+  "weightNote": "poids net + emballage estimé",
+  "highlights": [
+   "Protéines : 25 g par 30 g (82 g/100 g) ; page : « 23 g par portion » (version sans arôme)"
+  ]
+ },
+ {
+  "id": "sn003",
+  "name": "Myprotein Créatine Monohydrate en poudre",
+  "brand": "Myprotein",
+  "category": "Sport & nutrition",
+  "store": "Myprotein",
+  "url": "https://fr.myprotein.com/p/nutrition-sportive/creatine-monohydrate-en-poudre/10530050/",
+  "optionName": "Format",
+  "configs": [
+   {
+    "label": "250 g",
+    "priceEur": 5,
+    "weightG": 375
+   },
+   {
+    "label": "500 g",
+    "priceEur": 10,
+    "weightG": 650
+   },
+   {
+    "label": "1 kg",
+    "priceEur": 27.49,
+    "weightG": 1200
+   }
+  ],
+  "flavors": [
+   "Sans arôme ajouté",
+   "Tropical",
+   "Framboise Bleue",
+   "Berry Burst"
+  ],
+  "specs": {
+   "protein": "0 (créatine)",
+   "servings": "Sans arôme : 73 / 147 / 294 portions ; aromatisée : moins (ex. Tropical 56 / 113 / 227)",
+   "other": "3,4 g de créatine monohydrate (= 3 g de créatine) par portion ; végan"
+  },
+  "weightNote": "poids net + emballage estimé",
+  "highlights": [
+   "Protéines : 0 (créatine)"
+  ]
+ },
+ {
+  "id": "sn004",
+  "name": "Myprotein Impact Weight Gainer",
+  "brand": "Myprotein",
+  "category": "Sport & nutrition",
+  "store": "Myprotein",
+  "url": "https://fr.myprotein.com/p/nutrition-sportive/impact-weight-gainer/10529988/",
+  "optionName": "Format",
+  "configs": [
+   {
+    "label": "700 g (7 portions)",
+    "priceEur": 14.49,
+    "weightG": 870
+   },
+   {
+    "label": "3 kg (30 portions)",
+    "priceEur": 52.49,
+    "weightG": 3400
+   }
+  ],
+  "flavors": [
+   "Chocolat Onctueux",
+   "Vanille",
+   "Fraise",
+   "Iced Latte"
+  ],
+  "specs": {
+   "protein": "28 g/100 g ; portion = 100 g (« jusqu'à 30 g de protéines »)",
+   "servings": "7 / 30",
+   "other": "372 kcal/100 g, 52 g de glucides/100 g (farine d'avoine 51 %) ; « jusqu'à 388 kcal » par portion"
+  },
+  "weightNote": "poids net + emballage estimé",
+  "highlights": [
+   "Protéines : 28 g/100 g ; portion = 100 g (« jusqu'à 30 g de protéines »)"
+  ]
+ },
+ {
+  "id": "sn005",
+  "name": "Myprotein Barre protéinée à 6 couches (boîte de 12)",
+  "brand": "Myprotein",
+  "category": "Sport & nutrition",
+  "store": "Myprotein",
+  "url": "https://fr.myprotein.com/p/nutrition-sportive/barre-proteinee-a-couches/12116519/",
+  "optionName": "Format",
+  "configs": [
+   {
+    "label": "Boîte de 12 × 60 g",
+    "priceEur": 23.99,
+    "weightG": 892
+   },
+   {
+    "label": "Boîte de 6 × 60 g",
+    "priceEur": 13.49,
+    "weightG": 496
+   }
+  ],
+  "flavors": [
+   "Triple Chocolate Fudge",
+   "Cookie Crumble",
+   "Chocolate Peanut Pretzel",
+   "Vanilla Birthday Cake",
+   "Chocolat Blanc et Caramel",
+   "Gingerbread (édition limitée)",
+   "Variety (assortiment)"
+  ],
+  "specs": {
+   "protein": "20 g par barre de 60 g (33 g/100 g) ; page : « 21 g »",
+   "servings": "12 barres",
+   "other": "1,9 g de sucres, 6,6 g de fibres par barre (saveur Triple Chocolate Fudge)"
+  },
+  "weightNote": "poids net + emballage estimé",
+  "highlights": [
+   "Protéines : 20 g par barre de 60 g (33 g/100 g) ; page : « 21 g »"
+  ]
+ },
+ {
+  "id": "sn006",
+  "name": "Shaker Myprotein Smart large – Noir",
+  "brand": "Myprotein",
+  "category": "Sport & nutrition",
+  "store": "Myprotein",
+  "url": "https://fr.myprotein.com/p/accessoires-pour-proteines/shaker-myprotein-smart-large-800-ml-noir/14900134/",
+  "optionName": "Format",
+  "configs": [
+   {
+    "label": "800 ml (nom du produit)",
+    "priceEur": 11.99,
+    "weightG": 400
+   }
+  ],
+  "flavors": [],
+  "specs": {
+   "protein": "",
+   "servings": "",
+   "other": "filtre à clip, bouchon vissé, socle à visser (compartiment)"
+  },
+  "weightNote": "poids net + emballage estimé",
+  "highlights": []
+ },
+ {
+  "id": "sn007",
+  "name": "Bulk Pure Whey Protein+",
+  "brand": "Bulk",
+  "category": "Sport & nutrition",
+  "store": "Bulk",
+  "url": "https://www.bulk.com/fr/products/pure-whey-protein-plus/bpb-pwpp",
+  "optionName": "Format",
+  "configs": [
+   {
+    "label": "900 g",
+    "priceEur": 32.99,
+    "weightG": 1090
+   },
+   {
+    "label": "2 kg",
+    "priceEur": 64.99,
+    "weightG": 2300
+   },
+   {
+    "label": "450 g",
+    "priceEur": 18.99,
+    "weightG": 595
+   },
+   {
+    "label": "4 kg",
+    "priceEur": 119.99,
+    "weightG": 4500
+   }
+  ],
+  "flavors": [
+   "Chocolat",
+   "Cookie au chocolat",
+   "Caramel au beurre salé",
+   "Fraise",
+   "Nature",
+   "Vanille"
+  ],
+  "specs": {
+   "protein": "24 g par portion de 35 g (68 g/100 g)",
+   "servings": "non indiqué (≈ 35 g par portion)",
+   "other": "4 g de BCAA, 125 kcal, 3,9 g de sucres par portion ; mélange whey + collagène + protéines de lait (« trois sources de protéines »), pas une whey pure"
+  },
+  "weightNote": "poids net + emballage estimé",
+  "highlights": [
+   "Protéines : 24 g par portion de 35 g (68 g/100 g)"
+  ]
+ },
+ {
+  "id": "sn008",
+  "name": "Bulk Daily Whey Protein",
+  "brand": "Bulk",
+  "category": "Sport & nutrition",
+  "store": "Bulk",
+  "url": "https://www.bulk.com/fr/products/daily-whey/bpb-dwhe",
+  "optionName": "Format",
+  "configs": [
+   {
+    "label": "900 g",
+    "priceEur": 24.99,
+    "weightG": 1090
+   },
+   {
+    "label": "2 kg",
+    "priceEur": 49.99,
+    "weightG": 2300
+   },
+   {
+    "label": "4 kg",
+    "priceEur": 94.99,
+    "weightG": 4500
+   }
+  ],
+  "flavors": [
+   "Banane",
+   "Chocolat",
+   "Fraise",
+   "Vanille"
+  ],
+  "specs": {
+   "protein": "17 g par portion de 30 g (57 g/100 g) ; page : « jusqu'à 18 g »",
+   "servings": "non indiqué (≈ 30 g par portion)",
+   "other": "102 kcal, 6,9 g de sucres, 0,63 g de sel par portion ; entrée de gamme"
+  },
+  "weightNote": "poids net + emballage estimé",
+  "highlights": [
+   "Protéines : 17 g par portion de 30 g (57 g/100 g) ; page : « jusqu'à 18 g »"
+  ]
+ },
+ {
+  "id": "sn009",
+  "name": "Bulk Créatine monohydrate",
+  "brand": "Bulk",
+  "category": "Sport & nutrition",
+  "store": "Bulk",
+  "url": "https://www.bulk.com/fr/products/creatine-monohydrate-eu/bpb-cmon-0000-eu1",
+  "optionName": "Format",
+  "configs": [
+   {
+    "label": "250 g",
+    "priceEur": 9.99,
+    "weightG": 375
+   },
+   {
+    "label": "500 g",
+    "priceEur": 15.99,
+    "weightG": 650
+   },
+   {
+    "label": "1 kg",
+    "priceEur": 29.99,
+    "weightG": 1200
+   },
+   {
+    "label": "100 g",
+    "priceEur": 4.99,
+    "weightG": 210
+   }
+  ],
+  "flavors": [
+   "Nature",
+   "Pomme Citron Vert",
+   "Blue Raspberry",
+   "Fruits Rouges",
+   "Fruit de la passion",
+   "Tropical",
+   "Vanille"
+  ],
+  "specs": {
+   "protein": "0 (créatine)",
+   "servings": "Nature : 3,4 g par dose (aromatisée 3,6-4,4 g)",
+   "other": "3,4 g de créatine monohydrate = 3 g de créatine par dose"
+  },
+  "weightNote": "poids net + emballage estimé",
+  "highlights": [
+   "Protéines : 0 (créatine)"
+  ]
+ },
+ {
+  "id": "sn010",
+  "name": "Bulk Gainer Prise de masse",
+  "brand": "Bulk",
+  "category": "Sport & nutrition",
+  "store": "Bulk",
+  "url": "https://www.bulk.com/fr/products/formulation-complete-prise-de-masse/bble-cmas",
+  "optionName": "Format",
+  "configs": [
+   {
+    "label": "1 kg",
+    "priceEur": 16.99,
+    "weightG": 1200
+   },
+   {
+    "label": "2,5 kg",
+    "priceEur": 39.99,
+    "weightG": 2850
+   },
+   {
+    "label": "5 kg",
+    "priceEur": 74.99,
+    "weightG": 5600
+   }
+  ],
+  "flavors": [
+   "Banane",
+   "Chocolat",
+   "Chocolat-caramel",
+   "Cookie au chocolat",
+   "Fraise",
+   "Vanille",
+   "Lait aux céréales et cannelle"
+  ],
+  "specs": {
+   "protein": "42 g par portion de 155 g (27 g/100 g)",
+   "servings": "non indiqué (portion 155 g)",
+   "other": "574 kcal, 84 g de glucides par portion ; 10 g de L-glutamine, 5,9 g de L-leucine"
+  },
+  "weightNote": "poids net + emballage estimé",
+  "highlights": [
+   "Protéines : 42 g par portion de 155 g (27 g/100 g)"
+  ]
+ },
+ {
+  "id": "sn011",
+  "name": "Bulk Shaker Iconic 750 ml",
+  "brand": "Bulk",
+  "category": "Sport & nutrition",
+  "store": "Bulk",
+  "url": "https://www.bulk.com/fr/products/shaker-iconic/bace-isbo-0750",
+  "optionName": "Format",
+  "configs": [
+   {
+    "label": "750 ml",
+    "priceEur": 5.99,
+    "weightG": 400
+   }
+  ],
+  "flavors": [],
+  "specs": {
+   "protein": "",
+   "servings": "",
+   "other": "couvercle anti-fuite, poignée, bille mélangeuse en métal ; couleurs : Noir métallisé, Blanc glace, Noir jais, Perle blanche"
+  },
+  "weightNote": "poids net + emballage estimé",
+  "highlights": []
+ },
+ {
+  "id": "sn012",
+  "name": "Optimum Nutrition 100% Whey Gold Standard",
+  "brand": "Optimum Nutrition",
+  "category": "Sport & nutrition",
+  "store": "Fitadium",
+  "url": "https://www.fitadium.com/5334-100-whey-gold-204kg.html",
+  "optionName": "Format",
+  "configs": [
+   {
+    "label": "780 g",
+    "priceEur": 48.99,
+    "weightG": 959
+   },
+   {
+    "label": "2,02 kg",
+    "priceEur": 110.76,
+    "weightG": 2300
+   },
+   {
+    "label": "4,54 kg",
+    "priceEur": 194.99,
+    "weightG": 4800
+   }
+  ],
+  "flavors": [
+   "Double Rich Chocolate",
+   "Extrême Chocolat",
+   "Vanilla Ice Cream",
+   "French Vanilla Cream",
+   "Fraise",
+   "Cookies & Cream",
+   "Chocolate Peanut Butter",
+   "Chocolate Hazelnut",
+   "Banana Cream",
+   "Nature"
+  ],
+  "specs": {
+   "protein": "24 g par portion de 30 g (79 g/100 g, vanille)",
+   "servings": "non indiqué (portion 30 g)",
+   "other": "112 kcal, 1,2 g de sucres par 30 g ; mélange isolat + concentré de whey"
+  },
+  "weightNote": "poids net + emballage estimé",
+  "highlights": [
+   "Protéines : 24 g par portion de 30 g (79 g/100 g, vanille)"
+  ]
+ },
+ {
+  "id": "sn013",
+  "name": "Optimum Nutrition Serious Mass",
+  "brand": "Optimum Nutrition",
+  "category": "Sport & nutrition",
+  "store": "Fitadium",
+  "url": "https://www.fitadium.com/3135-serious-mass-273kg.html",
+  "optionName": "Format",
+  "configs": [
+   {
+    "label": "2,73 kg",
+    "priceEur": 51.99,
+    "weightG": 3000
+   }
+  ],
+  "flavors": [
+   "Chocolat",
+   "Vanille",
+   "Fraise",
+   "Banane",
+   "Cookies & Cream",
+   "Chocolate Peanut Butter"
+  ],
+  "specs": {
+   "protein": "50 g par portion de 334 g (15 g/100 g)",
+   "servings": "non indiqué (portion 334 g ≈ 8 portions)",
+   "other": "1 268 kcal et 256 g de glucides par portion ; vitamines et minéraux"
+  },
+  "weightNote": "poids net + emballage estimé",
+  "highlights": [
+   "Protéines : 50 g par portion de 334 g (15 g/100 g)"
+  ]
+ },
+ {
+  "id": "sn014",
+  "name": "Superset Nutrition Créatine monohydrate Creapure® 500 g",
+  "brand": "Superset Nutrition",
+  "category": "Sport & nutrition",
+  "store": "Fitadium",
+  "url": "https://www.fitadium.com/4141-creatine-monohydrate-creapure-500g.html",
+  "optionName": "Format",
+  "configs": [
+   {
+    "label": "500 g",
+    "priceEur": 49.9,
+    "weightG": 600
+   }
+  ],
+  "flavors": [
+   "Neutre (sans arôme)"
+  ],
+  "specs": {
+   "protein": "0 (créatine)",
+   "servings": "≈ 147 (3,4 g par portion ; calcul, non indiqué par la page)",
+   "other": "Creapure® (créatine allemande premium), 3 g de créatine pure par portion ; certifié antidopage, végan, halal"
+  },
+  "weightNote": "poids net + emballage estimé",
+  "highlights": [
+   "Protéines : 0 (créatine)"
+  ]
+ },
+ {
+  "id": "sn015",
+  "name": "Biotech USA Crush Bar (boîte de 12)",
+  "brand": "Biotech USA",
+  "category": "Sport & nutrition",
+  "store": "Fitadium",
+  "url": "https://www.fitadium.com/3600-boite-crush-bar-12x64g.html",
+  "optionName": "Format",
+  "configs": [
+   {
+    "label": "Boîte de 12 × 64 g",
+    "priceEur": 48.9,
+    "weightG": 800
+   }
+  ],
+  "flavors": [
+   "Brownie",
+   "Chocolate Peanut Butter",
+   "Coco Caramel",
+   "Cookies & Cream"
+  ],
+  "specs": {
+   "protein": "31 g/100 g (≈ 20 g par barre de 64 g ; calcul)",
+   "servings": "12 barres",
+   "other": "375 kcal/100 g, 3,4 g de sucres/100 g, contient des polyols (maltitol)"
+  },
+  "weightNote": "poids net + emballage estimé",
+  "highlights": [
+   "Protéines : 31 g/100 g (≈ 20 g par barre de 64 g ; calcul)"
+  ]
+ },
+ {
+  "id": "sn016",
+  "name": "Eafit Pure Whey",
+  "brand": "Eafit",
+  "category": "Sport & nutrition",
+  "store": "Eafit",
+  "url": "https://www.eafit.com/eafit-pure-whey-double-chocolat-850gr.html",
+  "optionName": "Format",
+  "configs": [
+   {
+    "label": "850 g",
+    "priceEur": 44.99,
+    "weightG": 1035
+   },
+   {
+    "label": "2,2 kg",
+    "priceEur": 112.99,
+    "weightG": 2520
+   }
+  ],
+  "flavors": [
+   "Double Chocolat",
+   "Chocolat noisette",
+   "Vanille Intense",
+   "Vanille Noisette",
+   "Fraise",
+   "Myrtille",
+   "Café",
+   "Caramel"
+  ],
+  "specs": {
+   "protein": "29 g par dose de 40 g (74 g/100 g)",
+   "servings": "non indiqué (dose 40 g)",
+   "other": "160 kcal, 3 g de sucres par dose ; enrichie en vitamines"
+  },
+  "weightNote": "poids net + emballage estimé",
+  "highlights": [
+   "Protéines : 29 g par dose de 40 g (74 g/100 g)"
+  ]
+ },
+ {
+  "id": "sn017",
+  "name": "Eafit Pure Whey Isolate 750 g",
+  "brand": "Eafit",
+  "category": "Sport & nutrition",
+  "store": "Eafit",
+  "url": "https://www.eafit.com/pure-isolate-chocolat.html",
+  "optionName": "Format",
+  "configs": [
+   {
+    "label": "750 g",
+    "priceEur": 54.9,
+    "weightG": 925
+   }
+  ],
+  "flavors": [
+   "Chocolat",
+   "Vanille",
+   "Fruits rouges"
+  ],
+  "specs": {
+   "protein": "25 g par shaker de 30 g (81 g/100 g)",
+   "servings": "non indiqué (≈ 25, shaker 30 g)",
+   "other": "108 kcal, 0,3 g de sucres par 30 g ; microfiltration à froid, quasi sans lactose ; fabriqué en France"
+  },
+  "weightNote": "poids net + emballage estimé",
+  "highlights": [
+   "Protéines : 25 g par shaker de 30 g (81 g/100 g)"
+  ]
+ },
+ {
+  "id": "gv001",
+  "name": "Sony PlayStation 5 (standard, lecteur de disque) 1 To",
+  "brand": "Sony",
+  "category": "Jeux vidéo & consoles",
+  "store": "PlayStation Store",
+  "url": "https://www.playstation.com/fr-fr/ps5/1-tb-disc/product/PSD001-PSDE01929_59-PS5CONSOLEHB2OYE/",
+  "optionName": null,
+  "colors": null,
+  "configs": [
+   {
+    "label": "1 To",
+    "priceEur": 649.99
+   }
+  ],
+  "specs": {
+   "storage": "SSD 1 To",
+   "resolution": "jusqu'à 4K",
+   "other": "Lecteur de disque ; dimensions env. 358 x 96 x 216 mm ; manette DualSense incluse"
+  },
+  "platform": "PS5",
+  "preorder": null,
+  "weightG": 4940,
+  "productWeightG": 3200,
+  "weightNote": "appareil publié + emballage estimé",
+  "highlights": [
+   "Stockage : SSD 1 To",
+   "Définition : jusqu'à 4K"
+  ]
+ },
+ {
+  "id": "gv002",
+  "name": "Sony PlayStation 5 Édition Numérique 825 Go",
+  "brand": "Sony",
+  "category": "Jeux vidéo & consoles",
+  "store": "PlayStation Store",
+  "url": "https://www.playstation.com/fr-fr/ps5/digital-edition-825-gb/product/PSD001-PSDE01916_79-PS5DIGITALKKBAEE/",
+  "optionName": null,
+  "colors": null,
+  "configs": [
+   {
+    "label": "825 Go",
+    "priceEur": 599.99
+   }
+  ],
+  "specs": {
+   "storage": "SSD 825 Go",
+   "resolution": "jusqu'à 4K",
+   "other": "Sans lecteur de disque ; modèle CFI-2116B01Y ; 358 x 80 x 216 mm"
+  },
+  "platform": "PS5",
+  "preorder": null,
+  "weightG": 4070,
+  "productWeightG": 2600,
+  "weightNote": "appareil publié + emballage estimé",
+  "highlights": [
+   "Stockage : SSD 825 Go",
+   "Définition : jusqu'à 4K"
+  ]
+ },
+ {
+  "id": "gv003",
+  "name": "Pack PS5 1 To + 2 manettes DualSense",
+  "brand": "Sony",
+  "category": "Jeux vidéo & consoles",
+  "store": "PlayStation Store",
+  "url": "https://www.playstation.com/fr-fr/consoles/ps5/shop-all/",
+  "optionName": null,
+  "colors": null,
+  "configs": [
+   {
+    "label": "1 To + 2 DualSense",
+    "priceEur": 699.99
+   }
+  ],
+  "specs": {
+   "storage": "SSD 1 To / 825 Go",
+   "resolution": "jusqu'à 4K",
+   "other": ""
+  },
+  "platform": "PS5",
+  "preorder": null,
+  "weightG": 5810,
+  "productWeightG": null,
+  "weightNote": "poids estimé",
+  "highlights": [
+   "Stockage : SSD 1 To / 825 Go",
+   "Définition : jusqu'à 4K"
+  ]
+ },
+ {
+  "id": "gv004",
+  "name": "Manette sans fil DualSense (PS5)",
+  "brand": "Sony",
+  "category": "Jeux vidéo & consoles",
+  "store": "PlayStation Store",
+  "url": "https://www.playstation.com/fr-fr/accessories/dualsense-wireless-controller/buy-now/",
+  "optionName": "Couleur",
+  "colors": null,
+  "configs": [
+   {
+    "label": "Blanc",
+    "priceEur": 74.99
+   },
+   {
+    "label": "Midnight Black",
+    "priceEur": 74.99
+   },
+   {
+    "label": "Cosmic Red",
+    "priceEur": 74.99
+   },
+   {
+    "label": "Starlight Blue",
+    "priceEur": 74.99
+   },
+   {
+    "label": "Nova Pink",
+    "priceEur": 74.99
+   },
+   {
+    "label": "Galactic Purple",
+    "priceEur": 74.99
+   },
+   {
+    "label": "Grey Camouflage",
+    "priceEur": 74.99
+   },
+   {
+    "label": "Chroma Indigo",
+    "priceEur": 79.99
+   },
+   {
+    "label": "Chroma Pearl",
+    "priceEur": 79.99
+   },
+   {
+    "label": "Chroma Teal",
+    "priceEur": 79.99
+   }
+  ],
+  "specs": {
+   "storage": null,
+   "resolution": null,
+   "other": "Compatible PS5, PC, Mac, mobile ; 66 x 160 x 106 mm"
+  },
+  "platform": "PS5",
+  "preorder": null,
+  "weightG": 540,
+  "productWeightG": 300,
+  "weightNote": "appareil publié + emballage estimé",
+  "highlights": []
+ },
+ {
+  "id": "gv005",
+  "name": "Manette sans fil DualSense Edge",
+  "brand": "Sony",
+  "category": "Jeux vidéo & consoles",
+  "store": "PlayStation Store",
+  "url": "https://www.playstation.com/fr-fr/accessories/dualsense-edge-wireless-controller/buy-now/",
+  "optionName": null,
+  "colors": null,
+  "configs": [
+   {
+    "label": "Standard",
+    "priceEur": 219.99
+   }
+  ],
+  "specs": {
+   "storage": null,
+   "resolution": null,
+   "other": "Manette pro personnalisable ; 66 x 160 x 106 mm"
+  },
+  "platform": "PS5",
+  "preorder": null,
+  "weightG": 540,
+  "productWeightG": 300,
+  "weightNote": "appareil publié + emballage estimé",
+  "highlights": []
+ },
+ {
+  "id": "gv006",
+  "name": "PlayStation Portal (lecteur à distance)",
+  "brand": "Sony",
+  "category": "Jeux vidéo & consoles",
+  "store": "PlayStation Store",
+  "url": "https://www.playstation.com/fr-fr/accessories/playstation-portal-remote-player/buy-now/",
+  "optionName": null,
+  "colors": null,
+  "configs": [
+   {
+    "label": "Standard",
+    "priceEur": 249.99
+   }
+  ],
+  "specs": {
+   "storage": null,
+   "resolution": "Écran 8 pouces (Remote Play)",
+   "other": "Nécessite une PS5 ; Wi-Fi"
+  },
+  "platform": "PS5",
+  "preorder": null,
+  "weightG": 960,
+  "productWeightG": 600,
+  "weightNote": "appareil publié + emballage estimé",
+  "highlights": [
+   "Définition : Écran 8 pouces (Remote Play)"
+  ]
+ },
+ {
+  "id": "gv007",
+  "name": "PlayStation VR2",
+  "brand": "Sony",
+  "category": "Jeux vidéo & consoles",
+  "store": "PlayStation Store",
+  "url": "https://www.playstation.com/fr-fr/accessories/ps-vr2/buy-now/",
+  "optionName": null,
+  "colors": null,
+  "configs": [
+   {
+    "label": "Casque + 2 manettes Sense",
+    "priceEur": 449.99
+   }
+  ],
+  "specs": {
+   "storage": null,
+   "other": "Inclus : 2 manettes PS VR2 Sense, écouteurs, câble USB"
+  },
+  "platform": "PS5",
+  "preorder": null,
+  "weightG": 2765,
+  "productWeightG": 600,
+  "weightNote": "appareil publié + emballage estimé",
+  "highlights": []
+ },
+ {
+  "id": "gv008",
+  "name": "Casque-micro sans fil PlayStation PULSE (CFI-ZWH3)",
+  "brand": "Sony",
+  "category": "Jeux vidéo & consoles",
+  "store": "PlayStation Store",
+  "url": "https://www.playstation.com/fr-fr/accessories/pulse-wireless-headset/product/midnight-black/",
+  "optionName": null,
+  "colors": [
+   "Blanc",
+   "Midnight Black"
+  ],
+  "configs": [
+   {
+    "label": "Blanc / Midnight Black",
+    "priceEur": 99.99
+   }
+  ],
+  "specs": {
+   "storage": null,
+   "resolution": null,
+   "other": "Adaptateur PlayStation Link USB-C ; Bluetooth"
+  },
+  "platform": "PS5",
+  "preorder": {
+   "releaseDate": null
+  },
+  "weightG": 540,
+  "productWeightG": 300,
+  "weightNote": "appareil publié + emballage estimé",
+  "highlights": []
+ },
+ {
+  "id": "gv009",
+  "name": "Casque-micro sans fil PULSE Elite",
+  "brand": "Sony",
+  "category": "Jeux vidéo & consoles",
+  "store": "PlayStation Store",
+  "url": "https://www.playstation.com/fr-fr/accessories/pulse-elite-wireless-headset/",
+  "optionName": null,
+  "colors": [
+   "Blanc",
+   "Midnight Black"
+  ],
+  "configs": [
+   {
+    "label": "Standard",
+    "priceEur": 149.99
+   }
+  ],
+  "specs": {
+   "storage": null,
+   "resolution": null,
+   "other": "Modèle CFI-ZWH2EC ; PlayStation Link"
+  },
+  "platform": "PS5",
+  "preorder": null,
+  "weightG": 680,
+  "productWeightG": 400,
+  "weightNote": "appareil publié + emballage estimé",
+  "highlights": []
+ },
+ {
+  "id": "gv010",
+  "name": "Écouteurs sans fil PULSE Explore",
+  "brand": "Sony",
+  "category": "Jeux vidéo & consoles",
+  "store": "PlayStation Store",
+  "url": "https://www.playstation.com/fr-fr/accessories/pulse-explore-wireless-earbuds/",
+  "optionName": null,
+  "colors": [
+   "Blanc",
+   "Midnight Black"
+  ],
+  "configs": [
+   {
+    "label": "Standard",
+    "priceEur": 169.99
+   }
+  ],
+  "specs": {
+   "storage": null,
+   "resolution": null,
+   "other": "Modèle CFI-ZWE1EC ; boîtier + 2 écouteurs 77 g"
+  },
+  "platform": "PS5",
+  "preorder": null,
+  "weightG": 228,
+  "productWeightG": 77,
+  "weightNote": "appareil publié + emballage estimé",
+  "highlights": []
+ },
+ {
+  "id": "gv011",
+  "name": "Microsoft Xbox Series S",
+  "brand": "Microsoft",
+  "category": "Jeux vidéo & consoles",
+  "store": "Microsoft Store",
+  "url": "https://www.microsoft.com/fr-fr/d/xbox-series-s/942j774tp9jn",
+  "optionName": null,
+  "colors": null,
+  "configs": [
+   {
+    "label": "512 Go (blanc)",
+    "priceEur": 499.99
+   },
+   {
+    "label": "1 To (blanc)",
+    "priceEur": 599.99
+   }
+  ],
+  "specs": {
+   "storage": "SSD 512 Go / 1 To",
+   "resolution": "1440p, upscaling 4K",
+   "other": "Entièrement numérique ; 6,5 x 15,1 x 27,5 cm"
+  },
+  "platform": "Xbox Series",
+  "preorder": null,
+  "weightG": 3084,
+  "productWeightG": 1920,
+  "weightNote": "appareil publié + emballage estimé",
+  "highlights": [
+   "Stockage : SSD 512 Go / 1 To",
+   "Définition : 1440p, upscaling 4K"
+  ]
+ },
+ {
+  "id": "gv012",
+  "name": "Manette sans fil Xbox",
+  "brand": "Microsoft",
+  "category": "Jeux vidéo & consoles",
+  "store": "Microsoft Store",
+  "url": "https://www.microsoft.com/fr-fr/d/manette-sans-fil-xbox/8xn59crbsqgz",
+  "optionName": "Couleur",
+  "colors": null,
+  "configs": [
+   {
+    "label": "Carbon Black",
+    "priceEur": 64.99
+   },
+   {
+    "label": "Robot White",
+    "priceEur": 64.99
+   },
+   {
+    "label": "Shock Blue",
+    "priceEur": 69.99
+   },
+   {
+    "label": "Pulse Red",
+    "priceEur": 69.99
+   },
+   {
+    "label": "Deep Pink",
+    "priceEur": 69.99
+   },
+   {
+    "label": "Velocity Green",
+    "priceEur": 69.99
+   }
+  ],
+  "specs": {
+   "storage": null,
+   "resolution": null,
+   "other": "Xbox Series, Xbox One, PC, mobile ; Bluetooth"
+  },
+  "platform": "Xbox Series",
+  "preorder": null,
+  "weightG": 540,
+  "productWeightG": null,
+  "weightNote": "poids estimé",
+  "highlights": []
+ },
+ {
+  "id": "gv013",
+  "name": "Manette Xbox Elite Series 2",
+  "brand": "Microsoft",
+  "category": "Jeux vidéo & consoles",
+  "store": "Microsoft Store",
+  "url": "https://www.microsoft.com/fr-fr/d/manette-sans-fil-xbox-elite-series-2/8rsn7j6375gg",
+  "optionName": null,
+  "colors": [
+   "Noir",
+   "Blanc (Core)"
+  ],
+  "configs": [
+   {
+    "label": "Elite Series 2 (complète)",
+    "priceEur": 199.99
+   },
+   {
+    "label": "Elite Series 2 – Core",
+    "priceEur": 149.99
+   }
+  ],
+  "specs": {
+   "storage": null,
+   "resolution": null,
+   "other": ""
+  },
+  "platform": "Xbox Series",
+  "preorder": null,
+  "weightG": 540,
+  "productWeightG": null,
+  "weightNote": "poids estimé",
+  "highlights": []
+ },
+ {
+  "id": "gv014",
+  "name": "Manette Xbox Nano",
+  "brand": "Microsoft",
+  "category": "Jeux vidéo & consoles",
+  "store": "Microsoft Store",
+  "url": "https://www.microsoft.com/fr-fr/d/manette-xbox-nano/8wg5vqp0x4g3",
+  "optionName": null,
+  "colors": null,
+  "configs": [
+   {
+    "label": "Standard",
+    "priceEur": 49.99
+   }
+  ],
+  "specs": {
+   "storage": null,
+   "resolution": null,
+   "other": "Petite manette ; 133 x 66,5 x 36,6 mm ; 5 h d'autonomie"
+  },
+  "platform": "Xbox Series",
+  "preorder": null,
+  "weightG": 261,
+  "productWeightG": 101,
+  "weightNote": "appareil publié + emballage estimé",
+  "highlights": []
+ },
+ {
+  "id": "gv015",
+  "name": "Casque sans fil Xbox",
+  "brand": "Microsoft",
+  "category": "Jeux vidéo & consoles",
+  "store": "Microsoft Store",
+  "url": "https://www.microsoft.com/fr-fr/d/casque-sans-fil-xbox/9203q8w23lhn",
+  "optionName": null,
+  "colors": null,
+  "configs": [
+   {
+    "label": "Standard",
+    "priceEur": 109.99
+   }
+  ],
+  "specs": {
+   "storage": null,
+   "resolution": null,
+   "other": "Jusqu'à 20 h d'autonomie"
+  },
+  "platform": "Xbox Series",
+  "preorder": null,
+  "weightG": 568,
+  "productWeightG": 320,
+  "weightNote": "appareil publié + emballage estimé",
+  "highlights": []
+ },
+ {
+  "id": "gv016",
+  "name": "Nintendo Switch 2 (console seule)",
+  "brand": "Nintendo",
+  "category": "Jeux vidéo & consoles",
+  "store": "Boulanger",
+  "url": "https://www.boulanger.com/ref/1220464",
+  "optionName": null,
+  "colors": null,
+  "configs": [
+   {
+    "label": "256 Go",
+    "priceEur": 469.99
+   }
+  ],
+  "specs": {
+   "storage": "256 Go (UFS) + microSD Express",
+   "resolution": "Écran LCD 7,9\" 1920x1080 HDR10 120 Hz ; 4K sur TV",
+   "other": "EAN 0045496321444"
+  },
+  "platform": "Switch 2",
+  "preorder": null,
+  "weightG": 1968,
+  "productWeightG": 534,
+  "weightNote": "appareil publié + emballage estimé",
+  "highlights": [
+   "Stockage : 256 Go (UFS) + microSD Express",
+   "Définition : Écran LCD 7,9\" 1920x1080 HDR10 120 Hz ; 4K sur TV"
+  ]
+ },
+ {
+  "id": "gv017",
+  "name": "Pack Nintendo Switch 2 + Mario Kart World",
+  "brand": "Nintendo",
+  "category": "Jeux vidéo & consoles",
+  "store": "Boulanger",
+  "url": "https://www.boulanger.com/ref/1248762",
+  "optionName": null,
+  "colors": null,
+  "configs": [
+   {
+    "label": "256 Go + Mario Kart World",
+    "priceEur": 529.99
+   }
+  ],
+  "specs": {
+   "storage": "256 Go",
+   "resolution": "1080p portable / 4K TV",
+   "other": "EAN 0045496337469"
+  },
+  "platform": "Switch 2",
+  "preorder": null,
+  "weightG": 1968,
+  "productWeightG": 534,
+  "weightNote": "appareil publié + emballage estimé",
+  "highlights": [
+   "Stockage : 256 Go",
+   "Définition : 1080p portable / 4K TV"
+  ]
+ },
+ {
+  "id": "gv018",
+  "name": "Pack Nintendo Switch 2 + Nintendo Switch Sports Resort",
+  "brand": "Nintendo",
+  "category": "Jeux vidéo & consoles",
+  "store": "Boulanger",
+  "url": "https://www.boulanger.com/ref/1246717",
+  "optionName": null,
+  "colors": null,
+  "configs": [
+   {
+    "label": "256 Go + Switch Sports Resort",
+    "priceEur": 529.99
+   }
+  ],
+  "specs": {
+   "storage": "256 Go",
+   "resolution": "1080p portable / 4K TV",
+   "other": "EAN 0045496337544"
+  },
+  "platform": "Switch 2",
+  "preorder": null,
+  "weightG": 1968,
+  "productWeightG": 534,
+  "weightNote": "appareil publié + emballage estimé",
+  "highlights": [
+   "Stockage : 256 Go",
+   "Définition : 1080p portable / 4K TV"
+  ]
+ },
+ {
+  "id": "gv019",
+  "name": "Manette Nintendo Switch 2 Pro",
+  "brand": "Nintendo",
+  "category": "Jeux vidéo & consoles",
+  "store": "Boulanger",
+  "url": "https://www.boulanger.com/ref/1220846",
+  "optionName": null,
+  "colors": null,
+  "configs": [
+   {
+    "label": "Standard",
+    "priceEur": 74.99
+   }
+  ],
+  "specs": {
+   "storage": null,
+   "resolution": null,
+   "other": "EAN 0045496321475"
+  },
+  "platform": "Switch 2",
+  "preorder": null,
+  "weightG": 1968,
+  "productWeightG": 230,
+  "weightNote": "appareil publié + emballage estimé",
+  "highlights": []
+ },
+ {
+  "id": "gv020",
+  "name": "Paire de manettes Joy-Con 2",
+  "brand": "Nintendo",
+  "category": "Jeux vidéo & consoles",
+  "store": "Boulanger",
+  "url": "https://www.boulanger.com/ref/1243095",
+  "optionName": null,
+  "colors": null,
+  "configs": [
+   {
+    "label": "Bleu / Jaune",
+    "priceEur": 72.99
+   }
+  ],
+  "specs": {
+   "storage": null,
+   "resolution": null,
+   "other": "EAN 0045496321857"
+  },
+  "platform": "Switch 2",
+  "preorder": null,
+  "weightG": 312,
+  "productWeightG": 137,
+  "weightNote": "appareil publié + emballage estimé",
+  "highlights": []
+ },
+ {
+  "id": "gv021",
+  "name": "Grand Theft Auto VI",
+  "brand": "Rockstar Games / Take-Two",
+  "category": "Jeux vidéo & consoles",
+  "store": "Boulanger",
+  "url": "https://www.boulanger.com/ref/1243150",
+  "optionName": "Plateforme",
+  "colors": null,
+  "configs": [
+   {
+    "label": "PS5",
+    "priceEur": 79.99
+   },
+   {
+    "label": "Xbox Series X|S",
+    "priceEur": 79.99
+   }
+  ],
+  "specs": {
+   "storage": null,
+   "resolution": null,
+   "other": "Version boîte avec code de téléchargement (pas de disque) : code à activer sur un compte PlayStation Network ou Xbox de la zone Europe"
+  },
+  "platform": "PS5 / Xbox Series",
+  "preorder": {
+   "releaseDate": "2026-11-19"
+  },
+  "weightG": 260,
+  "productWeightG": 100,
+  "weightNote": "appareil publié + emballage estimé",
+  "highlights": []
+ },
+ {
+  "id": "gv022",
+  "name": "EA SPORTS FC 27",
+  "brand": "Electronic Arts",
+  "category": "Jeux vidéo & consoles",
+  "store": "E.Leclerc",
+  "url": "https://www.e.leclerc/fp/ea-sports-fc-27-ps5-5030935125535",
+  "optionName": "Plateforme",
+  "colors": null,
+  "configs": [
+   {
+    "label": "PS5",
+    "priceEur": 60.36
+   },
+   {
+    "label": "Xbox Series X|S",
+    "priceEur": 60.36
+   },
+   {
+    "label": "Switch 2",
+    "priceEur": 52.8
+   }
+  ],
+  "specs": {
+   "storage": null,
+   "resolution": null,
+   "other": "Jeu en boîte"
+  },
+  "platform": "PS5 / Xbox Series / Switch 2",
+  "preorder": null,
+  "weightG": 260,
+  "productWeightG": 100,
+  "weightNote": "appareil publié + emballage estimé",
+  "highlights": []
+ },
+ {
+  "id": "gv023",
+  "name": "Call of Duty: Modern Warfare 4",
+  "brand": "Activision",
+  "category": "Jeux vidéo & consoles",
+  "store": "Boulanger",
+  "url": "https://www.boulanger.com/ref/1242278",
+  "optionName": "Plateforme",
+  "colors": null,
+  "configs": [
+   {
+    "label": "PS5",
+    "priceEur": 79.99
+   },
+   {
+    "label": "Xbox Series X|S",
+    "priceEur": 79.99
+   }
+  ],
+  "specs": {
+   "storage": null,
+   "resolution": null,
+   "other": "Jeu en boîte"
+  },
+  "platform": "PS5 / Xbox Series",
+  "preorder": null,
+  "weightG": 260,
+  "productWeightG": 100,
+  "weightNote": "appareil publié + emballage estimé",
+  "highlights": []
+ },
+ {
+  "id": "gv024",
+  "name": "NBA 2K27",
+  "brand": "2K / Take-Two",
+  "category": "Jeux vidéo & consoles",
+  "store": "Boulanger",
+  "url": "https://www.boulanger.com/ref/1246190",
+  "optionName": "Plateforme",
+  "colors": null,
+  "configs": [
+   {
+    "label": "PS5",
+    "priceEur": 89.99
+   },
+   {
+    "label": "Switch 2",
+    "priceEur": 79.99
+   }
+  ],
+  "specs": {
+   "storage": null,
+   "resolution": null,
+   "other": "Jeu en boîte"
+  },
+  "platform": "PS5 / Switch 2 / Xbox Series",
+  "preorder": null,
+  "weightG": 260,
+  "productWeightG": 100,
+  "weightNote": "appareil publié + emballage estimé",
+  "highlights": []
+ },
+ {
+  "id": "gv025",
+  "name": "Ghost of Yōtei",
+  "brand": "Sony Interactive Entertainment",
+  "category": "Jeux vidéo & consoles",
+  "store": "E.Leclerc",
+  "url": "https://www.e.leclerc/fp/ghost-of-yotei-ps5-0711719020240",
+  "optionName": "Plateforme",
+  "colors": null,
+  "configs": [
+   {
+    "label": "PS5",
+    "priceEur": 54.99
+   }
+  ],
+  "specs": {
+   "storage": null,
+   "resolution": null,
+   "other": "Jeu en boîte"
+  },
+  "platform": "PS5",
+  "preorder": null,
+  "weightG": 260,
+  "productWeightG": 100,
+  "weightNote": "appareil publié + emballage estimé",
+  "highlights": []
+ },
+ {
+  "id": "gv026",
+  "name": "Marvel's Wolverine",
+  "brand": "Sony Interactive Entertainment",
+  "category": "Jeux vidéo & consoles",
+  "store": "E.Leclerc",
+  "url": "https://www.e.leclerc/fp/marvel-s-wolverine-ps5-0711719073239",
+  "optionName": "Plateforme",
+  "colors": null,
+  "configs": [
+   {
+    "label": "PS5",
+    "priceEur": 60.9
+   }
+  ],
+  "specs": {
+   "storage": null,
+   "resolution": null,
+   "other": "Jeu en boîte"
+  },
+  "platform": "PS5",
+  "preorder": null,
+  "weightG": 260,
+  "productWeightG": 100,
+  "weightNote": "appareil publié + emballage estimé",
+  "highlights": []
+ },
+ {
+  "id": "gv027",
+  "name": "007 First Light",
+  "brand": "IO Interactive",
+  "category": "Jeux vidéo & consoles",
+  "store": "E.Leclerc",
+  "url": "https://www.e.leclerc/fp/007-first-light-ps5-0884095225315",
+  "optionName": "Plateforme",
+  "colors": null,
+  "configs": [
+   {
+    "label": "PS5",
+    "priceEur": 59.99
+   }
+  ],
+  "specs": {
+   "storage": null,
+   "resolution": null,
+   "other": "Jeu en boîte"
+  },
+  "platform": "PS5 / Xbox Series",
+  "preorder": null,
+  "weightG": 260,
+  "productWeightG": 100,
+  "weightNote": "appareil publié + emballage estimé",
+  "highlights": []
+ },
+ {
+  "id": "gv028",
+  "name": "Assassin's Creed Black Flag Resynced",
+  "brand": "Ubisoft",
+  "category": "Jeux vidéo & consoles",
+  "store": "Boulanger",
+  "url": "https://www.boulanger.com/ref/1240184",
+  "optionName": "Plateforme",
+  "colors": null,
+  "configs": [
+   {
+    "label": "PS5",
+    "priceEur": 52.99
+   },
+   {
+    "label": "Xbox Series X|S",
+    "priceEur": 58.99
+   }
+  ],
+  "specs": {
+   "storage": null,
+   "resolution": null,
+   "other": "Jeu en boîte"
+  },
+  "platform": "PS5 / Xbox Series",
+  "preorder": null,
+  "weightG": 260,
+  "productWeightG": 100,
+  "weightNote": "appareil publié + emballage estimé",
+  "highlights": []
+ },
+ {
+  "id": "gv029",
+  "name": "Gears of War: E-Day",
+  "brand": "Xbox Game Studios",
+  "category": "Jeux vidéo & consoles",
+  "store": "E.Leclerc",
+  "url": "https://www.e.leclerc/fp/gears-of-war-e-day-xbox-series-0196388825752",
+  "optionName": "Plateforme",
+  "colors": null,
+  "configs": [
+   {
+    "label": "Xbox Series X|S",
+    "priceEur": 51.39
+   }
+  ],
+  "specs": {
+   "storage": null,
+   "resolution": null,
+   "other": "Jeu en boîte"
+  },
+  "platform": "Xbox Series",
+  "preorder": null,
+  "weightG": 260,
+  "productWeightG": 100,
+  "weightNote": "appareil publié + emballage estimé",
+  "highlights": []
+ },
+ {
+  "id": "gv030",
+  "name": "Mario Kart World",
+  "brand": "Nintendo",
+  "category": "Jeux vidéo & consoles",
+  "store": "Boulanger",
+  "url": "https://www.boulanger.com/ref/1220885",
+  "optionName": "Plateforme",
+  "colors": null,
+  "configs": [
+   {
+    "label": "Switch 2",
+    "priceEur": 89.99
+   }
+  ],
+  "specs": {
+   "storage": null,
+   "resolution": null,
+   "other": "Jeu en boîte"
+  },
+  "platform": "Switch 2",
+  "preorder": null,
+  "weightG": 260,
+  "productWeightG": 100,
+  "weightNote": "appareil publié + emballage estimé",
+  "highlights": []
+ },
+ {
+  "id": "gv031",
+  "name": "Pokémon Pokopia",
+  "brand": "Nintendo / The Pokémon Company",
+  "category": "Jeux vidéo & consoles",
+  "store": "E.Leclerc",
+  "url": "https://www.e.leclerc/fp/pokemon-pokopia-nintendo-switch-2-0045496313838",
+  "optionName": "Plateforme",
+  "colors": null,
+  "configs": [
+   {
+    "label": "Switch 2",
+    "priceEur": 58.95
+   }
+  ],
+  "specs": {
+   "storage": null,
+   "resolution": null,
+   "other": "Jeu en boîte"
+  },
+  "platform": "Switch 2",
+  "preorder": null,
+  "weightG": 260,
+  "productWeightG": 100,
+  "weightNote": "appareil publié + emballage estimé",
+  "highlights": []
+ },
+ {
+  "id": "gv032",
+  "name": "Donkey Kong Bananza",
+  "brand": "Nintendo",
+  "category": "Jeux vidéo & consoles",
+  "store": "E.Leclerc",
+  "url": "https://www.e.leclerc/fp/donkey-kong-bananza-nintendo-switch-2-0045496312770",
+  "optionName": "Plateforme",
+  "colors": null,
+  "configs": [
+   {
+    "label": "Switch 2",
+    "priceEur": 58.95
+   }
+  ],
+  "specs": {
+   "storage": null,
+   "resolution": null,
+   "other": "Jeu en boîte"
+  },
+  "platform": "Switch 2",
+  "preorder": null,
+  "weightG": 260,
+  "productWeightG": 100,
+  "weightNote": "appareil publié + emballage estimé",
+  "highlights": []
+ },
+ {
+  "id": "gv033",
+  "name": "Légendes Pokémon : Z-A – Nintendo Switch 2 Edition",
+  "brand": "Nintendo / The Pokémon Company",
+  "category": "Jeux vidéo & consoles",
+  "store": "Boulanger",
+  "url": "https://www.boulanger.com/ref/1223416",
+  "optionName": "Plateforme",
+  "colors": null,
+  "configs": [
+   {
+    "label": "Switch 2",
+    "priceEur": 52.33
+   }
+  ],
+  "specs": {
+   "storage": null,
+   "resolution": null,
+   "other": "Jeu en boîte"
+  },
+  "platform": "Switch 2",
+  "preorder": null,
+  "weightG": 1968,
+  "productWeightG": 100,
+  "weightNote": "appareil publié + emballage estimé",
+  "highlights": []
+ },
+ {
+  "id": "gv034",
+  "name": "The Legend of Zelda: Ocarina of Time (Switch 2)",
+  "brand": "Nintendo",
+  "category": "Jeux vidéo & consoles",
+  "store": "Boulanger",
+  "url": "https://www.boulanger.com/ref/1247631",
+  "optionName": "Plateforme",
+  "colors": null,
+  "configs": [
+   {
+    "label": "Switch 2",
+    "priceEur": 59.99
+   }
+  ],
+  "specs": {
+   "storage": null,
+   "resolution": null,
+   "other": "Jeu en boîte"
+  },
+  "platform": "Switch 2",
+  "preorder": null,
+  "weightG": 1968,
+  "productWeightG": 100,
+  "weightNote": "appareil publié + emballage estimé",
+  "highlights": []
+ },
+ {
+  "id": "gv035",
+  "name": "Super Mario Party Jamboree – Nintendo Switch 2 Edition + Jamboree TV",
+  "brand": "Nintendo",
+  "category": "Jeux vidéo & consoles",
+  "store": "Boulanger",
+  "url": "https://www.boulanger.com/ref/1221162",
+  "optionName": "Plateforme",
+  "colors": null,
+  "configs": [
+   {
+    "label": "Switch 2",
+    "priceEur": 68.99
+   }
+  ],
+  "specs": {
+   "storage": null,
+   "resolution": null,
+   "other": "Jeu en boîte"
+  },
+  "platform": "Switch 2",
+  "preorder": null,
+  "weightG": 1968,
+  "productWeightG": 100,
+  "weightNote": "appareil publié + emballage estimé",
+  "highlights": []
+ },
+ {
+  "id": "gv036",
+  "name": "Nintendo Switch Sports Resort",
+  "brand": "Nintendo",
+  "category": "Jeux vidéo & consoles",
+  "store": "Boulanger",
+  "url": "https://www.boulanger.com/ref/1243096",
+  "optionName": "Plateforme",
+  "colors": null,
+  "configs": [
+   {
+    "label": "Switch 2",
+    "priceEur": 51.99
+   }
+  ],
+  "specs": {
+   "storage": null,
+   "resolution": null,
+   "other": "Jeu en boîte"
+  },
+  "platform": "Switch 2",
+  "preorder": null,
+  "weightG": 260,
+  "productWeightG": 100,
+  "weightNote": "appareil publié + emballage estimé",
+  "highlights": []
+ },
+ {
+  "id": "gv037",
+  "name": "Samsung Essential G3 LS24HG310EUXEN 24\"",
+  "brand": "Samsung",
+  "category": "Écrans",
+  "store": "Boulanger",
+  "url": "https://www.boulanger.com/ref/1249544",
+  "optionName": null,
+  "colors": null,
+  "configs": [
+   {
+    "label": "24\"",
+    "priceEur": 80.99
+   }
+  ],
+  "specs": {
+   "storage": null,
+   "resolution": "1920 x 1080 (Full HD)",
+   "other": "144 Hz ; dalle IPS"
+  },
+  "platform": null,
+  "preorder": null,
+  "weightG": 4080,
+  "productWeightG": 2700,
+  "weightNote": "appareil publié + emballage estimé",
+  "highlights": [
+   "Définition : 1920 x 1080 (Full HD)"
+  ]
+ },
+ {
+  "id": "gv038",
+  "name": "AOC 24G4ZRE 24\"",
+  "brand": "AOC",
+  "category": "Écrans",
+  "store": "Boulanger",
+  "url": "https://www.boulanger.com/ref/1246187",
+  "optionName": null,
+  "colors": null,
+  "configs": [
+   {
+    "label": "24\"",
+    "priceEur": 84.99
+   }
+  ],
+  "specs": {
+   "storage": null,
+   "resolution": "1920 x 1080 (Full HD)",
+   "other": "260 Hz ; dalle IPS"
+  },
+  "platform": null,
+  "preorder": null,
+  "weightG": 6600,
+  "productWeightG": 4500,
+  "weightNote": "appareil publié + emballage estimé",
+  "highlights": [
+   "Définition : 1920 x 1080 (Full HD)"
+  ]
+ },
+ {
+  "id": "gv039",
+  "name": "Samsung Odyssey G3 LS24HG302EUXEN 24\"",
+  "brand": "Samsung",
+  "category": "Écrans",
+  "store": "Boulanger",
+  "url": "https://www.boulanger.com/ref/1249530",
+  "optionName": null,
+  "colors": null,
+  "configs": [
+   {
+    "label": "24\"",
+    "priceEur": 89.99
+   }
+  ],
+  "specs": {
+   "storage": null,
+   "resolution": "1920 x 1080 (Full HD)",
+   "other": "200 Hz ; dalle IPS"
+  },
+  "platform": null,
+  "preorder": null,
+  "weightG": 4220,
+  "productWeightG": 2800,
+  "weightNote": "appareil publié + emballage estimé",
+  "highlights": [
+   "Définition : 1920 x 1080 (Full HD)"
+  ]
+ },
+ {
+  "id": "gv040",
+  "name": "LG UltraGear 27G523B 27\"",
+  "brand": "LG",
+  "category": "Écrans",
+  "store": "Boulanger",
+  "url": "https://www.boulanger.com/ref/1243272",
+  "optionName": null,
+  "colors": null,
+  "configs": [
+   {
+    "label": "27\"",
+    "priceEur": 109.99
+   }
+  ],
+  "specs": {
+   "storage": null,
+   "resolution": "1920 x 1080 (Full HD)",
+   "other": "200 Hz ; dalle IPS"
+  },
+  "platform": null,
+  "preorder": null,
+  "weightG": 6180,
+  "productWeightG": 4200,
+  "weightNote": "appareil publié + emballage estimé",
+  "highlights": [
+   "Définition : 1920 x 1080 (Full HD)"
+  ]
+ },
+ {
+  "id": "gv041",
+  "name": "ASUS ROG Strix XG27ACSR 27\"",
+  "brand": "ASUS",
+  "category": "Écrans",
+  "store": "Boulanger",
+  "url": "https://www.boulanger.com/ref/1242772",
+  "optionName": null,
+  "colors": null,
+  "configs": [
+   {
+    "label": "27\"",
+    "priceEur": 199
+   }
+  ],
+  "specs": {
+   "storage": null,
+   "resolution": "2560 x 1440 (QHD)",
+   "other": "200 (220 Hz dans le tableau des caractéristiques) Hz ; dalle Fast IPS"
+  },
+  "platform": null,
+  "preorder": null,
+  "weightG": 8616,
+  "productWeightG": 5940,
+  "weightNote": "appareil publié + emballage estimé",
+  "highlights": [
+   "Définition : 2560 x 1440 (QHD)"
+  ]
+ },
+ {
+  "id": "gv042",
+  "name": "LG 32U631A-B 32\"",
+  "brand": "LG",
+  "category": "Écrans",
+  "store": "Boulanger",
+  "url": "https://www.boulanger.com/ref/1221504",
+  "optionName": null,
+  "colors": null,
+  "configs": [
+   {
+    "label": "32\"",
+    "priceEur": 229.99
+   }
+  ],
+  "specs": {
+   "storage": null,
+   "resolution": "2560 x 1440 (QHD)",
+   "other": "100 Hz ; dalle IPS"
+  },
+  "platform": null,
+  "preorder": null,
+  "weightG": 9400,
+  "productWeightG": 6500,
+  "weightNote": "appareil publié + emballage estimé",
+  "highlights": [
+   "Définition : 2560 x 1440 (QHD)"
+  ]
+ },
+ {
+  "id": "gv043",
+  "name": "Samsung ViewFinity S71H LS32H710EAUXEN 32\" 4K",
+  "brand": "Samsung",
+  "category": "Écrans",
+  "store": "Boulanger",
+  "url": "https://www.boulanger.com/ref/1249547",
+  "optionName": null,
+  "colors": null,
+  "configs": [
+   {
+    "label": "32\"",
+    "priceEur": 239.99
+   }
+  ],
+  "specs": {
+   "storage": null,
+   "resolution": "3840 x 2160 (4K UHD)",
+   "other": "fréquence non indiquée ; dalle IPS"
+  },
+  "platform": null,
+  "preorder": null,
+  "weightG": 8000,
+  "productWeightG": 5500,
+  "weightNote": "appareil publié + emballage estimé",
+  "highlights": [
+   "Définition : 3840 x 2160 (4K UHD)"
+  ]
+ },
+ {
+  "id": "gv044",
+  "name": "Samsung Odyssey G6 27\" 350 Hz",
+  "brand": "Samsung",
+  "category": "Écrans",
+  "store": "Boulanger",
+  "url": "https://www.boulanger.com/ref/1229568",
+  "optionName": null,
+  "colors": null,
+  "configs": [
+   {
+    "label": "27\"",
+    "priceEur": 259.99
+   }
+  ],
+  "specs": {
+   "storage": null,
+   "resolution": "2560 x 1440 (QHD)",
+   "other": "350 Hz ; dalle IPS"
+  },
+  "platform": null,
+  "preorder": null,
+  "weightG": 9260,
+  "productWeightG": 6400,
+  "weightNote": "appareil publié + emballage estimé",
+  "highlights": [
+   "Définition : 2560 x 1440 (QHD)"
+  ]
+ },
+ {
+  "id": "gv045",
+  "name": "Acer Predator XB273KV4 27\" 4K",
+  "brand": "Acer",
+  "category": "Écrans",
+  "store": "Boulanger",
+  "url": "https://www.boulanger.com/ref/1229524",
+  "optionName": null,
+  "colors": null,
+  "configs": [
+   {
+    "label": "27\"",
+    "priceEur": 289.99
+   }
+  ],
+  "specs": {
+   "storage": null,
+   "resolution": "3840 x 2160 (4K UHD)",
+   "other": "160 Hz ; dalle IPS"
+  },
+  "platform": null,
+  "preorder": null,
+  "weightG": 8700,
+  "productWeightG": 6000,
+  "weightNote": "appareil publié + emballage estimé",
+  "highlights": [
+   "Définition : 3840 x 2160 (4K UHD)"
+  ]
+ },
+ {
+  "id": "gv046",
+  "name": "LG UltraFine 27UP850K-W 27\" 4K",
+  "brand": "LG",
+  "category": "Écrans",
+  "store": "Boulanger",
+  "url": "https://www.boulanger.com/ref/1220487",
+  "optionName": null,
+  "colors": null,
+  "configs": [
+   {
+    "label": "27\"",
+    "priceEur": 349.99
+   }
+  ],
+  "specs": {
+   "storage": null,
+   "resolution": "3840 x 2160 (4K UHD)",
+   "other": "fréquence non indiquée ; dalle IPS"
+  },
+  "platform": null,
+  "preorder": null,
+  "weightG": 6460,
+  "productWeightG": 4400,
+  "weightNote": "appareil publié + emballage estimé",
+  "highlights": [
+   "Définition : 3840 x 2160 (4K UHD)"
+  ]
+ },
+ {
+  "id": "gv047",
+  "name": "LG UltraGear 27GX704A 27\" OLED",
+  "brand": "LG",
+  "category": "Écrans",
+  "store": "Boulanger",
+  "url": "https://www.boulanger.com/ref/1230608",
+  "optionName": null,
+  "colors": null,
+  "configs": [
+   {
+    "label": "27\"",
+    "priceEur": 349.99
+   }
+  ],
+  "specs": {
+   "storage": null,
+   "resolution": "2560 x 1440 (QHD)",
+   "other": "240 Hz ; dalle OLED"
+  },
+  "platform": null,
+  "preorder": null,
+  "weightG": 7020,
+  "productWeightG": null,
+  "weightNote": "poids estimé",
+  "highlights": [
+   "Définition : 2560 x 1440 (QHD)"
+  ]
+ },
+ {
+  "id": "gv048",
+  "name": "MSI MAG 321CUP 32\" 4K QD-OLED incurvé",
+  "brand": "MSI",
+  "category": "Écrans",
+  "store": "Boulanger",
+  "url": "https://www.boulanger.com/ref/1230098",
+  "optionName": null,
+  "colors": null,
+  "configs": [
+   {
+    "label": "32\"",
+    "priceEur": 649.99
+   }
+  ],
+  "specs": {
+   "storage": null,
+   "resolution": "3840 x 2160 (4K UHD)",
+   "other": "165 Hz ; dalle QD-OLED"
+  },
+  "platform": null,
+  "preorder": null,
+  "weightG": 10100,
+  "productWeightG": null,
+  "weightNote": "poids estimé",
+  "highlights": [
+   "Définition : 3840 x 2160 (4K UHD)"
+  ]
+ },
+ {
+  "id": "mo001",
+  "name": "Nike Air Force 1 '07 homme",
+  "brand": "Nike",
+  "category": "Chaussures",
+  "store": "Nike",
+  "url": "https://www.nike.com/fr/t/chaussure-nike-air-force-1-07-pour-homme-n8juM1H2/CW2288-111",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 119.99,
+    "weightG": 1300
+   }
+  ],
+  "sizes": [
+   "35.5",
+   "36",
+   "36.5",
+   "37.5",
+   "38",
+   "38.5",
+   "39",
+   "40",
+   "40.5",
+   "41",
+   "42",
+   "42.5",
+   "43",
+   "44",
+   "44.5",
+   "45",
+   "45.5",
+   "46",
+   "47",
+   "47.5",
+   "48.5",
+   "49.5",
+   "50",
+   "50.5",
+   "51.5",
+   "52.5"
+  ],
+  "sizeName": "Pointure",
+  "colors": [
+   "Light Bone/Noir/Metallic Silver/Coconut Milk",
+   "Noir/Velvet Brown/Coconut Milk",
+   "Camo Green/Noir",
+   "Noir/Noir",
+   "Noir/Blanc",
+   "Blanc/Blanc",
+   "Blanc/Noir",
+   "Light Bone/Metallic Silver/Light Bone"
+  ],
+  "material": "Empeigne cuir, semelle caoutchouc, amorti Nike Air",
+  "specs": {
+   "other": "Modèle homme"
+  },
+  "weightG": 1300,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Matière : Empeigne cuir, semelle caoutchouc, amorti Nike Air",
+   "Pointures : 35.5, 36, 36.5, 37.5, 38, 38.5, 39, 40, 40.5, 41, 42, 42.5…"
+  ]
+ },
+ {
+  "id": "mo002",
+  "name": "Nike Air Force 1 '07 femme",
+  "brand": "Nike",
+  "category": "Chaussures",
+  "store": "Nike",
+  "url": "https://www.nike.com/fr/t/chaussure-nike-air-force-1-07-pour-femme-hbLYXYJ4/DD8959-100",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 119.99,
+    "weightG": 1300
+   }
+  ],
+  "sizes": [
+   "35.5",
+   "36",
+   "36.5",
+   "37.5",
+   "38",
+   "38.5",
+   "39",
+   "40",
+   "40.5",
+   "41",
+   "42",
+   "42.5",
+   "43",
+   "44",
+   "44.5"
+  ],
+  "sizeName": "Pointure",
+  "colors": [
+   "Blanc/Blanc/Light Silver/Light Silver",
+   "Blanc/Persian Violet/Stadium Green/Blanc",
+   "Silt Red/Pink Foam/Metallic Gold/Blanc",
+   "Blanc/Blanc/Blanc/Blanc",
+   "Noir/Noir/Noir/Noir"
+  ],
+  "material": "Cuir lisse, semelle caoutchouc, amorti Nike Air",
+  "specs": {
+   "other": "Modèle femme"
+  },
+  "weightG": 1300,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Matière : Cuir lisse, semelle caoutchouc, amorti Nike Air",
+   "Pointures : 35.5, 36, 36.5, 37.5, 38, 38.5, 39, 40, 40.5, 41, 42, 42.5…"
+  ]
+ },
+ {
+  "id": "mo003",
+  "name": "Nike Dunk Low femme",
+  "brand": "Nike",
+  "category": "Chaussures",
+  "store": "Nike",
+  "url": "https://www.nike.com/fr/t/chaussure-nike-dunk-low-pour-femme-6WjgbDa7/DD1503-103",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 119.99,
+    "weightG": 1300
+   }
+  ],
+  "sizes": [
+   "35.5",
+   "36",
+   "36.5",
+   "37.5",
+   "38",
+   "38.5",
+   "39",
+   "40",
+   "40.5",
+   "41",
+   "42",
+   "42.5",
+   "43",
+   "44",
+   "44.5"
+  ],
+  "sizeName": "Pointure",
+  "colors": [
+   "Sail/Blanc/Metallic Gold/Linen",
+   "Blanc/Light Smoke Grey",
+   "Blanc/Noir",
+   "Blanc/Blanc/Photon Dust"
+  ],
+  "material": "Empeigne cuir, semelle intermédiaire mousse, semelle caoutchouc",
+  "specs": {
+   "other": "Modèle femme"
+  },
+  "weightG": 1300,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Matière : Empeigne cuir, semelle intermédiaire mousse, semelle caoutchouc",
+   "Pointures : 35.5, 36, 36.5, 37.5, 38, 38.5, 39, 40, 40.5, 41, 42, 42.5…"
+  ]
+ },
+ {
+  "id": "mo004",
+  "name": "Nike Dunk Low homme",
+  "brand": "Nike",
+  "category": "Chaussures",
+  "store": "Nike",
+  "url": "https://www.nike.com/fr/t/chaussure-nike-dunk-low-pour-homme-2Cgn4OI0/FV0384-001",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 119.99,
+    "weightG": 1300
+   }
+  ],
+  "sizes": [
+   "35.5",
+   "36",
+   "36.5",
+   "37.5",
+   "38",
+   "38.5",
+   "39",
+   "40",
+   "40.5",
+   "41",
+   "42",
+   "42.5",
+   "43",
+   "44",
+   "44.5",
+   "45",
+   "45.5",
+   "46",
+   "47",
+   "47.5",
+   "48.5",
+   "49.5"
+  ],
+  "sizeName": "Pointure",
+  "colors": [
+   "Anthracite/Cool Grey/Industrial Blue/Pure Platinum"
+  ],
+  "material": "Empeigne cuir et tissu, semelle intermédiaire mousse, semelle caoutchouc",
+  "specs": {
+   "other": "Modèle homme"
+  },
+  "weightG": 1300,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Matière : Empeigne cuir et tissu, semelle intermédiaire mousse, semelle caoutchouc",
+   "Pointures : 35.5, 36, 36.5, 37.5, 38, 38.5, 39, 40, 40.5, 41, 42, 42.5…"
+  ]
+ },
+ {
+  "id": "mo005",
+  "name": "Nike Air Max 90 LTR homme",
+  "brand": "Nike",
+  "category": "Chaussures",
+  "store": "Nike",
+  "url": "https://www.nike.com/fr/t/chaussure-air-max-90-ltr-pour-homme-fl1pgECe/CZ5594-100",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 149.99,
+    "weightG": 1300
+   }
+  ],
+  "sizes": [
+   "38.5",
+   "39",
+   "40",
+   "40.5",
+   "41",
+   "42",
+   "42.5",
+   "43",
+   "44",
+   "44.5",
+   "45",
+   "45.5",
+   "46",
+   "47",
+   "47.5",
+   "48.5",
+   "49.5"
+  ],
+  "sizeName": "Pointure",
+  "colors": [
+   "Noir/Noir/Noir",
+   "Blanc/Blanc/Blanc"
+  ],
+  "material": "Renforts cuir, unité Max Air au talon, semelle caoutchouc gaufrée",
+  "specs": {
+   "other": "Modèle homme"
+  },
+  "weightG": 1300,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Matière : Renforts cuir, unité Max Air au talon, semelle caoutchouc gaufrée",
+   "Pointures : 38.5, 39, 40, 40.5, 41, 42, 42.5, 43, 44, 44.5, 45, 45.5…"
+  ]
+ },
+ {
+  "id": "mo006",
+  "name": "Sweat à capuche Nike Club Fleece homme",
+  "brand": "Nike",
+  "category": "Mode homme",
+  "store": "Nike",
+  "url": "https://www.nike.com/fr/t/haut-en-fleece-nike-club-pour-homme-W7qFQKY0/FN3886-010",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 54.99,
+    "weightG": 700
+   }
+  ],
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL",
+   "XXL",
+   "3XL"
+  ],
+  "sizeName": "Taille",
+  "colors": [
+   "Dark Grey Heather/Blanc",
+   "Obsidian/Blanc",
+   "Noir/Blanc",
+   "Blanc/Noir",
+   "Noir/Metallic Silver",
+   "Burgundy Crush/Metallic Gold"
+  ],
+  "material": "67-80 % coton / 20-33 % polyester",
+  "specs": {
+   "other": "Modèle homme"
+  },
+  "weightG": 700,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Matière : 67-80 % coton / 20-33 % polyester",
+   "Tailles : XS, S, M, L, XL, XXL, 3XL"
+  ]
+ },
+ {
+  "id": "mo007",
+  "name": "Pantalon de jogging Nike Sportswear Club Fleece homme",
+  "brand": "Nike",
+  "category": "Mode homme",
+  "store": "Nike",
+  "url": "https://www.nike.com/fr/t/pantalon-a-cordons-elastiques-en-fleece-nike-sportswear-club-pour-homme-EMBS9uLx/IF0488-010",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 59.99,
+    "weightG": 750
+   }
+  ],
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL",
+   "XXL",
+   "3XL"
+  ],
+  "sizeName": "Taille",
+  "colors": [
+   "Noir/Noir/Blanc",
+   "Dark Grey Heather/Light Smoke Grey/Blanc",
+   "Noir/Noir/Metallic Silver"
+  ],
+  "material": "80 % coton / 20 % polyester",
+  "specs": {
+   "other": "Modèle homme"
+  },
+  "weightG": 750,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Matière : 80 % coton / 20 % polyester",
+   "Tailles : XS, S, M, L, XL, XXL, 3XL"
+  ]
+ },
+ {
+  "id": "mo008",
+  "name": "Sweat ras-du-cou oversize Nike Studio Fleece femme",
+  "brand": "Nike",
+  "category": "Mode femme",
+  "store": "Nike",
+  "url": "https://www.nike.com/fr/t/haut-ras-du-cou-oversize-nike-studio-fleece-heavyweight-pour-femme-2eXn8lzj/IO2103-001",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 74.99,
+    "weightG": 700
+   }
+  ],
+  "sizes": [
+   "XXS",
+   "XS (FR 34-36)",
+   "S (FR 38-40)",
+   "S Tall",
+   "M (FR 42-44)",
+   "M Tall",
+   "L (FR 46-48)",
+   "L Tall",
+   "L-TT",
+   "XL (FR 50-52)",
+   "XL Tall",
+   "XL-TT",
+   "XXL (FR 54-56)"
+  ],
+  "sizeName": "Taille",
+  "colors": [
+   "Dark Grey Heather/Sail",
+   "Old Royal/Sail",
+   "Birch Heather/Noir",
+   "Mystic Dates/Sail",
+   "Total Black/Sail"
+  ],
+  "material": "Corps 80 % coton / 20 % polyester ; côtes 97 % coton / 3 % élasthanne",
+  "specs": {
+   "other": "Modèle femme"
+  },
+  "weightG": 700,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Matière : Corps 80 % coton / 20 % polyester ; côtes 97 % coton / 3 % élasthanne",
+   "Tailles : XXS, XS (FR 34-36), S (FR 38-40), S Tall, M (FR 42-44), M Tall, L (FR 46-48), L Tall, L-TT, XL (FR 50-52), XL Tall, XL-TT…"
+  ]
+ },
+ {
+  "id": "mo009",
+  "name": "Adidas Samba OG",
+  "brand": "adidas Originals",
+  "category": "Chaussures",
+  "store": "Snipes",
+  "url": "https://www.snipes.com/fr-fr/p/adidas-originals-samba-og-blanc-23141",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 119.99,
+    "weightG": 1300
+   }
+  ],
+  "sizes": [
+   "36 2/3",
+   "37 1/3",
+   "38",
+   "38 2/3",
+   "40",
+   "40 2/3"
+  ],
+  "sizeName": "Pointure",
+  "colors": [
+   "Blanc"
+  ],
+  "material": "Dessus cuir, synthétique",
+  "specs": {
+   "other": "Modèle mixte"
+  },
+  "weightG": 1300,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Matière : Dessus cuir, synthétique",
+   "Pointures : 36 2/3, 37 1/3, 38, 38 2/3, 40, 40 2/3"
+  ]
+ },
+ {
+  "id": "mo010",
+  "name": "Adidas Handball Spezial",
+  "brand": "adidas Originals",
+  "category": "Chaussures",
+  "store": "Snipes",
+  "url": "https://www.snipes.com/fr-fr/p/adidas-originals-handball-spezial-bleu-26913",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 109.99,
+    "weightG": 1300
+   }
+  ],
+  "sizes": [
+   "36 2/3",
+   "37 1/3",
+   "38",
+   "38 2/3"
+  ],
+  "sizeName": "Pointure",
+  "colors": [
+   "Bleu"
+  ],
+  "material": "Dessus cuir, synthétique",
+  "specs": {
+   "other": "Modèle femme"
+  },
+  "weightG": 1300,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Matière : Dessus cuir, synthétique",
+   "Pointures : 36 2/3, 37 1/3, 38, 38 2/3"
+  ]
+ },
+ {
+  "id": "mo011",
+  "name": "New Balance 530",
+  "brand": "New Balance",
+  "category": "Chaussures",
+  "store": "Snipes",
+  "url": "https://www.snipes.com/fr-fr/p/new-balance-530-beige-46440",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 119.99,
+    "weightG": 1300
+   }
+  ],
+  "sizes": [
+   "36",
+   "37",
+   "37.5",
+   "38",
+   "38.5",
+   "39.5",
+   "40",
+   "40.5",
+   "41.5"
+  ],
+  "sizeName": "Pointure",
+  "colors": [
+   "Beige"
+  ],
+  "material": "Dessus textile, synthétique",
+  "specs": {
+   "other": "Modèle femme"
+  },
+  "weightG": 1300,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Matière : Dessus textile, synthétique",
+   "Pointures : 36, 37, 37.5, 38, 38.5, 39.5, 40, 40.5, 41.5"
+  ]
+ },
+ {
+  "id": "mo012",
+  "name": "New Balance 9060",
+  "brand": "New Balance",
+  "category": "Chaussures",
+  "store": "Snipes",
+  "url": "https://www.snipes.com/fr-fr/p/new-balance-9060-brun-47532",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 189.99,
+    "weightG": 1300
+   }
+  ],
+  "sizes": [
+   "36",
+   "37",
+   "37.5",
+   "38",
+   "38.5",
+   "39.5",
+   "40",
+   "40.5"
+  ],
+  "sizeName": "Pointure",
+  "colors": [
+   "Marron"
+  ],
+  "material": "Dessus cuir, textile",
+  "specs": {
+   "other": "Modèle femme"
+  },
+  "weightG": 1300,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Matière : Dessus cuir, textile",
+   "Pointures : 36, 37, 37.5, 38, 38.5, 39.5, 40, 40.5"
+  ]
+ },
+ {
+  "id": "mo013",
+  "name": "ASICS Gel-NYC",
+  "brand": "ASICS SportStyle",
+  "category": "Chaussures",
+  "store": "Snipes",
+  "url": "https://www.snipes.com/fr-fr/p/asics-sportstyle-gel-nyc-gris-20537",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 149.99,
+    "weightG": 1300
+   }
+  ],
+  "sizes": [
+   "42",
+   "42.5",
+   "43.5",
+   "44",
+   "44.5",
+   "45"
+  ],
+  "sizeName": "Pointure",
+  "colors": [
+   "Gris"
+  ],
+  "material": "Dessus cuir, synthétique",
+  "specs": {
+   "other": "Modèle homme"
+  },
+  "weightG": 1300,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Matière : Dessus cuir, synthétique",
+   "Pointures : 42, 42.5, 43.5, 44, 44.5, 45"
+  ]
+ },
+ {
+  "id": "mo014",
+  "name": "Vans Knu Skool",
+  "brand": "Vans",
+  "category": "Chaussures",
+  "store": "Snipes",
+  "url": "https://www.snipes.com/fr-fr/p/vans-knu-skool-noir-25147",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 94.99,
+    "weightG": 1300
+   }
+  ],
+  "sizes": [
+   "36",
+   "36.5",
+   "38",
+   "38.5",
+   "39",
+   "40",
+   "40.5"
+  ],
+  "sizeName": "Pointure",
+  "colors": [
+   "Noir"
+  ],
+  "material": "Dessus cuir",
+  "specs": {
+   "other": "Modèle femme"
+  },
+  "weightG": 1300,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Matière : Dessus cuir",
+   "Pointures : 36, 36.5, 38, 38.5, 39, 40, 40.5"
+  ]
+ },
+ {
+  "id": "mo015",
+  "name": "Puma Speedcat Ballet Etoile",
+  "brand": "PUMA",
+  "category": "Chaussures",
+  "store": "Snipes",
+  "url": "https://www.snipes.com/fr-fr/p/puma-speedcat-ballet-etoile-noir-100173",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 99.99,
+    "weightG": 1300
+   }
+  ],
+  "sizes": [
+   "36",
+   "37",
+   "37.5",
+   "38",
+   "38.5",
+   "39",
+   "40",
+   "40.5"
+  ],
+  "sizeName": "Pointure",
+  "colors": [
+   "Noir"
+  ],
+  "material": null,
+  "specs": {
+   "other": "Modèle femme"
+  },
+  "weightG": 1300,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Pointures : 36, 37, 37.5, 38, 38.5, 39, 40, 40.5"
+  ]
+ },
+ {
+  "id": "mo016",
+  "name": "T-shirt Nike Sportswear Icon Futura",
+  "brand": "Nike",
+  "category": "Mode homme",
+  "store": "Snipes",
+  "url": "https://www.snipes.com/fr-fr/p/nike-sportswear-tee-icon-futura-blanc-152",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 29.99,
+    "weightG": 250
+   }
+  ],
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "sizeName": "Taille",
+  "colors": [
+   "Blanc"
+  ],
+  "material": "Coton",
+  "specs": {
+   "other": "Modèle homme"
+  },
+  "weightG": 250,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Matière : Coton",
+   "Tailles : XS, S, M, L, XL"
+  ]
+ },
+ {
+  "id": "mo017",
+  "name": "T-shirt Karl Kani Signature",
+  "brand": "Karl Kani",
+  "category": "Mode homme",
+  "store": "Snipes",
+  "url": "https://www.snipes.com/fr-fr/p/karl-kani-signature-tee-noir-372",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 29.99,
+    "weightG": 250
+   }
+  ],
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "sizeName": "Taille",
+  "colors": [
+   "Noir"
+  ],
+  "material": "Coton",
+  "specs": {
+   "other": "Modèle mixte"
+  },
+  "weightG": 250,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Matière : Coton",
+   "Tailles : XS, S, M, L, XL"
+  ]
+ },
+ {
+  "id": "mo018",
+  "name": "Pantalon Nike Tech Fleece Jogger",
+  "brand": "Nike",
+  "category": "Mode homme",
+  "store": "Snipes",
+  "url": "https://www.snipes.com/fr-fr/p/nike-tech-fleece-jogger-gris-44379",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 99.99,
+    "weightG": 750
+   }
+  ],
+  "sizes": [
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "sizeName": "Taille",
+  "colors": [
+   "Gris"
+  ],
+  "material": "coton, polyester",
+  "specs": {
+   "other": "Modèle homme"
+  },
+  "weightG": 750,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Matière : coton, polyester",
+   "Tailles : S, M, L, XL"
+  ]
+ },
+ {
+  "id": "mo019",
+  "name": "Sweat à capuche Urban Classics Fluffy Hoody",
+  "brand": "Urban Classics",
+  "category": "Mode homme",
+  "store": "Snipes",
+  "url": "https://www.snipes.com/fr-fr/p/urban-classics-fluffy-hoody-beige-40681",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 20,
+    "weightG": 700
+   }
+  ],
+  "sizes": [
+   "S",
+   "L",
+   "XL",
+   "XXL"
+  ],
+  "sizeName": "Taille",
+  "colors": [
+   "Beige"
+  ],
+  "material": "coton, polyester",
+  "specs": {
+   "other": "Modèle homme"
+  },
+  "weightG": 700,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Matière : coton, polyester",
+   "Tailles : S, L, XL, XXL"
+  ]
+ },
+ {
+  "id": "mo020",
+  "name": "Jean adidas Originals Superstar droit taille mi-haute",
+  "brand": "adidas Originals",
+  "category": "Mode homme",
+  "store": "Snipes",
+  "url": "https://www.snipes.com/fr-fr/p/adidas-originals-superstar-denim-jeans-mid-rise-straight-leg-noir-102774",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 99.99,
+    "weightG": 750
+   }
+  ],
+  "sizes": [
+   "30",
+   "32",
+   "34",
+   "36"
+  ],
+  "sizeName": "Taille",
+  "colors": [
+   "Noir"
+  ],
+  "material": "coton",
+  "specs": {
+   "other": "Modèle homme"
+  },
+  "weightG": 750,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Matière : coton",
+   "Tailles : 30, 32, 34, 36"
+  ]
+ },
+ {
+  "id": "mo021",
+  "name": "Sweat à capuche court adidas Originals",
+  "brand": "adidas Originals",
+  "category": "Mode femme",
+  "store": "Snipes",
+  "url": "https://www.snipes.com/fr-fr/p/adidas-originals-cropped-hoodie-pink-99642",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 60,
+    "weightG": 700
+   }
+  ],
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L"
+  ],
+  "sizeName": "Taille",
+  "colors": [
+   "Rose"
+  ],
+  "material": "coton, polyester",
+  "specs": {
+   "other": "Modèle femme"
+  },
+  "weightG": 700,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Matière : coton, polyester",
+   "Tailles : XS, S, M, L"
+  ]
+ },
+ {
+  "id": "mo022",
+  "name": "Pantalon large satiné à pois adidas Originals",
+  "brand": "adidas Originals",
+  "category": "Mode femme",
+  "store": "Snipes",
+  "url": "https://www.snipes.com/fr-fr/p/adidas-originals-satin-polka-dots-wide-leg-pants-beige-105777",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 69.99,
+    "weightG": 750
+   }
+  ],
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L"
+  ],
+  "sizeName": "Taille",
+  "colors": [
+   "Beige"
+  ],
+  "material": "polyamide, polyester",
+  "specs": {
+   "other": "Modèle femme"
+  },
+  "weightG": 750,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Matière : polyamide, polyester",
+   "Tailles : XS, S, M, L"
+  ]
+ },
+ {
+  "id": "mo023",
+  "name": "T-shirt Carhartt WIP S/S Chase",
+  "brand": "Carhartt WIP",
+  "category": "Mode homme",
+  "store": "Carhartt WIP",
+  "url": "https://www.carhartt-wip.com/fr-fr/p/s-s-chase-t-shirt-carbon-gold-4482",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 39,
+    "weightG": 250
+   }
+  ],
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL",
+   "XXL"
+  ],
+  "sizeName": "Taille",
+  "colors": [
+   "Ash Heather / Gold",
+   "Black / Gold",
+   "Carbon / Gold",
+   "Cozy Blue / Gold",
+   "Dark Navy / Gold",
+   "Grey Heather / Gold",
+   "Icesheet / Gold",
+   "Leaf / Gold",
+   "Palisander / Gold",
+   "Shungite / Gold",
+   "Tobacco / Gold",
+   "White / Gold"
+  ],
+  "material": "100% Cotton Combed Single Jersey, 235 g/sqm",
+  "specs": {
+   "other": "Modèle homme"
+  },
+  "weightG": 250,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Matière : 100% Cotton Combed Single Jersey, 235 g/sqm",
+   "Tailles : XS, S, M, L, XL, XXL"
+  ]
+ },
+ {
+  "id": "mo024",
+  "name": "Chemise Carhartt WIP L/S OG Madison",
+  "brand": "Carhartt WIP",
+  "category": "Mode homme",
+  "store": "Carhartt WIP",
+  "url": "https://www.carhartt-wip.com/fr-fr/p/l-s-og-madison-shirt-black-138",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 99,
+    "weightG": 450
+   }
+  ],
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL",
+   "XXL"
+  ],
+  "sizeName": "Taille",
+  "colors": [
+   "Black",
+   "Dark Navy",
+   "Dark Scarab",
+   "Fleur De Sel",
+   "Styx",
+   "WIP Dusty H"
+  ],
+  "material": "100% Cotton Twill, 6.3 oz",
+  "specs": {
+   "other": "Modèle homme"
+  },
+  "weightG": 450,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Matière : 100% Cotton Twill, 6.3 oz",
+   "Tailles : XS, S, M, L, XL, XXL"
+  ]
+ },
+ {
+  "id": "mo025",
+  "name": "Chino Carhartt WIP OG Master Pant",
+  "brand": "Carhartt WIP",
+  "category": "Mode homme",
+  "store": "Carhartt WIP",
+  "url": "https://www.carhartt-wip.com/fr-fr/p/og-master-pant-dark-navy-rinsed-176",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 99,
+    "weightG": 750
+   }
+  ],
+  "sizes": [
+   "26",
+   "27",
+   "28",
+   "29",
+   "30",
+   "31",
+   "32",
+   "33",
+   "40"
+  ],
+  "sizeName": "Taille",
+  "colors": [
+   "Black, Rinsed",
+   "Cypress, Rinsed",
+   "Dark Navy, Rinsed",
+   "Leather, Rinsed"
+  ],
+  "material": "65/35% Polyester/Cotton 'Denison' Twill, 8.8 oz",
+  "specs": {
+   "other": "Modèle homme"
+  },
+  "weightG": 750,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Matière : 65/35% Polyester/Cotton 'Denison' Twill, 8.8 oz",
+   "Tailles : 26, 27, 28, 29, 30, 31, 32, 33, 40"
+  ]
+ },
+ {
+  "id": "mo026",
+  "name": "Pantalon Carhartt WIP Single Knee (workwear)",
+  "brand": "Carhartt WIP",
+  "category": "Mode homme",
+  "store": "Carhartt WIP",
+  "url": "https://www.carhartt-wip.com/fr-fr/p/single-knee-pant-wip-h-brown-rinsed-4002",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 119,
+    "weightG": 750
+   }
+  ],
+  "sizes": [
+   "26/32",
+   "26/34",
+   "27/32",
+   "27/34",
+   "28/30",
+   "28/32",
+   "28/34",
+   "29/30",
+   "29/32",
+   "29/34",
+   "30/30",
+   "30/32",
+   "30/34",
+   "31/30",
+   "31/32",
+   "31/34",
+   "32/30",
+   "32/32",
+   "32/34",
+   "33/32",
+   "33/34",
+   "34/30",
+   "34/32",
+   "34/34",
+   "36/30",
+   "36/32",
+   "36/34",
+   "38/32",
+   "38/34",
+   "40/32",
+   "40/34"
+  ],
+  "sizeName": "Taille",
+  "colors": [
+   "Black, Rinsed",
+   "Black, Stone canvas",
+   "Camo Feather Tree, Black, Heavy stone wash",
+   "Cozy Blue, Stone canvas",
+   "Dusty H Brown, Stone canvas",
+   "Hamilton Brown, Rinsed",
+   "Leaf, Stone canvas",
+   "Raven, Stone canvas",
+   "Shale, Stone canvas",
+   "Tobacco, Rinsed",
+   "Tobacco, Stone canvas",
+   "WIP Dusty H, Stone canvas",
+   "WIP H Brown, Rinsed",
+   "WIP H Brown, Stone canvas",
+   "Wax, Rinsed"
+  ],
+  "material": "100% Organic Cotton 'Dearborn' Canvas, 12 oz",
+  "specs": {
+   "other": "Modèle homme"
+  },
+  "weightG": 750,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Matière : 100% Organic Cotton 'Dearborn' Canvas, 12 oz",
+   "Tailles : 26/32, 26/34, 27/32, 27/34, 28/30, 28/32, 28/34, 29/30, 29/32, 29/34, 30/30, 30/32…"
+  ]
+ },
+ {
+  "id": "mo027",
+  "name": "Polo Teddy Smith Pasian 2 manches courtes",
+  "brand": "Teddy Smith",
+  "category": "Mode homme",
+  "store": "Teddy Smith",
+  "url": "https://www.teddy-smith.com/products/polo-pasian-2-mc-bleach-kaki",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 29.99,
+    "weightG": 320
+   }
+  ],
+  "sizes": [
+   "S",
+   "M",
+   "L",
+   "XL",
+   "XXL",
+   "XXXL",
+   "XXXXL"
+  ],
+  "sizeName": "Taille",
+  "colors": [
+   "Bleach Kaki",
+   "Bordeaux foncé",
+   "Rose Quartz",
+   "Vert Pin"
+  ],
+  "material": "100 % coton (jersey)",
+  "specs": {
+   "other": "Modèle homme"
+  },
+  "weightG": 320,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Matière : 100 % coton (jersey)",
+   "Tailles : S, M, L, XL, XXL, XXXL, XXXXL"
+  ]
+ },
+ {
+  "id": "mo028",
+  "name": "Jean droit Teddy Smith REG L32",
+  "brand": "Teddy Smith",
+  "category": "Mode homme",
+  "store": "Teddy Smith",
+  "url": "https://www.teddy-smith.com/products/pantalon-reg-fripp-indigo-clair",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 59.99,
+    "weightG": 750
+   }
+  ],
+  "sizes": [
+   "27",
+   "28",
+   "29",
+   "30",
+   "31",
+   "32",
+   "33",
+   "34",
+   "36",
+   "38",
+   "40"
+  ],
+  "sizeName": "Taille",
+  "colors": [
+   "Bleu clair Fripp/Indigo"
+  ],
+  "material": "99 % coton, 1 % élasthanne",
+  "specs": {
+   "other": "Modèle homme"
+  },
+  "weightG": 750,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Matière : 99 % coton, 1 % élasthanne",
+   "Tailles : 27, 28, 29, 30, 31, 32, 33, 34, 36, 38, 40"
+  ]
+ },
+ {
+  "id": "mo029",
+  "name": "Blouson déperlant à capuche Teddy Smith B-SAMY",
+  "brand": "Teddy Smith",
+  "category": "Mode homme",
+  "store": "Teddy Smith",
+  "url": "https://www.teddy-smith.com/products/blouson-b-samy-noir",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 89.99,
+    "weightG": 900
+   }
+  ],
+  "sizes": [
+   "S",
+   "M",
+   "L",
+   "XL",
+   "XXL"
+  ],
+  "sizeName": "Taille",
+  "colors": [
+   "Noir",
+   "Deep Kaki"
+  ],
+  "material": "90 % polyester, 10 % élasthanne",
+  "specs": {
+   "other": "Modèle homme"
+  },
+  "weightG": 900,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Matière : 90 % polyester, 10 % élasthanne",
+   "Tailles : S, M, L, XL, XXL"
+  ]
+ },
+ {
+  "id": "mo030",
+  "name": "Chino Devred en coton mélangé",
+  "brand": "Devred 1902",
+  "category": "Mode homme",
+  "store": "Devred",
+  "url": "https://devred.com/products/slack-5064266",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 49.99,
+    "weightG": 750
+   }
+  ],
+  "sizes": [
+   "36",
+   "38",
+   "40",
+   "42",
+   "44",
+   "46",
+   "48"
+  ],
+  "sizeName": "Taille",
+  "colors": [],
+  "material": null,
+  "specs": {
+   "other": "Modèle homme"
+  },
+  "weightG": 750,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Tailles : 36, 38, 40, 42, 44, 46, 48"
+  ]
+ },
+ {
+  "id": "mo031",
+  "name": "Robe longue en satin col bénitier",
+  "brand": "Pimkie",
+  "category": "Mode femme",
+  "store": "Pimkie",
+  "url": "https://www.pimkie.fr/products/robe-longue-satin-avec-col-benitier-782367381a03",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 35.99,
+    "weightG": 450
+   }
+  ],
+  "sizes": [
+   "34",
+   "36",
+   "38",
+   "40",
+   "42"
+  ],
+  "sizeName": "Taille",
+  "colors": [
+   "Rouge"
+  ],
+  "material": null,
+  "specs": {
+   "other": "Modèle femme"
+  },
+  "weightG": 450,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Tailles : 34, 36, 38, 40, 42"
+  ]
+ },
+ {
+  "id": "mo032",
+  "name": "Robe courte bustier encolure drapée",
+  "brand": "Pimkie",
+  "category": "Mode femme",
+  "store": "Pimkie",
+  "url": "https://www.pimkie.fr/products/robe-courte-bustier-avec-encolure-drapee-782461899a08",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 35.99,
+    "weightG": 450
+   }
+  ],
+  "sizes": [
+   "34",
+   "36",
+   "38",
+   "40",
+   "42"
+  ],
+  "sizeName": "Taille",
+  "colors": [
+   "Noir",
+   "Bordeaux",
+   "Beige"
+  ],
+  "material": null,
+  "specs": {
+   "other": "Modèle femme"
+  },
+  "weightG": 450,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Tailles : 34, 36, 38, 40, 42"
+  ]
+ },
+ {
+  "id": "mo033",
+  "name": "Robe courte asymétrique en maille lurex",
+  "brand": "Pimkie",
+  "category": "Mode femme",
+  "store": "Pimkie",
+  "url": "https://www.pimkie.fr/products/robe-courte-asymetrique-en-maille-avec-lurex-782453899a08",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 17.99,
+    "weightG": 450
+   }
+  ],
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "sizeName": "Taille",
+  "colors": [
+   "Noir",
+   "Gris",
+   "Rouge"
+  ],
+  "material": null,
+  "specs": {
+   "other": "Modèle femme"
+  },
+  "weightG": 450,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Tailles : XS, S, M, L, XL"
+  ]
+ },
+ {
+  "id": "mo034",
+  "name": "Robe longue moulante en jean stretch",
+  "brand": "Pimkie",
+  "category": "Mode femme",
+  "store": "Pimkie",
+  "url": "https://www.pimkie.fr/products/robe-longue-et-moulante-en-jean-782451684a06",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 39.99,
+    "weightG": 750
+   }
+  ],
+  "sizes": [
+   "34",
+   "36",
+   "38",
+   "40",
+   "42"
+  ],
+  "sizeName": "Taille",
+  "colors": [
+   "Bleu délavé",
+   "Bleu brut"
+  ],
+  "material": "Jean stretch (composition non précisée)",
+  "specs": {
+   "other": "Modèle femme"
+  },
+  "weightG": 750,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Matière : Jean stretch (composition non précisée)",
+   "Tailles : 34, 36, 38, 40, 42"
+  ]
+ },
+ {
+  "id": "mo035",
+  "name": "Jean barrel taille haute",
+  "brand": "Pimkie",
+  "category": "Mode femme",
+  "store": "Pimkie",
+  "url": "https://www.pimkie.fr/products/jean-barrel-taille-haute-142711630a06",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 35.99,
+    "weightG": 750
+   }
+  ],
+  "sizes": [
+   "32",
+   "34",
+   "36",
+   "38",
+   "40",
+   "42",
+   "44"
+  ],
+  "sizeName": "Taille",
+  "colors": [
+   "Bleu"
+  ],
+  "material": "Jean contenant 20 % de coton recyclé (composition complète non précisée)",
+  "specs": {
+   "other": "Modèle femme"
+  },
+  "weightG": 750,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Matière : Jean contenant 20 % de coton recyclé (composition complète non précisée)",
+   "Tailles : 32, 34, 36, 38, 40, 42, 44"
+  ]
+ },
+ {
+  "id": "mo036",
+  "name": "Jean droit taille medium",
+  "brand": "Pimkie",
+  "category": "Mode femme",
+  "store": "Pimkie",
+  "url": "https://www.pimkie.fr/products/jean-droit-avec-ourlet-142725b21a06",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 35.99,
+    "weightG": 750
+   }
+  ],
+  "sizes": [
+   "32",
+   "34",
+   "36",
+   "38",
+   "40",
+   "42",
+   "44"
+  ],
+  "sizeName": "Taille",
+  "colors": [
+   "Bleu"
+  ],
+  "material": null,
+  "specs": {
+   "other": "Modèle femme"
+  },
+  "weightG": 750,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Tailles : 32, 34, 36, 38, 40, 42, 44"
+  ]
+ },
+ {
+  "id": "mo037",
+  "name": "Jupe courte simili effet croco",
+  "brand": "Pimkie",
+  "category": "Mode femme",
+  "store": "Pimkie",
+  "url": "https://www.pimkie.fr/products/jupe-courte-en-simili-effet-croco-brillant-691578736a07",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 25.99,
+    "weightG": 350
+   }
+  ],
+  "sizes": [
+   "34",
+   "36",
+   "38",
+   "40",
+   "42"
+  ],
+  "sizeName": "Taille",
+  "colors": [
+   "Marron"
+  ],
+  "material": "Matière synthétique effet croco",
+  "specs": {
+   "other": "Modèle femme"
+  },
+  "weightG": 350,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Matière : Matière synthétique effet croco",
+   "Tailles : 34, 36, 38, 40, 42"
+  ]
+ },
+ {
+  "id": "mo038",
+  "name": "Veste boule simili effet croco",
+  "brand": "Pimkie",
+  "category": "Mode femme",
+  "store": "Pimkie",
+  "url": "https://www.pimkie.fr/products/veste-boule-en-simili-effet-croco-brillant-324077736a07",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 45.99,
+    "weightG": 900
+   }
+  ],
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "sizeName": "Taille",
+  "colors": [
+   "Marron"
+  ],
+  "material": "Matière synthétique effet croco",
+  "specs": {
+   "other": "Modèle femme"
+  },
+  "weightG": 900,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Matière : Matière synthétique effet croco",
+   "Tailles : XS, S, M, L, XL"
+  ]
+ },
+ {
+  "id": "mo039",
+  "name": "Veste blazer oversize double boutonnage",
+  "brand": "Pimkie",
+  "category": "Mode femme",
+  "store": "Pimkie",
+  "url": "https://www.pimkie.fr/products/veste-blazer-oversize-double-boutonnage-324062779a07",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 39.99,
+    "weightG": 900
+   }
+  ],
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "sizeName": "Taille",
+  "colors": [
+   "Marron taupe",
+   "Bleu"
+  ],
+  "material": "Doublure en tissu satiné",
+  "specs": {
+   "other": "Modèle femme"
+  },
+  "weightG": 900,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Matière : Doublure en tissu satiné",
+   "Tailles : XS, S, M, L, XL"
+  ]
+ },
+ {
+  "id": "mo040",
+  "name": "Sweat zippé en polaire col montant",
+  "brand": "Pimkie",
+  "category": "Mode femme",
+  "store": "Pimkie",
+  "url": "https://www.pimkie.fr/products/sweat-zippe-en-polaire-avec-col-montant-411479944j08",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 29.99,
+    "weightG": 700
+   }
+  ],
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L"
+  ],
+  "sizeName": "Taille",
+  "colors": [
+   "Gris chiné",
+   "Marron"
+  ],
+  "material": "Polaire",
+  "specs": {
+   "other": "Modèle femme"
+  },
+  "weightG": 700,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Matière : Polaire",
+   "Tailles : XS, S, M, L"
+  ]
+ },
+ {
+  "id": "mo041",
+  "name": "Top asymétrique à sequins",
+  "brand": "Pimkie",
+  "category": "Mode femme",
+  "store": "Pimkie",
+  "url": "https://www.pimkie.fr/products/top-asymetrique-a-bretelles-avec-sequins-411460621a0g",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 22.99,
+    "weightG": 250
+   }
+  ],
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L"
+  ],
+  "sizeName": "Taille",
+  "colors": [
+   "Bleu pâle"
+  ],
+  "material": null,
+  "specs": {
+   "other": "Modèle femme"
+  },
+  "weightG": 250,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Tailles : XS, S, M, L"
+  ]
+ },
+ {
+  "id": "mo042",
+  "name": "Top boule en satin détail bijou",
+  "brand": "Pimkie",
+  "category": "Mode femme",
+  "store": "Pimkie",
+  "url": "https://www.pimkie.fr/products/top-boule-en-satin-avec-detail-bijou-562989e16a0e",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 19.99,
+    "weightG": 250
+   }
+  ],
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "sizeName": "Taille",
+  "colors": [
+   "Beige",
+   "Rouge"
+  ],
+  "material": "Tissu satiné",
+  "specs": {
+   "other": "Modèle femme"
+  },
+  "weightG": 250,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Matière : Tissu satiné",
+   "Tailles : XS, S, M, L, XL"
+  ]
+ },
+ {
+  "id": "mo043",
+  "name": "T-shirt court manches longues lurex",
+  "brand": "Pimkie",
+  "category": "Mode femme",
+  "store": "Pimkie",
+  "url": "https://www.pimkie.fr/products/t-shirt-manches-longues-avec-lurex-411444899a0g",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 15.99,
+    "weightG": 250
+   }
+  ],
+  "sizes": [
+   "XS",
+   "S",
+   "M",
+   "L",
+   "XL"
+  ],
+  "sizeName": "Taille",
+  "colors": [
+   "Noir",
+   "Bleu pâle",
+   "Rouge"
+  ],
+  "material": null,
+  "specs": {
+   "other": "Modèle femme"
+  },
+  "weightG": 250,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Tailles : XS, S, M, L, XL"
+  ]
+ },
+ {
+  "id": "mo044",
+  "name": "Crocs Classic Clog",
+  "brand": "Crocs",
+  "category": "Chaussures",
+  "store": "Crocs",
+  "url": "https://www.crocs.fr/p/sabot-classic/10001.html",
+  "optionName": "Couleur",
+  "configs": [
+   {
+    "label": "Noir",
+    "priceEur": 32.99,
+    "weightG": 600
+   },
+   {
+    "label": "Army Green",
+    "priceEur": 54.99,
+    "weightG": 600
+   },
+   {
+    "label": "Bone",
+    "priceEur": 54.99,
+    "weightG": 600
+   },
+   {
+    "label": "Navy",
+    "priceEur": 54.99,
+    "weightG": 600
+   },
+   {
+    "label": "Pink Milk",
+    "priceEur": 54.99,
+    "weightG": 600
+   },
+   {
+    "label": "Mint Tint",
+    "priceEur": 54.99,
+    "weightG": 600
+   },
+   {
+    "label": "Mystic Purple",
+    "priceEur": 54.99,
+    "weightG": 600
+   },
+   {
+    "label": "Pond",
+    "priceEur": 54.99,
+    "weightG": 600
+   },
+   {
+    "label": "Meteor",
+    "priceEur": 54.99,
+    "weightG": 600
+   },
+   {
+    "label": "Latte",
+    "priceEur": 54.99,
+    "weightG": 600
+   },
+   {
+    "label": "Slate Grey",
+    "priceEur": 54.99,
+    "weightG": 600
+   },
+   {
+    "label": "Varsity Red",
+    "priceEur": 54.99,
+    "weightG": 600
+   }
+  ],
+  "sizes": [
+   "33-34",
+   "34-35",
+   "36-37",
+   "37-38",
+   "38-39",
+   "39-40",
+   "41-42",
+   "42-43",
+   "43-44",
+   "45-46",
+   "46-47",
+   "48-49",
+   "49-50",
+   "50-51",
+   "51-52",
+   "52-53"
+  ],
+  "sizeName": "Pointure",
+  "colors": [],
+  "material": "Croslite (mousse)",
+  "specs": {
+   "other": "Modèle mixte"
+  },
+  "weightG": 600,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Matière : Croslite (mousse)",
+   "Pointures : 33-34, 34-35, 36-37, 37-38, 38-39, 39-40, 41-42, 42-43, 43-44, 45-46, 46-47, 48-49…"
+  ]
+ },
+ {
+  "id": "mo045",
+  "name": "Dr. Martens Adrian mocassins à pampilles cuir Smooth",
+  "brand": "Dr. Martens",
+  "category": "Chaussures",
+  "store": "Dr. Martens",
+  "url": "https://www.drmartens.com/fr/fr/mocassins-adrian-en-cuir-smooth-a-pampilles-noir/p/14573001",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 195,
+    "weightG": 1300
+   }
+  ],
+  "sizes": [
+   "36",
+   "37",
+   "38",
+   "39",
+   "40",
+   "41",
+   "42",
+   "43",
+   "44",
+   "45",
+   "46",
+   "47",
+   "48"
+  ],
+  "sizeName": "Pointure",
+  "colors": [
+   "Noir"
+  ],
+  "material": "Tige 100 % cuir (Polished Smooth), non doublé, semelle 100 % PVC",
+  "specs": {
+   "other": "Modèle mixte"
+  },
+  "weightG": 1300,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Matière : Tige 100 % cuir (Polished Smooth), non doublé, semelle 100 % PVC",
+   "Pointures : 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47…"
+  ]
+ },
+ {
+  "id": "mo046",
+  "name": "Ray-Ban RB2140 Original Wayfarer (gris transparent, verres Blue Mirror)",
+  "brand": "Ray-Ban",
+  "category": "Lunettes",
+  "store": "lunettes-de-soleil.fr",
+  "url": "https://www.lunettes-de-soleil.fr/rb2140-original-wayfarer-classic-polished-grey-transparent-blue-964767.html",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 99.9,
+    "weightG": 250
+   }
+  ],
+  "sizes": [
+   "50 mm",
+   "54 mm"
+  ],
+  "sizeName": "Taille",
+  "colors": [
+   "Monture gris transparent / verres bleu miroir"
+  ],
+  "material": "Monture acétate, verres minéral",
+  "specs": {
+   "other": "Modèle mixte"
+  },
+  "weightG": 250,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Matière : Monture acétate, verres minéral",
+   "Tailles : 50 mm, 54 mm"
+  ]
+ },
+ {
+  "id": "mo047",
+  "name": "Ray-Ban RB3025 Aviator (or, verres marron dégradé)",
+  "brand": "Ray-Ban",
+  "category": "Lunettes",
+  "store": "lunettes-de-soleil.fr",
+  "url": "https://www.lunettes-de-soleil.fr/rb3025-aviator-polished-gold-light-brown-gradient-964681.html",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 119.9,
+    "weightG": 250
+   }
+  ],
+  "sizes": [
+   "55 mm",
+   "58 mm"
+  ],
+  "sizeName": "Taille",
+  "colors": [
+   "Monture dorée / verres marron dégradé"
+  ],
+  "material": "Monture métal, verres minéral",
+  "specs": {
+   "other": "Modèle mixte"
+  },
+  "weightG": 250,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Matière : Monture métal, verres minéral",
+   "Tailles : 55 mm, 58 mm"
+  ]
+ },
+ {
+  "id": "mo048",
+  "name": "Ray-Ban RB2132 New Wayfarer (écaille claire, verres marron dégradé)",
+  "brand": "Ray-Ban",
+  "category": "Lunettes",
+  "store": "lunettes-de-soleil.fr",
+  "url": "https://www.lunettes-de-soleil.fr/rb2132-new-wayfarer-classic-polished-havana-light-gradient-light-brown-1051023.html",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 112.9,
+    "weightG": 250
+   }
+  ],
+  "sizes": [
+   "52 mm",
+   "55 mm"
+  ],
+  "sizeName": "Taille",
+  "colors": [
+   "Monture écaille (havane) claire / verres marron dégradé"
+  ],
+  "material": "Monture nylon, verres minéral",
+  "specs": {
+   "other": "Modèle mixte"
+  },
+  "weightG": 250,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Matière : Monture nylon, verres minéral",
+   "Tailles : 52 mm, 55 mm"
+  ]
+ },
+ {
+  "id": "mo049",
+  "name": "Oakley Holbrook (noir, verres Prizm Sapphire)",
+  "brand": "Oakley",
+  "category": "Lunettes",
+  "store": "lunettes-de-soleil.fr",
+  "url": "https://www.lunettes-de-soleil.fr/holbrook-polished-black-prizm-sapphire-1132430.html",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 116.9,
+    "weightG": 250
+   }
+  ],
+  "sizes": [],
+  "sizeName": "Taille",
+  "colors": [
+   "Monture noire / verres Prizm Sapphire (bleu miroir)"
+  ],
+  "material": "Monture plastique injecté, verres polycarbonate",
+  "specs": {
+   "other": "Modèle homme"
+  },
+  "weightG": 250,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Matière : Monture plastique injecté, verres polycarbonate"
+  ]
+ },
+ {
+  "id": "mo050",
+  "name": "Julbo Frequency (noir mat, Spectron 3) – lunettes de sport",
+  "brand": "Julbo",
+  "category": "Lunettes",
+  "store": "lunettes-de-soleil.fr",
+  "url": "https://www.lunettes-de-soleil.fr/frequency-mat-noir-spectron-3-1238140.html",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 83.9,
+    "weightG": 250
+   }
+  ],
+  "sizes": [],
+  "sizeName": "Taille",
+  "colors": [
+   "Monture noir mat / verres gris Spectron 3"
+  ],
+  "material": "Monture plastique injecté (en partie d'origine végétale), verres polycarbonate",
+  "specs": {
+   "other": "Modèle mixte"
+  },
+  "weightG": 250,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": [
+   "Matière : Monture plastique injecté (en partie d'origine végétale), verres polycarbonate"
+  ]
+ },
+ {
+  "id": "mo051",
+  "name": "Izipizi SCREEN #E noir – lunettes anti-lumière bleue",
+  "brand": "Izipizi",
+  "category": "Lunettes",
+  "store": "Izipizi",
+  "url": "https://www.izipizi.com/fr-fr/products/screen-e-black",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 40,
+    "weightG": 250
+   }
+  ],
+  "sizes": [],
+  "sizeName": "Taille",
+  "colors": [
+   "Noir",
+   "Écaille (Tortoise)",
+   "Frozen Blue"
+  ],
+  "material": null,
+  "specs": {
+   "other": "Modèle mixte"
+  },
+  "weightG": 250,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": []
+ },
+ {
+  "id": "mo052",
+  "name": "Izipizi SCREEN #C écaille claire – lunettes anti-lumière bleue",
+  "brand": "Izipizi",
+  "category": "Lunettes",
+  "store": "Izipizi",
+  "url": "https://www.izipizi.com/fr-fr/products/screen-c-light-tortoise",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 40,
+    "weightG": 250
+   }
+  ],
+  "sizes": [],
+  "sizeName": "Taille",
+  "colors": [
+   "Écaille claire (Light Tortoise)"
+  ],
+  "material": null,
+  "specs": {
+   "other": "Modèle mixte"
+  },
+  "weightG": 250,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": []
+ },
+ {
+  "id": "mo053",
+  "name": "Izipizi SUN #C noir",
+  "brand": "Izipizi",
+  "category": "Lunettes",
+  "store": "Izipizi",
+  "url": "https://www.izipizi.com/fr-fr/products/sun-c-black",
+  "optionName": "Verres",
+  "configs": [
+   {
+    "label": "Verres gris",
+    "priceEur": 45,
+    "weightG": 250
+   },
+   {
+    "label": "Verres vert polarisé",
+    "priceEur": 55,
+    "weightG": 250
+   }
+  ],
+  "sizes": [],
+  "sizeName": "Taille",
+  "colors": [
+   "Noir"
+  ],
+  "material": null,
+  "specs": {
+   "other": "Modèle mixte"
+  },
+  "weightG": 250,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": []
+ },
+ {
+  "id": "mo054",
+  "name": "Meller Adisa All Black (polarisées)",
+  "brand": "Meller",
+  "category": "Lunettes",
+  "store": "Meller",
+  "url": "https://www.mellerbrand.com/fr/products/adisa-all-black-2",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 49,
+    "weightG": 118
+   }
+  ],
+  "sizes": [],
+  "sizeName": "Taille",
+  "colors": [
+   "Noir (monture et verres)"
+  ],
+  "material": "Monture Bio-based G850, verres TAC polarisés",
+  "specs": {
+   "other": "Modèle mixte"
+  },
+  "weightG": 118,
+  "weightNote": "poids d'expédition publié par la boutique",
+  "highlights": [
+   "Matière : Monture Bio-based G850, verres TAC polarisés"
+  ]
+ },
+ {
+  "id": "mo055",
+  "name": "Komono Falcon Black Sunset (aviateur)",
+  "brand": "Komono",
+  "category": "Lunettes",
+  "store": "Komono",
+  "url": "https://komono.com/fr/products/falcon-black-sunset",
+  "optionName": null,
+  "configs": [
+   {
+    "label": "",
+    "priceEur": 69,
+    "weightG": 250
+   }
+  ],
+  "sizes": [],
+  "sizeName": "Taille",
+  "colors": [
+   "Black Sunset"
+  ],
+  "material": null,
+  "specs": {
+   "other": "Modèle mixte"
+  },
+  "weightG": 250,
+  "weightNote": "colis estimé selon le type d'article",
+  "highlights": []
+ }
+]

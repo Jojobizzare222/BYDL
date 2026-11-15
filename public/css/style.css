@@ -1872,3 +1872,61 @@ html.soft-boot main#app .mz-loading { visibility: hidden; }
 .total-detail li { display: flex; justify-content: space-between; gap: 12px; padding: 3px 0 3px 14px; position: relative; line-height: 1.35; }
 .total-detail li::before { content: ''; position: absolute; left: 2px; top: .7em; width: 5px; height: 5px; border-radius: 50%; background: var(--brand-text); opacity: .45; }
 .total-detail li b { font-weight: 500; white-space: nowrap; color: var(--ink); }
+
+/* ===== Section « TV & Maison » de l'accueil, façon magazine (demande Joseph 15/11/2026) =====
+   Inspirée d'une maquette Dribbble de boutique de meubles (grande photo, titres fins, liste de familles, bande colorée
+   avec une rangée d'articles), aux couleurs de Zado : crème chaud + bleu marine, bande MANGUE. Photos Unsplash libres. */
+:root { --lv-bg: #F6EFE4; --lv-ink: #10264A; --lv-line: rgba(16,38,74,.14); }
+html[data-theme="dark"] { --lv-bg: #1A2233; --lv-ink: #E8EDF6; --lv-line: rgba(232,237,246,.14); }
+.living { margin: 28px 0; padding: 18px; border-radius: 22px; background: var(--lv-bg); color: var(--lv-ink); }
+.lv-top { display: grid; grid-template-columns: 1.3fr 1fr; gap: 22px; align-items: stretch; }
+.lv-hero { position: relative; display: block; min-height: 440px; border-radius: 16px; overflow: hidden; color: #fff; text-decoration: none; background: #10264A; }
+.lv-hero img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .8s ease, opacity .35s; }
+.lv-hero:hover img { transform: scale(1.03); }
+.lv-hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(8,16,32,.05) 30%, rgba(8,16,32,.78)); }
+.lv-hero-txt { position: absolute; z-index: 1; left: 0; right: 0; bottom: 0; padding: 26px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.lv-kicker { display: inline-flex; align-items: center; gap: 6px; font-size: .78rem; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--mango, #FFB300); }
+.lv-title { font-size: clamp(2rem, 4.2vw, 3.3rem); font-weight: 300; line-height: 1.02; letter-spacing: -.025em; }
+.lv-sub { font-size: .98rem; font-weight: 300; font-style: italic; opacity: .92; max-width: 34ch; }
+.lv-cta { margin-top: 8px; pointer-events: none; }
+.lv-side { display: flex; flex-direction: column; gap: 14px; padding: 6px 4px; }
+.lv-intro { margin: 0; font-size: .95rem; line-height: 1.5; color: var(--lv-ink); opacity: .85; max-width: 46ch; }
+.lv-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--lv-line); }
+.lv-list a { display: flex; align-items: baseline; gap: 10px; padding: 11px 2px; border-bottom: 1px solid var(--lv-line); color: var(--lv-ink); text-decoration: none; transition: padding .25s, opacity .25s; }
+.lv-name { font-size: clamp(1.25rem, 2.1vw, 1.75rem); font-weight: 300; letter-spacing: -.015em; line-height: 1.15; }
+.lv-count { font-size: .72rem; font-weight: 600; opacity: .55; vertical-align: super; }
+.lv-thumb { display: none; }
+.lv-list:hover a { opacity: .45; }
+.lv-list a:hover, .lv-list a:focus-visible { opacity: 1; padding-left: 10px; }
+.lv-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: auto; padding-top: 6px; }
+.lv-stats span { font-size: .78rem; line-height: 1.3; opacity: .85; }
+.lv-stats b { display: block; font-size: 1.15rem; font-weight: 500; letter-spacing: -.01em; opacity: 1; }
+.lv-band { margin-top: 18px; padding: 16px 0 6px; border-radius: 16px; background: var(--mango, #FFB300); }
+.lv-band-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 0 18px 10px; color: #10264A; }
+.lv-band-head p { margin: 0; display: inline-flex; align-items: center; gap: 6px; font-weight: 600; font-size: 1.02rem; }
+.lv-band-head a { color: #10264A; font-weight: 600; font-size: .88rem; display: inline-flex; align-items: center; gap: 2px; white-space: nowrap; flex-shrink: 0; }
+.lv-band .rail-wrap { padding: 0 12px; }
+.lv-band .card .btn.cta { background: #10264A; color: #fff; }
+.living-banner { position: relative; margin: 6px 0 14px; border-radius: 14px; overflow: hidden; height: 150px; background: #10264A; }
+.living-banner img { width: 100%; height: 100%; object-fit: cover; opacity: .82; }
+.living-banner span { position: absolute; left: 16px; bottom: 14px; right: 16px; color: #fff; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; text-shadow: 0 1px 8px rgba(0,0,0,.5); }
+@media (max-width: 860px) {
+  .lv-top { grid-template-columns: 1fr; }
+  .lv-hero { min-height: 320px; }
+}
+@media (max-width: 560px) {
+  .living { margin: 20px -4px; padding: 12px; border-radius: 18px; }
+  .lv-hero { min-height: 280px; }
+  .lv-hero-txt { padding: 18px; }
+  .lv-list:hover a { opacity: 1; }
+  .lv-list a { align-items: center; padding: 8px 2px; }
+  .lv-name { flex: 1; font-size: 1.2rem; }
+  .lv-thumb { display: block; width: 52px; height: 40px; border-radius: 8px; object-fit: cover; order: 3; }
+  .lv-stats b { font-size: 1rem; }
+}
+html[data-motion="reduce"] .lv-hero img, html[data-motion="reduce"] .lv-list a { transition: none; }
+html[data-saver="on"] .lv-thumb { display: none !important; }
+/* Précommande (15/11/2026) : étiquette sur la carte et date de sortie sur la fiche */
+.tag-pre { background: #10264A; color: #FFB300; }
+html[data-theme="dark"] .tag-pre { background: #FFB300; color: #10264A; }
+.pre-note { color: var(--brand-text) !important; font-weight: 600; }

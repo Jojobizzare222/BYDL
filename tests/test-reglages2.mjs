@@ -5,10 +5,10 @@ const call=async(j,p,o={})=>{const r=await fetch(B+p,{method:o.method||(o.body?'
 const ID={idType:'cni',idPhoto:'data:image/jpeg;base64,'+fs.readFileSync(process.argv[3]).toString('base64')};
 ok((await call(null,'/account/prefs',{method:'PUT',body:{theme:'dark'}})).status===401,'réglages : réservés au client connecté');
 const C={c:''}; const reg=await call(C,'/account/register',{body:{name:'Awa Réglages',phone:'069111222',...ID}}); const code=reg.data.code;
-const r=await call(C,'/account/prefs',{method:'PUT',body:{theme:'dark',textSize:'xlarge',density:'compact',homeUniverse:'Électronique',hiddenUniverses:['Électronique','Mode'],city:'Pointe-Noire',relayId:'INCONNU',notify:{orders:false},price:1,admin:true,'__proto__':{x:1},splash:'oui'}});
+const r=await call(C,'/account/prefs',{method:'PUT',body:{theme:'dark',textSize:'xlarge',density:'compact',homeUniverse:'Électronique',hiddenUniverses:['Électronique','Mode','Maison','Sport'],city:'Pointe-Noire',relayId:'INCONNU',notify:{orders:false},price:1,admin:true,'__proto__':{x:1},splash:'oui'}});
 const p=r.data.prefs;
 ok(p.theme==='dark' && p.textSize==='xlarge' && p.density==='compact' && p.homeUniverse==='Électronique' && p.city==='Pointe-Noire','réglages enregistrés sur le compte');
-ok(p.hiddenUniverses.length===0,'impossible de masquer tous les rayons (au moins un reste)');
+ok(p.hiddenUniverses.length===3,'impossible de masquer tous les rayons (au moins un reste)');
 ok(p.relayId==='' && p.notify.orders===false && p.notify.chat===true,'point relais inconnu ignoré ; notifications choisies');
 ok(!('price' in p) && !('admin' in p) && !('x' in p) && p.splash===undefined,'réglages inconnus ou valeurs invalides ignorés');
 ok((await call(C,'/account/me')).data.customer.prefs.theme==='dark','réglages retrouvés à la connexion (suivent le client)');
