@@ -26,6 +26,8 @@ ok(/^Téléviseur/.test(tv.name) && tv.weightKg >= 8 && tv.category === 'TV & Ma
 const md = (await get('/products?category=Maison%20%26%20d%C3%A9co')).data;
 const list = Array.isArray(md) ? md : md.products;
 ok(list.length > 0 && list.every((p) => p.weightKg > 0 && p.weightKg <= 15) && !list.some((p) => /miroir/i.test(p.name)), 'petits meubles : tous ≤ 15 kg, sans miroir');
+const sr = async (q) => { const d = (await get('/products?q=' + encodeURIComponent(q))).data; return (Array.isArray(d) ? d : d.products).map((p) => p.id); };
+ok((await sr('gta 6'))[0] === 'gv021' && (await sr('GTA VI'))[0] === 'gv021' && (await sr('gta')).includes('gv021'), 'recherche : « GTA 6 », « GTA VI » et « gta » trouvent Grand Theft Auto VI');
 ok(tv.costPrice === undefined, 'prix d\'achat jamais envoyé à la boutique');
 console.log(fails ? fails + ' ÉCHEC(S)' : 'TOUT EST OK');
 process.exit(fails ? 1 : 0);

@@ -46,10 +46,20 @@ function lev(a, b, max) {
 }
 const tolerance = (w) => (w.length >= 7 ? 2 : w.length >= 4 ? 1 : 0);
 
+// Abréviations et chiffres romains (15/11/2026 : « GTA 6 » doit trouver « Grand Theft Auto VI ») : ajoutés aux mots du NOM
+const ABBR = [['grand theft auto', 'gta'], ['call of duty', 'cod'], ['red dead redemption', 'rdr'], ['the legend of zelda', 'zelda']];
+const ROMAN = { ii: '2', iii: '3', iv: '4', v: '5', vi: '6', vii: '7', viii: '8', ix: '9', xi: '11', xii: '12' };
+function nameWords(name) {
+  const n = ` ${norm(name)} `;
+  const extra = ABBR.filter(([long]) => n.includes(` ${long} `)).map(([, short]) => short);
+  const base = words(name);
+  return [...base, ...extra, ...base.filter((w) => ROMAN[w]).map((w) => ROMAN[w])];
+}
+
 // Fiche « indexée » d'un produit (champs pondérés)
 function fields(p) {
   return [
-    [3, words(p.name)],
+    [3, nameWords(p.name)],
     [2, words(`${p.brand || ''} ${p.category || ''} ${p.universe || ''}`)],
     [1.2, words(`${(p.specs || []).map((s) => s.value).join(' ')} ${(p.options || []).flatMap((o) => o.values).join(' ')}`)],
     [0.6, words(p.description)],
