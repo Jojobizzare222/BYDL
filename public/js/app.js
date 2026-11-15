@@ -617,7 +617,7 @@
     bar.hidden = false;
     bar.classList.toggle('late', !left);
     bar.innerHTML = left
-      ? `${icon('gift')} <span><strong>Livré avant Noël</strong> : commandez avant le ${dayTxt(n.deadline)}</span><span class="nb-cd">${left.d ? `J-${left.d}` : `${left.h} h ${String(left.m).padStart(2, '0')}`}</span><span class="nb-go">Idées cadeaux ${icon('caret-right')}</span>`
+      ? `${icon('gift')} <span><strong>Livré avant Noël</strong> : commandez avant le <span class="nb-long">${dayTxt(n.deadline)}</span><span class="nb-short">${esc(String(n.deadline).slice(8, 10))}/${esc(String(n.deadline).slice(5, 7))}</span></span><span class="nb-cd">${left.d ? `J-${left.d}` : `${left.h} h ${String(left.m).padStart(2, '0')}`}</span><span class="nb-go">Idées cadeaux ${icon('caret-right')}</span>`
       : `${icon('gift')} <span>Commandes de fin d'année : livraison <strong>après Noël</strong> (${esc(delayText())})</span><span class="nb-go">Idées cadeaux ${icon('caret-right')}</span>`;
   }
   setInterval(renderNoelBar, 30000);
