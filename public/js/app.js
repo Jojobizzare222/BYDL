@@ -1147,26 +1147,38 @@
 
   async function viewSearch(q) {
     $('#searchInput').value = q;
-    let list = [], partial = false, fixed = null;
+    let list = [], partial = false, fixed = null, offline = false;
     try {
       const r = await fetch('/api/products?q=' + enc(q));
+      if (!r.ok) throw new Error('recherche');
       list = await r.json();
+      if (!Array.isArray(list)) throw new Error('recherche');
       partial = r.headers.get('X-Search-Partial') === '1';
       fixed = r.headers.get('X-Search-Suggest') ? decodeURIComponent(r.headers.get('X-Search-Suggest')) : null;
-    } catch {}
+    } catch {
+      // Connexion coupée ou trop lente (16/11/2026 : « GTA » → 0 produit pendant une coupure) : on cherche dans les
+      // articles déjà chargés sur le téléphone (tous les mots dans le nom, la marque ou le rayon) et on le dit au client
+      offline = true;
+      const nz = (x) => String(x || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      const ws = nz(q).split(/[^a-z0-9]+/).filter(Boolean);
+      list = state.products.filter((p) => { const t = nz(`${p.name} ${p.brand || ''} ${p.category} ${p.universe}`); return ws.every((w) => t.includes(w)); });
+    }
     const cat = searchCat();
     if (cat) list = list.filter((p) => (cat.startsWith('u:') ? p.universe === cat.slice(2) : p.category === cat.slice(2)));
-    const notice = fixed && list.length ? `<p class="search-note">${icon('magnifying-glass')} Résultats pour <strong>« ${esc(fixed)} »</strong> — vous avez tapé « ${esc(q)} ».</p>`
+    const notice = offline ? (!list.length ? '' : `<p class="search-note">${icon('wifi-slash')} Connexion difficile : résultats parmi les articles déjà chargés. <button type="button" class="retry-link" data-retry>Réessayer</button></p>`)
+      : fixed && list.length ? `<p class="search-note">${icon('magnifying-glass')} Résultats pour <strong>« ${esc(fixed)} »</strong> — vous avez tapé « ${esc(q)} ».</p>`
       : partial && list.length ? `<p class="search-note">${icon('magnifying-glass')} Aucun produit ne correspond à tous vos mots : voici les plus proches.</p>` : '';
     const popular = state.products.filter((p) => p.featured || discount(p)).slice(0, 8);
     const empty = `<div class="empty-search">
         ${mama('empty', { size: 'sm' })}
-        <p><strong>Aucun produit pour « ${esc(q)} ».</strong> Vérifiez l'orthographe, essayez un mot plus simple (ex. « téléphone », « écouteurs »), ou parcourez un rayon :</p>
+        ${offline ? `<p><strong>La recherche n'a pas pu joindre Zado.</strong> Vérifiez votre connexion internet puis <button type="button" class="retry-link" data-retry>réessayez</button>.</p>` : ''}
+        <p><strong>Aucun produit pour « ${esc(q)} »${offline ? ' parmi les articles déjà chargés' : ''}.</strong> Vérifiez l'orthographe, essayez un mot plus simple (ex. « téléphone », « écouteurs »), ou parcourez un rayon :</p>
         <div class="chips">${UNIVERSES.flatMap((u) => u.categories.map((c) => `<a class="chip" href="#/c/${enc(u.name)}/${enc(c)}">${esc(c)}</a>`)).join('')}</div>
         <p class="hint">Vous ne trouvez pas ? Écrivez-nous dans « Aide » : nous vous répondons.</p>
         ${popular.length ? `<h2 style="margin-top:22px">Nos produits du moment</h2><div class="grid">${cardsOf(popular)}</div>` : ''}
       </div>`;
     viewList({ title: `Résultats pour « ${q} »`, crumbs: '<a href="#/">Accueil</a> › Recherche', list, active: null, notice, empty, keepOrder: true });
+    document.querySelectorAll('#app [data-retry]').forEach((b) => { b.onclick = () => route(); });
   }
 
   function viewRefurb() {
