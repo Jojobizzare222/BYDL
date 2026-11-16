@@ -63,7 +63,9 @@
     cols = d.cols.filter((c) => !u.hidden.includes(c.k));
     let rows = d.rows;
     const q = norm(u.q).trim();
-    if (q) rows = rows.filter((r) => cols.some((c) => norm(fmt(c, r[c.k])).includes(q)));
+    // + abréviations et chiffres romains (« gta 6 » trouve « Grand Theft Auto VI », 16/11/2026)
+    const findText = (v) => { const t = norm(v); return [t, ...(t.includes('grand theft auto') ? ['gta'] : []), ...((t.match(/\b(ii|iii|iv|v|vi|vii|viii|ix)\b/g) || []).map((x) => ({ ii: 2, iii: 3, iv: 4, v: 5, vi: 6, vii: 7, viii: 8, ix: 9 })[x]))].join(' '); };
+    if (q) rows = rows.filter((r) => cols.some((c) => findText(fmt(c, r[c.k])).includes(q)));
     for (const [k, f] of Object.entries(u.filters)) {
       const c = d.cols.find((x) => x.k === k); if (!c) continue;
       if (f.values) { const set = new Set(f.values); rows = rows.filter((r) => set.has(fmt(c, r[k]) || '(vide)')); }

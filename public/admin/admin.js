@@ -79,7 +79,7 @@
       <div class="table-wrap"><table class="dt"><thead><tr>${columns.map((c) => `<th class="${c.cls || ''}" ${c.sortable === false ? '' : `data-sort="${c.key}"`}>${esc(c.label)}${c.sortable === false ? '' : `<span class="sort-ico">${icon('caret-down-bold')}</span>`}</th>`).join('')}</tr></thead><tbody></tbody></table></div>`;
     const draw = () => {
       const words = norm(st.q).split(/\s+/).filter(Boolean);
-      let list = rows.filter((r) => words.every((w) => norm(searchText(r)).includes(w)));
+      let list = rows.filter((r) => { const t = findText(searchText(r)); return words.every((w) => t.includes(w)); });
       const col = columns.find((c) => c.key === st.sort);
       if (col) {
         const v = col.sortValue || ((r) => r[col.key]);
@@ -2030,6 +2030,16 @@
   // ---------- Produits ----------
   const thumb = (p) => (p.image ? `<img class="thumb" src="${esc(p.image)}" alt="" loading="lazy">` : `<span class="thumb">${catIcon(p.category)}</span>`);
   const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  // Texte cherché dans les tableaux : + abréviations et chiffres romains (16/11/2026 : « GTA » ne trouvait pas
+  // « Grand Theft Auto VI » dans Produits ; même règle que la recherche de la boutique, src/search.js)
+  const FIND_ABBR = [['grand theft auto', 'gta'], ['call of duty', 'cod'], ['red dead redemption', 'rdr']];
+  const FIND_ROMAN = { ii: '2', iii: '3', iv: '4', v: '5', vi: '6', vii: '7', viii: '8', ix: '9', xi: '11', xii: '12' };
+  const findText = (s) => {
+    const t = norm(s);
+    const extra = FIND_ABBR.filter(([long]) => t.includes(long)).map(([, short]) => short);
+    const roman = (t.match(/\b(ii|iii|iv|v|vi|vii|viii|ix|xi|xii)\b/g) || []).map((r) => FIND_ROMAN[r]);
+    return [t, ...extra, ...roman].join(' ');
+  };
   const role = () => state.user?.role;
   const isAdmin = () => role() === 'admin';
   
