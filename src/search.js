@@ -6,7 +6,8 @@
 //  - classement : nom > marque / rayon > caractéristiques > description ; si aucun produit ne contient TOUS les mots,
 //    on propose ceux qui en contiennent le plus (resultat « partiel »).
 const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
-const stem = (w) => (w.length > 4 && /eaux$/.test(w) ? w.slice(0, -1) : w.length > 3 && /[sx]$/.test(w) && !/ss$/.test(w) ? w.slice(0, -1) : w);
+// Pluriels : -s (sauf -ss) et -x seulement après une voyelle + u (jeux, bijoux, eaux) ; jamais « xbox » → « xbo » (16/11/2026)
+const stem = (w) => (w.length > 4 && /eaux$/.test(w) ? w.slice(0, -1) : w.length > 3 && (/[^s]s$/.test(w) || /[aeo]ux$/.test(w)) && !/^\d/.test(w) ? w.slice(0, -1) : w);
 const words = (s) => norm(s).split(' ').filter(Boolean).map(stem);
 
 // Synonymes : chaque groupe = mots qui veulent dire la même chose pour le client
@@ -17,10 +18,14 @@ const GROUPS = [
   ['montre', 'watch', 'smartwatch', 'connectee', 'connecte'],
   ['ecouteur', 'airpod', 'oreillette', 'casque', 'audio', 'bluetooth', 'enceinte', 'baffle'],
   ['chargeur', 'cable', 'adaptateur', 'prise', 'powerbank', 'batterie'],
-  ['television', 'tele', 'tv', 'ecran'],
+  ['television', 'tele', 'tv'], // « écran » : d'abord le rayon Écrans (CAT_WORDS), les téléviseurs suivent par leurs caractéristiques
   ['console', 'jeu', 'playstation', 'ps5', 'xbox', 'nintendo', 'manette'],
   ['composant', 'ssd', 'disque', 'ram', 'memoire', 'carte graphique', 'processeur'],
   ['coque', 'etui', 'protection'],
+  // Mode, sport (15/11/2026)
+  ['chaussure', 'basket', 'sneaker', 'soulier'],
+  ['vetement', 'habit', 'habillement'],
+  ['proteine', 'whey'],
 ];
 const SYN = new Map();
 for (const g of GROUPS) for (const w of g.map(stem)) SYN.set(w, [...new Set([...(SYN.get(w) || []), ...g.map(stem)])]);
@@ -28,7 +33,7 @@ for (const g of GROUPS) for (const w of g.map(stem)) SYN.set(w, [...new Set([...
 // trouver « support smartphone ») ; les mots vagues ne servent jamais de synonyme trouvé (« enceinte PORTABLE » n'est
 // pas un téléphone, « prise connectée » n'est pas un chargeur).
 const SPECIFIC = new Set(['iphone', 'android', 'galaxy', 'macbook', 'ipad', 'airpod', 'playstation', 'ps5', 'xbox', 'nintendo']);
-const NON_TARGET = new Set(['portable', 'bluetooth', 'audio', 'mobile', 'connecte', 'connectee', 'ecran', 'prise', 'tab']);
+const NON_TARGET = new Set(['portable', 'bluetooth', 'audio', 'mobile', 'connecte', 'connectee', 'prise', 'tab']);
 
 function lev(a, b, max) {
   if (Math.abs(a.length - b.length) > max) return max + 1;
@@ -56,11 +61,23 @@ function nameWords(name) {
   return [...base, ...extra, ...base.filter((w) => ROMAN[w]).map((w) => ROMAN[w])];
 }
 
+// Mots que le client emploie pour un RAYON (16/11/2026 : « habits » doit trouver la mode, pas un tapis de souris « mode RGB »)
+const CAT_WORDS = {
+  'Mode homme': 'vetement habit homme', 'Mode femme': 'vetement habit femme', Chaussures: 'chaussure basket sneaker soulier',
+  Lunettes: 'lunette solaire', 'Sport & nutrition': 'sport proteine complement', 'Maison & déco': 'meuble deco maison',
+  'Écrans': 'ecran moniteur pc gamer',
+};
+// Appareils : leur nom compte aussi comme « rayon » (« iphone » montre les iPhone avant les coques pour iPhone)
+// (seulement les mots AVANT « pour / compatible / avec » : une montre « compatible iPhone » n'est pas un iPhone)
+const DEVICE = new Set(['Téléphones', 'Tablettes', 'Ordinateurs']);
+const deviceWords = (name) => nameWords(String(name).split(/\b(?:pour|compatible|avec)\b/i)[0]);
+
 // Fiche « indexée » d'un produit (champs pondérés)
 function fields(p) {
   return [
     [3, nameWords(p.name)],
-    [2, words(`${p.brand || ''} ${p.category || ''} ${p.universe || ''}`)],
+    [4, words(CAT_WORDS[p.category] || '')],
+    [2, [...words(`${p.brand || ''} ${p.category || ''} ${p.universe || ''}`), ...(DEVICE.has(p.category) ? deviceWords(p.name) : [])]],
     [1.2, words(`${(p.specs || []).map((s) => s.value).join(' ')} ${(p.options || []).flatMap((o) => o.values).join(' ')}`)],
     [0.6, words(p.description)],
   ];
@@ -72,7 +89,7 @@ function fields(p) {
 function wordScore(qw, f) {
   const variants = SPECIFIC.has(qw) ? [qw] : (SYN.get(qw) || [qw]).filter((v) => v === qw || !NON_TARGET.has(v));
   const tol = tolerance(qw);
-  let total = 0, corrected = null;
+  let total = 0, corrected = null, exact = false;
   for (const [weight, toks] of f) {
     let best = 0;
     for (const t of toks) {
@@ -83,8 +100,9 @@ function wordScore(qw, f) {
       if (tol && weight >= 2 && best < 0.6 && lev(qw, t, tol) <= tol) { best = 0.6; corrected = t; }
     }
     total += best * weight;
+    if (best >= 0.7) exact = true;
   }
-  return { score: total, corrected };
+  return { score: total, corrected: exact ? null : corrected, exact };
 }
 
 /** Recherche : renvoie { list (produits classés), partial, didYouMean } */
@@ -93,15 +111,19 @@ function search(list, q, retry = true) {
   if (!qws.length) return { list, partial: false, didYouMean: null };
   const scored = [];
   const fixes = new Map();
+  const real = new Set(); // mots trouvés tels quels dans au moins un produit : jamais « corrigés » (« lunettes » ≠ « manettes »)
   for (const p of list) {
     const f = fields(p);
     let total = 0, matched = 0;
     for (const w of qws) {
       const r = wordScore(w, f);
-      if (r.score) { matched++; total += r.score; if (r.corrected) fixes.set(w, r.corrected); }
+      if (r.score) { matched++; total += r.score; if (r.exact) real.add(w); else if (r.corrected) fixes.set(w, r.corrected); }
     }
     if (matched) scored.push({ p, total, matched });
   }
+  for (const w of real) fixes.delete(w);
+  // Un mot trouvé tel quel : les produits qui ne le contiennent que par « correction » sont retirés
+  if (real.size) for (const x of scored) for (const w of real) { const r = wordScore(w, fields(x.p)); if (r.score && !r.exact) { x.matched--; x.total -= r.score; } }
   const full = scored.filter((x) => x.matched === qws.length);
   const pick = full.length ? full : scored.filter((x) => x.matched >= Math.max(1, qws.length - 1));
   pick.sort((a, b) => b.matched - a.matched || b.total - a.total || (a.p.price || 0) - (b.p.price || 0));
