@@ -835,7 +835,8 @@
   function sortList(list, keepOrder = false) {
     const l = [...list];
     // « pertinence » = les articles les plus abordables d'abord (sauf recherche : ordre de pertinence du moteur)
-    if (state.sort === 'pertinence' && !keepOrder) l.sort((a, b) => affScore(b) - affScore(a));
+    // Les PRÉCOMMANDES passent en tête (16/11/2026 : GTA VI était 130e sur 151 dans son rayon, « je ne vois pas GTA 6 »)
+    if (state.sort === 'pertinence' && !keepOrder) l.sort((a, b) => (preorderOf(b) ? 1 : 0) - (preorderOf(a) ? 1 : 0) || affScore(b) - affScore(a));
     if (state.sort === 'prix-asc') l.sort((a, b) => landed(a) - landed(b));
     if (state.sort === 'prix-desc') l.sort((a, b) => landed(b) - landed(a));
     if (state.sort === 'remise') l.sort((a, b) => discount(b) - discount(a));
@@ -937,11 +938,15 @@
     // « C'est pour offrir » : 2e diapositive de Noël (photos libres de droits Unsplash, crédits sur #/credits)
     if (noel()) slides.push(slide({ theme: 'noel', kicker: `${icon('gift')} C'est pour offrir`, title: 'Offrez, on livre pour vous', text: 'Cochez « C\'est pour offrir » à la commande : nous livrons la personne de votre choix à Pointe-Noire, avec votre petit mot et sans aucun prix dans le colis.', href: '#/cadeaux', cta: 'Trouver un cadeau',
       img: '/images/ambiance/noel-offrir.jpg', imgAlt: 'Jeune femme qui tend un cadeau en souriant' }));
+    // Précommande (GTA VI…) : sa propre diapositive tant que le jeu n'est pas sorti, la plus proche sortie d'abord
+    const preP = state.products.filter((p) => preorderOf(p) && p.stock !== 0).sort((a, b) => preorderOf(a).localeCompare(preorderOf(b)) || landed(b) - landed(a))[0];
+    if (preP) slides.push(slide({ theme: 'violet', kicker: `${icon('clock-countdown-duotone')} Précommande`, title: esc(preP.name), text: `Sortie le <strong>${esc(dayTxt(preorderOf(preP)))}</strong> : réservez-le dès maintenant, <strong>${fcfa(landed(preP))}</strong> tout compris, livré à Pointe-Noire.`, href: `#/p/${preP.id}`, cta: 'Je précommande',
+      img: '/images/ambiance/jeux-video-1.jpg', imgAlt: 'Trois amies jouent aux jeux vidéo sur le canapé, manettes en main' }));
     if (heroP) slides.push(slide({ theme: 'violet', kicker: `${icon('sparkle-fill')} Nouveauté`, title: esc(heroP.name.replace(/^Apple /, '')), text: `À partir de <strong>${fcfa(landed(heroP))}</strong>, livré chez vous à Pointe-Noire.`, href: `#/p/${heroP.id}`, cta: 'Je le veux', p: heroP }));
     if (deals.length) slides.push(slide({ theme: 'coral', kicker: `${icon('lightning-fill')} Bonnes affaires`, title: `Jusqu'à -${discount(deals[0])} %`, text: 'Des prix cassés sur une sélection de produits, dans la limite des stocks.', href: '#/promos', cta: 'Voir les offres', p: pick(deals) }));
     for (const u of myUniverses()) {
       const p = pick(featured(u.name));
-      if (p) slides.push(slide({ theme: 'mango', kicker: esc(u.name), title: 'Le meilleur de la tech', text: esc(u.categories.slice(0, 4).join(' · ')), href: `#/c/${enc(u.name)}`, cta: 'Découvrir', p }));
+      if (p) slides.push(slide({ theme: 'mango', kicker: esc(u.name), title: ({ Mode: 'Le style, livré chez vous', Maison: 'Une maison bien équipée', Sport: 'En forme, bien équipé' })[u.name] || 'Le meilleur de la tech', text: esc(u.categories.slice(0, 4).join(' · ')), href: `#/c/${enc(u.name)}`, cta: 'Découvrir', p }));
     }
     if (!hasRelays()) slides.push(slide({
       theme: 'light', kicker: `${icon('wallet')} Paiement`, title: 'Commandez, payez en Mobile Money', text: hasDeposit() ? `Un acompte de ${depositTxt()}, déposé sur le numéro Mobile Money de Zado, confirme votre commande ; le reste se dépose de la même façon. Livraison à domicile à Pointe-Noire.` : 'Déposez le montant de votre commande sur le numéro Mobile Money de Zado (MTN ou Airtel) : elle est confirmée dès réception. Livraison à domicile à Pointe-Noire.', href: '#/promos', cta: 'Voir les offres',
