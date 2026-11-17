@@ -790,29 +790,55 @@
     rail?.scrollBy({ left: Number(b.dataset.dir) * rail.clientWidth * 0.85, behavior: 'smooth' });
   });
 
-  // Grand carrousel de l'accueil : défile seul toutes les 6 s (pause au survol / au toucher), flèches et points
-  function setupSlider(root, delay = 6000) {
-    const track = root.querySelector('.slider-track');
-    const n = track.children.length;
-    const dots = root.querySelector('.slider-dots');
-    dots.innerHTML = n > 1 ? Array.from({ length: n }, (_, i) => `<button type="button" aria-label="Diapositive ${i + 1}" data-go="${i}"></button>`).join('') : '';
-    const cur = () => Math.round(track.scrollLeft / track.clientWidth);
-    const go = (i) => track.scrollTo({ left: ((i + n) % n) * track.clientWidth, behavior: 'smooth' });
-    const mark = () => [...dots.children].forEach((d, j) => d.classList.toggle('on', j === cur()));
-    let t;
-    track.addEventListener('scroll', () => { clearTimeout(t); t = setTimeout(mark, 60); }, { passive: true });
+  // Grand carrousel pleine largeur de l'accueil (17/11/2026) : diapositives empilées, passage en FONDU ENCHAÎNÉ (la nouvelle
+  // apparaît par-dessus l'ancienne : rideau qui s'ouvre sur la photo, zoom lent, texte qui monte ligne par ligne, dans le
+  // sens du déplacement). Onglets, flèches, clavier, glissement du doigt (téléphone). Défile seul au rythme de la barre de
+  // progression de l'onglet actif (la fin de la barre fait passer à la suivante), en pause au survol ou au toucher ;
+  // jamais seul si « réduire les animations »
+  function setupShow(root) {
+    if (!root) return;
+    const slides = [...root.querySelectorAll('.zs-slide')];
+    const tabs = [...root.querySelectorAll('.zs-tab')];
+    const n = slides.length;
+    const auto = n > 1 && state.prefs.motion !== 'reduce' && !matchMedia('(prefers-reduced-motion: reduce)').matches;
+    root.classList.toggle('auto', auto);
+    let cur = -1, outT;
+    const set = (i, dir = 1) => {
+      i = (i + n) % n;
+      if (i === cur || !slides[i]) return;
+      const prev = slides[cur];
+      root.dataset.dir = dir > 0 ? 'next' : 'prev';
+      slides.forEach((s) => s.classList.remove('out'));
+      if (prev) { prev.classList.add('out'); clearTimeout(outT); outT = setTimeout(() => prev.classList.remove('out'), 1100); }
+      cur = i;
+      slides.forEach((s, j) => { s.classList.toggle('on', j === i); s.inert = j !== i; s.setAttribute('aria-hidden', String(j !== i)); });
+      tabs.forEach((t, j) => { t.classList.toggle('on', j === i); t.classList.toggle('done', j < i); if (j === i) t.setAttribute('aria-current', 'true'); else t.removeAttribute('aria-current'); });
+      root.dataset.tone = slides[i].classList.contains('zs-light') ? 'light' : 'dark';
+      const bar = tabs[i]?.querySelector('.zs-bar i'); // relance la barre de progression
+      if (bar) { bar.style.animation = 'none'; void bar.offsetWidth; bar.style.animation = ''; }
+    };
     root.addEventListener('click', (e) => {
-      const d = e.target.closest('[data-go]'); if (d) go(Number(d.dataset.go));
-      const a = e.target.closest('[data-slide]'); if (a) go(cur() + Number(a.dataset.slide));
+      const g = e.target.closest('[data-go]'); if (g) { const k = Number(g.dataset.go); set(k, k >= cur ? 1 : -1); }
+      const s = e.target.closest('[data-step]'); if (s) set(cur + Number(s.dataset.step), Number(s.dataset.step));
     });
-    let paused = false;
-    root.addEventListener('mouseenter', () => (paused = true));
-    root.addEventListener('mouseleave', () => (paused = false));
-    root.addEventListener('touchstart', () => { paused = true; setTimeout(() => (paused = false), 8000); }, { passive: true });
-    if (n > 1 && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      state.timers.push(setInterval(() => { if (!paused && !document.hidden && state.prefs.motion !== 'reduce') go(cur() + 1); }, delay)); // défilement auto coupé si « réduire les animations »
-    }
-    mark();
+    root.addEventListener('animationend', (e) => { if (auto && e.target.closest('.zs-tab.on') && e.target.matches('.zs-bar i')) set(cur + 1, 1); });
+    root.addEventListener('keydown', (e) => { if (e.key === 'ArrowRight') set(cur + 1, 1); else if (e.key === 'ArrowLeft') set(cur - 1, -1); });
+    const pause = (on) => root.classList.toggle('paused', on);
+    root.addEventListener('mouseenter', () => pause(true));
+    root.addEventListener('mouseleave', () => pause(false));
+    // Glissement du doigt : à gauche = suivante, à droite = précédente (un geste surtout vertical laisse la page défiler)
+    let x0 = null, y0 = 0, tt;
+    root.addEventListener('touchstart', (e) => { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; pause(true); clearTimeout(tt); }, { passive: true });
+    root.addEventListener('touchend', (e) => {
+      tt = setTimeout(() => pause(false), 6000);
+      if (x0 === null) return;
+      const dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
+      x0 = null;
+      if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy) * 1.3) set(cur + (dx < 0 ? 1 : -1), dx < 0 ? 1 : -1);
+    }, { passive: true });
+    const cd = root.querySelector('.zs-cd'); // compte à rebours de Noël
+    if (cd) state.timers.push(setInterval(() => { const l = noelLeft(); if (!l) return; cd.querySelector('[data-cd="d"]').textContent = l.d; cd.querySelector('[data-cd="h"]').textContent = l.h; cd.querySelector('[data-cd="m"]').textContent = String(l.m).padStart(2, '0'); }, 20000));
+    set(0);
   }
 
   // Temps restant jusqu'à minuit (ventes flash du jour)
@@ -902,79 +928,127 @@
   function viewHome() {
     renderNav(null);
     const deals = [...state.products].filter((p) => discount(p) > 0).sort((a, b) => discount(b) - discount(a)).slice(0, 12);
-    const inUniverse = (u) => state.products.filter((p) => p.universe === u);
-    const featured = (u) => inUniverse(u).filter((p) => p.featured).concat(inUniverse(u).filter((p) => !p.featured)).slice(0, 12);
-    const withImg = (list) => list.find((p) => p.image);
-    const heroP = withImg(state.products.filter((p) => p.featured)) || withImg(state.products) || state.products.find((p) => p.featured) || state.products[0];
-    const used = new Set([heroP?.id]);
-    const pick = (list) => { const p = list.find((x) => x.image && !used.has(x.id)) || list.find((x) => !used.has(x.id)); if (p) used.add(p.id); return p; }; // photo de préférence
-
-    // Photos d'ambiance libres de droits (Unsplash, 22/10/2026) : 2 par rayon, utilisées tant qu'un produit n'a pas sa photo
-    const usedAmb = new Set();
-    const ambPick = (p) => { const list = ambTypes(p); if (!list.length) return null; const x = list.find((u) => !usedAmb.has(u)) || list[0]; usedAmb.add(x); return x; };
-    // Diapositives du grand carrousel (construites à partir du catalogue)
-    const slide = ({ theme, kicker, title, text, href, cta, p, extra = '', art = '', img = '', imgAlt = '' }) => `
-      <div class="slide theme-${theme}">
-        <div class="slide-text">
-          <span class="pill">${kicker}</span>
-          <h2>${title}</h2>
-          <p>${text}</p>
-          ${extra}
-          <div class="slide-ctas"><a class="btn ${theme === 'light' || theme === 'mango' ? 'cta' : 'light'}" href="${href}">${esc(cta)} ${icon('arrow-right')}</a>${p ? `<a class="slide-more" href="#/p/${p.id}">Voir la fiche</a>` : ''}</div>
+    // Grand carrousel PLEINE LARGEUR de l'accueil (17/11/2026, demande Joseph : « carrousel full page, stylé, qui met en
+    // avant des produits, Noël… ») : 5 diapositives construites à partir du catalogue, toujours de VRAIS prix (jamais de
+    // fausse promo) ; barre d'onglets avec progression (setupShow). Ordre : Noël, bonnes affaires (s'il y en a),
+    // précommande, iPhone neufs, petits prix, reconditionné, puis « C'est pour offrir » et Zado en secours.
+    const short = (p) => familyName(p).replace(/^Apple /, '');
+    const famOf = (p) => familyKey(p) || p.id;
+    const withPic = state.products.filter((p) => p.image && p.stock !== 0);
+    const diverse = (list, n, byCat = true) => { // n articles, un par modèle (et un par rayon d'abord)
+      const out = [], fam = new Set(), cat = new Set();
+      for (const pass of byCat ? [true, false] : [false]) for (const p of list) {
+        if (out.length >= n) break;
+        if (out.includes(p) || fam.has(famOf(p)) || (pass && cat.has(p.category))) continue;
+        out.push(p); fam.add(famOf(p)); cat.add(p.category);
+      }
+      return out;
+    };
+    const spread = (list, n) => { const l = diverse(list, 99, false); return l.length <= n ? l : Array.from({ length: n }, (_, i) => l[Math.round((i * (l.length - 1)) / (n - 1))]); }; // du moins cher au plus cher
+    const dès = (p) => (hasExtras(p) ? '<span class="zs-des">dès </span>' : '');
+    const zImg = (p, lazy = true) => `<img src="${esc(p.image)}" alt="${esc(p.name)}"${lazy ? ' loading="lazy"' : ''}>`;
+    const zMini = (p, i) => `<a class="zs-mini m${i}" href="#/p/${p.id}"><span class="zs-mini-img">${zImg(p)}</span><span class="zs-mini-txt"><b>${esc(short(p))}</b><small>${dès(p)}${fcfa(landed(p))}</small></span></a>`;
+    const zTile = (p) => `<a class="zs-tile" href="#/p/${p.id}"><span class="zs-tile-img">${zImg(p)}</span><span class="zs-tile-txt"><b>${esc(short(p))}</b><small>${dès(p)}${fcfa(landed(p))}</small></span></a>`;
+    const zPrice = (amount, from) => `<div class="zs-price">${from ? '<small>Dès</small>' : ''}<b>${fcfa(amount)}</b><span>tout compris, livré chez vous à Pointe-Noire</span></div>`;
+    // Grandes photos de Noël (Pexels, 3 tailles : téléphone, ordinateur, grand écran ; crédits sur #/credits)
+    const zHd = (name, alt, first) => `<img src="/images/ambiance/${name}-1600.jpg" srcset="/images/ambiance/${name}-960.jpg 960w, /images/ambiance/${name}-1600.jpg 1600w, /images/ambiance/${name}-2400.jpg 2400w" sizes="(max-width: 760px) 100vw, 64vw" alt="${esc(alt)}" decoding="async"${first ? ' fetchpriority="high"' : ''}>`;
+    // Flocons et petites lumières de fête (positions fixes : identiques à chaque affichage ; coupés si « réduire les animations »)
+    const zFx = () => `<div class="zs-fx" aria-hidden="true">${Array.from({ length: 26 }, (_, k) => `<i style="--x:${(k * 37 + 11) % 100}%;--s:${3 + ((k * 7) % 5)}px;--d:${8 + ((k * 5) % 9)}s;--l:-${(k * 13) % 15}s;--o:${(0.35 + ((k * 3) % 6) / 10).toFixed(2)}"></i>`).join('')}${Array.from({ length: 7 }, (_, k) => `<b style="--x:${48 + ((k * 29) % 47)}%;--y:${10 + ((k * 41) % 75)}%;--z:${40 + ((k * 23) % 70)}px;--l:-${k * 0.9}s"></b>`).join('')}</div>`;
+    const zTrust = `<ul class="zs-trust">${[['shield-check', 'Clients vérifiés'], ['device-mobile', 'Paiement Mobile Money'], ['truck', 'Livré chez vous']].map(([ic, t]) => `<li>${icon(ic)}${t}</li>`).join('')}</ul>`;
+    const zSlide = (o) => ({ ...o, html: (i, n) => `
+      <article class="zs-slide zs-${o.theme}${['sky', 'mint', 'mango'].includes(o.theme) ? ' zs-light' : ''}${o.bg ? ' zs-split' : ''}" aria-roledescription="diapositive" aria-label="${i + 1} sur ${n} : ${esc(o.tab)}">
+        ${o.bg ? `<div class="zs-bg">${o.bg}</div>` : ''}${o.fx ? zFx() : ''}
+        <div class="zs-inner">
+          <div class="zs-copy">
+            <span class="zs-kicker">${o.kicker}</span>
+            <h2 class="zs-title">${o.title}</h2>
+            <p class="zs-sub">${o.sub}</p>
+            ${o.extra || ''}
+            <div class="zs-ctas"><a class="zs-btn" href="${o.href}">${esc(o.cta)} ${icon('arrow-right')}</a>${o.more ? `<a class="zs-more" href="${o.moreHref}">${esc(o.more)}</a>` : ''}</div>
+            ${o.trust ? zTrust : ''}
+          </div>
+          <div class="zs-visual zv-${o.vis}">${o.visual}</div>
         </div>
-        <div class="slide-visual">
-          <span class="deco o1"></span><span class="deco o2"></span><span class="deco o3"></span>
-          ${img ? `<img class="amb" src="${img}" alt="${esc(imgAlt)}" loading="lazy">` : ''}
-          ${p?.image ? `<img src="${esc(p.image)}" alt="${esc(p.name)}" ${p === heroP ? '' : 'loading="lazy"'}>` : p ? ((src) => (src ? `<img class="amb" src="${src}" alt="" ${p === heroP ? 'fetchpriority="high"' : 'loading="lazy"'}><span class="slide-ico mini">${catIcon(p.category)}</span><span class="amb-note">Photo d'illustration</span>` : `<span class="slide-ico">${catIcon(p.category)}</span>`))(ambPick(p)) : ''}
-          ${art}
-          ${p && discount(p) ? `<span class="slide-badge">-${discount(p)} %</span>` : ''}
-        </div>
-      </div>`;
-    const slides = [];
+      </article>` });
+    const zs = [];
     const nl = noelLeft();
-    if (nl) slides.push(slide({ theme: 'noel', kicker: `${icon('gift')} Noël chez Zado`, title: `Livré avant Noël`, text: `Commandez avant le <strong>${dayTxt(noel().deadline)}</strong> : ${esc(delayText())}.`, href: '#/cadeaux', cta: 'Idées cadeaux',
-      extra: `<div class="noel-cd" aria-label="Temps restant"><b>${nl.d}</b><i>jours</i><b>${nl.h}</b><i>h</i><b>${String(nl.m).padStart(2, '0')}</b><i>min</i></div>`,
-      img: '/images/ambiance/noel-famille.jpg', imgAlt: 'Famille souriante devant le sapin de Noël' }));
-    // « C'est pour offrir » : 2e diapositive de Noël (photos libres de droits Unsplash, crédits sur #/credits)
-    if (noel()) slides.push(slide({ theme: 'noel', kicker: `${icon('gift')} C'est pour offrir`, title: 'Offrez, on livre pour vous', text: 'Cochez « C\'est pour offrir » à la commande : nous livrons la personne de votre choix à Pointe-Noire, avec votre petit mot et sans aucun prix dans le colis.', href: '#/cadeaux', cta: 'Trouver un cadeau',
-      img: '/images/ambiance/noel-offrir.jpg', imgAlt: 'Jeune femme qui tend un cadeau en souriant' }));
-    // Précommande (GTA VI…) : sa propre diapositive tant que le jeu n'est pas sorti, la plus proche sortie d'abord
-    const preP = state.products.filter((p) => preorderOf(p) && p.stock !== 0).sort((a, b) => preorderOf(a).localeCompare(preorderOf(b)) || landed(b) - landed(a))[0];
-    if (preP) slides.push(slide({ theme: 'violet', kicker: `${icon('clock-countdown-duotone')} Précommande`, title: esc(preP.name), text: `Sortie le <strong>${esc(dayTxt(preorderOf(preP)))}</strong> : réservez-le dès maintenant, <strong>${fcfa(landed(preP))}</strong> tout compris, livré à Pointe-Noire.`, href: `#/p/${preP.id}`, cta: 'Je précommande',
-      img: '/images/ambiance/jeux-video-1.jpg', imgAlt: 'Trois amies jouent aux jeux vidéo sur le canapé, manettes en main' }));
-    if (heroP) slides.push(slide({ theme: 'violet', kicker: `${icon('sparkle-fill')} Nouveauté`, title: esc(heroP.name.replace(/^Apple /, '')), text: `À partir de <strong>${fcfa(landed(heroP))}</strong>, livré chez vous à Pointe-Noire.`, href: `#/p/${heroP.id}`, cta: 'Je le veux', p: heroP }));
-    if (deals.length) slides.push(slide({ theme: 'coral', kicker: `${icon('lightning-fill')} Bonnes affaires`, title: `Jusqu'à -${discount(deals[0])} %`, text: 'Des prix cassés sur une sélection de produits, dans la limite des stocks.', href: '#/promos', cta: 'Voir les offres', p: pick(deals) }));
-    for (const u of myUniverses()) {
-      const p = pick(featured(u.name));
-      if (p) slides.push(slide({ theme: 'mango', kicker: esc(u.name), title: ({ Mode: 'Le style, livré chez vous', Maison: 'Une maison bien équipée', Sport: 'En forme, bien équipé' })[u.name] || 'Le meilleur de la tech', text: esc(u.categories.slice(0, 4).join(' · ')), href: `#/c/${enc(u.name)}`, cta: 'Découvrir', p }));
+    if (nl) {
+      const gifts = diverse(withPic.filter((p) => !isRefurb(p) && landed(p) <= 40000 && !/coque|câble|cable|clé usb|carte micro|housse|sacoche/i.test(p.name)).sort((a, b) => landed(b) - landed(a)), 3);
+      zs.push(zSlide({ tab: 'Noël', theme: 'night', vis: 'minis', fx: true, trust: true, kicker: `${icon('gift')} Noël 2026`,
+        bg: zHd('noel-famille-hd', 'Famille en pyjamas de Noël qui rit sur le canapé', true),
+        title: 'Vos cadeaux de Noël, <em>livrés à temps</em>',
+        sub: `Commandez avant le <strong>${dayTxt(noel().deadline)}</strong> : nous achetons en France et nous livrons chez vous à Pointe-Noire avant Noël.`,
+        extra: `<div class="zs-cd" aria-label="Temps restant pour commander"><span><b data-cd="d">${nl.d}</b><i>jours</i></span><span><b data-cd="h">${nl.h}</b><i>heures</i></span><span><b data-cd="m">${String(nl.m).padStart(2, '0')}</b><i>min</i></span></div>`,
+        cta: 'Idées cadeaux', href: '#/cadeaux', more: 'Petits prix', moreHref: '#/petits-prix',
+        visual: gifts.map(zMini).join('') }));
     }
-    if (!hasRelays()) slides.push(slide({
-      theme: 'light', kicker: `${icon('wallet')} Paiement`, title: 'Commandez, payez en Mobile Money', text: hasDeposit() ? `Un acompte de ${depositTxt()}, déposé sur le numéro Mobile Money de Zado, confirme votre commande ; le reste se dépose de la même façon. Livraison à domicile à Pointe-Noire.` : 'Déposez le montant de votre commande sur le numéro Mobile Money de Zado (MTN ou Airtel) : elle est confirmée dès réception. Livraison à domicile à Pointe-Noire.', href: '#/promos', cta: 'Voir les offres',
-      extra: '<div class="pay-chips"><span>' + icon('device-mobile') + 'Mobile Money</span><span>' + icon('truck') + 'Livraison à domicile</span><span>' + icon('shield-check') + 'Clients vérifiés</span></div>',
-      art: mama('wait', { size: 'lg', label: 'Mama Zando valide un paiement sur son téléphone' }),
-    }));
-    else slides.push(slide({
-      theme: 'light', kicker: `${icon('wallet')} Paiement`, title: 'Réservez en ligne, payez au point relais', text: 'Choisissez un point relais près de chez vous sur la carte, payez-y en espèces, puis repartez avec votre commande ou faites-vous livrer.', href: '#/promos', cta: 'Commencer mes achats',
-      extra: '<div class="pay-chips"><span>' + icon('storefront') + 'Paiement au point relais</span><span>' + icon('truck') + 'Retrait ou livraison</span><span>' + icon('shield-check') + 'Clients vérifiés</span></div>',
-      art: mama('deliver', { size: 'lg', label: 'Mama Zando vous tend votre colis' }),
-    }));
+    const dealPics = deals.filter((p) => p.image);
+    if (deals.length) zs.push(zSlide({ tab: 'Bonnes affaires', theme: 'coral', vis: dealPics.length >= 3 ? 'trio' : 'photo', kicker: `${icon('lightning-fill')} Bonnes affaires`,
+      title: `Jusqu'à <em>-${discount(deals[0])} %</em>`, sub: 'Des prix baissés sur une sélection d\'articles, dans la limite des stocks.',
+      cta: 'Voir les offres', href: '#/promos',
+      visual: dealPics.length >= 3 ? `<div class="zs-trio">${diverse(dealPics, 3).map(zTile).join('')}</div>` : `<div class="zs-photo"><img src="/images/ambiance/noel-paquets-rouges.jpg" alt="" loading="lazy"></div>` }));
+    // Précommande (GTA VI…) : la plus proche sortie, tant que le jeu n'est pas sorti
+    const preP = state.products.filter((p) => preorderOf(p) && p.stock !== 0).sort((a, b) => preorderOf(a).localeCompare(preorderOf(b)) || landed(b) - landed(a))[0];
+    if (preP) {
+      const plat = (preP.options || []).find((o) => /plateforme/i.test(o.name));
+      zs.push(zSlide({ tab: 'Précommande', theme: 'play', vis: preP.image ? 'stage' : 'photo', kicker: `${icon('clock-countdown-duotone')} Précommande`,
+        title: esc(preP.name), sub: 'Réservez votre exemplaire dès maintenant : nous l\'achetons en France le jour de sa sortie et nous vous le livrons à Pointe-Noire.',
+        extra: zPrice(landed(preP), hasExtras(preP)) + (plat ? `<div class="zs-chips">${plat.values.map((v) => `<span>${icon('game-controller')}${esc(v)}</span>`).join('')}</div>` : ''),
+        cta: 'Je précommande', href: `#/p/${preP.id}`, more: 'Jeux vidéo & consoles', moreHref: `#/c/${enc(preP.universe)}/${enc(preP.category)}`,
+        visual: preP.image ? `<span class="zs-halo"></span><div class="zs-stage">${zImg(preP)}</div><span class="zs-sticker">Sortie le<b>${esc(dayTxt(preorderOf(preP)))}</b></span>` : `<div class="zs-photo"><img src="/images/ambiance/jeux-video-1.jpg" alt="Trois amies jouent aux jeux vidéo sur le canapé" loading="lazy"></div>` }));
+    }
+    // Téléphones NEUFS (Apple Store France…) : trois modèles, du moins cher au plus cher
+    const phones = withPic.filter((p) => p.category === 'Téléphones' && !isRefurb(p)).sort((a, b) => landed(a) - landed(b));
+    if (phones.length >= 3) {
+      const apple = phones.every((p) => /apple|iphone/i.test(`${p.brand} ${p.name}`));
+      zs.push(zSlide({ tab: apple ? 'iPhone' : 'Téléphones', theme: 'sky', vis: 'trio', kicker: `${icon('sparkle-fill')} Neuf${apple ? ' · Apple Store France' : ', acheté en France'}`,
+        title: `Les nouveaux <em>${apple ? 'iPhone' : 'smartphones'}</em>`, sub: apple ? 'Neufs, achetés directement à l\'Apple Store France, puis livrés chez vous à Pointe-Noire.' : 'Neufs, achetés en France chez les marques, puis livrés chez vous à Pointe-Noire.',
+        extra: zPrice(landed(phones[0]), true),
+        cta: 'Voir les téléphones', href: `#/c/${enc(phones[0].universe)}/${enc('Téléphones')}`,
+        visual: `<div class="zs-trio">${spread(phones, 3).map(zTile).join('')}</div>` }));
+    }
+    // Petits prix : cadeaux à moins de 25 000 FCFA tout compris
+    const smallAll = state.products.filter((p) => p.stock !== 0 && landed(p) <= 25000);
+    const small = diverse(smallAll.filter((p) => p.image && !isRefurb(p)).sort((a, b) => landed(b) - landed(a)), 4);
+    if (small.length === 4) zs.push(zSlide({ tab: 'Petits prix', theme: 'mango', vis: 'grid', kicker: `${icon('tag')} Petits prix${noel() ? ' de Noël' : ''}`,
+      title: `${noel() ? 'Des cadeaux' : 'Des idées'} <em>à moins de 25 000 FCFA</em>`, sub: `${smallAll.length} articles à petit prix, transport jusqu'à Pointe-Noire compris : rien ne s'ajoute au panier.`,
+      cta: 'Voir les petits prix', href: '#/cadeaux/moins-25000', more: 'Toutes les idées cadeaux', moreHref: '#/cadeaux',
+      visual: `<div class="zs-grid">${small.map(zTile).join('')}</div>` }));
+    // « C'est pour offrir » : avant le reconditionné pendant la période de Noël
+    if (noel()) zs.push(zSlide({ tab: 'Offrir', theme: 'night', vis: 'note', fx: true, trust: true, kicker: `${icon('gift')} C'est pour offrir`,
+      bg: zHd('noel-cadeau-hd', 'Une mère tend un cadeau à sa fille souriante devant le sapin'),
+      title: 'Offrez, <em>on livre pour vous</em>', sub: 'Cochez « C\'est pour offrir » à la commande : nous livrons la personne de votre choix à Pointe-Noire, avec votre petit mot.',
+      cta: 'Trouver un cadeau', href: '#/cadeaux', more: 'Petits prix', moreHref: '#/cadeaux/moins-25000',
+      visual: `<div class="zs-note">${icon('gift')}<span><b>Votre petit mot, glissé dans le colis</b><small>Aucun prix à l'intérieur : la surprise reste entière.</small></span></div>` }));
+    // Reconditionné : garantie Zado 6 mois
+    const refs = withPic.filter(isRefurb).sort((a, b) => landed(a) - landed(b));
+    if (refs.length >= 3) {
+      const iph = refs.every((p) => /iphone/i.test(p.name));
+      const bat = Math.min(...refs.map((p) => Number(p.refurb?.battery) || 0));
+      zs.push(zSlide({ tab: 'Reconditionné', theme: 'mint', vis: 'trio', kicker: `${icon('arrows-clockwise')} Reconditionné`,
+        title: `${iph ? 'Un iPhone' : 'Le reconditionné'}, <em>le bon prix</em>`, sub: 'Testé et vérifié avant l\'envoi, garanti 6 mois par Zado, pour payer beaucoup moins cher que le neuf.',
+        extra: zPrice(landed(refs[0]), true) + `<div class="zs-chips"><span>${icon('shield-check')}Garantie Zado 6 mois</span>${bat >= 50 ? `<span>${icon('lightning-fill')}Batterie ${bat} % minimum</span>` : ''}</div>`,
+        cta: 'Voir le reconditionné', href: '#/reconditionne',
+        visual: `<div class="zs-trio">${spread(refs, 3).map(zTile).join('')}</div>` }));
+    }
+    zs.push(zSlide({ tab: 'Zado', theme: 'sky', vis: 'mama', kicker: `${icon('airplane-tilt')} De la France à chez vous`,
+      title: 'Achetez en France, <em>recevez à Pointe-Noire</em>', sub: `Un seul prix, tout compris : ${esc(delayText())}.`,
+      cta: 'Commencer mes achats', href: '#/petits-prix',
+      visual: mama('deliver', { size: 'lg', label: 'Mama Zando vous tend votre colis' }) }));
+    const show = zs.slice(0, 5);
+    const showHtml = `<section class="zshow" id="hero" aria-roledescription="carrousel" aria-label="À la une chez Zado">
+        <div class="zs-track">${show.map((s, i) => s.html(i, show.length)).join('')}</div>
+        ${show.length > 1 ? `<div class="zs-nav">
+          <div class="zs-tabs">${show.map((s, i) => `<button type="button" class="zs-tab" data-go="${i}" aria-label="Afficher : ${esc(s.tab)}"><span class="zs-bar"><i></i></span><span class="zs-tl"><small>${String(i + 1).padStart(2, '0')}</small>${esc(s.tab)}</span></button>`).join('')}</div>
+          <div class="zs-arrows"><button type="button" data-step="-1" aria-label="Offre précédente">${icon('caret-left')}</button><button type="button" data-step="1" aria-label="Offre suivante">${icon('caret-right')}</button></div>
+        </div>` : ''}
+      </section>`;
 
     const [h, m, sec] = untilMidnight();
     // Accueil « vitrine tech » (19/10/2026, inspiré des grandes boutiques d'électronique, mise en page propre à Zado)
     const cats = myUniverses().flatMap((u) => u.categories.map((c) => ({ u: u.name, c, list: state.products.filter((p) => p.category === c) }))).filter((x) => x.list.length);
     const href = (x) => `#/c/${enc(x.u)}/${enc(x.c)}`;
     const firstImg = (list) => list.find((p) => p.image);
-    // Deux cartes à côté du carrousel : meilleure remise de deux autres rayons (photo obligatoire)
-    const sideCards = [];
-    for (const x of [...cats].sort((a, b) => Math.max(0, ...b.list.map(discount)) - Math.max(0, ...a.list.map(discount)))) {
-      if (sideCards.length === 2) break;
-      const sorted = [...x.list].sort((a, b) => discount(b) - discount(a)); const p = sorted.find((q) => q.image && q.id !== heroP?.id) || sorted.find((q) => q.id !== heroP?.id);
-      if (p) sideCards.push({ x, p });
-    }
-    const sideCard = ({ x, p }, i) => `<a class="side-card sc-${i}" href="#/p/${p.id}">
-        <span class="sc-k">${esc(x.c)}</span><b>${esc(p.name.replace(/^Apple /, ''))}</b>
-        <span class="sc-price">${discount(p) ? 'Seulement ' : 'À partir de '}${fcfa(landed(p))}</span><span class="sc-go">Découvrir ${icon('arrow-right')}</span>
-        ${p.image ? `<img src="${esc(p.image)}" alt="" loading="lazy">` : ((src) => (src ? `<img class="amb" src="${src}" alt="" loading="lazy" title="Photo d'illustration">` : `<span class="sc-ico">${catIcon(p.category)}</span>`))(ambPick(p))}${discount(p) ? `<span class="zl">-${discount(p)} %</span>` : ''}</a>`;
     // Blocs « Explorer les rayons » : 4 vignettes par rayon + prix d'entrée
     const blocks = [...cats].sort((a, b) => b.list.length - a.list.length).slice(0, 4).map((x) => {
       const seenImg = new Set(); const pics = groupFamilies(x.list).map((g) => g[0]).filter((p) => !p.image || (!seenImg.has(p.image) && seenImg.add(p.image))).slice(0, 4); // 4 produits différents
@@ -999,15 +1073,7 @@
         ${cats.map((x) => { const p = firstImg(x.list); return `<a href="${href(x)}"><span class="cc-img">${p ? `<img src="${esc(p.image)}" alt="" loading="lazy">` : amb(x.c) ? `<img class="amb" src="${amb(x.c)}" alt="" loading="lazy">` : catIcon(x.c)}</span><span><b>${esc(x.c)}</b><small>${x.list.length} article${x.list.length > 1 ? 's' : ''}</small></span></a>`; }).join('')}
       </nav>
 
-      <div class="hero-grid">
-        <section class="hero slider" id="hero" aria-roledescription="carrousel" aria-label="Offres du moment">
-          <div class="slider-track">${slides.join('')}</div>
-          <button type="button" class="slider-arrow prev" data-slide="-1" aria-label="Offre précédente">${icon('caret-left')}</button>
-          <button type="button" class="slider-arrow next" data-slide="1" aria-label="Offre suivante">${icon('caret-right')}</button>
-          <div class="slider-dots"></div>
-        </section>
-        ${sideCards.length ? `<div class="hero-side">${sideCards.map(sideCard).join('')}</div>` : ''}
-      </div>
+      ${showHtml}
 
       ${deals.length && state.prefs.showFlash !== false ? `<section class="shelf flash">
         <div class="shelf-head">
@@ -1058,7 +1124,7 @@
         <div>${icon('chat-circle')}<span><b>Service client</b><small>Nous vous appelons après chaque commande</small></span></div>
       </section>`;
 
-    setupSlider($('#hero'));
+    setupShow($('#hero'));
     // Section TV & Maison : la grande photo suit la famille survolée (ordinateur), comme dans un magazine
     { const hero = app.querySelector('.lv-hero img'); app.querySelectorAll('.lv-list a').forEach((a) => a.addEventListener('mouseenter', () => { const t = a.querySelector('.lv-thumb'); if (hero && t) { hero.src = t.src; a.closest('.lv-top').querySelector('.lv-hero').href = a.getAttribute('href'); } })); }
     app.querySelector('.home-tabs')?.addEventListener('click', (e) => {
@@ -1262,7 +1328,7 @@
             </div>`).join('') || '<p class="empty">Aucune photo de produit sous licence libre pour le moment.</p>'}
         </div>
         <h2 style="margin-top:24px">Photos d'ambiance</h2>
-        <p class="hint">Photos des rayons et de Noël (page d'accueil, idées cadeaux), libres de droits, publiées sur Unsplash par leurs auteurs. Merci à eux !</p>
+        <p class="hint">Photos des rayons et de Noël (page d'accueil, idées cadeaux), libres de droits, publiées sur Unsplash et Pexels par leurs auteurs. Merci à eux !</p>
         <div class="credits" id="ambCredits"></div>
       </div>`;
     fetch('/images/ambiance/credits.json').then((r) => r.json()).then((list) => {

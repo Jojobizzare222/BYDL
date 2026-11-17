@@ -1,353 +1,380 @@
 [
-  {
-    "category": "Téléphones",
-    "src": "/images/ambiance/telephones-1.jpg",
-    "alt": "Femme souriante qui consulte son smartphone",
-    "author": "Ahmed Nasiru",
-    "source": "https://unsplash.com/photos/Sl-LrWJNXV8",
-    "license": "Licence Unsplash",
-    "licenseUrl": "https://unsplash.com/license"
-  },
-  {
-    "category": "Téléphones",
-    "src": "/images/ambiance/telephones-2.jpg",
-    "alt": "Jeune femme au téléphone à son bureau",
-    "author": "Vitaly Gariev",
-    "source": "https://unsplash.com/photos/n1yI8oExVns",
-    "license": "Licence Unsplash",
-    "licenseUrl": "https://unsplash.com/license"
-  },
-  {
-    "category": "Ordinateurs",
-    "src": "/images/ambiance/ordinateurs-1.jpg",
-    "alt": "Homme qui travaille sur un ordinateur portable",
-    "author": "Maiye Jeremiah",
-    "source": "https://unsplash.com/photos/4hnbH0pdeJo",
-    "license": "Licence Unsplash",
-    "licenseUrl": "https://unsplash.com/license"
-  },
-  {
-    "category": "Ordinateurs",
-    "src": "/images/ambiance/ordinateurs-2.jpg",
-    "alt": "Homme souriant devant son ordinateur portable",
-    "author": "Oluwatobi Fasipe",
-    "source": "https://unsplash.com/photos/e8etaVo85AY",
-    "license": "Licence Unsplash",
-    "licenseUrl": "https://unsplash.com/license"
-  },
-  {
-    "category": "Audio",
-    "src": "/images/ambiance/audio-1.jpg",
-    "alt": "Femme qui écoute de la musique au casque",
-    "author": "Yohan Marion",
-    "source": "https://unsplash.com/photos/Mwa8-6H9QPk",
-    "license": "Licence Unsplash",
-    "licenseUrl": "https://unsplash.com/license"
-  },
-  {
-    "category": "Audio",
-    "src": "/images/ambiance/audio-2.jpg",
-    "alt": "Femme avec des écouteurs, allongée sur un canapé",
-    "author": "Joyce Busola",
-    "source": "https://unsplash.com/photos/h7pDENTfYvU",
-    "license": "Licence Unsplash",
-    "licenseUrl": "https://unsplash.com/license"
-  },
-  {
-    "category": "Tablettes",
-    "src": "/images/ambiance/tablettes-1.jpg",
-    "alt": "Main qui tient une tablette allumée",
-    "author": "Henry Ascroft",
-    "source": "https://unsplash.com/photos/7OFnb7NOvjw",
-    "license": "Licence Unsplash",
-    "licenseUrl": "https://unsplash.com/license"
-  },
-  {
-    "category": "Tablettes",
-    "src": "/images/ambiance/tablettes-2.jpg",
-    "alt": "Tablette tenue en main en extérieur",
-    "author": "Marta Filipczyk",
-    "source": "https://unsplash.com/photos/mN5-yjVGBAI",
-    "license": "Licence Unsplash",
-    "licenseUrl": "https://unsplash.com/license"
-  },
-  {
-    "category": "Montres",
-    "src": "/images/ambiance/montres-1.jpg",
-    "alt": "Montre connectée au poignet",
-    "author": "Solen Feyissa",
-    "source": "https://unsplash.com/photos/15v6smjHVHQ",
-    "license": "Licence Unsplash",
-    "licenseUrl": "https://unsplash.com/license"
-  },
-  {
-    "category": "Montres",
-    "src": "/images/ambiance/montres-2.jpg",
-    "alt": "Montre connectée au poignet, gros plan",
-    "author": "Luke Chesser",
-    "source": "https://unsplash.com/photos/vCF5sB7QecM",
-    "license": "Licence Unsplash",
-    "licenseUrl": "https://unsplash.com/license"
-  },
-  {
-    "category": "TV & Maison",
-    "src": "/images/ambiance/tv-maison-1.jpg",
-    "alt": "Salon avec un téléviseur allumé",
-    "author": "Jonas Leupe",
-    "source": "https://unsplash.com/photos/XE6PBDd7_FQ",
-    "license": "Licence Unsplash",
-    "licenseUrl": "https://unsplash.com/license"
-  },
-  {
-    "category": "TV & Maison",
-    "src": "/images/ambiance/tv-maison-2.jpg",
-    "alt": "Salon lumineux avec un grand téléviseur",
-    "author": "Spacejoy",
-    "source": "https://unsplash.com/photos/xyygOyZO5VA",
-    "license": "Licence Unsplash",
-    "licenseUrl": "https://unsplash.com/license"
-  },
-  {
-    "category": "Accessoires",
-    "src": "/images/ambiance/accessoires-1.jpg",
-    "alt": "Câbles USB orange",
-    "author": "Lucian Alexe",
-    "source": "https://unsplash.com/photos/yh0UtueiZ-I",
-    "license": "Licence Unsplash",
-    "licenseUrl": "https://unsplash.com/license"
-  },
-  {
-    "category": "Accessoires",
-    "src": "/images/ambiance/accessoires-2.jpg",
-    "alt": "Smartphone branché à son câble de charge",
-    "author": "Andreas Haslinger",
-    "source": "https://unsplash.com/photos/W9Z87k4hV08",
-    "license": "Licence Unsplash",
-    "licenseUrl": "https://unsplash.com/license"
-  },
-  {
-    "category": "Composants",
-    "src": "/images/ambiance/composants-1.jpg",
-    "alt": "Carte mère d'ordinateur, gros plan",
-    "author": "Rémy",
-    "source": "https://unsplash.com/photos/A-5mSyPRG34",
-    "license": "Licence Unsplash",
-    "licenseUrl": "https://unsplash.com/license"
-  },
-  {
-    "category": "Composants",
-    "src": "/images/ambiance/composants-2.jpg",
-    "alt": "Circuit électronique, gros plan",
-    "author": "Alexandre Debiève",
-    "source": "https://unsplash.com/photos/FO7JIlwjOtU",
-    "license": "Licence Unsplash",
-    "licenseUrl": "https://unsplash.com/license"
-  },
-  {
-    "category": "Accessoires",
-    "src": "/images/ambiance/coques-1.jpg",
-    "alt": "Coques de smartphone de plusieurs couleurs",
-    "author": "Behar Zenuni",
-    "source": "https://unsplash.com/photos/x86l1G0G4BQ",
-    "license": "Licence Unsplash",
-    "licenseUrl": "https://unsplash.com/license"
-  },
-  {
-    "category": "Audio",
-    "src": "/images/ambiance/ecouteurs-1.jpg",
-    "alt": "Écouteurs sans fil avec leur boîtier de charge",
-    "author": "Aaina Sharma",
-    "source": "https://unsplash.com/photos/rI2MXeP6sss",
-    "license": "Licence Unsplash",
-    "licenseUrl": "https://unsplash.com/license"
-  },
-  {
-    "category": "Noël",
-    "src": "/images/ambiance/noel-famille.jpg",
-    "alt": "Famille souriante devant le sapin de Noël",
-    "author": "Janay Peters",
-    "source": "https://unsplash.com/photos/jp1b6envAIg",
-    "license": "Licence Unsplash",
-    "licenseUrl": "https://unsplash.com/license"
-  },
-  {
-    "category": "Noël",
-    "src": "/images/ambiance/noel-smartphone.jpg",
-    "alt": "Smartphone emballé d’un nœud rouge, guirlande lumineuse",
-    "author": "Micah & Sammie Chaffin",
-    "source": "https://unsplash.com/photos/GqByRHNw1ro",
-    "license": "Licence Unsplash",
-    "licenseUrl": "https://unsplash.com/license"
-  },
-  {
-    "category": "Noël",
-    "src": "/images/ambiance/noel-offrir.jpg",
-    "alt": "Jeune femme qui tend un cadeau en souriant",
-    "author": "Vitaly Gariev",
-    "source": "https://unsplash.com/photos/h5Z_swRW7fM",
-    "license": "Licence Unsplash",
-    "licenseUrl": "https://unsplash.com/license"
-  },
-  {
-    "category": "Noël",
-    "src": "/images/ambiance/noel-cadeau.jpg",
-    "alt": "Femme en pull rouge tenant un cadeau emballé",
-    "author": "Brandy Kennedy",
-    "source": "https://unsplash.com/photos/MtAM7RWb9nI",
-    "license": "Licence Unsplash",
-    "licenseUrl": "https://unsplash.com/license"
-  },
-  {
-    "category": "Noël",
-    "src": "/images/ambiance/noel-couple.jpg",
-    "alt": "Couple souriant devant un sapin de Noël",
-    "author": "Jadon Johnson",
-    "source": "https://unsplash.com/photos/mmWxrkn1k5c",
-    "license": "Licence Unsplash",
-    "licenseUrl": "https://unsplash.com/license"
-  },
-  {
-    "category": "Noël",
-    "src": "/images/ambiance/noel-paquets-rouges.jpg",
-    "alt": "Cadeaux emballés de papier rouge et de rubans",
-    "author": "freestocks",
-    "source": "https://unsplash.com/photos/PxM8aeJbzvk",
-    "license": "Licence Unsplash",
-    "licenseUrl": "https://unsplash.com/license"
-  },
-  {
-    "category": "Noël",
-    "src": "/images/ambiance/noel-paquets-kraft.jpg",
-    "alt": "Paquets cadeaux en papier kraft et ruban rouge",
-    "author": "Cemrecan Yurtman",
-    "source": "https://unsplash.com/photos/ZogUJmll5ys",
-    "license": "Licence Unsplash",
-    "licenseUrl": "https://unsplash.com/license"
-  },
-  {
-    "category": "Noël",
-    "src": "/images/ambiance/noel-salon-tv.jpg",
-    "alt": "Salon décoré pour Noël : sapin, cheminée et téléviseur au mur",
-    "author": "Jocelyn Allen",
-    "source": "https://unsplash.com/photos/N1Srp_0fQWs",
-    "license": "Licence Unsplash",
-    "licenseUrl": "https://unsplash.com/license"
-  },
-  {
-    "category": "Noël",
-    "src": "/images/ambiance/noel-tv-famille.jpg",
-    "alt": "Famille réunie et joyeuse sur le canapé devant le sapin de Noël",
-    "author": "Janay Peters",
-    "source": "https://unsplash.com/photos/jp1b6envAIg",
-    "license": "Licence Unsplash",
-    "licenseUrl": "https://unsplash.com/license"
-  },
-  {
-    "category": "Noël",
-    "src": "/images/ambiance/noel-interieur.jpg",
-    "alt": "Cadeaux emballés sur un canapé vert, guirlande lumineuse",
-    "author": "Anita Austvika",
-    "source": "https://unsplash.com/photos/zCZsf_tt5ko",
-    "license": "Licence Unsplash",
-    "licenseUrl": "https://unsplash.com/license"
-  },
-  {
-    "category": "Noël",
-    "src": "/images/ambiance/noel-enceinte.jpg",
-    "alt": "Petite enceinte posée parmi des guirlandes lumineuses sur un tissu à motifs",
-    "author": "Karmishth Tandel",
-    "source": "https://unsplash.com/photos/g2hN8afXWb4",
-    "license": "Licence Unsplash",
-    "licenseUrl": "https://unsplash.com/license"
-  },
-  {
-    "category": "Noël",
-    "src": "/images/ambiance/noel-cuisine.jpg",
-    "alt": "Cuisine décorée pour Noël avec des poinsettias et une étoile à la fenêtre",
-    "author": "Shayla Bruins",
-    "source": "https://unsplash.com/photos/g1AJbWeKsfQ",
-    "license": "Licence Unsplash",
-    "licenseUrl": "https://unsplash.com/license"
-  },
-  {
-    "category": "Noël",
-    "src": "/images/ambiance/noel-chevet.jpg",
-    "alt": "Lampe de chevet allumée ornée de petites lumières de Noël",
-    "author": "Rebecca R",
-    "source": "https://unsplash.com/photos/sVXQ4IV82SQ",
-    "license": "Licence Unsplash",
-    "licenseUrl": "https://unsplash.com/license"
-  },
-  {
-    "category": "Mode homme",
-    "src": "/images/ambiance/mode-homme-1.jpg",
-    "alt": "Homme élégant en veste noire et lunettes rondes, adossé à un mur",
-    "author": "Christopher Ott",
-    "source": "https://unsplash.com/photos/WDwOvs7QHIk",
-    "license": "Licence Unsplash",
-    "licenseUrl": "https://unsplash.com/license"
-  },
-  {
-    "category": "Mode femme",
-    "src": "/images/ambiance/mode-femme-1.jpg",
-    "alt": "Femme souriante en veste en cuir rose et jean",
-    "author": "Gabrielle Henderson",
-    "source": "https://unsplash.com/photos/lhp-rMgb2zs",
-    "license": "Licence Unsplash",
-    "licenseUrl": "https://unsplash.com/license"
-  },
-  {
-    "category": "Chaussures",
-    "src": "/images/ambiance/chaussures-1.jpg",
-    "alt": "Baskets blanches portées sur un parquet",
-    "author": "Jametlene Reskp",
-    "source": "https://unsplash.com/photos/LXkiVy5EBo0",
-    "license": "Licence Unsplash",
-    "licenseUrl": "https://unsplash.com/license"
-  },
-  {
-    "category": "Lunettes",
-    "src": "/images/ambiance/lunettes-1.jpg",
-    "alt": "Jeune homme portant des lunettes de soleil devant une camionnette",
-    "author": "Keith Kasaija",
-    "source": "https://unsplash.com/photos/A0gS3OY26Wg",
-    "license": "Licence Unsplash",
-    "licenseUrl": "https://unsplash.com/license"
-  },
-  {
-    "category": "Sport & nutrition",
-    "src": "/images/ambiance/nutrition-1.jpg",
-    "alt": "Homme qui s’entraîne avec un haltère en salle de sport",
-    "author": "Anton Acosta",
-    "source": "https://unsplash.com/photos/QFjlC7nasr0",
-    "license": "Licence Unsplash",
-    "licenseUrl": "https://unsplash.com/license"
-  },
-  {
-    "category": "Maison & déco",
-    "src": "/images/ambiance/maison-deco-1.jpg",
-    "alt": "Chambre lumineuse : coussins colorés, lampe verte sur la table de chevet, tableaux",
-    "author": "Raphael (Ajani Kamali Akio)",
-    "source": "https://unsplash.com/photos/MFeTNaE0e8M",
-    "license": "Licence Unsplash",
-    "licenseUrl": "https://unsplash.com/license"
-  },
-  {
-    "category": "Écrans",
-    "src": "/images/ambiance/ecrans-1.jpg",
-    "alt": "Bureau épuré avec écran, clavier, enceintes et plante",
-    "author": "Ryan Yao",
-    "source": "https://unsplash.com/photos/BDvCewlnbD8",
-    "license": "Licence Unsplash",
-    "licenseUrl": "https://unsplash.com/license"
-  },
-  {
-    "category": "Jeux vidéo & consoles",
-    "src": "/images/ambiance/jeux-video-1.jpg",
-    "alt": "Trois amies jouent aux jeux vidéo sur le canapé, manettes en main",
-    "author": "Emmanuel Yeboah Okine",
-    "source": "https://unsplash.com/photos/gj34ujcu4jo",
-    "license": "Licence Unsplash",
-    "licenseUrl": "https://unsplash.com/license"
-  }
+ {
+  "category": "Téléphones",
+  "src": "/images/ambiance/telephones-1.jpg",
+  "alt": "Femme souriante qui consulte son smartphone",
+  "author": "Ahmed Nasiru",
+  "source": "https://unsplash.com/photos/Sl-LrWJNXV8",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Téléphones",
+  "src": "/images/ambiance/telephones-2.jpg",
+  "alt": "Jeune femme au téléphone à son bureau",
+  "author": "Vitaly Gariev",
+  "source": "https://unsplash.com/photos/n1yI8oExVns",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Ordinateurs",
+  "src": "/images/ambiance/ordinateurs-1.jpg",
+  "alt": "Homme qui travaille sur un ordinateur portable",
+  "author": "Maiye Jeremiah",
+  "source": "https://unsplash.com/photos/4hnbH0pdeJo",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Ordinateurs",
+  "src": "/images/ambiance/ordinateurs-2.jpg",
+  "alt": "Homme souriant devant son ordinateur portable",
+  "author": "Oluwatobi Fasipe",
+  "source": "https://unsplash.com/photos/e8etaVo85AY",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Audio",
+  "src": "/images/ambiance/audio-1.jpg",
+  "alt": "Femme qui écoute de la musique au casque",
+  "author": "Yohan Marion",
+  "source": "https://unsplash.com/photos/Mwa8-6H9QPk",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Audio",
+  "src": "/images/ambiance/audio-2.jpg",
+  "alt": "Femme avec des écouteurs, allongée sur un canapé",
+  "author": "Joyce Busola",
+  "source": "https://unsplash.com/photos/h7pDENTfYvU",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Tablettes",
+  "src": "/images/ambiance/tablettes-1.jpg",
+  "alt": "Main qui tient une tablette allumée",
+  "author": "Henry Ascroft",
+  "source": "https://unsplash.com/photos/7OFnb7NOvjw",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Tablettes",
+  "src": "/images/ambiance/tablettes-2.jpg",
+  "alt": "Tablette tenue en main en extérieur",
+  "author": "Marta Filipczyk",
+  "source": "https://unsplash.com/photos/mN5-yjVGBAI",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Montres",
+  "src": "/images/ambiance/montres-1.jpg",
+  "alt": "Montre connectée au poignet",
+  "author": "Solen Feyissa",
+  "source": "https://unsplash.com/photos/15v6smjHVHQ",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Montres",
+  "src": "/images/ambiance/montres-2.jpg",
+  "alt": "Montre connectée au poignet, gros plan",
+  "author": "Luke Chesser",
+  "source": "https://unsplash.com/photos/vCF5sB7QecM",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "TV & Maison",
+  "src": "/images/ambiance/tv-maison-1.jpg",
+  "alt": "Salon avec un téléviseur allumé",
+  "author": "Jonas Leupe",
+  "source": "https://unsplash.com/photos/XE6PBDd7_FQ",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "TV & Maison",
+  "src": "/images/ambiance/tv-maison-2.jpg",
+  "alt": "Salon lumineux avec un grand téléviseur",
+  "author": "Spacejoy",
+  "source": "https://unsplash.com/photos/xyygOyZO5VA",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Accessoires",
+  "src": "/images/ambiance/accessoires-1.jpg",
+  "alt": "Câbles USB orange",
+  "author": "Lucian Alexe",
+  "source": "https://unsplash.com/photos/yh0UtueiZ-I",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Accessoires",
+  "src": "/images/ambiance/accessoires-2.jpg",
+  "alt": "Smartphone branché à son câble de charge",
+  "author": "Andreas Haslinger",
+  "source": "https://unsplash.com/photos/W9Z87k4hV08",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Composants",
+  "src": "/images/ambiance/composants-1.jpg",
+  "alt": "Carte mère d'ordinateur, gros plan",
+  "author": "Rémy",
+  "source": "https://unsplash.com/photos/A-5mSyPRG34",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Composants",
+  "src": "/images/ambiance/composants-2.jpg",
+  "alt": "Circuit électronique, gros plan",
+  "author": "Alexandre Debiève",
+  "source": "https://unsplash.com/photos/FO7JIlwjOtU",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Accessoires",
+  "src": "/images/ambiance/coques-1.jpg",
+  "alt": "Coques de smartphone de plusieurs couleurs",
+  "author": "Behar Zenuni",
+  "source": "https://unsplash.com/photos/x86l1G0G4BQ",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Audio",
+  "src": "/images/ambiance/ecouteurs-1.jpg",
+  "alt": "Écouteurs sans fil avec leur boîtier de charge",
+  "author": "Aaina Sharma",
+  "source": "https://unsplash.com/photos/rI2MXeP6sss",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Noël",
+  "src": "/images/ambiance/noel-famille.jpg",
+  "alt": "Famille souriante devant le sapin de Noël",
+  "author": "Janay Peters",
+  "source": "https://unsplash.com/photos/jp1b6envAIg",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Noël",
+  "src": "/images/ambiance/noel-smartphone.jpg",
+  "alt": "Smartphone emballé d’un nœud rouge, guirlande lumineuse",
+  "author": "Micah & Sammie Chaffin",
+  "source": "https://unsplash.com/photos/GqByRHNw1ro",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Noël",
+  "src": "/images/ambiance/noel-offrir.jpg",
+  "alt": "Jeune femme qui tend un cadeau en souriant",
+  "author": "Vitaly Gariev",
+  "source": "https://unsplash.com/photos/h5Z_swRW7fM",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Noël",
+  "src": "/images/ambiance/noel-cadeau.jpg",
+  "alt": "Femme en pull rouge tenant un cadeau emballé",
+  "author": "Brandy Kennedy",
+  "source": "https://unsplash.com/photos/MtAM7RWb9nI",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Noël",
+  "src": "/images/ambiance/noel-couple.jpg",
+  "alt": "Couple souriant devant un sapin de Noël",
+  "author": "Jadon Johnson",
+  "source": "https://unsplash.com/photos/mmWxrkn1k5c",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Noël",
+  "src": "/images/ambiance/noel-paquets-rouges.jpg",
+  "alt": "Cadeaux emballés de papier rouge et de rubans",
+  "author": "freestocks",
+  "source": "https://unsplash.com/photos/PxM8aeJbzvk",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Noël",
+  "src": "/images/ambiance/noel-paquets-kraft.jpg",
+  "alt": "Paquets cadeaux en papier kraft et ruban rouge",
+  "author": "Cemrecan Yurtman",
+  "source": "https://unsplash.com/photos/ZogUJmll5ys",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Noël",
+  "src": "/images/ambiance/noel-salon-tv.jpg",
+  "alt": "Salon décoré pour Noël : sapin, cheminée et téléviseur au mur",
+  "author": "Jocelyn Allen",
+  "source": "https://unsplash.com/photos/N1Srp_0fQWs",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Noël",
+  "src": "/images/ambiance/noel-tv-famille.jpg",
+  "alt": "Famille réunie et joyeuse sur le canapé devant le sapin de Noël",
+  "author": "Janay Peters",
+  "source": "https://unsplash.com/photos/jp1b6envAIg",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Noël",
+  "src": "/images/ambiance/noel-interieur.jpg",
+  "alt": "Cadeaux emballés sur un canapé vert, guirlande lumineuse",
+  "author": "Anita Austvika",
+  "source": "https://unsplash.com/photos/zCZsf_tt5ko",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Noël",
+  "src": "/images/ambiance/noel-enceinte.jpg",
+  "alt": "Petite enceinte posée parmi des guirlandes lumineuses sur un tissu à motifs",
+  "author": "Karmishth Tandel",
+  "source": "https://unsplash.com/photos/g2hN8afXWb4",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Noël",
+  "src": "/images/ambiance/noel-cuisine.jpg",
+  "alt": "Cuisine décorée pour Noël avec des poinsettias et une étoile à la fenêtre",
+  "author": "Shayla Bruins",
+  "source": "https://unsplash.com/photos/g1AJbWeKsfQ",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Noël",
+  "src": "/images/ambiance/noel-chevet.jpg",
+  "alt": "Lampe de chevet allumée ornée de petites lumières de Noël",
+  "author": "Rebecca R",
+  "source": "https://unsplash.com/photos/sVXQ4IV82SQ",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Mode homme",
+  "src": "/images/ambiance/mode-homme-1.jpg",
+  "alt": "Homme élégant en veste noire et lunettes rondes, adossé à un mur",
+  "author": "Christopher Ott",
+  "source": "https://unsplash.com/photos/WDwOvs7QHIk",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Mode femme",
+  "src": "/images/ambiance/mode-femme-1.jpg",
+  "alt": "Femme souriante en veste en cuir rose et jean",
+  "author": "Gabrielle Henderson",
+  "source": "https://unsplash.com/photos/lhp-rMgb2zs",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Chaussures",
+  "src": "/images/ambiance/chaussures-1.jpg",
+  "alt": "Baskets blanches portées sur un parquet",
+  "author": "Jametlene Reskp",
+  "source": "https://unsplash.com/photos/LXkiVy5EBo0",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Lunettes",
+  "src": "/images/ambiance/lunettes-1.jpg",
+  "alt": "Jeune homme portant des lunettes de soleil devant une camionnette",
+  "author": "Keith Kasaija",
+  "source": "https://unsplash.com/photos/A0gS3OY26Wg",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Sport & nutrition",
+  "src": "/images/ambiance/nutrition-1.jpg",
+  "alt": "Homme qui s’entraîne avec un haltère en salle de sport",
+  "author": "Anton Acosta",
+  "source": "https://unsplash.com/photos/QFjlC7nasr0",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Maison & déco",
+  "src": "/images/ambiance/maison-deco-1.jpg",
+  "alt": "Chambre lumineuse : coussins colorés, lampe verte sur la table de chevet, tableaux",
+  "author": "Raphael (Ajani Kamali Akio)",
+  "source": "https://unsplash.com/photos/MFeTNaE0e8M",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Écrans",
+  "src": "/images/ambiance/ecrans-1.jpg",
+  "alt": "Bureau épuré avec écran, clavier, enceintes et plante",
+  "author": "Ryan Yao",
+  "source": "https://unsplash.com/photos/BDvCewlnbD8",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Jeux vidéo & consoles",
+  "src": "/images/ambiance/jeux-video-1.jpg",
+  "alt": "Trois amies jouent aux jeux vidéo sur le canapé, manettes en main",
+  "author": "Emmanuel Yeboah Okine",
+  "source": "https://unsplash.com/photos/gj34ujcu4jo",
+  "license": "Licence Unsplash",
+  "licenseUrl": "https://unsplash.com/license"
+ },
+ {
+  "category": "Noël",
+  "src": "/images/ambiance/noel-famille-hd-1600.jpg",
+  "alt": "Famille en pyjamas de Noël qui rit sur le canapé",
+  "author": "Any Lane",
+  "source": "https://www.pexels.com/photo/joyful-black-family-cuddling-together-on-sofa-5727903/",
+  "license": "Licence Pexels",
+  "licenseUrl": "https://www.pexels.com/license/"
+ },
+ {
+  "category": "Noël",
+  "src": "/images/ambiance/noel-cadeau-hd-1600.jpg",
+  "alt": "Une mère tend un cadeau à sa fille souriante devant le sapin",
+  "author": "Any Lane",
+  "source": "https://www.pexels.com/photo/crop-black-mother-passing-christmas-gift-to-smiling-daughter-5727939/",
+  "license": "Licence Pexels",
+  "licenseUrl": "https://www.pexels.com/license/"
+ },
+ {
+  "category": "Noël",
+  "src": "/images/ambiance/noel-ouverture-hd-1600.jpg",
+  "alt": "Jeune femme souriante qui ouvre ses cadeaux près du sapin",
+  "author": "Gustavo Fring",
+  "source": "https://www.pexels.com/photo/woman-sitting-in-front-a-fireplace-holding-christmas-gift-5523069/",
+  "license": "Licence Pexels",
+  "licenseUrl": "https://www.pexels.com/license/"
+ }
 ]
