@@ -20,6 +20,9 @@ app.use(require('./maintenance').guard); // maintenance : nouvelles commandes, p
 app.use(['/api/account/register', '/api/account/identity'], express.json({ limit: '6mb' }));
 app.use(express.json({ limit: '100kb' }));
 
+// Référencement : www → adresse principale, accueil avec les liens des rayons, pages des rayons / articles, plan du site
+require('./seo').mount(app);
+
 // Fichiers statiques :
 //  - HTML/CSS/JS (et le jeu d'icônes) en « no-cache » : le navigateur revérifie à chaque visite (réponse 304 très légère si rien n'a changé),
 //    donc les clients voient tout de suite la dernière version du site ;
@@ -40,74 +43,8 @@ app.get('/images/uploads/:name', (req, res) => {
   });
 });
 
-// Aperçu de partage (WhatsApp, Facebook…) : /p/<id> donne le nom, le prix et la photo du produit (balises Open Graph),
-// puis ouvre la fiche dans la boutique (#/p/<id>). Rien d'autre que ce qui est déjà public sur la fiche.
-app.get('/p/:id', (req, res) => {
-  const { products } = require('./store');
-  const p = products.get(req.params.id);
-  const ok = p && p.active !== false && !p.pending && require('./catalog').inCatalog(p);
-  const host = /localhost|127\.0\.0\.1/.test(config.publicUrl) ? `${req.protocol}://${req.get('host')}` : config.publicUrl;
-  const esc = (t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  const target = ok ? `/#/p/${encodeURIComponent(p.id)}` : '/';
-  const img = ok && p.image ? (/^https?:/.test(p.image) ? p.image : host + p.image) : `${host}/brand/partage-zado.png?v=8`;
-  const allIn = ok ? allInPrice(p) : 0;
-  const price = ok ? new Intl.NumberFormat('fr-FR').format(allIn).replace(/\u202f/g, ' ') + ' FCFA' : '';
-  const title = ok ? `${p.name} — ${price} tout compris, livré à Pointe-Noire` : 'Zado';
-  const desc = ok ? `${p.description ? String(p.description).slice(0, 150) + ' · ' : ''}Expédié de France, livré à Pointe-Noire.` : 'Électronique au meilleur prix, livraison rapide à Pointe-Noire.';
-  res.set('Cache-Control', 'public, max-age=300');
-  res.status(ok ? 200 : 404).type('html').send(`<!doctype html><html lang="fr"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1"><title>${esc(title)}</title>
-<meta property="og:type" content="product"><meta property="og:site_name" content="Zado">
-<meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}">
-<meta property="og:image" content="${esc(img)}"><meta property="og:url" content="${esc(host + req.originalUrl)}">
-<meta name="twitter:card" content="summary_large_image"><meta name="description" content="${esc(desc)}">
-<link rel="canonical" href="${esc(ok ? `${host}/p/${encodeURIComponent(p.id)}` : host + '/')}">
-${ok ? `<script type="application/ld+json">${JSON.stringify(productLd(p, host, allIn)).replace(/</g, '\\u003c')}</script>` : ''}
-<script>if (!/bot|crawl|spider|slurp|facebookexternalhit|whatsapp|lighthouse/i.test(navigator.userAgent)) location.replace(${JSON.stringify(target)});</script>
-</head><body style="font-family:sans-serif;padding:24px;max-width:720px;margin:auto">
-${ok ? `<h1>${esc(p.name)}</h1><p><strong>${esc(price)}</strong> tout compris, livré à Pointe-Noire (transport depuis la France, frais de service et frais Mobile Money inclus).</p>
-<p>${esc(p.condition && p.condition !== 'neuf' ? 'Reconditionné' : 'Neuf')}${p.provenance ? ` · Provenance : ${esc(p.provenance)}` : ''}${p.sourceSupplier ? ` · Fournisseur : ${esc(p.sourceSupplier)}` : ''} · ${esc(p.category)}</p>
-${p.description ? `<p>${esc(p.description)}</p>` : ''}${(p.specs || []).length ? `<ul>${p.specs.map((x) => `<li>${esc(x.label)} : ${esc(x.value)}</li>`).join('')}</ul>` : ''}` : ''}
-<p><a href="${esc(target)}">Voir ${esc(ok ? p.name : 'la boutique Zado')} sur Zado</a></p></body></html>`);
-});
-
-// Prix tout compris d'un article seul (même calcul que la boutique : article + transport + frais de service + frais Mobile Money)
-function allInPrice(p) {
-  const pr = require('./pricing');
-  const b = p.price + require('./freight').unitFee(p) + pr.serviceFee();
-  return b + pr.momoFee(b);
-}
-// Données produit lisibles par Google (schema.org) : rien d'autre que ce qui est affiché sur la fiche
-function productLd(p, host, price) {
-  const refurb = p.condition && p.condition !== 'neuf';
-  return {
-    '@context': 'https://schema.org', '@type': 'Product', name: p.name, sku: p.id, category: p.category,
-    ...(p.brand ? { brand: { '@type': 'Brand', name: p.brand } } : {}),
-    ...(p.description ? { description: String(p.description).slice(0, 500) } : {}),
-    ...(p.image ? { image: /^https?:/.test(p.image) ? p.image : host + p.image } : {}),
-    offers: { '@type': 'Offer', url: `${host}/p/${encodeURIComponent(p.id)}`, priceCurrency: 'XAF', price,
-      availability: p.stock === 0 ? 'https://schema.org/OutOfStock' : p.stock > 0 ? 'https://schema.org/InStock' : 'https://schema.org/BackOrder',
-      itemCondition: refurb ? 'https://schema.org/RefurbishedCondition' : 'https://schema.org/NewCondition',
-      seller: { '@type': 'Organization', name: 'Zado' } },
-  };
-}
-
-// Référencement (15/11/2026) : robots.txt (Zado Pro et l'API exclus) et plan du site avec chaque article en vente
-const siteHost = (req) => (/localhost|127\.0\.0\.1/.test(config.publicUrl) ? `${req.protocol}://${req.get('host')}` : config.publicUrl);
-app.get('/robots.txt', (req, res) => {
-  res.set('Cache-Control', 'public, max-age=3600').type('text/plain').send(`User-agent: *\nAllow: /\nDisallow: /admin\nDisallow: /api/\nDisallow: /paiement-carte/\n\nSitemap: ${siteHost(req)}/sitemap.xml\n`);
-});
-let sitemapCache = { at: 0, xml: '' };
-app.get('/sitemap.xml', (req, res) => {
-  if (Date.now() - sitemapCache.at > 3600e3 || !sitemapCache.xml) {
-    const host = siteHost(req), { inCatalog } = require('./catalog');
-    const list = require('./store').products.all().filter((p) => p.active !== false && !p.pending && inCatalog(p));
-    const day = (d) => String(d || '').slice(0, 10);
-    const url = (loc, mod) => `<url><loc>${loc}</loc>${mod ? `<lastmod>${mod}</lastmod>` : ''}</url>`;
-    sitemapCache = { at: Date.now(), xml: `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${[url(`${host}/`), ...list.map((p) => url(`${host}/p/${encodeURIComponent(p.id)}`, /^\d{4}-\d\d-\d\d$/.test(day(p.updatedAt || p.createdAt)) ? day(p.updatedAt || p.createdAt) : ''))].join('\n')}\n</urlset>\n` };
-  }
-  res.set('Cache-Control', 'public, max-age=3600').type('application/xml').send(sitemapCache.xml);
-});
+// Pages lues par Google et aperçus de partage (/p/<id>, /rayon/…, /marque/…, /selection/…), robots.txt et plan du site :
+// src/seo.js (monté avant les fichiers statiques)
 
 // Version du site : change à chaque mise à jour (déploiement Vercel, ou fichier modifié sur le serveur).
 // Le navigateur la compare en changeant de page et se recharge tout seul : pas besoin de relancer l'application.

@@ -63,7 +63,7 @@ const share = await fetch('http://localhost:3999/p/a002'); const html = await sh
 ok(share.status === 200 && /og:title" content="[^"]+FCFA/.test(html) && /og:image" content="http:\/\/[^"]+\.(jpg|png)/.test(html) && html.includes('location.replace("/#/p/a002")') && /"@type":"Product"/.test(html) && /<h1>/.test(html), 'lien /p/<id> : aperçu avec nom, prix, photo, données produit pour Google, puis la fiche');
 const robots = await (await fetch('http://localhost:3999/robots.txt')).text();
 const smap = await (await fetch('http://localhost:3999/sitemap.xml')).text();
-ok(/Disallow: \/admin/.test(robots) && /Sitemap: .+\/sitemap\.xml/.test(robots) && smap.includes('/p/a002</loc>') && !smap.includes('/admin'), 'référencement : robots.txt (Zado Pro exclu) et plan du site avec les articles en vente');
+ok(/Disallow: \/admin/.test(robots) && /Sitemap: .+\/sitemap\.xml/.test(robots) && smap.includes('/p/a002/') && !smap.includes('/admin'), 'référencement : robots.txt (Zado Pro exclu) et plan du site avec les articles en vente');
 ok((await fetch('http://localhost:3999/p/inexistant')).status === 404, 'produit inconnu : 404 (lien vers la boutique)');
 const pend = (await call(A, '/admin/products', { body: { name: 'Secret <b>X</b>', category: 'Audio', stock: 1, price: 1000 } })).data;
 await call(A, '/admin/products/' + pend.id, { method: 'PATCH', body: { active: false } });

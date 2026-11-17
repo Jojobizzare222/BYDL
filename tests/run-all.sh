@@ -64,4 +64,5 @@ t prix-zado --
 t apple -- $D/id.jpg
 t catalogue-1115 --
 t alertes ID_DIR=$S/idal SMTP_HOST=localhost SMTP_PORT=3996 SMTP_USER=alertes@zado.test SMTP_PASS=x ALERT_EMAIL_TO=joseph@zado.test -- $D/id.jpg
+t seo GOOGLE_SITE_VERIFICATION=zado-test-verif-123 --
 t brevo BREVO_API_KEY=xkeysib-test BREVO_API_URL=http://localhost:3995/v3/smtp/email SMTP_FROM=contact@zado-congo.com ALERT_EMAIL_TO=joseph@zado.test --

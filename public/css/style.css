@@ -2215,3 +2215,10 @@ html[data-motion="reduce"] .zs-title em, html[data-motion="reduce"] .zs-btn::aft
 .zs-play .zs-halo { inset: 0 50% 0 -10%; }
 .zs-play .zs-sticker { right: auto; left: 31%; top: 2%; }
 @media (max-width: 760px) { .zs-play .zs-stage { inset: 9% 57% 9% 3%; } .zs-play .zs-sticker { left: 34%; top: 0; } }
+
+/* Pied de page : liens de tous les rayons, sélections et marques (vrais liens suivis par Google, src/seo.js) */
+.footer-seo { margin: 18px 0 4px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,.1); font-size: .8rem; line-height: 1.9; }
+.footer-seo p { margin: 0 0 4px; }
+.footer-seo strong { font-weight: 600; margin-right: 6px; }
+.footer-seo a { color: inherit; opacity: .8; text-decoration: none; margin-right: 12px; white-space: nowrap; }
+.footer-seo a:hover { opacity: 1; text-decoration: underline; }
