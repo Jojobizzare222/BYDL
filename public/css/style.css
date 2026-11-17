@@ -2072,7 +2072,7 @@ html:not([data-theme="dark"]) .zshow[data-tone="light"] .zs-arrows button:hover 
 /* Grandes photos (Noël) : la photo occupe la droite de la bande, fondue dans le bleu nuit côté texte */
 .zs-bg { position: absolute; top: 0; bottom: 0; right: 0; width: 62%; z-index: 0; overflow: hidden; }
 .zs-bg img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 38%; display: block; filter: saturate(1.1) brightness(1.06); }
-.zs-bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, #0A1830 0%, rgba(10,24,48,.82) 12%, rgba(10,24,48,.3) 34%, rgba(10,24,48,0) 55%), linear-gradient(0deg, rgba(10,24,48,.5) 0%, rgba(10,24,48,0) 32%); }
+.zs-bg::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, rgb(var(--zs-fade)) 0%, rgba(var(--zs-fade),.82) 12%, rgba(var(--zs-fade),.3) 34%, rgba(var(--zs-fade),0) 55%), linear-gradient(0deg, rgba(var(--zs-fade),.45) 0%, rgba(var(--zs-fade),0) 30%); }
 .zs-split .zs-inner { grid-template-columns: minmax(0, .92fr) minmax(0, 1.08fr); }
 .zs-split .zs-copy { text-shadow: 0 2px 22px rgba(4,10,24,.6); }
 .zs-split .zs-visual::before { display: none; }
@@ -2141,7 +2141,7 @@ html[data-motion="reduce"] .zs-fx, html[data-saver="on"] .zs-fx { display: none;
   .zs-grid .zs-tile-img { max-width: 44%; }
   .zv-mama .mz { width: 150px; height: 180px; }
   .zs-bg { width: 100%; height: 232px; bottom: auto; }
-  .zs-bg::after { background: linear-gradient(0deg, #0A1830 0%, rgba(10,24,48,.35) 30%, rgba(10,24,48,0) 55%); }
+  .zs-bg::after { background: linear-gradient(0deg, rgb(var(--zs-fade)) 0%, rgba(var(--zs-fade),.35) 30%, rgba(var(--zs-fade),0) 55%); }
   .zs-split .zs-inner { grid-template-columns: minmax(0, 1fr); }
   .zs-split .zs-copy { text-shadow: none; }
   .zv-minis { justify-content: center; gap: 8px; }
@@ -2166,3 +2166,52 @@ html[data-theme="dark"] .zs-mango { background: radial-gradient(55% 75% at 76% 4
 html[data-theme="dark"] .zs-mango .zs-btn { background: var(--mango); color: #10264A; }
 html[data-theme="dark"] .zs-light .zs-kicker, html[data-theme="dark"] .zs-light .zs-chips span { background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.16); color: inherit; }
 html[data-theme="dark"] .zs-tile, html[data-theme="dark"] .zs-mini, html[data-theme="dark"] .zs-stage { filter: brightness(.94); }
+
+/* Photo de fond sur TOUTES les diapositives (17/11/2026, demande Joseph : « une belle image en arrière-plan pour chaque
+   carrousel, des gens joyeux… éblouis-moi ») : couleur de fondu propre à chaque thème (--zs-fade), vignettes photo dans les
+   onglets, reflet qui passe sur le mot en couleur et sur le bouton, léger effet de profondeur qui suit la souris */
+.zs-slide { --zs-fade: 10,24,48; }
+.zs-play { --zs-fade: 11,18,38; } .zs-coral { --zs-fade: 217,58,34; }
+.zs-sky { --zs-fade: 234,241,251; } .zs-mint { --zs-fade: 227,244,234; } .zs-mango { --zs-fade: 255,243,209; }
+html[data-theme="dark"] .zs-sky { --zs-fade: 14,28,53; } html[data-theme="dark"] .zs-mint { --zs-fade: 12,33,24; } html[data-theme="dark"] .zs-mango { --zs-fade: 43,34,16; }
+html:not([data-theme="dark"]) .zs-light.zs-split .zs-copy { text-shadow: 0 1px 14px rgba(255,255,255,.7); }
+.zs-play .zs-bg img { object-position: 55% 45%; }
+.zs-mango .zs-bg img { object-position: 50% 30%; }
+/* mot en couleur : reflet lumineux qui passe toutes les quelques secondes */
+.zs-title em { background-image: linear-gradient(100deg, var(--zs-accent) 0%, var(--zs-accent) 42%, rgba(255,255,255,.95) 50%, var(--zs-accent) 58%, var(--zs-accent) 100%); background-size: 260% 100%; background-position: 100% 0; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.zs-slide.on .zs-title em { animation: zsShine 5.5s ease-in-out 1.2s infinite; }
+@keyframes zsShine { 0% { background-position: 100% 0; } 35%, 100% { background-position: 0 0; } }
+.zs-light .zs-title em { background-image: linear-gradient(100deg, var(--zs-accent) 0%, var(--zs-accent) 42%, #8FB4FF 50%, var(--zs-accent) 58%, var(--zs-accent) 100%); }
+.zs-mango .zs-title em { background-image: linear-gradient(100deg, var(--zs-accent) 0%, var(--zs-accent) 42%, #FFB37A 50%, var(--zs-accent) 58%, var(--zs-accent) 100%); }
+.zs-mint .zs-title em { background-image: linear-gradient(100deg, var(--zs-accent) 0%, var(--zs-accent) 42%, #7FE3B4 50%, var(--zs-accent) 58%, var(--zs-accent) 100%); }
+/* bouton : trait de lumière */
+.zs-btn { position: relative; overflow: hidden; isolation: isolate; }
+.zs-btn::after { content: ''; position: absolute; inset: -20% auto -20% -40%; width: 30%; z-index: -1; background: linear-gradient(90deg, transparent, rgba(255,255,255,.65), transparent); transform: skewX(-20deg); }
+.zs-slide.on .zs-btn::after { animation: zsSweep 4.5s ease-in-out 1.6s infinite; }
+@keyframes zsSweep { 0% { left: -40%; } 30%, 100% { left: 130%; } }
+/* profondeur : la photo et les cartes bougent légèrement en sens contraire de la souris (ordinateur) */
+.zs-bg { transform: translate3d(calc(var(--mx, 0) * -14px), calc(var(--my, 0) * -10px), 0) scale(1.03); transition: transform .8s cubic-bezier(.2,.7,.2,1); }
+.zs-visual > * { translate: calc(var(--mx, 0) * 12px) calc(var(--my, 0) * 8px); transition: translate .8s cubic-bezier(.2,.7,.2,1); }
+/* cartes produits sur la photo : verre dépoli */
+.zv-minis .zs-mini { background: rgba(255,255,255,.9); backdrop-filter: blur(12px) saturate(1.4); -webkit-backdrop-filter: blur(12px) saturate(1.4); border: 1px solid rgba(255,255,255,.6); }
+.zv-minis .zs-mini-img { width: 62px; height: 62px; background: #fff; }
+/* onglets : petite photo ronde de chaque diapositive */
+.zs-thumb { flex: none; width: 26px; height: 26px; border-radius: 50%; background: center / cover no-repeat; box-shadow: 0 0 0 2px rgba(255,255,255,.35); transition: box-shadow .3s, transform .3s; align-self: center; }
+.zs-tab.on .zs-thumb { box-shadow: 0 0 0 2px var(--mango); transform: scale(1.08); }
+html:not([data-theme="dark"]) .zshow[data-tone="light"] .zs-thumb { box-shadow: 0 0 0 2px rgba(16,38,74,.2); }
+html:not([data-theme="dark"]) .zshow[data-tone="light"] .zs-tab.on .zs-thumb { box-shadow: 0 0 0 2px #10264A; }
+.zs-tl { align-items: center; }
+html[data-motion="reduce"] .zs-title em, html[data-motion="reduce"] .zs-btn::after { animation: none !important; }
+@media (prefers-reduced-motion: reduce) { .zs-bg, .zs-visual > * { transform: none; translate: none; } }
+@media (max-width: 760px) { .zv-minis .zs-mini-img { width: 42px; height: 42px; } .zs-bg { transform: none; } .zs-visual > * { translate: none; } }
+.zv-minis .zs-mini-img { width: 54px; height: 54px; }
+.zv-minis .zs-mini-txt small { white-space: nowrap; }
+.zs-des { font-size: .74em; font-weight: 500; opacity: .7; }
+/* Pochette du jeu toujours DANS son cadre blanc (17/11/2026 : elle dépassait de 22 px en bas) */
+.zs-stage img { position: absolute; inset: 22px; width: calc(100% - 44px); height: calc(100% - 44px); max-width: none; max-height: none; object-fit: contain; }
+@media (max-width: 760px) { .zs-stage img { inset: 12px; width: calc(100% - 24px); height: calc(100% - 24px); } }
+/* Précommande : pochette rapprochée du texte pour laisser voir le couple de la photo */
+.zs-play .zs-stage { inset: 13% 58% 13% 0; padding: 0; }
+.zs-play .zs-halo { inset: 0 50% 0 -10%; }
+.zs-play .zs-sticker { right: auto; left: 31%; top: 2%; }
+@media (max-width: 760px) { .zs-play .zs-stage { inset: 9% 57% 9% 3%; } .zs-play .zs-sticker { left: 34%; top: 0; } }
