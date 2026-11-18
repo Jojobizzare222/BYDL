@@ -55,6 +55,14 @@ async function png(name, svgText, width, height = width) {
 }
 (async () => {
   await png('favicon-32.png', icon(100, NAVY, 0.74), 32);
+  // Icône vue par Google dans ses résultats (18/11/2026 : il affichait un globe gris) : taille multiple de 48 px, et /favicon.ico
+  // à la racine du site (16, 32 et 48 px dans un seul fichier ICO, images PNG à l'intérieur)
+  for (const n of [48, 96, 192]) await png(`favicon-${n}.png`, icon(100, NAVY, 0.74), n);
+  const ico = await Promise.all([16, 32, 48].map((n) => sharp(Buffer.from(icon(100, NAVY, 0.74)), { density: 300 }).resize(n, n).png().toBuffer()));
+  const head = Buffer.alloc(6 + 16 * ico.length); head.writeUInt16LE(0, 0); head.writeUInt16LE(1, 2); head.writeUInt16LE(ico.length, 4);
+  let at = head.length;
+  ico.forEach((b, i) => { const n = [16, 32, 48][i], o = 6 + 16 * i; head.writeUInt8(n, o); head.writeUInt8(n, o + 1); head.writeUInt16LE(1, o + 4); head.writeUInt16LE(32, o + 6); head.writeUInt32LE(b.length, o + 8); head.writeUInt32LE(at, o + 12); at += b.length; });
+  fs.writeFileSync(path.join(OUT, '..', 'favicon.ico'), Buffer.concat([head, ...ico]));
   await png('icone-192.png', icon(100, NAVY, 0.64), 192);
   await png('icone-512.png', icon(100, NAVY, 0.64), 512);
   await png('app-maskable-192.png', icon(100, NAVY, 0.5), 192);
@@ -66,7 +74,7 @@ async function png(name, svgText, width, height = width) {
   await png('pro-apple-touch.png', icon(100, INK, 0.56, MANGO), 180);
   await png('partage-zado.png', share(), 1200, 630);
   await sharp(Buffer.from(lockup(NAVY)), { density: 300 }).resize(640, 200).png().toFile(path.join(OUT, 'logo-zado.png'));
-  console.log(`Logo Zado (symbole Kamwa « La flèche ») écrit dans ${OUT} (${Object.keys(files).length} SVG + 11 PNG)`);
+  console.log(`Logo Zado (symbole Kamwa « La flèche ») écrit dans ${OUT} (${Object.keys(files).length} SVG + 14 PNG + favicon.ico)`);
 })();
 
 module.exports = { STEM, CHEVRON, WORD, LOCK_SYMBOL, LOCK_WORD, MANGO, NAVY };

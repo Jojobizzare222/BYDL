@@ -131,7 +131,7 @@ function layout(req, { title, desc, canon, ogType = 'website', image, ld = [], b
 <meta property="og:type" content="${ogType}"><meta property="og:site_name" content="Zado"><meta property="og:locale" content="fr_FR">
 <meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}"><meta property="og:url" content="${esc(h + canon)}">
 <meta property="og:image" content="${esc(image || `${h}/brand/partage-zado.png?v=8`)}"><meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="/brand/favicon.svg?v=8" type="image/svg+xml"><meta name="theme-color" content="#10264A">
+<link rel="icon" href="/favicon.ico" sizes="48x48"><link rel="icon" href="/brand/favicon.svg?v=8" type="image/svg+xml"><link rel="icon" href="/brand/favicon-96.png?v=8" sizes="96x96" type="image/png"><meta name="theme-color" content="#10264A">
 <style>@font-face{font-family:"Plus Jakarta Sans";src:url(/fonts/plus-jakarta-sans-latin-wght-normal.woff2) format("woff2");font-weight:200 800;font-display:swap}${CSS}</style>
 ${ld.map((o) => `<script type="application/ld+json">${json(o)}</script>`).join('\n')}
 <script>if(!/${BOTS}/i.test(navigator.userAgent))location.replace(${json(target)})</script>

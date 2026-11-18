@@ -25,6 +25,10 @@ ok(homeLd.some((o) => o['@graph']?.some((g) => g['@type'] === 'OnlineStore' && g
 ok(/<nav class="footer-seo"[^>]*>[\s\S]*href="\/rayon\/[a-z0-9-]+"/.test(home), 'accueil : vrais liens vers chaque rayon dans le pied de page');
 ok(/<meta name="google-site-verification" content="zado-test-verif-123">/.test(home), 'accueil : code de vérification Google (réglé dans .env)');
 
+const fav = await fetch(BASE + '/favicon.ico');
+ok(fav.status === 200 && Buffer.from(await fav.arrayBuffer()).readUInt16LE(2) === 1 && /href="\/favicon\.ico" sizes="48x48"/.test(home) && /favicon-96\.png/.test(home), 'icône du site pour Google : /favicon.ico (16-48 px) et 96 px liés sur l\'accueil');
+ok(homeLd.some((o) => o['@graph']?.some((g) => g['@type'] === 'WebSite' && g.name === 'Zado' && g.alternateName?.length)), 'nom du site « Zado » donné à Google (au lieu de l\'adresse)');
+
 // Page d'un rayon
 const ray = rayons.find((l) => !['/rayon/electronique', '/rayon/mode', '/rayon/maison', '/rayon/sport'].includes(l)) || rayons[0];
 const rp = await get(ray);
