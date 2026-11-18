@@ -7,10 +7,11 @@
 const { settings } = require('./store');
 
 const EUR_FCFA = 655.957; // parité fixe euro / franc CFA
-// Délais annoncés au client (décision Joseph 21/10/2026) : logistique (achat en France + vol) 2 à 5 jours, puis livraison sous 24 h
+// Délais annoncés au client : 21/10/2026 logistique 2 à 5 jours + livraison sous 24 h ; 18/11/2026 (décision Joseph) : 3 à 15 JOURS au total
+// (le colis part parfois d'une autre ville, rejoint l'entrepôt, puis s'envole vers Pointe-Noire) = logistique 2 à 14 jours + 24 h
 // zadoFeeEurPerKg : part du prix au kilo qui est un FRAIS ZADO (22/10/2026 : 15 € = 13 € de fret + 2 € ; 14/11/2026 : 13,90 € = 13 € de fret + 0,90 €, À CONFIRMER par Joseph)
 // 14/11/2026 (2e décision Joseph) : le transporteur facture 13,90 €/kg ; le client paie 17,80 €/kg = 13,90 € + 3,90 € de « peines et soins » gardés par Zado
-const DEFAULTS = { enabled: true, eurPerKg: 17.8, zadoFeeEurPerKg: 3.9, minKg: 0, defaultKg: 1, perArticle: true, logisticsMin: 2, logisticsMax: 5, deliveryHours: 24 };
+const DEFAULTS = { enabled: true, eurPerKg: 17.8, zadoFeeEurPerKg: 3.9, minKg: 0, defaultKg: 1, perArticle: true, logisticsMin: 2, logisticsMax: 14, deliveryHours: 24 };
 
 function freightSettings() {
   try { return { ...DEFAULTS, ...JSON.parse(settings.get('freight') || '{}') }; } catch { return { ...DEFAULTS }; }
@@ -61,6 +62,8 @@ function orderFreight(lines, s = freightSettings()) {
 }
 
 /** Réglages montrés à la boutique : JAMAIS le frais Zado (information interne). */
-const publicFreight = () => { const { zadoFeeEurPerKg, ...s } = freightSettings(); return { ...s, perKg: perKgFcfa() }; };
+/** Délai TOTAL annoncé au client, du paiement à la livraison (ex. 3 à 15 jours). */
+const delayDays = (s = freightSettings()) => { const d = Math.ceil((s.deliveryHours || 0) / 24); return { min: s.logisticsMin + d, max: s.logisticsMax + d }; };
+const publicFreight = () => { const { zadoFeeEurPerKg, ...s } = freightSettings(); return { ...s, perKg: perKgFcfa(), delayDays: delayDays() }; };
 
-module.exports = { EUR_FCFA, publicFreight, freightSettings, saveFreightSettings, perKgFcfa, billedKg, unitFee, orderFreight };
+module.exports = { EUR_FCFA, delayDays, publicFreight, freightSettings, saveFreightSettings, perKgFcfa, billedKg, unitFee, orderFreight };

@@ -329,7 +329,12 @@
     return { fee: c.perArticle ? cartItems().reduce((n, l) => n + unitTransport(l.product) * l.qty, 0) : Math.round(kg * c.eurPerKg * EUR_FCFA), kg };
   };
   // Délai annoncé (décision Joseph 21/10/2026) : logistique depuis la France puis livraison à Pointe-Noire
-  const delayText = () => { const c = frCfg(); return `Expédié de France en ${c.logisticsMin ?? 2} à ${c.logisticsMax ?? 5} jours, puis livré sous ${c.deliveryHours ?? 24} h à Pointe-Noire`; };
+  // Délai TOTAL annoncé (décision Joseph 18/11/2026 : 3 à 15 jours) + pourquoi : le colis part parfois d'une autre ville,
+  // rejoint l'entrepôt, puis s'envole vers Pointe-Noire ; il peut arriver bien plus vite s'il est stocké près de l'entrepôt.
+  const delayDays = () => { const c = frCfg(); return c.delayDays || { min: (c.logisticsMin ?? 2) + 1, max: (c.logisticsMax ?? 14) + 1 }; };
+  const delayText = () => { const d = delayDays(); return `Livré chez vous à Pointe-Noire en ${d.min} à ${d.max} jours`; };
+  const DELAY_WHY = "Votre article part parfois d'une autre ville : il rejoint d'abord notre entrepôt, puis s'envole vers Pointe-Noire. Quand il est stocké près de notre entrepôt, il peut arriver bien plus vite.";
+  const delayWhy = () => { const d = delayDays(); return `<details class="why-delay"><summary>${icon('info')} Pourquoi ${d.min} à ${d.max} jours ?</summary><p>${DELAY_WHY}</p></details>`; };
   const kgTxt = (k) => `${String(k).replace('.', ',')} kg`;
   const cartSaving = () => cartItems().reduce((s, l) => s + ((l.product.oldPrice || l.product.price) - l.product.price) * l.qty, 0);
   const addToCart = (id, variant) => { const key = variant ? `${id}|${JSON.stringify(variant)}` : id; state.cart[key] = (state.cart[key] || 0) + 1; saveCart(); };
@@ -924,7 +929,7 @@
         <div class="lv-side">
           <p class="lv-intro">Tout pour la maison, livré vite chez vous à Pointe-Noire${isNoel && noelLeft() ? ` : <strong>commandez avant le ${dayTxt(noel().deadline)}</strong> pour l'avoir avant Noël` : ''}.</p>
           <ul class="lv-list">${groups.map((g, i) => `<li><a href="#/maison/${g.k}" data-lv="${i}"><span class="lv-name">${esc(g.label)}</span><span class="lv-count">${g.list.length}</span><img class="lv-thumb" src="/images/ambiance/${g.img}.jpg" alt="" loading="lazy"></a></li>`).join('')}</ul>
-          <div class="lv-stats"><span><b>${all.length}</b> articles</span><span><b>dès ${fcfa(from)}</b> tout compris</span><span><b>${isNoel && noelLeft() ? dayTxt(noel().deadline) : '24 h'}</b> ${isNoel && noelLeft() ? 'pour l\'avoir à Noël' : 'livré après l\'arrivée'}</span></div>
+          <div class="lv-stats"><span><b>${all.length}</b> articles</span><span><b>dès ${fcfa(from)}</b> tout compris</span><span><b>${isNoel && noelLeft() ? dayTxt(noel().deadline) : `${delayDays().min} à ${delayDays().max} j`}</b> ${isNoel && noelLeft() ? 'pour l\'avoir à Noël' : 'livré chez vous'}</span></div>
         </div>
       </div>
       <div class="lv-band">
@@ -982,7 +987,7 @@
     const zs = [];
     // Une grande photo de fond par diapositive (Pexels, crédits sur #/credits) : { bg, thumb } pour la diapositive et son onglet
     const zPic = (name, alt, first) => ({ bg: zHd(name, alt, first), thumb: `/images/ambiance/${name}-960.jpg` });
-    const fast = `livré sous ${frCfg().deliveryHours ?? 24} h dès son arrivée à Pointe-Noire`;
+    const fast = `livrés chez vous en ${delayDays().min} à ${delayDays().max} jours`;
     const nl = noelLeft();
     if (nl) {
       const gifts = diverse(withPic.filter((p) => !isRefurb(p) && landed(p) <= 40000 && !/coque|câble|cable|clé usb|carte micro|housse|sacoche/i.test(p.name)).sort((a, b) => landed(b) - landed(a)), 3);
@@ -1051,7 +1056,7 @@
     }
     zs.push(zSlide({ tab: 'Livraison', theme: 'night', vis: 'note', trust: true, kicker: `${icon('truck')} Livraison rapide`,
       ...zPic('livraison-colis-hd', 'Femme souriante qui reçoit ses colis'),
-      title: 'Commandez aujourd\'hui, <em>recevez vite</em>', sub: `Un seul prix, tout compris : ${esc(delayText())}.`,
+      title: 'Commandez aujourd\'hui, <em>recevez vite</em>', sub: `Un seul prix, tout compris. ${esc(delayText())}, parfois bien plus vite, avec un suivi à chaque étape.`,
       cta: 'Commencer mes achats', href: '#/petits-prix',
       visual: `<div class="zs-note">${icon('truck')}<span><b>Suivi de votre colis en direct</b><small>Vous savez à chaque étape où il se trouve.</small></span></div>` }));
     const show = zs.slice(0, 5);
@@ -1470,7 +1475,7 @@
             <span class="hint price-all">Prix tout compris, livré à Pointe-Noire : transport depuis la France, frais de service et frais de retrait Mobile Money inclus. C'est ce que vous paierez, rien ne s'ajoute au panier.</span>${unitTransport(p) ? estNote() : ''}
             ${(p.options || []).map((o, i) => `<label class="opt-label" for="opt${i}">${esc(o.name)}</label><div class="opt-choices" id="opt${i}" data-opt="${esc(o.name)}">${o.values.map((v) => `<button type="button" class="opt" data-v="${esc(v)}">${esc(v)}${o.extra?.[v] ? `<small class="opt-extra">+ ${fcfa(allInOf(p.price + o.extra[v], p) - allIn(p))}</small>` : ''}</button>`).join('')}</div>`).join('')}
             <span class="momo-note">${icon('check-circle-duotone')} ${hasRelays() ? 'Payable en espèces au point relais · retrait ou livraison' : (hasDeposit() ? `Mobile Money : acompte de ${depositTxt()}, le reste ensuite · livraison à domicile` : 'Paiement par dépôt Mobile Money · livraison à domicile')}</span>
-            <span class="hint">${icon('airplane-tilt')} ${delayText()}</span>
+            <span class="hint">${icon('airplane-tilt')} ${delayText()}</span>${delayWhy()}
             ${preorderOf(p) ? `<span class="momo-note pre-note">${icon('clock-countdown-duotone')} Précommande : sortie prévue le ${esc(dayTxt(preorderOf(p)))}, livré dès que possible après</span>` : ''}${p.stock === 0 ? '<span class="stock-low">Épuisé</span>' : preorderOf(p) ? '' : p.stock == null ? '<span class="momo-note">Disponible sur commande</span>' : p.stock <= 6 ? `<span class="stock-low">Plus que ${p.stock} en stock</span>` : '<span class="momo-note">En stock</span>'}
             <div id="optErr"></div>
             <button class="btn cta block" ${(p.options || []).length ? 'id="addOpt"' : `data-add="${p.id}"`} ${p.stock === 0 ? 'disabled' : ''}>Ajouter au panier</button>
@@ -1783,7 +1788,7 @@
           <div class="total-detail" id="sumDetail"></div>
           ${fr0.fee ? estNote() : ''}
           <div id="depositSplit"></div>
-          <p class="hint" style="margin-top:10px">${icon('airplane-tilt')} ${delayText()}.</p>
+          <p class="hint" style="margin-top:10px">${icon('airplane-tilt')} ${delayText()}.</p>${delayWhy()}
           ${state.config.promos ? `<details class="promo-box" ${promo.code ? 'open' : ''}><summary>${icon('tag')} J'ai un code promo</summary>
             <div class="promo-row"><input id="promoIn" maxlength="20" autocapitalize="characters" autocomplete="off" placeholder="Ex. NOEL10" value="${esc(promo.code || '')}"><button type="button" class="btn ghost small" id="promoBtn">Appliquer</button></div>
             <p class="hint" id="promoMsg"></p></details>` : ''}
@@ -2232,7 +2237,7 @@
           <div class="next-steps"><b>Et ensuite ?</b>
             <ol><li>Faites le dépôt Mobile Money avec la référence <strong>${esc(order.id)}</strong>.</li>
             <li>Dès réception, vous recevez la <strong>confirmation de commande</strong> ici${state.customer?.email ? ', par e-mail' : ''} et par WhatsApp.</li>
-            <li>Nous préparons aussitôt votre commande : elle part par avion et vous est livrée rapidement à Pointe-Noire.</li></ol></div>
+            <li>Nous préparons aussitôt votre commande : elle rejoint notre entrepôt, part par avion et vous est livrée à Pointe-Noire en ${delayDays().min} à ${delayDays().max} jours (parfois bien plus vite).</li></ol></div>
           <p><a class="btn ghost" href="#/suivi/${enc(order.id)}">Suivre ma commande</a> <a class="btn ghost" href="#/">Continuer mes achats</a></p>
         </div>${fbAppBlock()}`;
       return;
@@ -2751,14 +2756,14 @@
   }
 
   // Étapes du suivi client. Le matériel vient de France (demande Joseph 21/10/2026) : achat chez le fournisseur,
-  // vol vers Pointe-Noire (2 à 5 jours annoncés), arrivée, puis livraison sous 24 h. L'étape en cours = la dernière qui a une date.
+  // vol vers Pointe-Noire (2 à 14 jours, soit 3 à 15 jours au total depuis le 18/11/2026), arrivée, puis livraison sous 24 h. L'étape en cours = la dernière qui a une date.
   const dayLong = (iso) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }) : '');
   function trackSteps(o, agencyStep = '', payAg = Boolean(o.agency)) {
     const at = (status) => [...(o.history || [])].reverse().find((h) => h.status === status)?.at;
     const lg = o.logistics || {};
-    const eta = lg.to ? `Arrivée prévue entre le ${dayLong(lg.from)} et le ${dayLong(lg.to)}.` : `Comptez ${lg.minDays ?? 2} à ${lg.maxDays ?? 5} jours.`;
+    const eta = lg.to ? `Arrivée prévue entre le ${dayLong(lg.from)} et le ${dayLong(lg.to)}.` : `Comptez ${lg.minDays ?? 2} à ${lg.maxDays ?? 14} jours avant l'arrivée à Pointe-Noire.`;
     const france = lg.show ? [
-      ['Achetée en France', lg.boughtAt, `Nous achetons votre article chez notre fournisseur en France. ${eta}`],
+      ['Achetée en France', lg.boughtAt, `Nous achetons votre article chez notre fournisseur. S'il part d'une autre ville, il rejoint d'abord notre entrepôt, puis prend l'avion pour Pointe-Noire. ${eta}`],
       ["Dans l'avion", lg.flyingAt, `Votre colis voyage par avion vers Pointe-Noire. ${eta}`],
       ['Arrivée à Pointe-Noire', lg.arrivedAt, isPickup(o) ? 'Votre colis est arrivé : il vous attend bientôt au point relais.' : `Arrivé ! Livraison sous ${lg.deliveryHours ?? 24} h${lg.deliverBy ? `, avant le ${longDate(lg.deliverBy)}` : ''} : nous vous appelons.`],
     ] : [];
@@ -2797,7 +2802,7 @@
       : stage === 'arrived' ? `<animateMotion dur="2.6s" fill="freeze" rotate="auto" keyPoints="0.55;1" keyTimes="0;1" calcMode="spline" keySplines=".2 .7 .3 1" path="${P}"/>`
       : `<animateMotion dur="0.01s" fill="freeze" rotate="auto" keyPoints="0;0" keyTimes="0;1" calcMode="linear" path="${P}"/>`;
     const text = { waiting: ['Achat en préparation', "Votre article va être acheté chez notre fournisseur en France."],
-      bought: ['Acheté en France', "Votre article attend son vol à Paris."],
+      bought: ['Acheté en France', "Votre article rejoint notre entrepôt, puis prend le prochain vol pour Pointe-Noire."],
       flying: ["En vol vers Pointe-Noire", "Votre colis traverse le ciel avec notre société de fret aérien."],
       arrived: ['Arrivé à Pointe-Noire !', isPickup(o) ? 'Il vous attend bientôt au point relais.' : `Livraison sous ${lg.deliveryHours ?? 24} h.`] }[stage];
     const when = lg.arrivedAt ? (lg.deliverBy && !isPickup(o) ? `À livrer avant le ${longDate(lg.deliverBy)}` : '') : lg.to ? `Arrivée prévue entre le ${dayLong(lg.from)} et le ${dayLong(lg.to)}` : '';

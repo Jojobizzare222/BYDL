@@ -64,7 +64,7 @@ function setStep(order, step, by) {
   const updated = orders.update(order.id, { logistics: L });
   const eta = etaOf(updated);
   const first = String(updated.customer?.name || '').split(' ')[0];
-  if (step === 'bought') tell(updated, `Bonne nouvelle ${first} : votre commande ${updated.id} a été achetée chez notre fournisseur en France. Elle prend bientôt l'avion pour Pointe-Noire${eta.to ? ` (arrivée prévue au plus tard ${fr(eta.to)})` : ''}.`);
+  if (step === 'bought') tell(updated, `Bonne nouvelle ${first} : votre commande ${updated.id} a été achetée chez notre fournisseur. Elle rejoint notre entrepôt, puis prend l'avion pour Pointe-Noire${eta.to ? ` (arrivée prévue au plus tard ${fr(eta.to)})` : ''}.`);
   if (step === 'flying') tell(updated, `Votre commande ${updated.id} est dans l'avion, en route vers Pointe-Noire ✈️${eta.to ? ` Arrivée prévue au plus tard ${fr(eta.to)}.` : ''}`);
   if (step === 'arrived' || step === 'local') tell(updated, `Votre commande ${updated.id} est arrivée à Pointe-Noire ! ${updated.fulfillment === 'pickup' ? 'Elle vous attend bientôt au point relais.' : `Nous vous la livrons dans les ${eta.deliveryHours} h : nous vous appelons pour convenir du créneau.`}`);
   return { value: updated };

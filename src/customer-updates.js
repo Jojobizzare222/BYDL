@@ -55,7 +55,7 @@ function content(kind, o) {
       next: { title: 'Achat de votre article en France', text: arrival ? `Arrivée à Pointe-Noire prévue ${arrival}.` : 'Vous recevez un e-mail à chaque étape.' } };
     case 'bought': return {
       subject: `Commande ${o.id} : article acheté en France`, title: 'Votre article est acheté !',
-      lines: [`Bonne nouvelle ${first(o)} : votre commande ${o.id} a été achetée chez notre fournisseur en France.`],
+      lines: [`Bonne nouvelle ${first(o)} : votre commande ${o.id} a été achetée chez notre fournisseur.`, "S'il part d'une autre ville, votre article rejoint d'abord notre entrepôt, puis prend l'avion pour Pointe-Noire."],
       next: { title: "Départ en avion vers Pointe-Noire", text: eta.to ? `Arrivée à Pointe-Noire prévue au plus tard le ${day(eta.to)}.` : 'Prochain vol vers Pointe-Noire.' } };
     case 'flying': return {
       subject: `Commande ${o.id} : dans l'avion vers Pointe-Noire`, title: "Votre colis est dans l'avion",

@@ -42,7 +42,7 @@ ok((await call(A, '/admin/products/a003', { method: 'PATCH', body: { weightKg: '
 const pub = (await call(null, '/products/a003')).data;
 ok(pub.weightKg === 0.45 && pub.sourcePrice === 500000 && !('costPrice' in pub), 'boutique : poids et prix fournisseur visibles (jamais le prix d\'achat interne)');
 const cfg = (await call(null, '/config')).data;
-ok(cfg.freight?.perKg === KG && cfg.freight.logisticsMin === 2 && cfg.freight.logisticsMax === 5 && cfg.freight.deliveryHours === 24 && cfg.mobileDeposit === 500, 'boutique : transport, délais (2 à 5 j + 24 h) et acompte publiés');
+ok(cfg.freight?.perKg === KG && cfg.freight.logisticsMin === 2 && cfg.freight.logisticsMax === 14 && cfg.freight.delayDays?.min === 3 && cfg.freight.delayDays?.max === 15 && cfg.freight.deliveryHours === 24 && cfg.mobileDeposit === 500, 'boutique : transport, délais (3 à 15 jours au total) et acompte publiés');
 const m = (await call(C, '/payments/methods')).data.mobile;
 ok(m.enabled && m.deposit === 500 && m.push === true, 'moyen « Mobile Money en deux temps » proposé, dépôt possible');
 
@@ -82,14 +82,14 @@ const html = await (await fetch(`http://localhost:3999${inv.link}`)).text();
 ok(/Transport France → Pointe-Noire/.test(html) && /Acompte déjà versé/.test(html) && /Solde réglé/.test(html), 'facture : ligne transport, acompte déduit du total, solde réglé');
 
 // 4) Logistique France → Pointe-Noire
-ok(v.logistics?.show === true && v.logistics.from && v.logistics.to && !v.logistics.boughtAt, 'suivi : arrivée annoncée entre J+2 et J+5');
+ok(v.logistics?.show === true && v.logistics.from && v.logistics.to && !v.logistics.boughtAt, 'suivi : arrivée annoncée entre J+2 et J+14');
 const days = (Date.parse(v.logistics.to) - Date.parse(v.logistics.from)) / 864e5;
-ok(Math.round(days) === 3, 'écart entre les dates annoncées : 3 jours (2 à 5 jours)');
+ok(Math.round(days) === 12, 'écart entre les dates annoncées : 12 jours (2 à 14 jours)');
 for (const step of ['bought', 'flying']) ok((await call(A, `/admin/orders/${o1.id}/logistics`, { body: { step } })).status === 200, `étape « ${step} » notée`);
 const arr = (await call(A, `/admin/orders/${o1.id}/logistics`, { body: { step: 'arrived' } })).data;
 ok(arr.logistics.arrivedAt && arr.logisticsEta.deliverBy && Math.round((Date.parse(arr.logisticsEta.deliverBy) - Date.parse(arr.logistics.arrivedAt)) / 3600e3) === 24, 'arrivé à Pointe-Noire : livraison promise sous 24 h');
 const texts2 = (await call(C, '/chat')).data.conversation.messages.map((x) => x.text).join('\n');
-ok(/achetée chez notre fournisseur en France/.test(texts2) && /dans l'avion/.test(texts2) && /arrivée à Pointe-Noire/.test(texts2), 'client prévenu à chaque étape (achat, avion, arrivée)');
+ok(/achetée chez notre fournisseur. Elle rejoint notre entrepôt/.test(texts2) && /dans l'avion/.test(texts2) && /arrivée à Pointe-Noire/.test(texts2), 'client prévenu à chaque étape (achat, avion, arrivée)');
 ok((await call(A, `/admin/orders/${o1.id}/logistics`, { body: { step: 'undo' } })).data.logistics.arrivedAt === undefined, '« Annuler la dernière étape » retire l\'arrivée');
 await call(A, `/admin/orders/${o1.id}/logistics`, { body: { step: 'arrived' } });
 ok((await call(A, `/admin/orders/${o1.id}/plan`, { body: { date: new Date().toISOString().slice(0, 10), slot: 'evening' } })).status === 200, 'une fois payée : livraison planifiable');

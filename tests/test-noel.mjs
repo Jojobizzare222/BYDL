@@ -16,7 +16,7 @@ const cust = { name: 'Grace Noël', phone: '061117788', city: 'Pointe-Noire', ad
 
 // ---- Mode Noël ----
 let cfg = (await call(null, '/config')).data;
-ok(cfg.noel && cfg.noel.deadline.endsWith('-12-15') && cfg.noel.phase === 'before', `mode Noël actif par défaut, date limite calculée : 15 décembre (5 j + 24 h + 3 j de marge) → ${cfg.noel?.deadline}`);
+ok(cfg.noel && cfg.noel.deadline.endsWith('-12-06') && cfg.noel.phase === 'before', `mode Noël actif par défaut, date limite calculée : 6 décembre (14 j + 24 h + 3 j de marge) → ${cfg.noel?.deadline}`);
 ok(cfg.promos === false, 'aucun code promo actif : le champ « code promo » n\'est pas montré');
 ok((await call(C, '/admin/settings/noel')).status === 401 || (await call(C, '/admin/settings/noel')).status === 403, 'réglage Noël réservé à Zado Pro');
 let r = await call(A, '/admin/settings/noel', { method: 'PUT', body: { auto: false, deadline: '12-28' } });
@@ -25,10 +25,10 @@ r = await call(A, '/admin/settings/noel', { method: 'PUT', body: { auto: false, 
 cfg = (await call(null, '/config')).data;
 ok(r.status === 200 && r.data.computed === '12-18' && cfg.noel.deadline.endsWith('-12-18'), 'date limite choisie à la main : 18 décembre');
 await call(A, '/admin/settings/noel', { method: 'PUT', body: { auto: true, margin: 1 } });
-ok((await call(null, '/config')).data.noel.deadline.endsWith('-12-17'), 'automatique avec 1 jour de marge : 17 décembre');
+ok((await call(null, '/config')).data.noel.deadline.endsWith('-12-08'), 'automatique avec 1 jour de marge : 8 décembre');
 await call(A, '/admin/settings/transport', { method: 'PUT', body: { freight: { logisticsMax: 7 } } });
 ok((await call(null, '/config')).data.noel.deadline.endsWith('-12-15'), 'délai de logistique porté à 7 jours : la date limite recule au 15 décembre');
-await call(A, '/admin/settings/transport', { method: 'PUT', body: { freight: { logisticsMax: 5 } } });
+await call(A, '/admin/settings/transport', { method: 'PUT', body: { freight: { logisticsMax: 14 } } });
 await call(A, '/admin/settings/noel', { method: 'PUT', body: { enabled: false } });
 ok((await call(null, '/config')).data.noel === null, 'mode Noël désactivé : plus rien sur la boutique');
 await call(A, '/admin/settings/noel', { method: 'PUT', body: { enabled: true, margin: 3 } });

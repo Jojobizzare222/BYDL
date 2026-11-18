@@ -1519,6 +1519,14 @@ html[data-motion="reduce"] .idv-c { transform: none; } html[data-motion="reduce"
 /* Note « coût logistique estimatif » (14/11/2026) */
 .est-note { display: flex; gap: 6px; align-items: flex-start; margin: 4px 0 6px; font-size: 12px; line-height: 1.35; color: var(--muted, #5F6B80); }
 .est-note svg { width: 14px; height: 14px; flex: none; margin-top: 1px; }
+/* « Pourquoi 3 à 15 jours ? » (fiche, page commande ; décision Joseph 18/11/2026) */
+.why-delay { margin: 2px 0 6px; font-size: 12.5px; line-height: 1.45; color: var(--muted, #5F6B80); }
+.why-delay summary { display: inline-flex; gap: 6px; align-items: center; cursor: pointer; color: var(--link, #1E56C2); font-weight: 600; list-style: none; }
+.why-delay summary::-webkit-details-marker { display: none; }
+.why-delay summary svg { width: 14px; height: 14px; flex: none; }
+.why-delay p { margin: 6px 0 0; padding: 8px 10px; border-radius: 10px; background: var(--soft, #F3F5F9); border: 1px solid var(--line, #DDE3EC); }
+html[data-theme="dark"] .why-delay summary { color: #8DB4FF; }
+html[data-theme="dark"] .why-delay p { background: rgba(255,255,255,.04); border-color: rgba(255,255,255,.1); }
 #cartEst:empty { display: none; }
 .op.off { opacity: .55; }
 /* Moyens de paiement à venir (14/11/2026) : visibles mais pas encore utilisables */

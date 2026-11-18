@@ -447,7 +447,7 @@
         : [`Encaisser ${fcfa(o.total)} en espèces à ${o.agency?.name || 'l\'agence'}`, `Quand ${o.customer.name} paie, cliquez « Paiement reçu en agence ».${isPickup(o) ? ' Préparez déjà les articles.' : ''}`, '#cashBtn', ''];
       return ['En attente du paiement du client', 'Rien à faire pour l\'instant. Sans paiement, la commande s\'annule toute seule.', null, 'wait'];
     }
-    // Logistique France → Pointe-Noire (2 à 5 jours annoncés au client), puis livraison sous 24 h
+    // Logistique France → Pointe-Noire (2 à 14 jours + 24 h = 3 à 15 jours annoncés au client), puis livraison sous 24 h
     const L = o.logistics || {}, eta = o.logisticsEta || {};
     const dshort = (iso) => (iso ? new Date(iso).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' }) : '');
     if ((o.status === 'paid' || (o.status === 'confirmed' && o.paymentPlan !== 'mobile')) && !(L.arrivedAt || L.localAt)) {

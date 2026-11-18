@@ -108,7 +108,7 @@ function faq() {
   const f = require('./freight').freightSettings();
   const cities = (require('./fees').feeSettings().cities || []).map((c) => c.city).filter(Boolean);
   return [
-    ['Combien de temps pour être livré à Pointe-Noire ?', `Votre commande est expédiée en ${f.logisticsMin ?? 2} à ${f.logisticsMax ?? 5} jours, puis livrée sous ${f.deliveryHours ?? 24} h à Pointe-Noire. Vous suivez votre colis à chaque étape.`],
+    ['Combien de temps pour être livré à Pointe-Noire ?', `Comptez ${f.logisticsMin + Math.ceil(f.deliveryHours / 24)} à ${f.logisticsMax + Math.ceil(f.deliveryHours / 24)} jours entre le paiement et la livraison à Pointe-Noire. Votre article part parfois d'une autre ville : il rejoint d'abord notre entrepôt, puis s'envole vers Pointe-Noire ; s'il est stocké près de l'entrepôt, il arrive souvent plus vite. Vous suivez votre colis à chaque étape.`],
     ['Le prix affiché comprend-il tout ?', 'Oui : le prix affiché comprend l\'article, le transport jusqu\'à Pointe-Noire, les frais de service et les frais Mobile Money. Rien ne s\'ajoute au panier.'],
     ['Comment payer ?', 'Par Mobile Money (MTN ou Airtel) : vous déposez le montant de la commande sur le numéro de Zado, avec votre numéro de commande en référence. Votre commande est confirmée dès réception.'],
     ['Où livrez-vous ?', cities.length ? `Nous livrons à domicile à ${cities.join(', ')}.` : 'Nous livrons à domicile à Pointe-Noire.'],
@@ -187,7 +187,7 @@ function productLd(p, h, price) {
         shippingDestination: { '@type': 'DefinedRegion', addressCountry: 'CG' },
         deliveryTime: { '@type': 'ShippingDeliveryTime',
           handlingTime: { '@type': 'QuantitativeValue', minValue: 0, maxValue: 1, unitCode: 'DAY' },
-          transitTime: { '@type': 'QuantitativeValue', minValue: (f.logisticsMin ?? 2) + 1, maxValue: (f.logisticsMax ?? 5) + Math.ceil((f.deliveryHours ?? 24) / 24), unitCode: 'DAY' } } } } : {}),
+          transitTime: { '@type': 'QuantitativeValue', minValue: (f.logisticsMin ?? 2) + 1, maxValue: (f.logisticsMax ?? 14) + Math.ceil((f.deliveryHours ?? 24) / 24), unitCode: 'DAY' } } } } : {}),
       hasMerchantReturnPolicy: { '@type': 'MerchantReturnPolicy', applicableCountry: 'CG', returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow', merchantReturnDays: 7 } },
   };
 }
