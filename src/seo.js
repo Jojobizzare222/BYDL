@@ -29,7 +29,7 @@ function allInPrice(p) {
   const b = p.price + require('./freight').unitFee(p) + pr.serviceFee();
   return b + pr.momoFee(b);
 }
-const visible = () => require('./store').products.all().filter((p) => p.active !== false && !p.pending && inCatalog(p) && p.price > 0);
+const visible = () => { const photo = require('./sales').photoFilter(); return require('./store').products.all().filter((p) => p.active !== false && !p.pending && inCatalog(p) && p.price > 0 && photo(p)); };
 const prodPath = (p) => `/p/${encodeURIComponent(p.id)}/${slug(p.name) || 'article'}`;
 const hasExtras = (p) => (p.options || []).some((o) => o.extra && Object.keys(o.extra).length);
 const preorderOf = (p) => (p.preorder?.releaseDate && p.preorder.releaseDate > new Date().toISOString().slice(0, 10) ? p.preorder.releaseDate : null);
@@ -195,7 +195,7 @@ function productLd(p, h, price) {
 function productPage(req, res) {
   const { products } = require('./store');
   const p = products.get(req.params.id);
-  const ok = p && p.active !== false && !p.pending && inCatalog(p) && p.price > 0;
+  const ok = p && p.active !== false && !p.pending && inCatalog(p) && p.price > 0 && require('./sales').photoFilter()(p);
   const h = siteHost(req);
   if (!ok) {
     return res.status(404).set('Cache-Control', 'public, max-age=300').type('html').send(`<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Article introuvable | Zado</title><meta name="robots" content="noindex"><script>location.replace("/")</script></head><body><p><a href="/">Ouvrir la boutique Zado</a></p></body></html>`);
@@ -259,6 +259,8 @@ function sitemap(req, res) {
 }
 
 function mount(app) {
+  // Article modifié (photo ajoutée, masqué…) : les pages pour Google sont recalculées tout de suite
+  try { require('./events').bus.on('change', (e) => { if (e.col === 'products' || e.col === 'settings') memo.at = 0; }); } catch {}
   // Une seule adresse : www.zado-congo.com → zado-congo.com (lecture seulement : GET / HEAD)
   app.use((req, res, next) => {
     if ((req.method !== 'GET' && req.method !== 'HEAD') || !/^www\./i.test(req.hostname || '') || req.path.startsWith('/.well-known/')) return next();

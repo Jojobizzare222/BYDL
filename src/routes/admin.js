@@ -721,7 +721,7 @@ router.get('/settings/sales', requireRole(), (req, res) => res.json(sales.salesS
 router.put('/settings/sales', requireRole(), (req, res) => {
   const r = sales.saveSalesSettings(req.body || {});
   if (r.error) return res.status(400).json({ error: r.error });
-  log(req, 'Règles de vente modifiées', null, `compte obligatoire : ${r.value.accountRequired ? 'oui' : 'non'} · paiements : ${Object.keys(r.value.methods).filter((k) => r.value.methods[k]).join(', ')}`);
+  log(req, 'Règles de vente modifiées', null, `compte obligatoire : ${r.value.accountRequired ? 'oui' : 'non'} · articles sans photo masqués : ${r.value.photoRequired ? 'oui' : 'non'} · paiements : ${Object.keys(r.value.methods).filter((k) => r.value.methods[k]).join(', ')}`);
   res.json(r.value);
 });
 

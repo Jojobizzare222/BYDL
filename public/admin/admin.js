@@ -939,6 +939,8 @@
       <form class="panel" id="salesForm" style="max-width:640px">
         <h2>${icon('identification-card')} Règles de vente</h2>
         <label class="check"><input type="checkbox" id="slAccount" ${sl.accountRequired ? 'checked' : ''}> Compte avec pièce d'identité <b>vérifiée</b> obligatoire pour commander</label>
+        <label class="check"><input type="checkbox" id="slPhoto" ${sl.photoRequired ? 'checked' : ''}> Afficher sur la boutique <b>seulement les articles qui ont au moins une photo</b></label>
+        <p class="muted" style="margin:2px 0 0 26px">Les autres restent masqués (et ne peuvent pas être commandés) ; dès que vous ajoutez une photo, l'article apparaît tout seul.</p>
         <p class="muted" style="margin:14px 0 4px">Moyens de paiement proposés aux clients :</p>
         ${PAY.map(([k, l]) => `<label class="check"><input type="checkbox" data-pay="${k}" ${sl.methods[k] ? 'checked' : ''}> ${esc(l)}</label>`).join('')}
         <p class="muted">Les espèces ne sont proposées que s'il existe au moins une agence active (onglet Agences).</p>
@@ -1068,7 +1070,7 @@
     $('#salesForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const methods = {}; app.querySelectorAll('[data-pay]').forEach((x) => { methods[x.dataset.pay] = x.checked; });
-      try { await api('/settings/sales', { method: 'PUT', body: { accountRequired: $('#slAccount').checked, methods } }); toast('Règles de vente enregistrées ✓'); $('#slMsg').innerHTML = ''; }
+      try { await api('/settings/sales', { method: 'PUT', body: { accountRequired: $('#slAccount').checked, photoRequired: $('#slPhoto').checked, methods } }); state.config = null; toast('Règles de vente enregistrées ✓'); $('#slMsg').innerHTML = ''; }
       catch (err) { $('#slMsg').innerHTML = `<div class="alert err">${esc(err.message)}</div>`; }
     });
     $('#codForm').addEventListener('submit', async (e) => {
@@ -2048,22 +2050,28 @@
     const ref = (p.priceRefs || []).find((r) => /^https?:\/\//.test(r.url || ''));
     const out = [];
     if (ref) out.push(`<a class="plink" href="${esc(ref.url)}" target="_blank" rel="noopener noreferrer" title="Ouvrir chez ${esc(ref.store || 'le fournisseur')}">${icon('arrow-square-out-bold')} ${esc(ref.store || 'Fournisseur')}</a>`);
-    if (p.active !== false && !p.pending) out.push(`<a class="plink" href="/#/p/${enc(p.id)}" target="_blank" rel="noopener" title="Voir la fiche sur la boutique">${icon('arrow-square-out-bold')} Boutique</a>`);
+    if (p.active !== false && !p.pending && (p.image || (p.images || []).some(Boolean) || state.config?.photoRequired === false)) out.push(`<a class="plink" href="/#/p/${enc(p.id)}" target="_blank" rel="noopener" title="Voir la fiche sur la boutique">${icon('arrow-square-out-bold')} Boutique</a>`);
     return out.length ? `<span class="plinks">${out.join('')}</span>` : '<span class="muted">—</span>';
   }
 
   function viewProducts() {
     const f = state.productFilter || 'all';
     const live = (p) => p.active !== false && !p.pending;
+    // Règle « au moins une photo » (Réglages → Règles de vente, décision Joseph 18/11/2026) : article visible mais sans photo = masqué sur la boutique
+    if (!state.config) { fetch('/api/config').then((r) => r.json()).then((cfg) => { state.config = cfg; if (location.hash.startsWith('#/produits')) route({ keep: true }); }).catch(() => {}); }
+    const photoRule = state.config?.photoRequired !== false;
+    const hasPhoto = (p) => Boolean(p.image || (p.images || []).some(Boolean));
+    const noPhoto = (p) => photoRule && live(p) && !hasPhoto(p);
     const FILTERS_P = [
       ['all', 'Tous', () => true],
       ['pending', isAdmin() ? 'À valider' : 'En attente de validation', (p) => p.pending],
       ['out', 'En rupture', (p) => live(p) && p.stock === 0],
       ['hidden', 'Masqués', (p) => p.active === false],
+      ...(photoRule ? [['nophoto', 'Sans photo (masqués)', noPhoto]] : []),
     ];
     const test = FILTERS_P.find(([k]) => k === f)?.[2] || (() => true);
     const list = state.products.filter(test);
-    const statusTag = (p) => (p.pending ? '<span class="tag warn">En attente</span>' : p.active === false ? '<span class="tag">Masqué</span>' : p.stock === 0 ? '<span class="tag danger">Rupture</span>' : '<span class="tag ok">En ligne</span>');
+    const statusTag = (p) => (p.pending ? '<span class="tag warn">En attente</span>' : p.active === false ? '<span class="tag">Masqué</span>' : noPhoto(p) ? '<span class="tag warn" title="Masqué sur la boutique : ajoutez au moins une photo">Sans photo · masqué</span>' : p.stock === 0 ? '<span class="tag danger">Rupture</span>' : '<span class="tag ok">En ligne</span>');
     const columns = [
       { key: 'name', label: 'Produit', sortValue: (p) => norm(p.name), render: (p) => `<div class="cell-prod">${p.image ? `<img src="${esc(p.image)}" alt="" loading="lazy">` : `<span class="ph">${catIcon(p.category)}</span>`}<span><strong>${esc(p.name)}</strong>${p.featured ? ' <span class="tag">⭐</span>' : ''}<br><span class="muted">${esc(p.brand || '')}</span></span></div>` },
       { key: 'category', label: 'Catégorie' },
@@ -2072,7 +2080,7 @@
     columns.push({ key: 'price', label: 'Prix de vente', cls: 'num', render: (p) => (p.price ? fcfa(p.price) : '<span class="muted">à fixer</span>') });
     columns.push({ key: 'costPrice', label: "Prix d'achat", cls: 'num', render: (p) => (p.costPrice != null ? fcfa(p.costPrice) : '—') });
     columns.push({ key: 'stock', label: 'Stock', cls: 'num', render: (p) => (p.stock === 0 ? `<strong style="color:var(--err)">0</strong>` : p.stock == null ? '<span class="muted">sur commande</span>' : p.stock) });
-    columns.push({ key: 'status', label: 'Statut', sortValue: (p) => (p.pending ? 0 : p.active === false ? 1 : 2), render: statusTag });
+    columns.push({ key: 'status', label: 'Statut', sortValue: (p) => (p.pending ? 0 : p.active === false ? 1 : noPhoto(p) ? 1.5 : 2), render: statusTag });
     // Lien (demande Joseph 12/11/2026) : page de l'article chez le fournisseur d'origine + fiche sur la boutique
     columns.push({ key: 'link', label: 'Lien', sortable: false, render: productLinks });
     app.innerHTML = pageHead({

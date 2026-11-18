@@ -12,13 +12,17 @@ const publicProduct = ({ supplierPrice, costPrice, supplierId, createdBy, update
 });
 // Visible sur la boutique : actif, validé par l'admin et d'un rayon qui existe encore (ex. plus de Mode depuis le 19/10/2026)
 const { inCatalog } = require('../catalog');
-const isPublic = (p) => p.active !== false && !p.pending && inCatalog(p);
+const { photoFilter } = require('../sales');
+const isPublicBase = (p) => p.active !== false && !p.pending && inCatalog(p);
+// + au moins une photo si la règle est active (Réglages → Règles de vente ; décision Joseph 18/11/2026)
+const publicFilter = () => { const photo = photoFilter(); return (p) => isPublicBase(p) && photo(p); };
 
 const { search } = require('../search');
 // Filtres : ?universe=Électronique  ?category=Téléphones  ?q=recherche (tolérante : fautes, pluriels, synonymes — src/search.js)
 // Avec ?q=, l'en-tête X-Search-Partial / X-Search-Suggest dit si le résultat est approché et propose une correction.
 router.get('/', (req, res) => {
   const { universe, category, q } = req.query;
+  const isPublic = publicFilter();
   let list = products.all().filter((p) => isPublic(p) && (!universe || p.universe === universe) && (!category || p.category === category));
   if (q && String(q).trim()) {
     const r = search(list, String(q).slice(0, 120));
@@ -34,7 +38,7 @@ router.get('/', (req, res) => {
 router.get('/suggest', (req, res) => {
   const q = String(req.query.q || '').trim().slice(0, 80);
   if (q.length < 2) return res.json({ products: [], categories: [], didYouMean: null });
-  const pub = products.all().filter(isPublic);
+  const pub = products.all().filter(publicFilter());
   const r = search(pub, q);
   const cats = new Map();
   for (const p of r.list) { const k = `${p.universe}|${p.category}`; cats.set(k, (cats.get(k) || 0) + 1); }
@@ -53,7 +57,7 @@ const SOLD = new Set(['paid', 'confirmed', 'shipped', 'delivered']);
 let pairsMemo = { at: 0, data: {} };
 function boughtTogether() {
   if (Date.now() - pairsMemo.at < 10 * 60e3) return pairsMemo.data;
-  const visible = new Set(products.all().filter(isPublic).map((p) => p.id));
+  const visible = new Set(products.all().filter(publicFilter()).map((p) => p.id));
   const count = {};
   for (const o of require('../store').orders.all()) {
     if (!SOLD.has(o.status)) continue;
@@ -72,7 +76,7 @@ router.get('/pairs', (req, res) => { res.set('Cache-Control', 'public, max-age=6
 
 router.get('/:id', (req, res) => {
   const product = products.get(req.params.id);
-  if (!product || product.pending || !inCatalog(product)) return res.status(404).json({ error: 'Produit introuvable' });
+  if (!product || product.pending || !inCatalog(product) || !photoFilter()(product)) return res.status(404).json({ error: 'Produit introuvable' });
   const note = require('../reviews').summaries().get(product.id);
   res.json({ ...publicProduct(product), ...(note ? { rating: note } : {}) });
 });
