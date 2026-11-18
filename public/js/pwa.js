@@ -10,6 +10,41 @@
   const ico = (n) => `<svg class="ico" aria-hidden="true"><use href="/icons.svg?v=18#${n}"></use></svg>`;
   if (standalone) document.documentElement.classList.add('standalone');
 
+  // Défaut d'iOS 26 (application installée sur iPhone / iPad, signalé par Joseph le 18/11/2026) : après la fermeture du
+  // clavier, l'écran reste « raccourci » de la hauteur du clavier : la barre d'onglets et la bulle « Aide » restent bloquées
+  // au milieu de la page. Parade connue : quand aucun champ n'est en cours de saisie et que la hauteur de la fenêtre est
+  // plus petite que sa vraie hauteur, on fait recalculer la fenêtre (élément plein écran invisible masqué puis réaffiché,
+  // petit défilement nul). Sans effet sur les autres appareils (rien n'est fait si la hauteur est normale).
+  if (ios) {
+    const probe = document.createElement('div');
+    probe.setAttribute('aria-hidden', 'true');
+    probe.style.cssText = 'position:fixed;inset:0;height:100vh;visibility:hidden;pointer-events:none;z-index:-1';
+    const add = () => document.body && !probe.isConnected && document.body.appendChild(probe);
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', add); else add();
+    let maxH = window.innerHeight, lastW = window.innerWidth;
+    const typing = () => { const a = document.activeElement; return !!a && (a.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)); };
+    window.addEventListener('resize', () => {
+      if (window.innerWidth !== lastW) { lastW = window.innerWidth; maxH = window.innerHeight; return; } // téléphone tourné
+      maxH = Math.max(maxH, window.innerHeight);
+    });
+    const heal = () => {
+      if (typing() || maxH - window.innerHeight <= 4) return;
+      add();
+      const x = window.scrollX, y = window.scrollY;
+      probe.style.display = 'none';
+      void probe.offsetHeight; // recalcul immédiat
+      probe.style.display = '';
+      void document.documentElement.offsetHeight;
+      window.scrollTo(x, y);
+    };
+    const later = () => { setTimeout(heal, 160); setTimeout(heal, 600); };
+    document.addEventListener('focusout', later, true);
+    window.addEventListener('hashchange', later);
+    window.addEventListener('pageshow', later);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) later(); });
+    window.visualViewport?.addEventListener('resize', () => { if (!typing()) later(); });
+  }
+
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
   }

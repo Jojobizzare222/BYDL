@@ -1002,3 +1002,9 @@ html[data-theme="light"] .btn.ghost { background: var(--paper); }
 .sat-months em { font-style: normal; font-weight: 700; color: var(--ink, #0E1424); }
 html[data-theme="dark"] .sat-tag.good { color: #7FE3B4; } html[data-theme="dark"] .sat-tag.bad { color: #FFB3A3; }
 @media (max-width: 760px) { .sat-top { grid-template-columns: 1fr; } }
+
+/* Contrôle du 18/11/2026 (iPhone) : un champ écrit en moins de 16 px fait zoomer toute la page quand on le touche
+   (page qui reste agrandie, éléments fixes décalés). Sur téléphone et tablette tactile, tous les champs passent à 16 px. */
+@media (max-width: 760px), (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea { font-size: 16px !important; }
+}

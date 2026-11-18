@@ -406,6 +406,18 @@ html[data-theme="dark"] .origin-row .cond-pill.new .ico { color: #7EE0B8; }
 .drawer-head { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid var(--line-soft); }
 .drawer-head h2 { margin: 0; font-size: 1.4rem; }
 #cartLines { flex: 1; overflow-y: auto; padding: 0 24px; }
+/* Téléphone (contrôle du 18/11/2026) : le bas du panier prenait la moitié de l'écran et la liste des articles devenait minuscule.
+   Tout le panier défile ; seul le bouton « Valider mon panier » reste collé en bas, toujours visible. */
+@media (max-width: 760px) {
+  .drawer-panel { overflow-y: auto; overscroll-behavior: contain; }
+  .drawer-head { position: sticky; top: 0; z-index: 2; background: var(--paper); padding: 14px 20px; }
+  #cartLines { flex: none; overflow: visible; padding: 0 20px; }
+  .drawer-foot { display: contents; }
+  .drawer-panel .drawer-foot > * { margin-left: 20px !important; margin-right: 20px !important; }
+  #cartHint:not(:empty) { margin-top: 16px; }
+  .drawer-foot > .total { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line-soft); }
+  #checkoutLink { position: sticky; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 2; width: auto; margin-top: 16px; margin-bottom: calc(12px + env(safe-area-inset-bottom)); box-shadow: 0 10px 26px rgba(14,20,36,.22); }
+}
 .drawer-foot { padding: 20px 24px 24px; border-top: 1px solid var(--line-soft); background: var(--bg); }
 .icon-btn { background: var(--soft); border: 0; width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; cursor: pointer; color: var(--ink); font-size: 1rem; flex: none; }
 .line { display: flex; justify-content: space-between; gap: 12px; padding: 16px 0; border-bottom: 1px solid var(--line-soft); font-size: .95rem; }
@@ -1007,7 +1019,7 @@ html[data-theme="dark"] .code-reveal { box-shadow: 0 18px 40px rgba(0,0,0,.45); 
 html[data-theme="dark"] .shop-toast { background: #E8EDF5; color: #0E1424; }
 
 /* Bulle « Aide » : jamais par-dessus le total ou les boutons d'achat (audit 17/10/2026) */
-body.drawer-open .chat-fab { opacity: 0; pointer-events: none; }
+body.drawer-open .chat-fab, body.menu-open .chat-fab { opacity: 0; pointer-events: none; }
 body[data-route="commande"] .chat-fab span, body[data-route="p"] .chat-fab span, body[data-route="compte"] .chat-fab span { display: none; }
 body[data-route="commande"] .chat-fab, body[data-route="p"] .chat-fab, body[data-route="compte"] .chat-fab { width: 48px; height: 48px; padding: 0; justify-content: center; }
 @media (max-width: 900px) {
@@ -1753,7 +1765,8 @@ html[data-theme="dark"] .mz-delivered { background: #12352B; color: #B6E8D4; } h
 html[data-theme="dark"] .sso-apple { background: #fff; color: #000; border-color: #fff; }
 .sso-gbtn { display: flex; justify-content: center; }
 .sso-or { display: flex; align-items: center; gap: 10px; margin: 6px 0 0; color: var(--muted); font-size: .8rem; text-align: center; }
-.sso-or::before, .sso-or::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+.sso-or::before, .sso-or::after { content: ''; flex: 1 0 24px; height: 1px; background: var(--line); }
+.sso-or > span { flex: 0 1 auto; }
 .pref-row .sso-logo { width: 16px; height: 16px; vertical-align: -3px; }
 .pk-list { list-style: none; margin: 0 0 6px; padding: 0; display: grid; gap: 6px; }
 .pk-list li { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 12px; }
@@ -2295,3 +2308,10 @@ html[data-theme="dark"] .fb-chip.good.on { background: rgba(18,160,107,.18); col
 html[data-theme="dark"] .fb-chip.bad.on { background: rgba(255,90,60,.16); color: #FFB3A3; }
 html[data-theme="dark"] .fb-card { background: rgba(255,179,0,.1); }
 .fb-rate button:focus:not(:focus-visible), .fb-nps button:focus:not(:focus-visible) { outline: none; }
+
+/* Contrôle du 18/11/2026 (iPhone) : un champ écrit en moins de 16 px fait ZOOMER toute la page quand on le touche ;
+   après la saisie la page reste agrandie et les éléments fixes (barre d'onglets, bulle « Aide ») se décalent.
+   Sur téléphone et tablette tactile, tous les champs de saisie passent à 16 px. */
+@media (max-width: 760px), (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea { font-size: 16px !important; }
+}

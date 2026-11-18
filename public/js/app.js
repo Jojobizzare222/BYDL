@@ -396,7 +396,7 @@
 
   // ---------- Tiroir panier ----------
   const drawer = $('#drawer');
-  const openDrawer = () => { drawer.classList.add('open'); drawer.setAttribute('aria-hidden', 'false'); document.body.classList.add('drawer-open'); };
+  const openDrawer = () => { document.getElementById('shopToast')?.classList.remove('show'); drawer.classList.add('open'); drawer.setAttribute('aria-hidden', 'false'); document.body.classList.add('drawer-open'); };
   const closeDrawer = () => { drawer.classList.remove('open'); drawer.setAttribute('aria-hidden', 'true'); document.body.classList.remove('drawer-open'); };
   $('#cartBtn').addEventListener('click', openDrawer);
   $('#closeDrawer').addEventListener('click', closeDrawer);
@@ -526,6 +526,7 @@
     menu.setAttribute('aria-hidden', String(!open));
     ['#menuBtn', '#allBtn'].forEach((b) => $(b).setAttribute('aria-expanded', String(open)));
     document.body.classList.toggle('no-scroll', open);
+    document.body.classList.toggle('menu-open', open); // la bulle « Aide » ne passe plus par-dessus le menu
   };
   $('#menuBtn').addEventListener('click', () => openMenu(true));
   $('#allBtn').addEventListener('click', () => openMenu(true));
@@ -632,7 +633,8 @@
     document.body.classList.toggle('no-relay', !hasRelays());
     // Barre des rayons (vitrine tech, 19/10/2026) : « Bonnes affaires » en premier ; avec un seul univers (électronique),
     // ses rayons sont affichés directement (ceux qui ont des produits) ; avec plusieurs, menu déroulant par univers.
-    const links = [`<a href="#/promos" class="deals-link ${active === 'promos' ? 'active' : ''}">${icon('fire')} Bonnes affaires <span class="nb">Promo</span></a>`];
+    // « Bonnes affaires » seulement s'il y a des remises en cours (sinon la page montre les petits prix, déjà dans la barre)
+    const links = state.products.some((p) => discount(p) > 0) ? [`<a href="#/promos" class="deals-link ${active === 'promos' ? 'active' : ''}">${icon('fire')} Bonnes affaires <span class="nb">Promo</span></a>`] : [];
     links.push(`<a href="#/petits-prix" class="cheap-link ${active === 'petits-prix' ? 'active' : ''}">${icon('hand-coins-duotone')} Petits prix</a>`);
     if (noel()) links.push(`<a href="#/cadeaux" class="gift-link ${active === 'cadeaux' ? 'active' : ''}">${icon('gift')} Idées cadeaux</a>`);
     if (state.products.some(isRefurb)) links.push(`<a href="#/reconditionne" class="refurb-link ${active === 'reconditionne' ? 'active' : ''}">${icon('arrows-clockwise')} Reconditionné</a>`);
@@ -654,8 +656,9 @@
     // Menu « Toutes » et liste des rayons de la recherche (une seule fois)
     if (!$('#menuBody').innerHTML) {
       $('#menuBody').innerHTML = `<h3>À la une</h3>
-        <a href="#/promos">${icon('seal-percent')} Bonnes affaires</a>
-        <a href="#/reconditionne">${icon('arrows-clockwise')} Reconditionné</a>` +
+        ${state.products.some((p) => discount(p) > 0) ? `<a href="#/promos">${icon('seal-percent')} Bonnes affaires</a>` : ''}
+        <a href="#/petits-prix">${icon('hand-coins-duotone')} Petits prix</a>
+        ${state.products.some(isRefurb) ? `<a href="#/reconditionne">${icon('arrows-clockwise')} Reconditionné</a>` : ''}` +
         UNIVERSES.map((u) => `<h3>${esc(u.name)}</h3><a href="#/c/${enc(u.name)}">Tout ${esc(u.name.toLowerCase())}</a>` +
           u.categories.map((c) => `<a href="#/c/${enc(u.name)}/${enc(c)}">${catIcon(c)} ${esc(c)}</a>`).join('')).join('') +
         `<h3>Aide et compte</h3><a href="#/compte">${icon('user-circle')} Mon compte et mes commandes</a>
@@ -1287,7 +1290,11 @@
       notice: `<p class="search-note">${icon('hand-coins-duotone')} Les articles les plus abordables d'abord : nous comparons le <strong>prix livré à Pointe-Noire</strong> (transport compris) de chaque article à ceux de son rayon, et nous tenons compte des remises et des économies du reconditionné. L'étiquette « Petit prix » repère les meilleurs.</p>` });
   }
   function viewPromos() {
-    viewList({ title: 'Bonnes affaires', crumbs: '<a href="#/">Accueil</a> › Bonnes affaires', list: state.products.filter((p) => discount(p) > 0), active: 'promos' });
+    const deals = state.products.filter((p) => discount(p) > 0);
+    // Aucune remise en cours (contrôle du 18/11/2026 : la page « Bonnes affaires » était vide) : on montre les petits prix
+    if (!deals.length) return viewList({ title: 'Bonnes affaires', crumbs: '<a href="#/">Accueil</a> › Bonnes affaires', list: state.products, active: 'promos',
+      notice: `<p class="search-note">${icon('tag')} Pas de promotion en ce moment : voici nos <strong>petits prix</strong>, les articles les plus abordables, livrés à Pointe-Noire.</p>` });
+    viewList({ title: 'Bonnes affaires', crumbs: '<a href="#/">Accueil</a> › Bonnes affaires', list: deals, active: 'promos' });
   }
 
   // « Idées cadeaux » (pack Noël 10/11/2026) : par budget ou par profil, à partir du catalogue (rien à saisir dans Zado Pro)
@@ -2822,6 +2829,7 @@
   }
 
   async function viewTracking(id) {
+    if (!id) { location.replace('#/compte/commandes'); return; } // « #/suivi » sans numéro : la liste de mes commandes
     renderNav(null);
     if (!state.quiet) app.innerHTML = mamaLoading(); // mise à jour en arrière-plan : on garde la page affichée
     let o = null;
