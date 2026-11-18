@@ -2430,6 +2430,58 @@
     });
   }
 
+  // ---------- Satisfaction : avis sur le SERVICE et sur l'APPLICATION (18/11/2026) [admin, orders] ----------
+  async function viewSatisfaction(id) {
+    let d;
+    try { d = await api('/feedback'); } catch { return; }
+    const { list, stats: s } = d;
+    const f = id ? 'one' : state.fbFilter || 'todo';
+    const match = (x, k) => k === 'all' || (k === 'one' ? x.id === id : k === 'todo' ? x.status !== 'done' : k === 'low' ? x.rating <= 2 : x.kind === k);
+    const stars = (n) => `<span class="rv-stars r${n}" title="${n} sur 5">${'★'.repeat(n)}${'☆'.repeat(5 - n)}</span>`;
+    const num = (v) => String(v).replace('.', ',');
+    const nps = s.service.nps;
+    const bars = (dist, total) => dist.map((n, i) => `<div class="sat-bar"><span>${5 - i} ★</span><i><b style="width:${total ? Math.round((n / total) * 100) : 0}%"></b></i><em>${n}</em></div>`).join('');
+    const tagList = (l, cls) => (l.some(([, n]) => n) ? l.filter(([, n]) => n).slice(0, 5).map(([t, n]) => `<span class="sat-tag ${cls}">${esc(t)} <b>${n}</b></span>`).join('') : '<span class="muted">Pas encore de réponse</span>');
+    const months = (m) => `<div class="sat-months">${m.map((x) => `<div title="${x.count} avis"><i style="height:${x.count ? Math.max(8, Math.round((x.avg / 5) * 100)) : 4}%" class="${x.count ? '' : 'none'}"></i><span>${['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'][Number(x.month.slice(5)) - 1]}</span><em>${x.count ? num(x.avg) : '–'}</em></div>`).join('')}</div>`;
+    const block = (k, title, extra) => `<div class="panel sat-panel"><h2>${title}</h2>
+      ${s[k].count ? `<div class="sat-top"><div class="sat-big">${num(s[k].avg)}<small>/5</small>${stars(Math.round(s[k].avg))}<span class="muted">${s[k].count} avis</span></div><div class="sat-bars">${bars(s[k].dist, s[k].count)}</div></div>
+      <h3>Points forts</h3><div class="sat-tags">${tagList(s[k].good, 'good')}</div>
+      <h3>À améliorer</h3><div class="sat-tags">${tagList(s[k].bad, 'bad')}</div>
+      <h3>Note moyenne, 6 derniers mois</h3>${months(s[k].months)}${extra || ''}` : '<p class="muted">Aucun avis pour le moment.</p>'}</div>`;
+    app.innerHTML = pageHead({ crumb: 'Ventes', title: 'Satisfaction', desc: "Ce que les clients pensent du <b>service</b> (après chaque commande livrée) et de la <b>facilité d'utilisation du site</b>. Rappelez vite les clients mécontents (1 ou 2 étoiles : vous recevez une alerte), puis cliquez sur « Traité ».",
+      actions: `<a class="btn" href="/api/admin/feedback/export.csv">${icon('download-simple-bold')} Exporter</a>` })
+      + `<div class="kpis">
+        <div class="kpi kc0"><span class="kpi-ico">${icon('truck')}</span><span class="kpi-label">Note du service</span><span class="kpi-value">${s.service.count ? `${num(s.service.avg)}/5` : '–'}</span><span class="kpi-hint">${s.service.count} avis · ${s.rate} % des commandes livrées</span></div>
+        <div class="kpi kc1"><span class="kpi-ico">${icon('heart-bold')}</span><span class="kpi-label">Recommandation (NPS)</span><span class="kpi-value">${nps ? (nps.score > 0 ? '+' : '') + nps.score : '–'}</span><span class="kpi-hint">${nps ? `${nps.promoters} fan${nps.promoters > 1 ? 's' : ''} · ${nps.passives} neutre${nps.passives > 1 ? 's' : ''} · ${nps.detractors} déçu${nps.detractors > 1 ? 's' : ''}` : 'de −100 à +100'}</span></div>
+        <div class="kpi kc2"><span class="kpi-ico">${icon('device-mobile')}</span><span class="kpi-label">Note du site</span><span class="kpi-value">${s.app.count ? `${num(s.app.avg)}/5` : '–'}</span><span class="kpi-hint">${s.app.count} avis${s.app.count ? ` · ${Math.round((s.app.mobile / s.app.count) * 100)} % sur téléphone` : ''}</span></div>
+        <div class="kpi kc3"><span class="kpi-ico">${icon('warning-duotone')}</span><span class="kpi-label">À traiter</span><span class="kpi-value">${s.service.toHandle + s.app.toHandle}</span><span class="kpi-hint">dont ${s.service.negative + s.app.negative} avis à 1 ou 2 étoiles</span></div>
+      </div>
+      <div class="grid2 sat-grid">${block('service', `${icon('truck')} Service Zado`, nps ? `<p class="note">Recommandation : sur ${nps.count} réponse${nps.count > 1 ? 's' : ''}, ${nps.promoters} donnent 9 ou 10 (fans), ${nps.detractors} donnent 0 à 6 (déçus). Indice = % de fans − % de déçus.</p>` : '')}
+        ${block('app', `${icon('device-mobile')} Site et application`, s.app.count ? `<p class="note">${s.app.mobile} avis donnés sur téléphone, dont ${s.app.installed} depuis l'application installée.</p>` : '')}</div>`
+      + (f === 'one' ? `<p><a href="#/satisfaction">← Voir tous les avis</a></p>` : tabsBar([['todo', 'À traiter'], ['low', '1-2 étoiles'], ['service', 'Service'], ['app', 'Site'], ['all', 'Tous']].map(([k, l]) => [k, l, list.filter((x) => match(x, k)).length]), f, 'sf'))
+      + '<div id="tbl"></div>';
+    dataTable($('#tbl'), {
+      id: 'feedback', rows: list.filter((x) => match(x, f)), defaultSort: 'date', placeholder: 'Client, commande, mot du commentaire', empty: f === 'todo' ? 'Aucun avis à traiter : bravo !' : 'Aucun avis ici.',
+      searchText: (x) => `${x.name} ${x.phone || ''} ${x.orderId || ''} ${x.text || ''} ${(x.tags || []).join(' ')} ${x.note || ''}`,
+      columns: [
+        { key: 'date', label: 'Date', sortValue: (x) => x.updatedAt || x.createdAt, render: (x) => `${date(x.createdAt)}${x.updatedAt && x.updatedAt.slice(0, 10) !== x.createdAt.slice(0, 10) ? `<br><span class="muted">modifié le ${date(x.updatedAt)}</span>` : ''}` },
+        { key: 'kind', label: 'Sur', sortValue: (x) => x.kind, render: (x) => (x.kind === 'service' ? `<span class="tag">Service</span>${x.orderId ? `<br><a class="mono" href="#/commande/${enc(x.orderId)}">${esc(x.orderId)}</a>` : ''}` : `<span class="tag info">Site</span>${x.route ? `<br><span class="muted mono">${esc(x.route)}</span>` : ''}<br><span class="muted">${x.device?.mobile ? 'téléphone' : 'ordinateur'}${x.device?.standalone ? ' · appli' : ''}</span>`) },
+        { key: 'rating', label: 'Note', cls: 'num', sortValue: (x) => x.rating, render: (x) => `${stars(x.rating)}${Number.isInteger(x.nps) ? `<br><span class="muted">recommande : ${x.nps}/10</span>` : ''}` },
+        { key: 'text', label: 'Avis', sortable: false, render: (x) => `<span class="cell-stack"><strong>${esc(x.name)}</strong>${x.phone ? ` · <a href="https://wa.me/242${esc(String(x.phone).replace(/\D/g, '').replace(/^242/, ''))}" target="_blank" rel="noopener">${esc(x.phone)}</a>` : ''}<br>${x.text ? esc(x.text) : '<span class="muted">(sans commentaire)</span>'}${x.tags?.length ? `<br>${x.tags.map((t) => `<span class="sat-tag ${s[x.kind]?.bad.some(([b]) => b === t) ? 'bad' : 'good'}">${esc(t)}</span>`).join(' ')}` : ''}${x.note ? `<br><span class="muted">Note interne : ${esc(x.note)}</span>` : ''}</span>` },
+        { key: 'state', label: 'Suivi', sortValue: (x) => (x.status === 'done' ? 1 : 0), render: (x) => `<span class="cell-stack">${x.status === 'done' ? `<span class="tag ok">Traité</span><br><span class="muted">par ${esc(x.handledBy || '')}</span><br><button class="btn small ghost" data-fbs="${esc(x.id)}" data-st="new">Remettre à traiter</button>` : `<button class="btn small" data-fbs="${esc(x.id)}" data-st="done">${icon('check-bold')} Traité</button>`}<br><button class="btn small ghost" data-fbn="${esc(x.id)}">Note interne</button></span>` },
+      ],
+    });
+    app.querySelectorAll('[data-sf]').forEach((b) => b.addEventListener('click', () => { state.fbFilter = b.dataset.sf; viewSatisfaction(); }));
+    $('#tbl').addEventListener('click', async (e) => {
+      const b = e.target.closest('[data-fbs], [data-fbn]'); if (!b) return;
+      const fid = b.dataset.fbs || b.dataset.fbn;
+      let body;
+      if (b.dataset.fbs) body = { status: b.dataset.st };
+      else { const cur = list.find((x) => x.id === fid)?.note || ''; const note = prompt('Note interne (jamais montrée au client) :', cur); if (note === null) return; body = { note }; }
+      try { await api('/feedback/' + enc(fid), { method: 'PATCH', body }); toast(body.status === 'done' ? 'Avis traité' : body.status ? 'Avis remis à traiter' : 'Note enregistrée'); viewSatisfaction(id); } catch (err) { toast('❌ ' + err.message); }
+    });
+  }
+
   // ---------- Pack Noël : mode Noël + codes promo (admin, 10/11/2026) ----------
   async function viewPromos() {
     let list, noel;
@@ -3302,7 +3354,7 @@
       tableau: () => Boolean(state.user),
       commandes: CAN.orders, commande: CAN.orders, produits: CAN.products, produit: CAN.products,
       messagerie: () => Boolean(state.user),
-      calendrier: () => CAN.orders() || CAN.courier(), achats: CAN.buyer, achat: CAN.buyer, stock: CAN.buyer, avis: () => CAN.admin() || state.user?.role === 'catalog', 'bons-de-commande': CAN.supplier, documents: CAN.orders, colis: () => CAN.orders() || CAN.courier(), scanner: () => CAN.orders() || CAN.courier(),
+      calendrier: () => CAN.orders() || CAN.courier(), achats: CAN.buyer, achat: CAN.buyer, stock: CAN.buyer, satisfaction: CAN.orders, avis: () => CAN.admin() || state.user?.role === 'catalog', 'bons-de-commande': CAN.supplier, documents: CAN.orders, colis: () => CAN.orders() || CAN.courier(), scanner: () => CAN.orders() || CAN.courier(),
       clients: CAN.admin, promos: CAN.admin, agences: CAN.admin, equipe: CAN.admin, journal: CAN.admin, notifications: CAN.admin, base: CAN.admin, finances: CAN.admin, reglages: CAN.admin, livraisons: CAN.courier, 'mot-de-passe': () => !CAN.admin(),
     };
     if (!allowed[page]?.()) [page, id] = homeHash().slice(2).split('/');
@@ -3315,6 +3367,7 @@
     if (page === 'achat') return id === 'nouveau' ? viewPurchaseNew() : viewPurchase(id);
     if (page === 'stock') return viewStock(id);
     if (page === 'avis') return viewReviews();
+    if (page === 'satisfaction') return viewSatisfaction(id);
     if (page === 'promos') return viewPromos();
     if (page === 'colis') return id ? viewParcel(id) : viewParcels();
     if (page === 'calendrier') return viewCalendar(id);

@@ -38,6 +38,7 @@ router.use('/parcels', require('./parcels-admin')); // colis, étiquettes, scan 
 router.use('/purchases', require('./purchases-admin')); // bons de commande aux fournisseurs (Europe) [admin, catalog]
 router.use('/stock', require('./purchases-admin').stockRouter); // mouvements de stock, inventaire [admin, catalog]
 router.use('/alerts', requireRole(), require('./alerts-admin')); // Notifications : alertes e-mail de l'équipe [admin]
+router.use('/feedback', require('./feedback-admin')); // Satisfaction : avis sur le service et l'application [admin, orders]
 router.use('/tableur', requireRole(), require('./tableur')); // « Base de données » façon Excel : toutes les données [admin]
 
 // Rafraîchissement instantané de Zado Pro : signaux filtrés selon le rôle (jamais de données dans le signal)
@@ -61,6 +62,7 @@ router.get('/events', (req, res) => {
     if (col === 'maintenance') return { topic: 'maintenance' };
     if (col === 'customers') return role === 'admin' ? { topic: 'customers', id: doc.id } : null;
     if (col === 'reviews') return ['admin', 'catalog'].includes(role) ? { topic: 'reviews' } : null;
+    if (col === 'feedback') return ordersRole ? { topic: 'feedback', id: doc.id } : null;
     if (col === 'agencies') return role === 'admin' ? { topic: 'agencies' } : null;
     if (col === 'ledger') return role === 'admin' ? { topic: 'finance' } : null;
     if (col === 'documents') return ordersRole ? { topic: 'documents', id: doc.orderId } : null;

@@ -974,3 +974,31 @@ html[data-theme="light"] .btn.ghost { background: var(--paper); }
 .plink { display: inline-flex; align-items: center; gap: 5px; font-size: .82rem; font-weight: 600; color: var(--brand); text-decoration: none; }
 .plink:hover { text-decoration: underline; }
 .plink svg { width: 14px; height: 14px; flex: none; }
+
+/* ===== Satisfaction : avis sur le service et le site (18/11/2026) ===== */
+.sat-grid { align-items: start; gap: 16px; }
+@media (max-width: 900px) { .sat-grid { grid-template-columns: 1fr; } }
+.sat-panel h2 { margin-top: 0; display: flex; align-items: center; gap: 8px; }
+.sat-panel h3 { font-size: .82rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted, #64748B); margin: 18px 0 8px; }
+.sat-top { display: grid; grid-template-columns: auto 1fr; gap: 20px; align-items: center; }
+.sat-big { display: flex; flex-direction: column; align-items: flex-start; font-size: 2.6rem; font-weight: 700; line-height: 1; color: var(--brand, #10264A); }
+.sat-big small { font-size: 1rem; font-weight: 600; color: var(--muted, #64748B); }
+.sat-big .rv-stars { font-size: 1rem; margin: 6px 0 2px; }
+.sat-big .muted { font-size: .8rem; font-weight: 500; }
+.sat-bars { display: grid; gap: 5px; }
+.sat-bar { display: grid; grid-template-columns: 34px 1fr 28px; gap: 8px; align-items: center; font-size: .8rem; }
+.sat-bar i { height: 8px; border-radius: 4px; background: rgba(100,116,139,.15); overflow: hidden; display: block; }
+.sat-bar b { display: block; height: 100%; background: #FFB300; border-radius: 4px; }
+.sat-bar em { font-style: normal; color: var(--muted, #64748B); text-align: right; }
+.sat-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.sat-tag { display: inline-flex; gap: 5px; align-items: center; padding: 3px 10px; border-radius: 999px; font-size: .78rem; font-weight: 600; margin: 2px 0; }
+.sat-tag b { font-weight: 700; }
+.sat-tag.good { background: rgba(18,160,107,.12); color: #0B7A52; }
+.sat-tag.bad { background: rgba(255,90,60,.12); color: #C2410C; }
+.sat-months { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; height: 110px; align-items: end; }
+.sat-months > div { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; gap: 3px; font-size: .72rem; color: var(--muted, #64748B); }
+.sat-months i { width: 60%; max-width: 34px; border-radius: 6px 6px 2px 2px; background: linear-gradient(180deg, #2D66D6, #1E56C2); display: block; min-height: 4px; }
+.sat-months i.none { background: rgba(100,116,139,.18); }
+.sat-months em { font-style: normal; font-weight: 700; color: var(--ink, #0E1424); }
+html[data-theme="dark"] .sat-tag.good { color: #7FE3B4; } html[data-theme="dark"] .sat-tag.bad { color: #FFB3A3; }
+@media (max-width: 760px) { .sat-top { grid-template-columns: 1fr; } }

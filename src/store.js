@@ -106,6 +106,7 @@ module.exports = {
   parcels: createCollection('parcels'), // colis : numéro KM-…, étapes (préparé, livreur, point relais, remis), historique des scans
   documents: createCollection('documents'), // factures (FA-), reçus (RC-), avoirs (AV-) : numérotés, jamais modifiés ni supprimés
   reviews: createCollection('reviews'), // avis clients : note + commentaire, seulement après une commande livrée
+  feedback: createCollection('feedback'), // avis sur le SERVICE (après une commande livrée) et sur l'APPLICATION (facilité d'utilisation)
   ledger: createCollection('ledger'), // finances : dépenses, autres entrées, transferts entre caisses (les ventes viennent des commandes)
   alerts: createCollection('alerts'), // alertes de l'équipe (Zado Pro → Notifications) : historique + envoi par e-mail
   promos: createCollection('promos'), // codes promo (Noël 2026…) : remise en % ou en FCFA, dates, limites d'utilisation

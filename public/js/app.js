@@ -1139,7 +1139,7 @@
       <section class="trust-row" aria-label="Acheter en confiance">
         <div>${icon('airplane-tilt')}<span><b>De France à chez vous</b><small>${delayText()}</small></span></div>
         ${hasRelays() ? `<div>${icon('storefront')}<span><b>Paiement au point relais</b><small>En espèces, sans carte ni frais cachés</small></span></div>` : `<div>${icon('device-mobile')}<span><b>Paiement Mobile Money</b><small>${hasDeposit() ? `Acompte de ${depositTxt()}, le reste ensuite` : 'Par dépôt MTN ou Airtel, en une fois'}</small></span></div>`}
-        <div>${icon('shield-check')}<span><b>Achat en confiance</b><small>Clients vérifiés, code remis à la livraison</small></span></div>
+        ${state.config?.satisfaction ? `<div>${icon('shield-check')}<span><b>${String(state.config.satisfaction.avg).replace('.', ',')}/5 : clients satisfaits</b><small>Note du service Zado, ${state.config.satisfaction.count} avis de clients livrés</small></span></div>` : `<div>${icon('shield-check')}<span><b>Achat en confiance</b><small>Clients vérifiés, code remis à la livraison</small></span></div>`}
         <div>${icon('chat-circle')}<span><b>Service client</b><small>Nous vous appelons après chaque commande</small></span></div>
       </section>`;
 
@@ -2097,6 +2097,118 @@
     }));
   }
 
+  // ---------- Avis sur le SERVICE et sur l'APPLICATION (18/11/2026, demande Joseph) ----------
+  // Service : après une commande LIVRÉE (page de suivi, Mon compte) ; application : page Merci, pied de page, Mon compte.
+  // Fenêtre commune (étoiles, recommandation 0-10 pour le service, points forts / à améliorer, commentaire) ; serveur : src/feedback.js
+  let fbTags = null;
+  const fbOptions = async () => fbTags || (fbTags = (await api('/feedback/options')).tags);
+  const fbVisitor = () => { let v = null; try { v = localStorage.getItem('kamwa-fb-visitor'); if (!v) { v = Math.random().toString(36).slice(2, 12); localStorage.setItem('kamwa-fb-visitor', v); } } catch {} return v; };
+  const fbDevice = () => ({ mobile: matchMedia('(max-width: 760px)').matches || matchMedia('(pointer: coarse)').matches, standalone: matchMedia('(display-mode: standalone)').matches || navigator.standalone === true, width: innerWidth });
+  const fbRated = (id) => { try { return (JSON.parse(localStorage.getItem('kamwa-rated') || '[]')).includes(id); } catch { return false; } };
+  const fbMarkRated = (id) => { try { const l = JSON.parse(localStorage.getItem('kamwa-rated') || '[]'); if (!l.includes(id)) localStorage.setItem('kamwa-rated', JSON.stringify([...l, id].slice(-100))); } catch {} };
+  const FB_WORDS = ['', 'Très décevant', 'Décevant', 'Correct', 'Très bien', 'Excellent'];
+  const fbStars = (n, cls = '') => `<span class="fb-stars-ro ${cls}" aria-label="${n} sur 5">${[1, 2, 3, 4, 5].map((i) => `<i class="${i <= n ? 'on' : ''}">★</i>`).join('')}</span>`;
+  // Petite rangée d'étoiles à toucher : ouvre la fenêtre avec la note déjà choisie
+  const fbQuick = (kind, attrs = '') => `<div class="fb-quick" role="group" aria-label="Votre note">${[1, 2, 3, 4, 5].map((i) => `<button type="button" data-fb="${kind}" data-fb-rate="${i}" ${attrs} aria-label="${i} étoile${i > 1 ? 's' : ''}">★</button>`).join('')}</div>`;
+
+  async function fbOpen(kind, opt = {}) {
+    let tags;
+    try { tags = (await fbOptions())[kind]; } catch { toast('Connexion difficile : réessayez dans un instant.'); return; }
+    document.getElementById('fbSheet')?.remove();
+    const service = kind === 'service';
+    const prev = opt.prev || null;
+    let rating = Number(opt.rating) || prev?.rating || 0, nps = prev?.nps ?? null;
+    const picked = new Set(prev?.tags || []);
+    const el = document.createElement('div');
+    el.id = 'fbSheet'; el.className = 'fb-overlay';
+    el.innerHTML = `<div class="fb-sheet" role="dialog" aria-modal="true" aria-labelledby="fbTitle">
+      <button type="button" class="fb-close" aria-label="Fermer">${icon('x')}</button>
+      <div class="fb-body">
+        <div class="fb-head">${mama(service ? 'deliver' : 'hello', { size: 'sm' }) || ''}<div>
+          <h2 id="fbTitle">${service ? 'Comment s\'est passée votre commande ?' : 'Votre avis sur le site Zado'}</h2>
+          <p class="hint">${service ? `Commande ${esc(opt.orderId || '')} : votre avis nous aide à mieux vous servir.` : 'Facile, clair, rapide ? Dites-nous ce qui marche et ce qui vous a gêné.'}</p></div></div>
+        <p class="fb-q">${service ? 'Votre note pour le service Zado' : 'Le site est-il facile à utiliser ?'}</p>
+        <div class="fb-rate" role="radiogroup" aria-label="Note sur 5">${[1, 2, 3, 4, 5].map((i) => `<button type="button" role="radio" data-r="${i}" aria-label="${i} sur 5">★</button>`).join('')}</div>
+        <p class="fb-word" aria-live="polite"></p>
+        ${service ? `<p class="fb-q">Recommanderiez-vous Zado à un proche ?</p>
+        <div class="fb-nps" role="radiogroup" aria-label="De 0 (pas du tout) à 10 (certainement)">${Array.from({ length: 11 }, (_, i) => `<button type="button" role="radio" data-n="${i}">${i}</button>`).join('')}</div>
+        <div class="fb-nps-legend"><span>Pas du tout</span><span>Certainement</span></div>` : ''}
+        <div class="fb-tags" hidden><p class="fb-q fb-tags-q"></p><div class="fb-chips"></div></div>
+        <label class="fb-q" for="fbText">${service ? 'Un mot pour l\'équipe ? (facultatif)' : 'Qu\'est-ce qu\'on pourrait améliorer ? (facultatif)'}</label>
+        <textarea id="fbText" maxlength="1000" rows="3" placeholder="${service ? 'Livraison, accueil, emballage…' : 'Une page difficile, un bouton introuvable, une idée…'}">${esc(prev?.text || '')}</textarea>
+        <div class="fb-err" aria-live="polite"></div>
+        <button type="button" class="btn cta block fb-send" disabled>${prev ? 'Mettre à jour mon avis' : 'Envoyer mon avis'}</button>
+        <p class="hint fb-privacy">${service ? 'Votre prénom et votre avis sont lus par l\'équipe Zado ; ils ne sont pas publiés sur le site.' : 'Votre avis est lu par l\'équipe Zado ; il n\'est pas publié sur le site.'}</p>
+      </div></div>`;
+    document.body.appendChild(el);
+    document.documentElement.classList.add('fb-open');
+    const $f = (s) => el.querySelector(s);
+    const close = () => { el.classList.add('out'); document.documentElement.classList.remove('fb-open'); setTimeout(() => el.remove(), 220); document.removeEventListener('keydown', onKey); };
+    const onKey = (e) => { if (e.key === 'Escape') close(); };
+    document.addEventListener('keydown', onKey);
+    el.addEventListener('click', (e) => { if (e.target === el || e.target.closest('.fb-close')) close(); });
+    const paint = () => {
+      el.querySelectorAll('.fb-rate button').forEach((b) => { const on = Number(b.dataset.r) <= rating; b.classList.toggle('on', on); b.setAttribute('aria-checked', String(Number(b.dataset.r) === rating)); });
+      $f('.fb-word').textContent = FB_WORDS[rating] || '';
+      el.querySelectorAll('.fb-nps button').forEach((b) => { const n = Number(b.dataset.n); b.classList.toggle('on', n === nps); b.classList.toggle(n <= 6 ? 'lo' : n <= 8 ? 'mid' : 'hi', true); b.setAttribute('aria-checked', String(n === nps)); });
+      const list = rating >= 4 ? tags.good : rating ? [...tags.bad, ...tags.good] : [];
+      $f('.fb-tags').hidden = !rating;
+      $f('.fb-tags-q').textContent = rating >= 4 ? 'Qu\'avez-vous apprécié ?' : 'Qu\'est-ce qui n\'a pas été ? (et ce qui a plu)';
+      $f('.fb-chips').innerHTML = list.map((t) => `<button type="button" class="fb-chip ${tags.bad.includes(t) ? 'bad' : 'good'} ${picked.has(t) ? 'on' : ''}" aria-pressed="${picked.has(t)}" data-t="${esc(t)}">${esc(t)}</button>`).join('');
+      $f('.fb-send').disabled = !rating;
+    };
+    el.querySelector('.fb-rate').addEventListener('click', (e) => { const b = e.target.closest('[data-r]'); if (!b) return; rating = Number(b.dataset.r); b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop'); paint(); });
+    el.querySelector('.fb-nps')?.addEventListener('click', (e) => { const b = e.target.closest('[data-n]'); if (b) { nps = Number(b.dataset.n); paint(); } });
+    el.querySelector('.fb-chips').addEventListener('click', (e) => { const b = e.target.closest('[data-t]'); if (!b) return; const t = b.dataset.t; if (picked.has(t)) picked.delete(t); else picked.add(t); paint(); });
+    $f('.fb-send').addEventListener('click', async () => {
+      const btn = $f('.fb-send'); btn.disabled = true; $f('.fb-err').textContent = '';
+      const visible = rating >= 4 ? tags.good : [...tags.bad, ...tags.good];
+      try {
+        await api('/feedback', { method: 'POST', body: { kind, rating, nps, tags: [...picked].filter((t) => visible.includes(t)), text: $f('#fbText').value, orderId: opt.orderId, token: opt.orderId ? tokenOf(opt.orderId) : undefined, route: location.hash.split('?')[0].slice(0, 120) || '#/', device: fbDevice(), visitor: fbVisitor() } });
+        if (opt.orderId) fbMarkRated(opt.orderId); else fbMarkRated('app');
+        $f('.fb-body').innerHTML = `<div class="fb-thanks">${mama('yes', { size: 'md', label: 'Mama Zando vous remercie' }) || ''}
+          <h2>Merci beaucoup !</h2>${fbStars(rating, 'big')}
+          <p>${rating <= 2 ? 'Nous sommes désolés que tout ne se soit pas bien passé. L\'équipe Zado lit votre avis et vous recontacte si besoin.' : rating === 3 ? 'Merci pour votre franchise : nous allons nous améliorer.' : 'Votre avis fait plaisir à toute l\'équipe Zado !'}</p>
+          <button type="button" class="btn ghost fb-done">Fermer</button></div>`;
+        $f('.fb-done').addEventListener('click', close);
+        opt.onDone?.(rating);
+      } catch (err) { $f('.fb-err').textContent = err.message; btn.disabled = false; }
+    });
+    paint();
+    requestAnimationFrame(() => el.classList.add('in'));
+    (el.querySelector('.fb-rate button.on') || el.querySelector('.fb-rate button'))?.focus({ preventScroll: true });
+  }
+  // Tout bouton [data-fb="service|app"] (étoiles rapides, liens « Donner mon avis ») ouvre la fenêtre
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-fb]');
+    if (!b) return;
+    e.preventDefault();
+    fbOpen(b.dataset.fb, { rating: b.dataset.fbRate, orderId: b.dataset.fbOrder || undefined, prev: b._fbPrev, onDone: () => b.closest('.fb-card')?.dispatchEvent(new CustomEvent('fb-done')) });
+  });
+  // Carte « Notez votre commande » (commande livrée) : remplie après l'affichage de la page (suivi, Mon compte)
+  async function fbOrderCard(slot, orderId) {
+    if (!slot) return;
+    let mine = null;
+    try { mine = await api(`/feedback/mine?order=${enc(orderId)}${tokenOf(orderId) ? `&token=${enc(tokenOf(orderId))}` : ''}`); } catch { return; }
+    if (!mine?.canRate) return;
+    const f = mine.feedback;
+    slot.innerHTML = f
+      ? `<div class="fb-card done"><div><b>Merci pour votre avis sur la commande ${esc(orderId)}</b>${fbStars(f.rating)}</div><button type="button" class="btn ghost" data-fb="service" data-fb-order="${esc(orderId)}" data-fb-rate="${f.rating}">Modifier</button></div>`
+      : `<div class="fb-card">${mama('deliver', { size: 'xs' }) || ''}<div><b>Votre commande ${esc(orderId)} est livrée : comment ça s'est passé ?</b><span class="hint">Touchez une étoile pour noter le service Zado.</span></div>${fbQuick('service', `data-fb-order="${esc(orderId)}"`)}</div>`;
+    const b = slot.querySelector('[data-fb]'); if (b && f) b._fbPrev = f;
+    slot.querySelector('.fb-card')?.addEventListener('fb-done', () => fbOrderCard(slot, orderId));
+  }
+  // Mon compte : la dernière commande livrée pas encore notée
+  function fbPromptLatest(list) {
+    const o = (list || []).find((x) => x.status === 'delivered' && !fbRated(x.id));
+    if (!o) return;
+    const slot = document.createElement('div'); slot.className = 'fb-slot';
+    (app.querySelector('.panel, .acc-head, h1')?.parentElement === app ? app.querySelector('.panel, .acc-head') : app.firstElementChild)?.insertAdjacentElement('beforebegin', slot);
+    fbOrderCard(slot, o.id);
+  }
+  // Bloc « Votre avis sur le site » (page Merci, Mon compte)
+  const fbAppBlock = (title = 'Comment s\'est passée votre commande sur le site ?') => (fbRated('app') ? '' : `<div class="panel fb-app"><div><b>${title}</b><span class="hint">Votre avis sur la facilité d'utilisation de Zado nous aide à améliorer le site.</span></div>${fbQuick('app')}</div>`);
+
   async function viewThanks(orderId) {
     renderNav(null);
     // Les détails de la commande ne sont lisibles qu'avec sa clé secrète, gardée par ce navigateur.
@@ -2122,7 +2234,7 @@
             <li>Dès réception, vous recevez la <strong>confirmation de commande</strong> ici${state.customer?.email ? ', par e-mail' : ''} et par WhatsApp.</li>
             <li>Nous préparons aussitôt votre commande : elle part par avion et vous est livrée rapidement à Pointe-Noire.</li></ol></div>
           <p><a class="btn ghost" href="#/suivi/${enc(order.id)}">Suivre ma commande</a> <a class="btn ghost" href="#/">Continuer mes achats</a></p>
-        </div>`;
+        </div>${fbAppBlock()}`;
       return;
     }
     if (order && order.status === 'pending_payment') {
@@ -2146,6 +2258,7 @@
         <p><a class="btn ghost" href="#/suivi/${enc(order.id)}">Suivre ma commande</a></p>` : ''}
         <a class="btn cta" href="#/">Continuer mes achats</a>
       </div>
+      ${order ? fbAppBlock() : ''}
       ${state.customer ? '' : `<div class="panel" style="text-align:center">
         <strong>Retrouvez vos commandes sur n'importe quel téléphone</strong>
         <p class="hint">Créez votre compte Zado en 30 secondes : vous recevez un code à 6 chiffres.</p>
@@ -2212,7 +2325,7 @@
     const list = await loadMyOrders();
     const c = state.customer;
 
-    if (c) return accountSpace(c, list, sub);
+    if (c) { const r = await accountSpace(c, list, sub); if (!sub) fbPromptLatest(list); return r; }
 
     app.innerHTML = `
       <div class="account-grid">
@@ -2724,8 +2837,10 @@
     const steps = trackSteps(o, agencyStep, payAg);
     const current = Math.max(0, steps.reduce((n, st, i) => (st[1] ? i : n), 0));
     const cancelled = o.status === 'cancelled';
+    if (o.status === 'delivered') setTimeout(() => fbOrderCard(document.getElementById('fbOrderSlot'), o.id)); // « Notez votre commande »
     app.innerHTML = `
       <div class="crumbs"><a href="#/compte">Mon compte</a> › Suivi de commande</div>
+      ${o.status === 'delivered' ? '<div class="fb-slot" id="fbOrderSlot"></div>' : ''}
       <div class="checkout">
         <div class="panel">
           <div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><h1 style="margin:0">${esc(o.id)}</h1>${statusBadge(o)}</div>

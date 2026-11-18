@@ -63,13 +63,14 @@ function siteVersion() {
 }
 app.get('/api/config', (req, res) => {
   res.set('Cache-Control', 'no-store');
-  res.json({ shopName: config.shopName, currency: config.currency, paymentMode: config.paymentMode, demo: config.demo, universes: UNIVERSES, version: siteVersion(), accountRequired: require('./sales').salesSettings().accountRequired, deliveryFees: require('./fees').publicFees(), maintenance: require('./maintenance').publicState(), ...(config.demo ? { demoTrack: { id: 'CMD-DEMO-0002', token: require('./demo').DEMO_TRACK_TOKEN } } : {}) , freight: require('./freight').publicFreight(), relays: require("./store").agencies.all().filter((a) => a.active !== false).length, auth: require('./customer/sso').publicAuthConfig(), mobileDeposit: require('./mobile-pay').mobileSettings().deposit, serviceFee: require('./pricing').serviceFee(), momoRate: require('./pricing').pricingSettings().momoRate, noel: require('./noel').publicNoel(), promos: require('./store').promos.all().some((p) => p.active !== false) });
+  res.json({ shopName: config.shopName, currency: config.currency, paymentMode: config.paymentMode, demo: config.demo, universes: UNIVERSES, version: siteVersion(), accountRequired: require('./sales').salesSettings().accountRequired, deliveryFees: require('./fees').publicFees(), maintenance: require('./maintenance').publicState(), ...(config.demo ? { demoTrack: { id: 'CMD-DEMO-0002', token: require('./demo').DEMO_TRACK_TOKEN } } : {}) , freight: require('./freight').publicFreight(), relays: require("./store").agencies.all().filter((a) => a.active !== false).length, auth: require('./customer/sso').publicAuthConfig(), mobileDeposit: require('./mobile-pay').mobileSettings().deposit, serviceFee: require('./pricing').serviceFee(), momoRate: require('./pricing').pricingSettings().momoRate, noel: require('./noel').publicNoel(), promos: require('./store').promos.all().some((p) => p.active !== false), satisfaction: require('./feedback').publicSummary() });
 });
 app.use('/api/products', require('./routes/products'));
 app.use('/api/orders', require('./routes/orders'));
 app.use('/api/payments', require('./routes/payments'));
 app.use('/api/account', require('./routes/account'));
 app.use('/api/chat', require('./routes/chat')); // messagerie (bulle « Aide » de la boutique)
+app.use('/api/feedback', require('./routes/feedback')); // avis sur le service et l'application (src/feedback.js)
 // Notifications de suivi sur le téléphone (Web Push)
 const push = require('./push');
 push.watchOrders();

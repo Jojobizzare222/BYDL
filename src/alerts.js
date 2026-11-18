@@ -22,7 +22,7 @@ const admin = (hash) => `${config.publicUrl}/admin/${hash}`;
 const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 // ---------- Catalogue des alertes ----------
-const CATEGORIES = { clients: 'Clients', commandes: 'Commandes', paiements: 'Paiements', livraison: 'Logistique et livraison', messagerie: 'Messagerie', catalogue: 'Catalogue et stock', finances: 'Finances', resume: 'Résumé' };
+const CATEGORIES = { clients: 'Clients', commandes: 'Commandes', paiements: 'Paiements', livraison: 'Logistique et livraison', messagerie: 'Messagerie', catalogue: 'Catalogue et stock', satisfaction: 'Satisfaction', finances: 'Finances', resume: 'Résumé' };
 const TYPES = {
   'customer.new': { cat: 'clients', label: 'Nouveau client inscrit' },
   'customer.identity': { cat: 'clients', label: "Pièce d'identité à vérifier", urgent: true },
@@ -42,6 +42,8 @@ const TYPES = {
   'chat.human': { cat: 'messagerie', label: 'Un client demande un conseiller', urgent: true },
   'chat.message': { cat: 'messagerie', label: 'Nouveau message d\'un client' },
   'review.new': { cat: 'catalogue', label: 'Nouvel avis client' },
+  'feedback.new': { cat: 'satisfaction', label: 'Avis sur le service ou l\'application' },
+  'feedback.bad': { cat: 'satisfaction', label: 'Avis négatif (1 ou 2 étoiles) : à rappeler', urgent: true },
   'product.pending': { cat: 'catalogue', label: 'Produit proposé à valider' },
   'stock.low': { cat: 'catalogue', label: 'Stock bas ou rupture' },
   'finance.recurring': { cat: 'finances', label: 'Dépense récurrente enregistrée' },
@@ -223,6 +225,14 @@ function onChange({ col, doc, before }) {
       } else if (before && c.status === 'open' && c.lastFrom === 'customer' && c.lastAt !== before.lastAt) {
         emit('chat.message', { title: `Message de ${c.name || 'un visiteur'}`, lines: [`« ${String(c.lastText || '').slice(0, 300)} »`], link: admin(`#/messagerie/${encodeURIComponent(c.id)}`), ref: c.id });
       }
+      return;
+    }
+    if (col === 'feedback' && (!before || before.rating !== doc.rating || before.text !== doc.text)) {
+      const what = doc.kind === 'service' ? `le service${doc.orderId ? ` (commande ${doc.orderId})` : ''}` : "l'application";
+      const stars = `${'★'.repeat(doc.rating)}${'☆'.repeat(5 - doc.rating)}`;
+      emit(doc.rating <= 2 ? 'feedback.bad' : 'feedback.new', { title: `${doc.rating <= 2 ? 'Avis négatif' : 'Avis'} ${stars} sur ${what} : ${doc.name}`,
+        lines: [doc.text ? `« ${String(doc.text).slice(0, 300)} »` : 'Sans commentaire.', ...(doc.tags?.length ? [`Points : ${doc.tags.join(', ')}`] : []), ...(Number.isInteger(doc.nps) ? [`Recommanderait Zado : ${doc.nps}/10`] : []), ...(doc.rating <= 2 && doc.phone ? [`Téléphone : ${doc.phone}`] : [])],
+        link: admin(`#/satisfaction/${encodeURIComponent(doc.id)}`), ref: doc.id });
       return;
     }
     if (col === 'reviews' && !before) {
